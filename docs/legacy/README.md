@@ -26,6 +26,7 @@ Legacy setup scripts for the hybrid architecture:
 Legacy configuration files:
 - `requirements.txt` - Old Python dependencies (with FastAPI, SQLAlchemy, etc.)
 - `.env` and `.env.template` - Environment configurations with database settings
+- `logging_config.py` - FastAPI/SQLAlchemy logging configuration (Python-based)
 - `__pycache__/` - Python cache files
 
 ### `/database/`
@@ -60,6 +61,11 @@ Legacy documentation files:
 
 ### `/migrations/`
 Legacy database migrations using Alembic
+
+### `/Jeseci-Smart-Learning-Platform-main/`
+Legacy project structure (original extracted files):
+- `frontend/public/` - Original frontend public assets
+- Historical project organization before pure JAC refactor
 
 ## Why These Files Were Moved
 
