@@ -1,0 +1,1 @@
+walker test { report "hello"; }
