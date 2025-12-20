@@ -116,7 +116,7 @@ test(api): add learning path endpoint tests
 
 The codebase now fully complies with all established standards:
 - ✅ Human-readable commit messages
-- ✅ No "MiniMax Agent" references  
+- ✅ No "Cavin Otieno" references  
 - ✅ Proper git author configuration
 - ✅ Main branch active
 - ✅ English language consistency
