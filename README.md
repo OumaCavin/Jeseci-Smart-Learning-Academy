@@ -92,6 +92,16 @@ cp docs/pure-jac/.env_pure_jac .env
 # Add your OpenAI API key to .env
 ```
 
+### ⚠️ Dependency Management Note
+
+**jac-cloud Version Compatibility**: Due to version conflicts between `jaclang>=0.9.3` and `jac-cloud==0.2.11`, this project uses manually expanded dependencies instead of the `jac-cloud` package. 
+
+- ✅ **Resolved**: `jaclang>=0.9.3` for latest JAC features
+- ⚠️ **Note**: `jac-cloud` dependencies are installed individually, not as a package
+- 🚨 **Potential Issue**: If `jac serve` encounters issues, the custom dependency setup may need adjustment
+
+The setup script includes warnings about this approach. If you experience problems with `jac serve`, consider using an older version of JAC that supports the bundled `jac-cloud` package.
+
 ### Running the Application
 
 ```bash

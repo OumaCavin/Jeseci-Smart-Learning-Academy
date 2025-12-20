@@ -23,6 +23,15 @@ print_header() {
     echo -e "\n${BLUE}🚀 $1${NC}\n"
 }
 
+show_dependency_warning() {
+    print_warning "Dependency Management Note:"
+    echo "  • jac-cloud has been manually expanded to resolve version conflicts"
+    echo "  • jaclang>=0.9.3 is required for latest features"
+    echo "  • jac-cloud dependencies are installed individually (not as a package)"
+    echo "  • If 'jac serve' encounters issues, this custom setup may need adjustment"
+    echo ""
+}
+
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
@@ -68,6 +77,9 @@ fi
 main() {
     print_header "Jeseci Smart Learning Academy - Pure JAC Setup"
     print_info "Setting up minimal JAC architecture (no external databases)"
+    
+    # Show dependency management warning
+    show_dependency_warning
     
     # Check prerequisites
     print_header "Checking Prerequisites"
