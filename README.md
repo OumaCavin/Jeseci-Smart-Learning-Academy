@@ -85,7 +85,7 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install JAC dependencies
-pip install -r requirements-jac.txt
+pip install -r docs/pure-jac/requirements_pure_jac.txt
 
 # Configure environment
 cp docs/pure-jac/.env_pure_jac .env
@@ -99,10 +99,10 @@ git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
 cd Jeseci-Smart-Learning-Academy
 
 # Install dependencies using UV (faster and more reliable)
-uv pip install jaclang>=0.9.3 jac-client>=0.2.3
+uv pip install -r docs/pure-jac/requirements_pure_jac.txt
 
-# Or install all project dependencies
-uv pip install -r requirements.txt
+# Or install individual JAC packages
+uv pip install jaclang>=0.9.3 jac-client>=0.2.3
 ```
 
 ### ⚠️ Important: JAC Dependencies
@@ -113,6 +113,8 @@ The application requires both JAC packages:
 
 If you encounter the error `__jacRegisterClientModule is not defined`, ensure both packages are installed:
 ```bash
+uv pip install -r docs/pure-jac/requirements_pure_jac.txt
+# or individually:
 uv pip install jaclang>=0.9.3 jac-client>=0.2.3
 ```
 
