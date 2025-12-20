@@ -116,19 +116,32 @@ The application will be available at `http://localhost:8000`
 
 ## 🧩 Project Structure
 
+### Active Project (Pure JAC)
 ```
 jeseci-smart-learning-academy/
 ├── app.jac                          # Main JAC application with OSP models
-├── requirements.txt                 # Python dependencies
-├── .env.template                    # Environment configuration template
-├── config/                          # Configuration files
-├── frontend/                        # Jac Client components
-├── services/                        # JAC services and utilities
-├── api/v1/                          # API endpoints (walkers)
-├── components/                      # Reusable Jac Client components
-├── tests/                           # JAC test suites
-└── docs/                            # Documentation
+├── setup_pure_jac.sh                # Simplified setup script
+├── requirements_pure_jac.txt        # Minimal JAC dependencies
+├── .env_pure_jac                    # Environment template
+├── QUICKSTART_PURE_JAC.md           # Quick start guide
+├── README.md                        # This documentation
+└── .gitignore                       # Git ignore rules
 ```
+
+### Legacy Files (Previous Architecture)
+```
+docs/legacy/                         # Previous FastAPI + JAC hybrid implementation
+├── setup/                          # Legacy setup scripts
+├── config/                         # Legacy configuration files
+├── database/                       # SQLAlchemy models and migrations
+├── api/                            # FastAPI endpoints
+├── services/                       # Legacy service layer
+├── frontend/                       # Legacy frontend components
+├── migrations/                     # Database migrations
+└── docs/                           # Legacy documentation
+```
+
+**Note**: Legacy files are preserved for reference but not actively maintained.
 
 ### Core JAC Files
 - **app.jac**: Main application with OSP graph definitions and walkers
