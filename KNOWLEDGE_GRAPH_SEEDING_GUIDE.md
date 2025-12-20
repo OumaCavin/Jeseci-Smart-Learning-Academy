@@ -152,11 +152,11 @@ RETURN c.name, r.status, r.progress_percent, collect(lp.title)
 ### **Database Verification**
 ```bash
 # Check PostgreSQL concepts
-psql -h localhost -U jeseci_user -d jeseci_learning_companion -c "
+psql -h localhost -U jeseci_user -d jeseci_learning_academy -c "
 SELECT name, display_name, category FROM concepts;"
 
 # Check user progress
-psql -h localhost -U jeseci_user -d jeseci_learning_companion -c "
+psql -h localhost -U jeseci_user -d jeseci_learning_academy -c "
 SELECT concept_id, status, progress_percent, time_spent_minutes 
 FROM user_concept_progress;"
 ```
@@ -273,7 +273,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```bash
 # Error: Login failed
 # Solution: Check user exists in database
-psql -h localhost -U jeseci_user -d jeseci_learning_companion -c "
+psql -h localhost -U jeseci_user -d jeseci_learning_academy -c "
 SELECT username, email FROM users WHERE username = 'cavin_admin';"
 ```
 

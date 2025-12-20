@@ -14,7 +14,7 @@
 - **Verification**: No remaining MiniMax references in Python, JavaScript, or HTML files
 
 ### 3. Repository Setup
-- **Remote Origin**: Added https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion.git
+- **Remote Origin**: Added https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
 - **Authentication**: Configured with GitHub personal access token
 - **Branch**: Main branch enforced
 
@@ -34,19 +34,19 @@ git config user.email "cavin.otieno012@gmail.com"
 git branch -M main
 
 # Add remote repository
-git remote add origin https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion.git
+git remote add origin https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
 
 # Stage and commit changes
 git add seed_educational_content.py
 git commit -m "feat(rebranding): replace Cavin Otieno with Cavin Otieno in educational content seeding"
 
 # Push to GitHub (use your personal access token)
-git push <your-github-token>@github.com/OumaCavin/Jeseci-Smart-Learning-Companion.git main
+git push <your-github-token>@github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git main
 ```
 
 ## 📋 Repository Status
 
-- **Repository**: https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion
+- **Repository**: https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy
 - **Branch**: main
 - **Author**: Cavin Otieno (cavin.otieno012@gmail.com)
 - **Language**: English (no Chinese content)

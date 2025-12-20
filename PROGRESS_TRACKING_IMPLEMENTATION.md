@@ -259,10 +259,10 @@ python test_progress_data.py
 ### **Database Verification Commands**
 ```bash
 # Check progress table exists
-psql -h localhost -U jeseci_user -d jeseci_learning_companion -c "\dt user_concept_progress"
+psql -h localhost -U jeseci_user -d jeseci_learning_academy -c "\dt user_concept_progress"
 
 # View progress records
-psql -h localhost -U jeseci_user -d jeseci_learning_companion -c "
+psql -h localhost -U jeseci_user -d jeseci_learning_academy -c "
 SELECT user_id, concept_id, status, progress_percent, time_spent_minutes 
 FROM user_concept_progress;"
 ```

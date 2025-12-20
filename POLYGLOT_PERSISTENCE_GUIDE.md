@@ -289,7 +289,7 @@ ORDER BY avg_progress_percent DESC
 postgresql:
   image: postgres:15
   environment:
-    POSTGRES_DB: jeseci_learning_companion
+    POSTGRES_DB: jeseci_learning_academy
     POSTGRES_USER: jeseci_user
     POSTGRES_PASSWORD: secure_password_123
 
@@ -302,7 +302,7 @@ neo4j:
 ### **Environment Variables**
 ```bash
 # .env
-DATABASE_URL=postgresql://jeseci_user:secure_password_123@localhost:5432/jeseci_learning_companion
+DATABASE_URL=postgresql://jeseci_user:secure_password_123@localhost:5432/jeseci_learning_academy
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=neo4j_secure_password_2024

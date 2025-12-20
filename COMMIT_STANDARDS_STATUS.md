@@ -17,7 +17,7 @@
 ### Git Configuration ✅
 - **User**: OumaCavin (oumacavin@example.com)
 - **Branch**: main
-- **Repository**: https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion.git
+- **Repository**: https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
 
 ### Code Quality ✅
 - **No "MiniMax Agent" references** in Python, JavaScript, or HTML files
