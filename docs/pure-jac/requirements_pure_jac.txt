@@ -1,5 +1,6 @@
 # JAC Language Runtime 
 jaclang>=0.9.3
+jac-client>=0.2.3  # Client-side runtime for JAC frontend components
 
 # --- Manually Expanded 'jac-cloud' Dependencies ---
 # These replace the 'jac-cloud' package to bypass version conflicts.
