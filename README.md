@@ -1,59 +1,55 @@
 # 🎓 Jeseci Smart Learning Academy
 
 [![JAC Language](https://img.shields.io/badge/JAC-0.9.3-blue.svg)](https://github.com/Jaseci-Labs/jaseci)
-[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.124+-green.svg)](https://fastapi.tiangolo.com)
-[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-red.svg)](https://sqlalchemy.org)
-[![SQLite](https://img.shields.io/badge/SQLite-Development-lightgrey.svg)](https://sqlite.org)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Production-blue.svg)](https://postgresql.org)
-[![Redis](https://img.shields.io/badge/Redis-Caching-red.svg)](https://redis.io)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://docker.com)
+[![Jac Cloud](https://img.shields.io/badge/Jac%20Cloud-Ready-green.svg)](https://cloud.jaseci.org)
+[![JAC Client](https://img.shields.io/badge/JAC%20Client-Frontend-purple.svg)](https://jaseci.org/docs/jac_client)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **An AI-powered adaptive learning academy built with JAC programming language, FastAPI, and modern web technologies.**
+> **An AI-powered adaptive learning portal built entirely with JAC programming language using Object-Spatial Programming (OSP), byLLM, and Jac Client.**
 
 ## 🌟 Features
 
-- 🤖 **AI-Powered Learning**: Personalized learning paths powered by intelligent AI agents
-- 📊 **Progress Analytics**: Real-time learning analytics and performance tracking
-- 🎯 **Adaptive Content**: Dynamic content curation based on learning patterns
-- 🏆 **Gamification**: Achievement system with badges and progress rewards
-- 🔐 **Enterprise Security**: Robust authentication and authorization system
-- 📱 **Responsive Design**: Modern, mobile-first user interface
-- 🔄 **Multi-Agent Architecture**: Specialized AI agents for different learning aspects
+- 🧠 **AI-Powered Learning**: Personalized learning experiences powered by `byLLM` decorators
+- 🎯 **Adaptive Content**: Dynamic content generation and assessment using Large Language Models
+- 📊 **Progress Analytics**: Real-time learning analytics with OSP-based mastery tracking
+- 🏆 **Intelligent Tutoring**: AI agents that analyze learning patterns and suggest next steps
+- 🔗 **Knowledge Graph**: Object-Spatial Programming models relationships between concepts
+- 💡 **Interactive Exercises**: Auto-generated quizzes and coding challenges
+- 📈 **Skill Visualization**: Visual "skill map" showing mastered and weak areas
 
-## 🏗️ Technology Stack
+## 🏗️ Architecture Overview
 
-### Core Technologies
-- **JAC Language** (0.9.3+) - Primary programming language
-- **Python** (3.12+) - Backend development
-- **FastAPI** (0.124+) - High-performance API framework
-- **SQLAlchemy** (2.0+) - Database ORM
+### Core JAC Features
+- **Object-Spatial Programming (OSP)**: Graph-based data modeling for learning concepts
+- **byLLM Integration**: AI-powered content generation and assessment
+- **Jac Client**: React-style frontend components written in JAC
+- **Native Web Server**: `jac serve` provides built-in HTTP endpoints
 
-### Database & Storage
-- **SQLite** - Development database (default)
-- **PostgreSQL** - Production database
-- **Redis** - Caching and session management
-- **Neo4j** - Graph database for knowledge relationships
+### Technology Stack
 
-### Frontend & UI
-- **JAC Frontend** - JAC-based frontend components
-- **Modern JavaScript** - Interactive user interface
-- **Responsive CSS** - Mobile-first design
-- **PWA Support** - Progressive Web App capabilities
+#### Backend (JAC Language)
+- **JAC Programming Language** (0.9.3+) - Primary development language
+- **Object-Spatial Programming** - Graph data structures for learning models
+- **byLLM Decorators** - AI-powered content generation and assessment
+- **Walkers** - API endpoints and graph traversal logic
 
-### DevOps & Deployment
-- **Docker** - Containerization
-- **Docker Compose** - Multi-service orchestration
-- **Alembic** - Database migrations
-- **pytest** - Testing framework
+#### Frontend (Jac Client)
+- **Jac Client** - React-style components in JAC
+- **Interactive Code Editor** - Monaco/CodeMirror integration
+- **Progress Dashboards** - Real-time learning analytics visualization
+- **Responsive Design** - Mobile-first user interface
+
+#### Data Storage
+- **PostgreSQL** - User data and lesson content (`jeseci_learning_academy`)
+- **Redis** - Session management and caching (`database 1`)
+- **Neo4j** - Knowledge graph and relationships (`jeseci_academy`)
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.12+
-- Docker (optional, for full stack)
 - Git
+- PostgreSQL, Redis, and Neo4j (or use Docker)
 
 ### Installation
 
@@ -63,107 +59,88 @@
    cd Jeseci-Smart-Learning-Academy
    ```
 
-2. **Set up virtual environment:**
+2. **Install JAC Language and Jac Cloud:**
    ```bash
-   chmod +x setup_virtual_env.sh
-   ./setup_virtual_env.sh
-   source venv/bin/activate
+   pip install jaclang jac-cloud
    ```
 
-3. **Install JAC language:**
+3. **Set up databases:**
    ```bash
-   pip install "jaclang>=0.9.3"
+   # PostgreSQL
+   psql -h localhost -U jeseci_user -d jeseci_learning_academy
+
+   # Redis
+   redis-cli -d 1
+
+   # Neo4j
+   cypher-shell -u neo4j -p neo4j_secure_password_2024
+   # Create database: CREATE DATABASE jeseci_academy;
    ```
 
-4. **Initialize database:**
+4. **Configure environment:**
    ```bash
-   alembic upgrade head
+   cp .env.template .env
+   # Edit .env with your database credentials
    ```
 
 ### Running the Application
 
-#### Option 1: JAC Application (Primary)
+#### Start the JAC Application
 ```bash
-# Run the main JAC application
+# Start the native JAC web server
 jac serve app.jac
 ```
 
-#### Option 2: FastAPI Server (Backend API)
-```bash
-# Run the FastAPI server
-uvicorn main:app --reload --port 8000
-```
+The application will be available at `http://localhost:8000`
 
-#### Option 3: Docker (Full Stack)
-```bash
-# Start all services
-docker-compose up -d
+#### Key API Endpoints (via Walkers)
+- `GET /functions/register_user` - User registration
+- `GET /functions/get_lesson` - Retrieve learning content
+- `GET /functions/generate_quiz` - AI-generated quiz creation
+- `POST /functions/submit_answer` - Answer submission and assessment
+- `GET /functions/update_mastery` - Progress tracking
 
-# Check service health
-docker-compose ps
-```
+## 📖 Learning Portal Features
 
-### Access Points
+### Object-Spatial Programming (OSP) Models
+- **User Nodes**: Individual learner profiles and preferences
+- **Concept Nodes**: Learning topics (walkers, OSP, byLLM, etc.)
+- **Lesson Nodes**: Structured learning content and exercises
+- **Quiz Nodes**: Auto-generated assessments and evaluations
+- **Mastery Edges**: Proficiency tracking between concepts
 
-- **JAC Application**: http://localhost:8000
-- **FastAPI Documentation**: http://localhost:8000/docs
-- **API Health Check**: http://localhost:8000/health
-- **JAC Graph Visualization**: http://localhost:8000/graph
+### AI-Powered Components
+- **Content Generation**: `byLLM` decorators create personalized lesson content
+- **Quiz Generation**: AI generates questions based on learning objectives
+- **Assessment Engine**: Intelligent evaluation of free-text answers
+- **Learning Path Optimization**: AI suggests next topics based on mastery
 
-## 📖 Documentation
-
-### Architecture
-- [System Architecture](docs/architecture/system_architecture.png)
-- [Data Flow Diagram](docs/architecture/data_flow_diagram.png)
-- [JAC Project Analysis](JAC_PROJECT_ANALYSIS.md)
-- [JAC Validation Report](JAC_PROJECT_VALIDATION_REPORT.md)
-
-### User Guides
-- [Setup Guide](SETUP_GUIDE.md)
-- [Local Setup Guide](LOCAL_SETUP_GUIDE.md)
-- [End User Documentation](docs/user/end_user_guide.md)
-
-### Development
-- [Implementation Plan](docs/implementation/comprehensive_implementation_plan.md)
-- [Migration Guide](docs/migration/gradual_migration_plan.md)
+### Adaptive Learning Logic
+- **Mastery Tracking**: Real-time proficiency scoring for each concept
+- **Prerequisite Analysis**: Automatic identification of knowledge gaps
+- **Difficulty Adjustment**: Dynamic quiz difficulty based on performance
+- **Personalized Recommendations**: AI-driven content suggestions
 
 ## 🧩 Project Structure
 
 ```
 jeseci-smart-learning-academy/
-├── app.jac                          # Main JAC application
-├── main.py                          # FastAPI server
+├── app.jac                          # Main JAC application with OSP models
 ├── requirements.txt                 # Python dependencies
-├── setup_virtual_env.sh            # Environment setup script
+├── .env.template                    # Environment configuration template
 ├── config/                          # Configuration files
-├── database/                        # Database models & migrations
-├── api/                             # REST API endpoints
-├── frontend/                        # JAC frontend components
-├── services/                        # Business logic services
-├── components/                      # Reusable components
-├── docs/                            # Documentation
-├── migrations/                      # Database migrations
-└── tests/                           # Test suites
+├── frontend/                        # Jac Client components
+├── services/                        # JAC services and utilities
+├── api/v1/                          # API endpoints (walkers)
+├── components/                      # Reusable Jac Client components
+├── tests/                           # JAC test suites
+└── docs/                            # Documentation
 ```
 
-## 🎯 Core Components
-
-### JAC Application Layer
-- **app.jac** - Main application controller with `app()` entry point
-- **Objects** - LearningDashboard, AIChatInterface, PersonalizedRecommendations
-- **Walkers** - AI processing, learning path generation, progress analytics
-
-### FastAPI Backend
-- **Authentication** - JWT-based security system
-- **User Management** - Profile and preferences management
-- **Learning Content** - Concept and learning path management
-- **Progress Tracking** - Real-time analytics and reporting
-
-### Database Architecture
-- **SQLite** (Development) - Local testing and development
-- **PostgreSQL** (Production) - Scalable production database
-- **Redis** - Caching and session management
-- **Neo4j** - Knowledge graph and relationship mapping
+### Core JAC Files
+- **app.jac**: Main application with OSP graph definitions and walkers
+- **Walkers**: Graph traversal logic exposed as HTTP endpoints
+- **Jac Client**: Frontend components for user interaction
 
 ## 🔧 Configuration
 
@@ -172,139 +149,143 @@ jeseci-smart-learning-academy/
 Create a `.env` file:
 
 ```env
-# Database Configuration (SQLite for development)
-DATABASE_URL=sqlite:///./jeseci_dev.db
+# Database Configuration
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=jeseci_user
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=jeseci_learning_academy
 
-# Production Database (uncomment for PostgreSQL)
-# DATABASE_URL=postgresql://user:password@localhost:5432/jeseci_db
-
-# Redis Configuration (optional)
 REDIS_HOST=localhost
 REDIS_PORT=6379
-REDIS_DB=0
+REDIS_DB=1
 
-# JWT Configuration
-SECRET_KEY=your-super-secret-key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+NEO4J_HOST=localhost
+NEO4J_PORT=7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=neo4j_secure_password_2024
+NEO4J_DATABASE=jeseci_academy
 
 # Application Settings
-DEBUG=true
-API_V1_STR=/api/v1
 PROJECT_NAME="Jeseci Smart Learning Academy"
+DEBUG=true
 ```
-
-### Database Options
-
-The application supports multiple database backends:
-
-1. **SQLite** (Default - Development)
-   ```bash
-   # No additional setup required
-   DATABASE_URL=sqlite:///./jeseci_dev.db
-   ```
-
-2. **PostgreSQL** (Production)
-   ```bash
-   # Uncomment in requirements.txt: psycopg2-binary==2.9.11
-   DATABASE_URL=postgresql://user:password@localhost:5432/jeseci_db
-   ```
-
-3. **MySQL** (Alternative)
-   ```bash
-   # Uncomment in requirements.txt: mysql-connector-python>=8.2.0
-   DATABASE_URL=mysql://user:password@localhost:3306/jeseci_db
-   ```
 
 ## 🧪 Testing
 
 ### Run JAC Tests
 ```bash
 # Test JAC syntax and compilation
-jac build app.jac
+jac
+
+# Run build app.jac JAC unit tests
 jac test app.jac
+
+# Test specific walkers
+jac run app.jac --walker register_user
 ```
 
-### Run Python Tests
+### API Testing
 ```bash
-# Run all tests
-pytest
+# Test user registration
+curl -X GET "http://localhost:8000/functions/register_user?name=TestUser&email=test@example.com"
 
-# Run with coverage
-pytest --cov=.
+# Test lesson retrieval
+curl -X GET "http://localhost:8000/functions/get_lesson?concept_id=walkers"
 
-# Run specific test modules
-pytest tests/test_auth.py
-pytest tests/test_api.py
+# Test quiz generation
+curl -X GET "http://localhost:8000/functions/generate_quiz?concept_id=byllm"
 ```
 
-### Integration Testing
-```bash
-# Test API endpoints
-curl -X GET http://localhost:8000/health
+## 🎯 Learning Content Structure
 
-# Test JAC application
-curl -X GET http://localhost:8000/functions
+### Concept Hierarchy
+1. **JAC Fundamentals**
+   - Variables and Data Types
+   - Functions and Walkers
+   - Control Flow
+
+2. **Object-Spatial Programming**
+   - Nodes and Edges
+   - Graph Manipulation
+   - Relationship Modeling
+
+3. **AI Integration**
+   - byLLM Decorators
+   - Content Generation
+   - Intelligent Assessment
+
+4. **Jac Client Development**
+   - Component Creation
+   - State Management
+   - Interactive UIs
+
+### Adaptive Learning Features
+- **Prerequisite Checking**: Automatic validation of concept dependencies
+- **Mastery-Based Unlocking**: Progressive content access based on proficiency
+- **Difficulty Scaling**: Dynamic adjustment of quiz complexity
+- **Personalized Paths**: AI-driven learning sequence optimization
+
+## 🚀 Deployment
+
+### Development
+```bash
+# Start the application
+jac serve app.jac
+```
+
+### Production
+```bash
+# Build optimized JAC application
+jac build app.jac --optimize
+
+# Deploy with Jac Cloud
+jac cloud deploy app.jac
+```
+
+### Docker Support
+```bash
+# Build container
+docker build -t jeseci-academy .
+
+# Run container
+docker run -p 8000:8000 jeseci-academy
 ```
 
 ## 📊 Monitoring & Analytics
 
-### Health Checks
-- **Database Connectivity**: Check all database connections
-- **Service Status**: Monitor running services
-- **Performance Metrics**: Response times and throughput
+### Learning Analytics
+- **Mastery Progress**: Real-time proficiency tracking
+- **Learning Velocity**: Rate of concept acquisition
+- **Difficulty Adaptation**: Success rate analysis
+- **Knowledge Retention**: Long-term memory assessment
 
-### Analytics Dashboard
-- **Learning Progress**: User progress visualization
-- **AI Agent Performance**: Agent efficiency metrics
-- **System Health**: Real-time system monitoring
-
-## 🚀 Deployment
-
-### Development Deployment
-```bash
-# Local development
-source venv/bin/activate
-jac serve app.jac
-uvicorn main:app --reload
-```
-
-### Production Deployment
-```bash
-# Docker production
-docker-compose -f docker-compose.prod.yml up -d
-
-# Kubernetes (future)
-kubectl apply -f k8s/
-```
-
-### Scaling Considerations
-- **Horizontal Scaling**: Multiple API instances
-- **Database Sharding**: User-based data partitioning
-- **Caching Strategy**: Redis cluster for high availability
+### System Health
+- **Walker Performance**: Endpoint response times
+- **Database Connectivity**: Connection pool monitoring
+- **AI Generation Metrics**: byLLM processing statistics
 
 ## 🤝 Contributing
 
 ### Development Workflow
 1. **Fork** the repository
 2. **Create** a feature branch
-3. **Make** your changes
-4. **Test** thoroughly
+3. **Implement** OSP models and walkers
+4. **Test** with `jac test`
 5. **Submit** a pull request
 
 ### Code Standards
 - **JAC Syntax**: Follow JAC language conventions
-- **Python Code**: Use Black formatter and isort
+- **OSP Design**: Use graph structures for data modeling
+- **byLLM Usage**: Implement AI features responsibly
 - **Documentation**: Update docs for new features
-- **Testing**: Add tests for new functionality
 
-### Commit Messages
-Use conventional commit format:
+### Commit Guidelines
 ```
-feat: add AI-powered content recommendation
-fix: resolve database connection timeout
-docs: update API documentation
-test: add integration tests for auth module
+feat(osp): add new Concept node for advanced topics
+fix(byllm): resolve quiz generation edge case
+docs(walkers): update API endpoint documentation
+test(learning): add mastery tracking tests
 ```
 
 ## 📝 License
@@ -315,22 +296,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Cavin Otieno**  
 - GitHub: [@OumaCavin](https://github.com/OumaCavin)
-- Email: cavin@example.com
+- Email: cavin.otieno012@gmail.com
 
 ## 🙏 Acknowledgments
 
-- [Jaseci Labs](https://github.com/Jaseci-Labs/jaseci) for the JAC programming language
-- [FastAPI](https://fastapi.tiangolo.com) for the excellent web framework
-- [SQLAlchemy](https://sqlalchemy.org) for the robust ORM
-- Open source community for various libraries and tools
+- [Jaseci Labs](https://github.com/Jaseci-Labs/jaseci) for the revolutionary JAC programming language
+- [JAC Documentation](https://jaseci.org/docs/) for comprehensive guides and examples
+- Open source community for continuous innovation in AI-powered education
 
 ## 📞 Support
 
 For support and questions:
-- 📧 Email: cavin@example.com
+- 📧 Email: cavin.otieno012@gmail.com
 - 🐛 Issues: [GitHub Issues](https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy/issues)
-- 📖 Documentation: [Project Docs](docs/)
+- 📖 Documentation: [JAC Docs](https://jaseci.org/docs/)
 
 ---
 
-**Made with ❤️ by Cavin Otieno using JAC and modern web technologies**
+**Made with ❤️ by Cavin Otieno using JAC's native AI-powered development ecosystem**
