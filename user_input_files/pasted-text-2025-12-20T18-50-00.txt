@@ -1,0 +1,129 @@
+(venv) cavin@DESKTOP-KR7GL8A:~/projects/Jeseci-Smart-Learning-Academy$ jac serve learning./learning_portal_foundation.jac
+🎓 Jeseci Smart Learning Academy - Foundation Ready
+📚 Pure JAC with Object-Spatial Programming
+🚀 Use 'jac serve learning_portal_foundation.jir' to start the server
+Jac API Server running on http://0.0.0.0:8000
+Module: learning_portal_foundation
+Session: learning./learning_portal_foundation.session
+
+Available endpoints:
+  POST /user/create - Create a new user
+  POST /user/login - Login and get auth token
+  GET /functions - List all functions
+  GET /walkers - List all walkers
+  GET /function/<name> - Get function signature
+  GET /walker/<name> - Get walker info
+  POST /function/<name> - Call a function
+  POST /walker/<name> - Spawn a walker
+
+Press Ctrl+C to stop the server
+127.0.0.1 - "GET / HTTP/1.1" 200 -
+127.0.0.1 - "GET /walkers HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 46634)
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/socketserver.py", line 318, in _handle_request_noblock
+    self.process_request(request, client_address)
+  File "/usr/lib/python3.12/socketserver.py", line 349, in process_request
+    self.finish_request(request, client_address)
+  File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+    self.handle()
+  File "/usr/lib/python3.12/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+    method()
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/server.py", line 1140, in do_POST
+    server.user_manager.create_user(
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/server.py", line 143, in create_user
+    ctx = Jac.create_j_context(session=self.session_path)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py", line 1914, in proxy
+    return hookcaller(**bound.arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_hooks.py", line 513, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py", line 139, in _multicall
+    raise exception.with_traceback(exception.__traceback__)
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py", line 103, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py", line 1603, in create_j_context
+    return ExecutionContext(session=session, root=root)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py", line 98, in __init__
+    self.mem: Memory = ShelfStorage(session)
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/memory.py", line 113, in __init__
+    self.__shelf__ = open(session) if session else None  # noqa: SIM115
+                     ^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/shelve.py", line 243, in open
+    return DbfilenameShelf(filename, flag, protocol, writeback)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/shelve.py", line 227, in __init__
+    Shelf.__init__(self, dbm.open(filename, flag), protocol, writeback)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/dbm/__init__.py", line 95, in open
+    return mod.open(file, flag, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+_gdbm.error: [Errno 2] No such file or directory: 'learning./learning_portal_foundation.session'
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 43632)
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/socketserver.py", line 318, in _handle_request_noblock
+    self.process_request(request, client_address)
+  File "/usr/lib/python3.12/socketserver.py", line 349, in process_request
+    self.finish_request(request, client_address)
+  File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+    self.handle()
+  File "/usr/lib/python3.12/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+    method()
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/server.py", line 1140, in do_POST
+    server.user_manager.create_user(
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/server.py", line 143, in create_user
+    ctx = Jac.create_j_context(session=self.session_path)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py", line 1914, in proxy
+    return hookcaller(**bound.arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_hooks.py", line 513, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py", line 139, in _multicall
+    raise exception.with_traceback(exception.__traceback__)
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py", line 103, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py", line 1603, in create_j_context
+    return ExecutionContext(session=session, root=root)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py", line 98, in __init__
+    self.mem: Memory = ShelfStorage(session)
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/jaclang/runtimelib/memory.py", line 113, in __init__
+    self.__shelf__ = open(session) if session else None  # noqa: SIM115
+                     ^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/shelve.py", line 243, in open
+    return DbfilenameShelf(filename, flag, protocol, writeback)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/shelve.py", line 227, in __init__
+    Shelf.__init__(self, dbm.open(filename, flag), protocol, writeback)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/dbm/__init__.py", line 95, in open
+    return mod.open(file, flag, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+_gdbm.error: [Errno 2] No such file or directory: 'learning./learning_portal_foundation.session'
+----------------------------------------
