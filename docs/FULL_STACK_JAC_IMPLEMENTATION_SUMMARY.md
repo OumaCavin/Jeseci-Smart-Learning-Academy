@@ -207,5 +207,5 @@ The working solution proves that:
 
 **Built with:** JAC Language v0.9.3  
 **Architecture:** Full Stack JAC with Object-Spatial Programming  
-**Author:** MiniMax Agent  
+**Author:** Cavin Otieno  
 **Date:** December 21, 2025
