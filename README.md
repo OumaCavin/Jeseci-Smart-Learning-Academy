@@ -56,7 +56,7 @@
 # Clone and setup
 git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
 cd Jeseci-Smart-Learning-Academy
-bash setup_pure_jac.sh
+bash docs/pure-jac/setup_pure_jac.sh
 ```
 
 #### Option 2: Manual Setup
@@ -70,10 +70,10 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install JAC dependencies
-pip install -r requirements_pure_jac.txt
+pip install -r docs/pure-jac/requirements_pure_jac.txt
 
 # Configure environment
-cp .env_pure_jac .env
+cp docs/pure-jac/.env_pure_jac .env
 # Add your OpenAI API key to .env
 ```
 
@@ -116,19 +116,24 @@ The application will be available at `http://localhost:8000`
 
 ## 🧩 Project Structure
 
-### Active Project (Pure JAC)
+### Active Project (Minimal)
 ```
 jeseci-smart-learning-academy/
 ├── app.jac                          # Main JAC application with OSP models
-├── setup_pure_jac.sh                # Simplified setup script
-├── requirements_pure_jac.txt        # Minimal JAC dependencies
-├── .env_pure_jac                    # Environment template
-├── QUICKSTART_PURE_JAC.md           # Quick start guide
 ├── README.md                        # This documentation
 └── .gitignore                       # Git ignore rules
 ```
 
-### Legacy Files (Previous Architecture)
+### Pure JAC Setup Files
+```
+docs/pure-jac/                       # Pure JAC setup and configuration
+├── setup_pure_jac.sh                # Simplified setup script
+├── requirements_pure_jac.txt        # Minimal JAC dependencies
+├── .env_pure_jac                    # Environment template
+└── QUICKSTART_PURE_JAC.md           # Quick start guide
+```
+
+### Legacy Implementation (Previous Architecture)
 ```
 docs/legacy/                         # Previous FastAPI + JAC hybrid implementation
 ├── setup/                          # Legacy setup scripts
@@ -138,7 +143,7 @@ docs/legacy/                         # Previous FastAPI + JAC hybrid implementat
 ├── services/                       # Legacy service layer
 ├── frontend/                       # Legacy frontend components
 ├── migrations/                     # Database migrations
-└── docs/                           # Legacy documentation
+└── docs/                           # Legacy documentation (100+ files)
 ```
 
 **Note**: Legacy files are preserved for reference but not actively maintained.
@@ -152,7 +157,7 @@ docs/legacy/                         # Previous FastAPI + JAC hybrid implementat
 
 ### Environment Variables
 
-Create a `.env` file (copy from `.env_pure_jac`):
+Create a `.env` file (copy from `docs/pure-jac/.env_pure_jac`):
 
 ```env
 # OpenAI Configuration (Required for byLLM AI features)

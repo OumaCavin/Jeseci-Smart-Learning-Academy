@@ -2,10 +2,10 @@
 
 ## After `git pull origin main`
 
-Run the simplified setup:
+Run the simplified setup from project root:
 
 ```bash
-bash setup_pure_jac.sh
+bash docs/pure-jac/setup_pure_jac.sh
 ```
 
 This will:
@@ -26,7 +26,7 @@ This will:
 
 ### Option 1: Complete Setup
 ```bash
-bash setup_pure_jac.sh
+bash docs/pure-jac/setup_pure_jac.sh
 ```
 
 ### Option 2: Manual Setup
@@ -36,7 +36,11 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install JAC dependencies
-pip install -r requirements_pure_jac.txt
+pip install -r docs/pure-jac/requirements_pure_jac.txt
+
+# Configure environment
+cp docs/pure-jac/.env_pure_jac .env
+# Add your OpenAI API key to .env
 
 # Start application
 jac serve app.jac
@@ -103,7 +107,8 @@ jac serve app.jac --port 8001
 
 ## 📁 **Key Files**
 
-- `app.jac` - Main JAC application with OSP models
-- `requirements_pure_jac.txt` - Minimal dependencies
-- `.env_pure_jac` - Environment template
-- `setup_pure_jac.sh` - Simplified setup script
+- `app.jac` - Main JAC application with OSP models (in project root)
+- `docs/pure-jac/requirements_pure_jac.txt` - Minimal dependencies
+- `docs/pure-jac/.env_pure_jac` - Environment template
+- `docs/pure-jac/setup_pure_jac.sh` - Simplified setup script
+- `docs/pure-jac/QUICKSTART_PURE_JAC.md` - This quick start guide

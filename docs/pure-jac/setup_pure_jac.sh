@@ -39,15 +39,15 @@ dir_exists() {
 show_help() {
     echo "Jeseci Smart Learning Academy - Pure JAC Setup"
     echo ""
-    echo "Usage: bash setup_pure_jac.sh [options]"
+    echo "Usage: bash docs/pure-jac/setup_pure_jac.sh [options]"
     echo ""
     echo "Options:"
     echo "  --recreate    Recreate virtual environment"
     echo "  --help        Show this help message"
     echo ""
     echo "Examples:"
-    echo "  bash setup_pure_jac.sh              # Standard setup"
-    echo "  bash setup_pure_jac.sh --recreate   # Recreate venv"
+    echo "  bash docs/pure-jac/setup_pure_jac.sh              # Standard setup"
+    echo "  bash docs/pure-jac/setup_pure_jac.sh --recreate   # Recreate venv"
     exit 0
 }
 
@@ -81,8 +81,13 @@ main() {
         exit 1
     fi
     
-    if ! file_exists "requirements.txt"; then
-        print_error "requirements.txt not found. Run from project root."
+    # Get the directory where this script is located
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    SCRIPT_PARENT_DIR="$(dirname "$SCRIPT_DIR")"
+    
+    # Check for requirements file in docs/pure-jac/
+    if ! file_exists "requirements_pure_jac.txt" && ! file_exists "$SCRIPT_DIR/requirements_pure_jac.txt"; then
+        print_error "requirements_pure_jac.txt not found. Run from project root."
         exit 1
     fi
     
@@ -120,8 +125,12 @@ main() {
     print_info "Upgrading pip..."
     pip install --upgrade pip
     
-    print_info "Installing requirements.txt..."
-    pip install -r requirements.txt
+    print_info "Installing requirements..."
+    if [ -f "requirements_pure_jac.txt" ]; then
+        pip install -r requirements_pure_jac.txt
+    else
+        pip install -r "$SCRIPT_DIR/requirements_pure_jac.txt"
+    fi
     
     print_status "All dependencies installed!"
     
@@ -146,18 +155,26 @@ main() {
     # Step 4: Environment Setup
     print_header "Step 4: Environment Configuration"
     
-    if file_exists ".env"; then
-        print_info "Loading environment variables..."
+    # Look for .env file in project root or script directory
+    ENV_FILE=""
+    if [ -f ".env" ]; then
+        ENV_FILE=".env"
+    elif [ -f "$SCRIPT_DIR/.env_pure_jac" ]; then
+        ENV_FILE="$SCRIPT_DIR/.env_pure_jac"
+    fi
+    
+    if [ -n "$ENV_FILE" ]; then
+        print_info "Loading environment variables from $ENV_FILE..."
         # Load OpenAI key for byLLM
-        export $(grep -v '^#' .env | xargs)
+        export $(grep -v '^#' "$ENV_FILE" | xargs)
         
         if [ -n "$OPENAI_API_KEY" ]; then
             print_status "OpenAI API key loaded"
         else
-            print_warning "OpenAI API key not found in .env"
+            print_warning "OpenAI API key not found in $ENV_FILE"
         fi
     else
-        print_warning ".env file not found"
+        print_warning "Environment file not found"
     fi
     
     # Final Instructions
