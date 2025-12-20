@@ -46,8 +46,23 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.12+
-- Git
+- **Python 3.12+** with pip installed
+- **Git** for repository cloning
+
+### Install pip if needed:
+```bash
+# Ubuntu/Debian
+sudo apt update && sudo apt install python3-pip
+
+# macOS
+brew install python3
+
+# Windows
+# Download Python from python.org (includes pip)
+
+# Or use Python's built-in ensurepip
+python3 -m ensurepip --upgrade
+```
 
 ### Installation
 
