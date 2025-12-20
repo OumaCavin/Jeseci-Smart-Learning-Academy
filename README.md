@@ -40,52 +40,45 @@
 - **Responsive Design** - Mobile-first user interface
 
 #### Data Storage
-- **PostgreSQL** - User data and lesson content (`jeseci_learning_academy`)
-- **Redis** - Session management and caching (`database 1`)
-- **Neo4j** - Knowledge graph and relationships (`jeseci_academy`)
+- **JAC Native Persistence** - Graph data stored in JAC's OSP system
+- **No External Databases** - All data handled by JAC's built-in capabilities
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.12+
 - Git
-- PostgreSQL, Redis, and Neo4j (or use Docker)
 
 ### Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
-   cd Jeseci-Smart-Learning-Academy
-   ```
+#### Option 1: Simplified Setup (Recommended)
+```bash
+# Clone and setup
+git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
+cd Jeseci-Smart-Learning-Academy
+bash setup_pure_jac.sh
+```
 
-2. **Install JAC Language and Jac Cloud:**
-   ```bash
-   pip install jaclang jac-cloud
-   ```
+#### Option 2: Manual Setup
+```bash
+# Clone the repository
+git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
+cd Jeseci-Smart-Learning-Academy
 
-3. **Set up databases:**
-   ```bash
-   # PostgreSQL
-   psql -h localhost -U jeseci_user -d jeseci_learning_academy
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
 
-   # Redis
-   redis-cli -d 1
+# Install JAC dependencies
+pip install -r requirements_pure_jac.txt
 
-   # Neo4j
-   cypher-shell -u neo4j -p neo4j_secure_password_2024
-   # Create database: CREATE DATABASE jeseci_academy;
-   ```
-
-4. **Configure environment:**
-   ```bash
-   cp .env.template .env
-   # Edit .env with your database credentials
-   ```
+# Configure environment
+cp .env_pure_jac .env
+# Add your OpenAI API key to .env
+```
 
 ### Running the Application
 
-#### Start the JAC Application
 ```bash
 # Start the native JAC web server
 jac serve app.jac
@@ -146,30 +139,25 @@ jeseci-smart-learning-academy/
 
 ### Environment Variables
 
-Create a `.env` file:
+Create a `.env` file (copy from `.env_pure_jac`):
 
 ```env
-# Database Configuration
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_USER=jeseci_user
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=jeseci_learning_academy
-
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_DB=1
-
-NEO4J_HOST=localhost
-NEO4J_PORT=7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=neo4j_secure_password_2024
-NEO4J_DATABASE=jeseci_academy
+# OpenAI Configuration (Required for byLLM AI features)
+OPENAI_API_KEY=your_openai_api_key_here
 
 # Application Settings
 PROJECT_NAME="Jeseci Smart Learning Academy"
+PROJECT_VERSION=1.0.0
 DEBUG=true
+
+# Logging
+LOG_LEVEL=INFO
+
+# Environment
+ENVIRONMENT=development
 ```
+
+**Note**: No database configuration needed! JAC handles all data persistence natively.
 
 ## 🧪 Testing
 
