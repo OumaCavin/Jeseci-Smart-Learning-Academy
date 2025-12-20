@@ -85,11 +85,35 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install JAC dependencies
-pip install -r docs/pure-jac/requirements_pure_jac.txt
+pip install -r requirements-jac.txt
 
 # Configure environment
 cp docs/pure-jac/.env_pure_jac .env
 # Add your OpenAI API key to .env
+```
+
+#### Option 3: Using UV (Recommended for JAC development)
+```bash
+# Clone the repository
+git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
+cd Jeseci-Smart-Learning-Academy
+
+# Install dependencies using UV (faster and more reliable)
+uv pip install jaclang>=0.9.3 jac-client>=0.2.3
+
+# Or install all project dependencies
+uv pip install -r requirements.txt
+```
+
+### ⚠️ Important: JAC Dependencies
+
+The application requires both JAC packages:
+- **`jaclang`** - Main JAC runtime and compiler
+- **`jac-client`** - Client-side runtime for frontend components
+
+If you encounter the error `__jacRegisterClientModule is not defined`, ensure both packages are installed:
+```bash
+uv pip install jaclang>=0.9.3 jac-client>=0.2.3
 ```
 
 ### ⚠️ Dependency Management Note
@@ -104,19 +128,43 @@ The setup script includes warnings about this approach. If you experience proble
 
 ### Running the Application
 
+#### Option 1: Full-Stack JAC Application (Recommended)
 ```bash
-# Start the native JAC web server
-jac serve app.jac
+# Serve the working full-stack application
+jac serve learning_portal_fullstack_simple.jir
+
+# Access the application:
+# Frontend UI: http://localhost:8000/page/app
+# Backend APIs: http://localhost:8000/walker/[walker_name]
 ```
 
-The application will be available at `http://localhost:8000`
+#### Option 2: Runtime Test Application
+```bash
+# Serve the minimal runtime test
+jac serve test_client_runtime.jir
+
+# Access at: http://localhost:8000/page/app
+```
 
 #### Key API Endpoints (via Walkers)
-- `GET /functions/register_user` - User registration
-- `GET /functions/get_lesson` - Retrieve learning content
-- `GET /functions/generate_quiz` - AI-generated quiz creation
-- `POST /functions/submit_answer` - Answer submission and assessment
-- `GET /functions/update_mastery` - Progress tracking
+- `POST /walker/fullstack_welcome` - System initialization
+- `POST /walker/fullstack_health_check` - Health monitoring
+- `POST /walker/fullstack_concept_management` - Learning concepts
+- `POST /walker/fullstack_user_progress` - User progress tracking
+- `POST /walker/fullstack_analytics` - Learning analytics
+
+#### Testing Backend APIs
+```bash
+# Test the welcome endpoint
+curl -X POST http://localhost:8000/walker/fullstack_welcome \
+  -H "Content-Type: application/json" \
+  -d '{"_jac_spawn_node": "root"}'
+
+# Test concepts management
+curl -X POST http://localhost:8000/walker/fullstack_concept_management \
+  -H "Content-Type: application/json" \
+  -d '{"_jac_spawn_node": "root"}'
+```
 
 ## 📖 Learning Portal Features
 
