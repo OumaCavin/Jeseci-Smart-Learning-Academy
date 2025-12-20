@@ -41,6 +41,9 @@ show_help() {
     echo ""
     echo "Usage: bash docs/pure-jac/setup_pure_jac.sh [options]"
     echo ""
+    echo "Prerequisites:"
+    echo "  - Python 3.12+ with pip installed"
+    echo ""
     echo "Options:"
     echo "  --recreate    Recreate virtual environment"
     echo "  --help        Show this help message"
@@ -48,6 +51,12 @@ show_help() {
     echo "Examples:"
     echo "  bash docs/pure-jac/setup_pure_jac.sh              # Standard setup"
     echo "  bash docs/pure-jac/setup_pure_jac.sh --recreate   # Recreate venv"
+    echo ""
+    echo "If pip is not installed:"
+    echo "  Ubuntu/Debian: sudo apt update && sudo apt install python3-pip"
+    echo "  macOS: brew install python3"
+    echo "  Windows: Download Python from python.org (includes pip)"
+    echo "  Or: python3 -m ensurepip --upgrade"
     exit 0
 }
 
@@ -71,8 +80,19 @@ main() {
     python_version=$(python3 --version 2>&1 | awk '{print $2}')
     print_status "Python version: $python_version"
     
-    if ! command_exists pip; then
-        print_error "pip is required. Please install pip with Python"
+    # Check for pip (try both pip and pip3)
+    if command_exists pip; then
+        print_status "pip found: $(pip --version 2>&1 | head -1)"
+        PIP_CMD="pip"
+    elif command_exists pip3; then
+        print_status "pip3 found: $(pip3 --version 2>&1 | head -1)"
+        PIP_CMD="pip3"
+    else
+        print_error "pip is not found. Please install pip:"
+        print_info "On Ubuntu/Debian: sudo apt update && sudo apt install python3-pip"
+        print_info "On macOS: brew install python3"
+        print_info "On Windows: Download Python from python.org (includes pip)"
+        print_info "Or install with: python3 -m ensurepip --upgrade"
         exit 1
     fi
     
@@ -123,13 +143,13 @@ main() {
     print_header "Step 2: Installing JAC Dependencies"
     
     print_info "Upgrading pip..."
-    pip install --upgrade pip
+    $PIP_CMD install --upgrade pip
     
     print_info "Installing requirements..."
     if [ -f "requirements_pure_jac.txt" ]; then
-        pip install -r requirements_pure_jac.txt
+        $PIP_CMD install -r requirements_pure_jac.txt
     else
-        pip install -r "$SCRIPT_DIR/requirements_pure_jac.txt"
+        $PIP_CMD install -r "$SCRIPT_DIR/requirements_pure_jac.txt"
     fi
     
     print_status "All dependencies installed!"
