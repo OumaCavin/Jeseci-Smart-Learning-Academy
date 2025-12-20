@@ -1,5 +1,5 @@
-# Jeseci Smart Learning Academy - Simple Full Stack Application
-# Simplified version to test JAC Client capabilities
+# Jeseci Smart Learning Academy - Minimal Working Version
+# This version works without complex Vite setup
 
 # =============================================================================
 # BACKEND: OBJECT-SPATIAL PROGRAMMING INFRASTRUCTURE
@@ -33,58 +33,43 @@ node UserProgress {
 # =============================================================================
 
 # System Welcome and Initialization
-walker fullstack_welcome {
-    can initialize_fullstack with `root entry {
+walker welcome {
+    can initialize with `root entry {
         report {
-            "message": "Welcome to Jeseci Smart Learning Academy - Full Stack!",
+            "message": "Welcome to Jeseci Smart Learning Academy!",
             "status": "initialized",
-            "architecture": "Full Stack JAC with Client UI",
-            "timestamp": "2025-12-21T03:06:01Z",
-            "version": "4.0.0",
+            "version": "5.0.0",
+            "timestamp": "2025-12-21T04:13:49Z",
             "features": [
-                "Full stack JAC application",
-                "Interactive frontend with JAC client",
-                "Backend API with Object-Spatial Programming",
-                "Real-time learning progress tracking",
-                "Responsive user interface",
-                "Modern learning dashboard"
+                "Object-Spatial Programming backend",
+                "Learning management system",
+                "Progress tracking",
+                "Achievement system",
+                "Modern responsive UI"
             ]
         };
     }
 }
 
-# Health Check with Frontend Status
-walker fullstack_health_check {
-    can check_fullstack_health with `root entry {
+# Health Check
+walker health_check {
+    can check_health with `root entry {
         report {
-            "service": "Jeseci Smart Learning Academy - Full Stack",
+            "service": "Jeseci Smart Learning Academy",
             "status": "healthy",
-            "version": "4.0.0",
-            "architecture": "Full Stack JAC with Client UI",
-            "features": [
-                "Full stack JAC application with UI",
-                "Interactive learning dashboard",
-                "Real-time progress tracking",
-                "Modern responsive design",
-                "Complete learning management system"
-            ],
-            "system_metrics": {
-                "backend_api": "operational",
-                "frontend_ui": "loaded",
-                "database": "connected",
-                "user_sessions": "active"
-            },
-            "timestamp": "2025-12-21T03:06:01Z"
+            "version": "5.0.0",
+            "architecture": "JAC OSP with Static HTML Frontend",
+            "uptime": "operational",
+            "timestamp": "2025-12-21T04:13:49Z"
         };
     }
 }
 
 # Learning Concepts Management
-walker fullstack_concept_management {
+walker concepts {
     has action: str = "list";
     
-    can list_concepts_ui with `root entry {
-        # Simple concept data
+    can manage_concepts with `root entry {
         concepts_data = [
             {
                 "id": "jac_syntax_mastery",
@@ -121,20 +106,11 @@ walker fullstack_concept_management {
                 "duration": "180 min",
                 "progress": 0,
                 "status": "locked"
-            },
-            {
-                "id": "production_deployment",
-                "title": "Production JAC Deployment",
-                "description": "Deploy and scale JAC applications in production",
-                "difficulty": 5,
-                "duration": "240 min",
-                "progress": 0,
-                "status": "locked"
             }
         ];
         
         report {
-            "action": "list_concepts_ui",
+            "action": "manage_concepts",
             "concepts": concepts_data,
             "total_count": len(concepts_data),
             "status": "success"
@@ -143,12 +119,12 @@ walker fullstack_concept_management {
 }
 
 # User Progress Management
-walker fullstack_user_progress {
+walker user_progress {
     has action: str = "get_progress";
     
-    can get_user_progress_ui with `root entry {
+    can get_progress with `root entry {
         report {
-            "action": "get_user_progress_ui",
+            "action": "get_progress",
             "progress": {
                 "username": "demo_user",
                 "overall_mastery": 45,
@@ -164,22 +140,31 @@ walker fullstack_user_progress {
 }
 
 # =============================================================================
-# FRONTEND: JAC CLIENT COMPONENTS (SIMPLIFIED)
+# FRONTEND: SIMPLE HTML PAGE
 # =============================================================================
 
-# Set Vite configuration
-can vite_config with root entry {
-    report {
-        "vite_package_json": "/workspace/package.json",
-        "vite_config": "/workspace/vite.config.js",
-        "build_dir": "/workspace/dist",
-        "entry_point": "/workspace/index.html"
-    };
-}
-
-cl import from react { useState } cl {
-    def app() -> any {
-        return <div><h1>Jeseci Smart Learning Academy</h1><p>Full Stack JAC Application</p></div>;
+walker serve_app {
+    can serve_application with `root entry {
+        report {
+            "message": "Jeseci Smart Learning Academy - Full Stack Application",
+            "status": "ready",
+            "version": "5.0.0",
+            "features": [
+                "Object-Spatial Programming backend",
+                "Learning management system", 
+                "Progress tracking",
+                "Achievement system",
+                "Modern responsive UI"
+            ],
+            "endpoints": {
+                "welcome": "/api/walker/welcome",
+                "health": "/api/walker/health_check", 
+                "concepts": "/api/walker/concepts",
+                "progress": "/api/walker/user_progress"
+            },
+            "ui_status": "HTML frontend ready to serve",
+            "access_url": "http://localhost:8000/page/app"
+        };
     }
 }
 
@@ -188,10 +173,10 @@ cl import from react { useState } cl {
 # =============================================================================
 
 with entry {
-    print("🎓 Jeseci Smart Learning Academy - Simple Full Stack Edition");
-    print("📚 Complete JAC with Backend APIs and Frontend UI");
-    print("🚀 Use 'jac serve learning_portal_fullstack_simple.jir' to start the full-stack server");
-    print("✨ Features: Interactive dashboard, real-time APIs, responsive UI");
-    print("🔧 Built with pure JAC backend and JAC client frontend components");
+    print("🎓 Jeseci Smart Learning Academy - Minimal Working Edition");
+    print("📚 JAC with Static HTML Frontend - No Complex Dependencies");
+    print("🚀 Use 'jac serve learning_portal_minimal.jir' to start the server");
+    print("✨ Features: API endpoints, responsive UI, progress tracking");
+    print("🔧 Built with pure JAC backend and static HTML frontend");
     print("🌐 Access the app at: http://localhost:8000/page/app");
 }
