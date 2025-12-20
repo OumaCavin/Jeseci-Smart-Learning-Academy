@@ -1,6 +1,6 @@
 """
-Main FastAPI application for Jeseci Smart Learning Companion
-Database-powered API with PostgreSQL, Redis, and Neo4j support
+Main FastAPI application for Jeseci Smart Learning Academy
+Database-powered API with PostgreSQL, Redis, Neo4j support and JAC integration
 """
 
 from fastapi import FastAPI, Depends, HTTPException, status
@@ -21,6 +21,7 @@ from api.v1 import (
     auth, users, concepts, content, learning_paths, progress, 
     quizzes, achievements, analytics
 )
+from services.jac_fastapi_bridge import setup_jac_fastapi_integration
 
 
 # Load environment variables
@@ -34,7 +35,7 @@ setup_logging()
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
-    print("🚀 Starting Jeseci Smart Learning Companion API...")
+    print("🚀 Starting Jeseci Smart Learning Academy API...")
     
     # Initialize database
     init_db()
@@ -52,7 +53,7 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="Jeseci Smart Learning Companion API",
+    title="Jeseci Smart Learning Academy API",
     description="AI-powered personalized learning platform with knowledge graph and adaptive learning paths",
     version="1.0.0",
     lifespan=lifespan,
@@ -154,12 +155,20 @@ app.include_router(
     tags=["Analytics"]
 )
 
+# ==================================================================
+# JAC-FastAPI INTEGRATION SETUP
+# ==================================================================
+# Setup JAC services integration with FastAPI
+setup_jac_fastapi_integration(app)
+print("🤖 JAC-FastAPI integration configured successfully")
+# ==================================================================
+
 
 @app.get("/")
 async def root():
     """Root endpoint"""
     return {
-        "message": "Welcome to Jeseci Smart Learning Companion API",
+        "message": "Welcome to Jeseci Smart Learning Academy API",
         "version": "1.0.0",
         "docs": "/docs" if os.getenv("DEBUG", "false").lower() == "true" else "disabled",
         "status": "running"
