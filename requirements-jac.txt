@@ -1,0 +1,6 @@
+# JAC Language Dependencies Only
+# Install with: uv pip install -r requirements-jac.txt
+# Minimum requirements to run JAC full-stack applications
+
+jaclang>=0.9.3
+jac-client>=0.2.3
