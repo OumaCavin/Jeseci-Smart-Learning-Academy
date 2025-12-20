@@ -1,12 +1,12 @@
 #!/bin/bash
-# Git Setup Script for Jeseci Smart Learning Companion
+# Git Setup Script for Jeseci Smart Learning Academy
 # Author: Cavin Otieno
 # Date: December 13, 2025
 
 echo "🚀 Setting up Git repository..."
 
 # Navigate to project directory
-cd /workspace/jeseci-smart-learning-companion
+cd /workspace/jeseci-smart-learning-academy
 
 # Initialize git if not already initialized
 if [ ! -d ".git" ]; then
@@ -26,7 +26,7 @@ git branch -M main
 # Add remote origin
 echo "🔗 Adding remote origin..."
 git remote remove origin 2>/dev/null || true
-git remote add origin https://[YOUR_TOKEN]@github.com/OumaCavin/Jeseci-Smart-Learning-Companion.git
+git remote add origin https://[YOUR_TOKEN]@github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
 
 echo "✅ Git setup complete!"
 echo "📝 Next steps:"

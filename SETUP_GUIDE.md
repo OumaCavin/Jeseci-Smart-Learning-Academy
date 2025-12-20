@@ -1,4 +1,4 @@
-# Jeseci Smart Learning Companion - Setup Guide
+# Jeseci Smart Learning Academy - Setup Guide
 
 ## Prerequisites
 
@@ -15,8 +15,8 @@ Before setting up the project, ensure you have the following installed:
 
 ```bash
 # If not already cloned
-git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion.git
-cd Jeseci-Smart-Learning-Companion
+git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
+cd Jeseci-Smart-Learning-Academy
 
 # Pull latest changes
 git pull origin main

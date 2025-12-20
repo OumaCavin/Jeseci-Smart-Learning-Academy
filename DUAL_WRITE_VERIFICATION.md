@@ -105,7 +105,7 @@ headers = {"Authorization": f"Bearer {token}"}
 
 ### **Check PostgreSQL (Structured Data)**
 ```bash
-psql -h localhost -U jeseci_user -d jeseci_learning_companion -c "
+psql -h localhost -U jeseci_user -d jeseci_learning_academy -c "
 SELECT name, display_name, category, difficulty_level 
 FROM concepts 
 WHERE name IN ('machine_learning', 'data_structures', 'web_development')

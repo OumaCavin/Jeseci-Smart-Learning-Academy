@@ -21,10 +21,10 @@ python3 --version
 
 ```bash
 # Clone the repository
-git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion.git
+git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
 
 # Navigate to the project directory
-cd Jeseci-Smart-Learning-Companion
+cd Jeseci-Smart-Learning-Academy
 
 # Check the current branch
 git status
@@ -227,7 +227,7 @@ chmod +x fix_python312_compatibility.py
 ## Project Structure
 
 ```
-Jeseci-Smart-Learning-Companion/
+Jeseci-Smart-Learning-Academy/
 ├── backend/                 # FastAPI backend
 │   ├── main.py             # Application entry point
 │   ├── config/             # Configuration files
@@ -253,7 +253,7 @@ Once the application is running:
 
 - **Documentation**: Check SETUP_GUIDE.md for detailed information
 - **API Docs**: Visit http://localhost:8000/docs for API reference
-- **Repository**: https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion
+- **Repository**: https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy
 
 ---
 

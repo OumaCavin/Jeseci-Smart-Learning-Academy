@@ -1,4 +1,4 @@
-# 🎓 Jeseci Smart Learning Companion
+# 🎓 Jeseci Smart Learning Academy
 
 [![JAC Language](https://img.shields.io/badge/JAC-0.9.3-blue.svg)](https://github.com/Jaseci-Labs/jaseci)
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
@@ -10,7 +10,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **An AI-powered adaptive learning companion built with JAC programming language, FastAPI, and modern web technologies.**
+> **An AI-powered adaptive learning academy built with JAC programming language, FastAPI, and modern web technologies.**
 
 ## 🌟 Features
 
@@ -59,8 +59,8 @@
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion.git
-   cd Jeseci-Smart-Learning-Companion
+   git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
+   cd Jeseci-Smart-Learning-Academy
    ```
 
 2. **Set up virtual environment:**
@@ -130,7 +130,7 @@ docker-compose ps
 ## 🧩 Project Structure
 
 ```
-jeseci-smart-learning-companion/
+jeseci-smart-learning-academy/
 ├── app.jac                          # Main JAC application
 ├── main.py                          # FastAPI server
 ├── requirements.txt                 # Python dependencies
@@ -191,7 +191,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 # Application Settings
 DEBUG=true
 API_V1_STR=/api/v1
-PROJECT_NAME="Jeseci Smart Learning Companion"
+PROJECT_NAME="Jeseci Smart Learning Academy"
 ```
 
 ### Database Options
@@ -328,7 +328,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For support and questions:
 - 📧 Email: cavin@example.com
-- 🐛 Issues: [GitHub Issues](https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy/issues)
 - 📖 Documentation: [Project Docs](docs/)
 
 ---

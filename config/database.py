@@ -25,7 +25,7 @@ load_dotenv()
 POSTGRES_SERVER = os.getenv("POSTGRES_SERVER", "localhost")
 POSTGRES_USER = os.getenv("POSTGRES_USER", "jeseci_user")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "jeseci_secure_password_2024")
-POSTGRES_DB = os.getenv("POSTGRES_DB", "jeseci_learning_companion")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "jeseci_learning_academy")
 POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
 
 # Redis configuration

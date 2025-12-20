@@ -151,7 +151,7 @@ curl http://127.0.0.1:8000/health
 ### **Database Issues**
 ```bash
 # Check PostgreSQL
-psql -h localhost -U jeseci_user -d jeseci_learning_companion -c "SELECT count(*) FROM concepts;"
+psql -h localhost -U jeseci_user -d jeseci_learning_academy -c "SELECT count(*) FROM concepts;"
 
 # Check Neo4j
 cypher-shell -u neo4j -p neo4j_secure_password_2024 "MATCH (c:Concept) RETURN count(c);"
@@ -174,7 +174,7 @@ print('✅ Auth OK' if auth.status_code == 200 else '❌ Auth Failed')
 ## 🎯 **Production Deployment Checklist**
 
 ### **Environment Setup**
-- [ ] PostgreSQL running with `jeseci_learning_companion` database
+- [ ] PostgreSQL running with `jeseci_learning_academy` database
 - [ ] Neo4j running on `bolt://localhost:7687`
 - [ ] Backend API accessible on `http://localhost:8000`
 - [ ] Frontend served on `http://localhost:8080`

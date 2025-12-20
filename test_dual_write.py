@@ -18,7 +18,7 @@ def test_postgresql_connection():
         # Connect to PostgreSQL
         conn = psycopg2.connect(
             host="localhost",
-            database="jeseci_learning_companion", 
+            database="jeseci_learning_academy", 
             user="jeseci_user",
             password="secure_password_123"
         )

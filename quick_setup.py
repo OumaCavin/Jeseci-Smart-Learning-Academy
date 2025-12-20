@@ -172,7 +172,7 @@ def print_next_steps():
     print("\n4. For production deployment:")
     print("   docker-compose up --build")
     print("\n📚 For detailed instructions, see: SETUP_GUIDE.md")
-    print("\n🔗 Repository: https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion")
+    print("\n🔗 Repository: https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy")
     print("\n" + "="*60)
 
 def main():

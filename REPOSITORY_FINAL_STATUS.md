@@ -1,7 +1,7 @@
 # Jeseci Smart Learning Companion - Final Repository Status
 
 ## Repository Configuration
-- **GitHub Repository**: https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion.git
+- **GitHub Repository**: https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
 - **Primary Branch**: main
 - **Commit Author**: OumaCavin (cavin.otieno012@gmail.com)
 - **Latest Commit**: 358f41a - "Implement Complete Learning Paths and Progress Pages"

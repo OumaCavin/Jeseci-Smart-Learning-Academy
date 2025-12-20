@@ -153,7 +153,7 @@ def main():
             print("   ✅ Connected knowledge graph relationships")
             
             print("\n🔍 Database Verification Commands:")
-            print("   PostgreSQL: psql -h localhost -U jeseci_user -d jeseci_learning_companion")
+            print("   PostgreSQL: psql -h localhost -U jeseci_user -d jeseci_learning_academy")
             print("   Neo4j: cypher-shell -u neo4j -p neo4j_secure_password_2024")
             print("   Neo4j Query: MATCH (a)-[r]->(b) RETURN a.name, type(r), b.name LIMIT 10")
             

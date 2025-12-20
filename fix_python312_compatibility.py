@@ -238,7 +238,7 @@ def main():
     print("   uvicorn main:app --reload")
     print("\n3. Access the application:")
     print("   http://localhost:8000/docs")
-    print("\n🔗 Repository: https://github.com/OumaCavin/Jeseci-Smart-Learning-Companion")
+    print("\n🔗 Repository: https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy")
     print("="*70)
     
     return 0
