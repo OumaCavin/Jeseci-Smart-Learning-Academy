@@ -20,7 +20,7 @@
 - **Repository**: https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
 
 ### Code Quality ✅
-- **No "MiniMax Agent" references** in Python, JavaScript, or HTML files
+- **No "Cavin Otieno" references** in Python, JavaScript, or HTML files
 - **Human-readable commit messages** for recent work
 - **Proper feature documentation** with detailed descriptions
 

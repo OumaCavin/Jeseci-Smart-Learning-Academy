@@ -343,6 +343,6 @@ The original `app.jac` file will require significant syntax corrections to compi
 
 ---
 
-**Research Compiled by:** MiniMax Agent  
+**Research Compiled by:** Cavin Otieno  
 **Documentation Version:** 1.0  
 **Last Updated:** December 20, 2025
