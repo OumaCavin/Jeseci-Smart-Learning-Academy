@@ -143,16 +143,7 @@ walker user_progress {
 # FRONTEND: CLIENT-SIDE HTML RENDERING
 # =============================================================================
 
-# Client function - now just a placeholder for React component
-cl {
-    def app() -> any {
-        # Return simple placeholder - React component will handle rendering
-        return {
-            "message": "React component will render the full application",
-            "status": "client_function_active"
-        };
-    }
-}
+# No client function - using pure API approach instead
 
 # Regular function to serve HTML for API access
 def serve_html -> any {
