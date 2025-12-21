@@ -10,16 +10,20 @@ echo "📋 Using Pure Jaclang 0.9.3 Architecture"
 install_jaclang() {
     echo "🐍 Installing jaclang and jac-client (Python packages)..."
     
-    # Function to install with timeout and retries
+    # Function to install with timeout using the timeout command
     install_with_timeout() {
         local cmd="$1"
         local pkg="$2"
         echo "📦 Installing $pkg with timeout..."
         
-        # Try with timeout and retries
-        if timeout 60 $cmd install $pkg --timeout 30 --retries 3; then
+        # Use timeout command to limit execution time
+        if timeout 60 $cmd install $pkg; then
             return 0
         else
+            local exit_code=$?
+            if [ $exit_code -eq 124 ]; then
+                echo "⚠️ Installation timed out after 60 seconds"
+            fi
             return 1
         fi
     }
@@ -28,17 +32,20 @@ install_jaclang() {
     
     if command -v uv &> /dev/null; then
         echo "✅ Using uv package manager"
+        # uv doesn't support --timeout and --retries arguments
         if install_with_timeout "uv pip" "jaclang>=0.9.3 jac-client>=0.2.3"; then
             success=true
         fi
     elif command -v pip &> /dev/null; then
         echo "✅ Using pip package manager"
-        if install_with_timeout "pip" "jaclang>=0.9.3 jac-client>=0.2.3"; then
+        # pip supports --timeout and --retries
+        if install_with_timeout "pip" "jaclang>=0.9.3 jac-client>=0.2.3 --timeout 30 --retries 3"; then
             success=true
         fi
     elif command -v pip3 &> /dev/null; then
         echo "✅ Using pip3 package manager"
-        if install_with_timeout "pip3" "jaclang>=0.9.3 jac-client>=0.2.3"; then
+        # pip3 supports --timeout and --retries
+        if install_with_timeout "pip3" "jaclang>=0.9.3 jac-client>=0.2.3 --timeout 30 --retries 3"; then
             success=true
         fi
     fi
