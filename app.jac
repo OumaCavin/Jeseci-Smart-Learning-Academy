@@ -2,12 +2,6 @@
 # Jeseci Smart Learning Academy - Pure Jaclang 0.9.3 Architecture
 # ==============================================================================
 
-# Import built-in Jac client utilities (NO external React needed!)
-climport from '@jac-client/utils' {
-    jacSpawn, jacLogin, jacSignup, jacLogout, jacIsLoggedIn,
-    navigate, Link, useRouter
-}
-
 # Backend - JAC Object-Spatial Programming
 node user {
     has user_id: str;
