@@ -1,252 +1,244 @@
-# Jeseci Smart Learning Academy - Minimal Working Version
-# This version works without complex Vite setup
+# ==============================================================================
+# Jeseci Smart Learning Academy - Pure Jaclang 0.9.3 Architecture
+# ==============================================================================
 
-# =============================================================================
-# BACKEND: OBJECT-SPATIAL PROGRAMMING INFRASTRUCTURE
-# =============================================================================
-
-# Learning Concept Node
-node LearningConcept {
-    has concept_id: str;
-    has title: str;
-    has description: str;
-    has difficulty_level: int = 1;
-    has estimated_duration: int = 30;
-    has content_type: str = "lesson";
-    has mastery_score: float = 0.0;
-    has is_locked: bool = True;
+# Import built-in Jac client utilities (NO external React needed!)
+climport from '@jac-client/utils' {
+    jacSpawn, jacLogin, jacSignup, jacLogout, jacIsLoggedIn,
+    navigate, Link, useRouter
 }
 
-# User Progress Node
-node UserProgress {
-    has user_id: str;
-    has username: str;
-    has current_concept: str = "";
-    has overall_mastery: float = 0.0;
-    has learning_streak: int = 0;
-    has total_concepts_completed: int = 0;
-    has achievements: list = [];
+# Backend - JAC Object-Spatial Programming
+node user {
+    has user_id, username, email, progress;
 }
 
-# =============================================================================
-# BACKEND: API WALKERS
-# =============================================================================
-
-# System Welcome and Initialization
-walker welcome {
-    can initialize with `root entry {
-        report {
-            "message": "Welcome to Jeseci Smart Learning Academy!",
-            "status": "initialized",
-            "version": "5.0.0",
-            "timestamp": "2025-12-21T04:13:49Z",
-            "features": [
-                "Object-Spatial Programming backend",
-                "Learning management system",
-                "Progress tracking",
-                "Achievement system",
-                "Modern responsive UI"
-            ]
-        };
-    }
+node course {
+    has course_id, title, description, lessons;
 }
 
-# Health Check
+walker init {
+    has welcome_msg = "🎓 Welcome to Jeseci Smart Learning Academy!";
+}
+
 walker health_check {
-    can check_health with `root entry {
-        report {
-            "service": "Jeseci Smart Learning Academy",
-            "status": "healthy",
-            "version": "5.0.0",
-            "architecture": "JAC OSP with Static HTML Frontend",
-            "uptime": "operational",
-            "timestamp": "2025-12-21T04:13:49Z"
-        };
-    }
+    has status = "healthy", version = "5.0.0", timestamp;
 }
 
-# Learning Concepts Management
 walker concepts {
-    has action: str = "list";
-    
-    can manage_concepts with `root entry {
-        concepts_data = [
-            {
-                "id": "jac_syntax_mastery",
-                "title": "JAC Syntax Mastery",
-                "description": "Master the essential syntax of JAC programming language",
-                "difficulty": 1,
-                "duration": "60 min",
-                "progress": 100,
-                "status": "completed"
-            },
-            {
-                "id": "osp_fundamentals",
-                "title": "Object-Spatial Programming Fundamentals",
-                "description": "Deep dive into OSP concepts including nodes, edges, walkers",
-                "difficulty": 2,
-                "duration": "90 min",
-                "progress": 75,
-                "status": "in_progress"
-            },
-            {
-                "id": "advanced_walkers",
-                "title": "Advanced Walker Patterns and Events",
-                "description": "Master complex walker behaviors and traversal patterns",
-                "difficulty": 3,
-                "duration": "120 min",
-                "progress": 0,
-                "status": "locked"
-            },
-            {
-                "id": "fullstack_jac",
-                "title": "Full Stack JAC Development",
-                "description": "Build complete full-stack applications using JAC",
-                "difficulty": 4,
-                "duration": "180 min",
-                "progress": 0,
-                "status": "locked"
-            }
-        ];
-        
-        report {
-            "action": "manage_concepts",
-            "concepts": concepts_data,
-            "total_count": len(concepts_data),
-            "status": "success"
-        };
-    }
+    has learning_concepts = [
+        "Object-Spatial Programming", 
+        "JAC Graph Architecture",
+        "Client-Server Communication",
+        "React-like Components"
+    ];
 }
 
-# User Progress Management
 walker user_progress {
-    has action: str = "get_progress";
-    
-    can get_progress with `root entry {
-        report {
-            "action": "get_progress",
-            "progress": {
-                "username": "demo_user",
-                "overall_mastery": 45,
-                "streak": 7,
-                "completed": 2,
-                "time_spent": "4h 30m",
-                "level": "Intermediate Learner",
-                "achievements": ["Syntax Master", "7-Day Streak", "Full Stack Explorer"]
-            },
-            "status": "success"
-        };
-    }
+    has user_data = {
+        "courses_completed": 3,
+        "lessons_completed": 15,
+        "current_streak": 7
+    };
 }
 
-# =============================================================================
-# FRONTEND: CLIENT UI (The Superior Solution)
-# =============================================================================
+# ==============================================================================
+# FRONTEND - Pure Jaclang JSX (NO external React dependencies!)
+# ==============================================================================
 
-# Regular function to serve HTML for API access (backup)
-def serve_html -> any {
-    html_content = "<!DOCTYPE html><html><head><title>Jeseci Smart Learning Academy</title><style>body{font-family:Arial,sans-serif;margin:0;padding:20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;color:#333;} .container{max-width:1200px;margin:0 auto;} .header{text-align:center;color:white;margin-bottom:40px;padding:40px;background:rgba(255,255,255,0.1);border-radius:20px;} .header h1{font-size:3em;margin:0 0 10px 0;text-shadow:2px 2px 4px rgba(0,0,0,0.3);} .card{background:rgba(255,255,255,0.95);border-radius:20px;padding:30px;margin:20px 0;box-shadow:0 8px 32px rgba(0,0,0,0.1);} .btn{display:inline-block;padding:12px 30px;background:#4CAF50;color:white;text-decoration:none;border-radius:25px;margin:10px;} .api-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin:20px 0;} .api-card{background:#f8f9fa;border-radius:10px;padding:20px;border-left:4px solid #2196F3;} .endpoint{font-family:monospace;font-weight:bold;color:#333;margin-bottom:5px;} .desc{color:#666;} .footer{text-align:center;margin-top:40px;color:rgba(255,255,255,0.8);}</style></head><body><div class='container'><div class='header'><h1>🎓 Jeseci Smart Learning Academy</h1><p>Full Stack JAC Application with Object-Spatial Programming</p></div><div class='card'><h2>✅ Application Status: Operational</h2><p><strong>Version:</strong> 5.0.0</p><p><strong>Architecture:</strong> JAC OSP with Static HTML Frontend</p><p><strong>Backend:</strong> Object-Spatial Programming APIs</p><div style='text-align:center;margin:30px 0;'><a href='/api/walker/welcome' class='btn'>🚀 Test Welcome API</a><a href='/api/walker/health_check' class='btn'>❤️ Health Check</a><a href='/api/walker/concepts' class='btn'>📚 View Concepts</a><a href='/api/walker/user_progress' class='btn'>📊 User Progress</a></div></div><div class='card'><h2>🔧 Available API Endpoints</h2><div class='api-grid'><div class='api-card'><div class='endpoint'>POST /walker/welcome</div><div class='desc'>System welcome and initialization</div></div><div class='api-card'><div class='endpoint'>POST /walker/health_check</div><div class='desc'>Health check with system status</div></div><div class='api-card'><div class='endpoint'>POST /walker/concepts</div><div class='desc'>Learning concepts management</div></div><div class='api-card'><div class='endpoint'>POST /walker/user_progress</div><div class='desc'>User progress tracking</div></div></div></div><div class='card'><h2>🚀 Quick Start</h2><ol><li>Use the API buttons above to test endpoints</li><li>Check system health and status</li><li>Explore learning concepts and progress</li><li>Build custom features using JAC OSP</li></ol></div></div><div class='footer'><p>Built with JAC Object-Spatial Programming</p><p>© 2025 Cavin Otieno • Jeseci Smart Learning Academy</p></div></div></body></html>";
-    return html_content;
-}
-
-# Client function with proper JSX (Superior Solution)
 cl {
-    def app() -> any {
-        return (
-            <div style={{fontFamily: "Arial, sans-serif", maxWidth: "800px", margin: "0 auto", padding: "20px"}}>
-                
-                <div style={{textAlign: "center", padding: "40px", marginBottom: "40px", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", borderRadius: "20px", color: "white"}}>
-                    <h1 style={{fontSize: "2.5em", margin: "0"}}>🎓 Jeseci Smart Learning Academy</h1>
-                    <p>Full Stack JAC Application with Object-Spatial Programming</p>
-                </div>
 
-                <div style={{background: "white", padding: "30px", borderRadius: "20px", boxShadow: "0 8px 32px rgba(0,0,0,0.1)", border: "1px solid #eee"}}>
-                    <h2>✅ Application Status: Operational</h2>
+    def LearningDashboard() -> any {
+        return (
+            <div style={containerStyle}>
+                <div style={headerStyle}>
+                    <h1 style={titleStyle}>🎓 Jeseci Smart Learning Academy</h1>
+                    <p style={subtitleStyle}>Pure Jaclang 0.9.3 Architecture</p>
+                </div>
+                
+                <div style={cardStyle}>
+                    <h2 style={h2Style}>✅ Application Status: Operational</h2>
                     <p><strong>Version:</strong> 5.0.0</p>
-                    <p><strong>Architecture:</strong> Native Jac OSP + React Frontend</p>
+                    <p><strong>Architecture:</strong> Pure Jaclang + Native JSX</p>
                     <p><strong>Backend:</strong> Object-Spatial Programming APIs</p>
+                    <p><strong>Frontend:</strong> Built-in React-like Components</p>
+                </div>
+                
+                <div style={gridStyle}>
+                    <div style={apiCardStyle}>
+                        <h3>🚀 Backend APIs</h3>
+                        <p>Native Jac Walkers with Object-Spatial Programming</p>
+                        <button style={buttonStyle} onClick={lambda -> None { testWelcomeAPI(); }}>Test Welcome API</button>
+                        <button style={buttonBlueStyle} onClick={lambda -> None { testHealthAPI(); }}>Health Check</button>
+                        <button style={buttonOrangeStyle} onClick={lambda -> None { testConceptsAPI(); }}>View Concepts</button>
+                        <button style={buttonPurpleStyle} onClick={lambda -> None { testProgressAPI(); }}>User Progress</button>
+                    </div>
                     
-                    <div style={{display: "flex", gap: "10px", marginTop: "20px", flexWrap: "wrap"}}>
-                        <a href="/api/walker/welcome" style={{textDecoration: "none", background: "#4CAF50", color: "white", padding: "12px 25px", borderRadius: "25px"}}>
-                            🚀 Test Welcome API
-                        </a>
-                        <a href="/api/walker/health_check" style={{textDecoration: "none", background: "#2196F3", color: "white", padding: "12px 25px", borderRadius: "25px"}}>
-                            ❤️ Health Check
-                        </a>
-                        <a href="/api/walker/concepts" style={{textDecoration: "none", background: "#FF9800", color: "white", padding: "12px 25px", borderRadius: "25px"}}>
-                            📚 View Concepts
-                        </a>
-                        <a href="/api/walker/user_progress" style={{textDecoration: "none", background: "#9C27B0", color: "white", padding: "12px 25px", borderRadius: "25px"}}>
-                            📊 User Progress
-                        </a>
+                    <div style={infoCardStyle}>
+                        <h3>🔧 Architecture Benefits</h3>
+                        <ul>
+                            <li>✅ Single language (Jaclang)</li>
+                            <li>✅ No external React dependencies</li>
+                            <li>✅ Native JSX implementation</li>
+                            <li>✅ Built-in authentication</li>
+                            <li>✅ Native backend communication</li>
+                            <li>✅ Zero configuration build</li>
+                        </ul>
                     </div>
                 </div>
-
-                <div style={{marginTop: "20px", padding: "20px", background: "#f8f9fa", borderRadius: "10px", borderLeft: "4px solid #764ba2"}}>
-                    <h3>🔧 Available API Endpoints</h3>
-                    <ul>
-                        <li><code>POST /walker/welcome</code> - System welcome and initialization</li>
-                        <li><code>POST /walker/health_check</code> - Health check with system status</li>
-                        <li><code>POST /walker/concepts</code> - Learning concepts management</li>
-                        <li><code>POST /walker/user_progress</code> - User progress tracking</li>
-                    </ul>
-                </div>
-
-                <div style={{marginTop: "20px", padding: "20px", background: "#e8f5e8", borderRadius: "10px", borderLeft: "4px solid #4CAF50"}}>
-                    <h3>🚀 Quick Start</h3>
-                    <ol>
-                        <li>Use the buttons above to test backend API walkers</li>
-                        <li>Check the browser console/network tab to see JSON responses</li>
-                        <li>Extend this UI by adding more JSX components in the cl block</li>
-                        <li>Experience the power of JAC Object-Spatial Programming</li>
-                    </ol>
-                </div>
-
-                <div style={{textAlign: "center", marginTop: "40px", color: "#666"}}>
-                    <p>Built with JAC Object-Spatial Programming</p>
+                
+                <div style={footerStyle}>
+                    <p>Built with Jaclang 0.9.3 Object-Spatial Programming</p>
                     <p>© 2025 Cavin Otieno • Jeseci Smart Learning Academy</p>
                 </div>
-
             </div>
         );
     }
-}
 
-# Backend walker for serving application info
-walker serve_app {
-    can serve_application with `root entry {
-        report {
-            "message": "Jeseci Smart Learning Academy - Full Stack Application",
-            "status": "ready",
-            "version": "5.0.0",
-            "features": [
-                "Object-Spatial Programming backend",
-                "Learning management system", 
-                "Progress tracking",
-                "Achievement system",
-                "Modern responsive UI"
-            ],
-            "endpoints": {
-                "welcome": "/walker/welcome",
-                "health": "/walker/health_check", 
-                "concepts": "/walker/concepts",
-                "progress": "/walker/user_progress"
-            },
-            "ui_status": "HTML frontend ready to serve",
-            "access_url": "http://localhost:8000/page/app"
-        };
+    # API Testing Functions using native Jac communication
+    async def testWelcomeAPI() -> any {
+        try {
+            result = await jacSpawn("init", "", {});
+            alert("Welcome API Response: " + JSON.stringify(result.reports));
+        } catch (error) {
+            alert("Welcome API Error: " + error.message);
+        }
+    }
+
+    async def testHealthAPI() -> any {
+        try {
+            result = await jacSpawn("health_check", "", {});
+            alert("Health Check Response: " + JSON.stringify(result.reports));
+        } catch (error) {
+            alert("Health Check Error: " + error.message);
+        }
+    }
+
+    async def testConceptsAPI() -> any {
+        try {
+            result = await jacSpawn("concepts", "", {});
+            alert("Concepts API Response: " + JSON.stringify(result.reports));
+        } catch (error) {
+            alert("Concepts API Error: " + error.message);
+        }
+    }
+
+    async def testProgressAPI() -> any {
+        try {
+            result = await jacSpawn("user_progress", "", {});
+            alert("Progress API Response: " + JSON.stringify(result.reports));
+        } catch (error) {
+            alert("Progress API Error: " + error.message);
+        }
+    }
+
+    # Main app entry point
+    def app() -> any {
+        return <LearningDashboard />;
     }
 }
 
-# =============================================================================
-# SYSTEM INITIALIZATION
-# =============================================================================
-
+# ==============================================================================
+# Style Definitions (Inline for simplicity)
+# ==============================================================================
 with entry {
-    print("🎓 Jeseci Smart Learning Academy - Native Jac Version");
-    print("🚀 Full Stack Application with React Frontend");
-    print("✨ Features: JAC OSP backend + React JSX frontend");
-    print("🔧 Use 'jac serve app.jir' to start the server");
-    print("🌐 Access the app at: http://localhost:8000/page/app");
-    print("💡 Alternative HTML API: POST /function/serve_html");
+    containerStyle = {
+        "fontFamily": "Arial, sans-serif",
+        "maxWidth": "1200px", 
+        "margin": "0 auto",
+        "padding": "20px",
+        "background": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        "minHeight": "100vh",
+        "color": "#333"
+    };
+    
+    headerStyle = {
+        "textAlign": "center",
+        "color": "white", 
+        "marginBottom": "40px",
+        "padding": "40px",
+        "background": "rgba(255,255,255,0.1)",
+        "borderRadius": "20px"
+    };
+    
+    titleStyle = {
+        "fontSize": "3em",
+        "margin": "0 0 10px 0",
+        "textShadow": "2px 2px 4px rgba(0,0,0,0.3)"
+    };
+    
+    subtitleStyle = {
+        "fontSize": "1.2em",
+        "opacity": "0.9"
+    };
+    
+    cardStyle = {
+        "background": "rgba(255,255,255,0.95)",
+        "borderRadius": "20px",
+        "padding": "30px",
+        "margin": "20px 0",
+        "boxShadow": "0 8px 32px rgba(0,0,0,0.1)",
+        "border": "1px solid #eee"
+    };
+    
+    h2Style = {
+        "color": "#2c3e50",
+        "marginBottom": "20px"
+    };
+    
+    gridStyle = {
+        "display": "grid",
+        "gridTemplateColumns": "repeat(auto-fit, minmax(400px, 1fr))",
+        "gap": "20px",
+        "margin": "20px 0"
+    };
+    
+    apiCardStyle = {
+        "background": "#f8f9fa",
+        "borderRadius": "10px",
+        "padding": "20px",
+        "borderLeft": "4px solid #2196F3"
+    };
+    
+    infoCardStyle = {
+        "background": "#e8f5e8",
+        "borderRadius": "10px", 
+        "padding": "20px",
+        "borderLeft": "4px solid #4CAF50"
+    };
+    
+    buttonStyle = {
+        "display": "inline-block",
+        "padding": "12px 25px",
+        "background": "#4CAF50",
+        "color": "white",
+        "textDecoration": "none",
+        "borderRadius": "25px",
+        "margin": "5px",
+        "border": "none",
+        "cursor": "pointer",
+        "fontSize": "14px"
+    };
+    
+    buttonBlueStyle = {
+        ...buttonStyle,
+        "background": "#2196F3"
+    };
+    
+    buttonOrangeStyle = {
+        ...buttonStyle,
+        "background": "#FF9800"
+    };
+    
+    buttonPurpleStyle = {
+        ...buttonStyle,
+        "background": "#9C27B0"
+    };
+    
+    footerStyle = {
+        "textAlign": "center",
+        "marginTop": "40px",
+        "color": "rgba(255,255,255,0.8)",
+        "padding": "20px"
+    };
 }
