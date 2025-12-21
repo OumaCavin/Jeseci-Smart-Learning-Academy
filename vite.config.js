@@ -3,12 +3,17 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@jac-client/utils': './src/jac_utils.js'
+    }
+  },
   build: {
     outDir: 'dist',
     // 1. Force manifest to be in the root of dist
     manifest: 'manifest.json', 
     rollupOptions: {
-      input: 'src/client_runtime.js',
+      input: 'src/main.js',
       output: {
         // 2. CRITICAL: Force the exact filename Jac expects
         entryFileNames: 'client_runtime.js', 
