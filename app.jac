@@ -10,11 +10,17 @@ climport from '@jac-client/utils' {
 
 # Backend - JAC Object-Spatial Programming
 node user {
-    has user_id, username, email, progress;
+    has user_id: str;
+    has username: str;
+    has email: str;
+    has progress: dict;
 }
 
 node course {
-    has course_id, title, description, lessons;
+    has course_id: str;
+    has title: str;
+    has description: str;
+    has lessons: list;
 }
 
 walker init {
@@ -22,7 +28,9 @@ walker init {
 }
 
 walker health_check {
-    has status = "healthy", version = "5.0.0", timestamp;
+    has status = "healthy";
+    has version = "5.0.0";
+    has timestamp;
 }
 
 walker concepts {
