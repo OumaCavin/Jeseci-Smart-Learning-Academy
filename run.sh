@@ -6,28 +6,83 @@
 echo "🎓 Starting Jeseci Smart Learning Academy..."
 echo "📋 Using Pure Jaclang 0.9.3 Architecture"
 
-# Check if jac-client is installed
-if ! python -c "import jac_client" 2>/dev/null; then
+# Function to install jac-client
+install_jac_client() {
     echo "🐍 Installing jac-client (Python package)..."
-    uv pip install jac-client
+    if command -v uv &> /dev/null; then
+        uv pip install jac-client
+    elif command -v pip &> /dev/null; then
+        pip install jac-client
+    elif command -v pip3 &> /dev/null; then
+        pip3 install jac-client
+    else
+        echo "❌ No package manager found (uv, pip, or pip3)"
+        echo "💡 Please run ./setup.sh to install dependencies properly"
+        exit 1
+    fi
+}
+
+# Check if jac-client is installed (try system Python first)
+if ! python3 -c "import jac_client" 2>/dev/null; then
+    # Try with current environment
+    if ! python -c "import jac_client" 2>/dev/null; then
+        # Check if virtual environment exists
+        if [ -d "venv" ] && [ -f "venv/bin/python3" ]; then
+            echo "🔧 Activating virtual environment..."
+            source venv/bin/activate
+            if [ $? -ne 0 ]; then
+                echo "❌ Failed to activate virtual environment"
+                echo "💡 Please run ./setup.sh to recreate the environment"
+                exit 1
+            fi
+            # Try installing in virtual environment
+            install_jac_client
+        else
+            # No virtual environment, try installing system-wide or ask to setup
+            echo "⚠️ No virtual environment found"
+            echo "💡 Do you want to run setup.sh to create one? (y/n)"
+            read -r response
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                ./setup.sh
+                if [ $? -ne 0 ]; then
+                    echo "❌ Setup failed. Please check the errors above."
+                    exit 1
+                fi
+                # Try again after setup
+                if ! python3 -c "import jac_client" 2>/dev/null; then
+                    install_jac_client
+                fi
+            else
+                echo "❌ jac-client is required. Please install it manually or run ./setup.sh"
+                exit 1
+            fi
+        fi
+    fi
 fi
 
-# Check if virtual environment exists
-if [ ! -d "venv" ]; then
-    echo "❌ Virtual environment not found. Run ./setup.sh first."
+# Check if virtual environment exists and is valid
+if [ -d "venv" ]; then
+    if [ -f "venv/bin/python3" ]; then
+        # Test if virtual environment works
+        if source venv/bin/activate && python3 --version &> /dev/null; then
+            echo "🔧 Activating virtual environment..."
+            source venv/bin/activate
+        else
+            echo "⚠️ Virtual environment is broken"
+            echo "💡 Please run ./setup.sh to recreate it"
+            exit 1
+        fi
+    else
+        echo "⚠️ Virtual environment is incomplete"
+        echo "💡 Please run ./setup.sh to recreate it"
+        exit 1
+    fi
+else
+    echo "⚠️ No virtual environment found"
+    echo "💡 Please run ./setup.sh to create one"
     exit 1
 fi
 
-# Activate virtual environment
-echo "🔧 Activating virtual environment..."
-source venv/bin/activate
-
-# Always rebuild the JAC application to ensure fresh compilation
-echo "📦 Compiling JAC application with pure Jaclang frontend..."
-echo "⏳ This ensures all syntax errors are caught before starting..."
-echo ""
-
-jac build ./app.jac
 BUILD_EXIT_CODE=$?
 
 echo ""
