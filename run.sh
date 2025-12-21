@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Jeseci Smart Learning Academy - Run Script
-# This script starts the JAC application server
+# This script starts the JAC application server with React JSX frontend
 
 echo "🎓 Starting Jeseci Smart Learning Academy..."
 
@@ -16,9 +16,9 @@ echo "🔧 Activating virtual environment..."
 source venv/bin/activate
 
 # Check if the compiled JAC file exists
-if [ ! -f "learning_portal_minimal.jir" ]; then
-    echo "📦 Compiling JAC application..."
-    jac build learning_portal_minimal.jac
+if [ ! -f "app.jir" ]; then
+    echo "📦 Compiling JAC application with React JSX frontend..."
+    jac build app.jac
     if [ $? -ne 0 ]; then
         echo "❌ Failed to compile JAC application."
         exit 1
@@ -27,7 +27,8 @@ fi
 
 echo "🚀 Starting JAC server..."
 echo "📍 Access the application at: http://localhost:8000"
-echo "🌐 Frontend interface: http://localhost:8000/function/app"
+echo "🌐 React JSX frontend: http://localhost:8000/page/app"
+echo "💡 HTML API backup: POST /function/serve_html"
 echo ""
 echo "Available API endpoints:"
 echo "  POST /walker/welcome"
@@ -39,4 +40,4 @@ echo "Press Ctrl+C to stop the server"
 echo ""
 
 # Start the JAC server
-jac serve learning_portal_minimal.jir
+jac serve app.jir
