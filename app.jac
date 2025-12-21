@@ -24,7 +24,7 @@ node course {
 }
 
 walker init {
-    has welcome_msg: str = "🎓 Welcome to Jeseci Smart Learning Academy!";
+    has welcome_msg: str = "Welcome to Jeseci Smart Learning Academy!";
     
     can initialize with entry {
         report {
@@ -92,12 +92,12 @@ cl {
         return (
             <div style={containerStyle}>
                 <div style={headerStyle}>
-                    <h1 style={titleStyle}>🎓 Jeseci Smart Learning Academy</h1>
+                    <h1 style={titleStyle}>Jeseci Smart Learning Academy</h1>
                     <p style={subtitleStyle}>Pure Jaclang 0.9.3 Architecture</p>
                 </div>
                 
                 <div style={cardStyle}>
-                    <h2 style={h2Style}>✅ Application Status: Operational</h2>
+                    <h2 style={h2Style}>Application Status: Operational</h2>
                     <p><strong>Version:</strong> 5.0.0</p>
                     <p><strong>Architecture:</strong> Pure Jaclang + Native JSX</p>
                     <p><strong>Backend:</strong> Object-Spatial Programming APIs</p>
@@ -106,7 +106,7 @@ cl {
                 
                 <div style={gridStyle}>
                     <div style={apiCardStyle}>
-                        <h3>🚀 Backend APIs</h3>
+                        <h3>Backend APIs</h3>
                         <p>Native Jac Walkers with Object-Spatial Programming</p>
                         <button style={buttonStyle} onClick={lambda -> None { testWelcomeAPI(); }}>Test Welcome API</button>
                         <button style={buttonBlueStyle} onClick={lambda -> None { testHealthAPI(); }}>Health Check</button>
@@ -117,12 +117,12 @@ cl {
                     <div style={infoCardStyle}>
                         <h3>🔧 Architecture Benefits</h3>
                         <ul>
-                            <li>✅ Single language (Jaclang)</li>
-                            <li>✅ No external React dependencies</li>
-                            <li>✅ Native JSX implementation</li>
-                            <li>✅ Built-in authentication</li>
-                            <li>✅ Native backend communication</li>
-                            <li>✅ Zero configuration build</li>
+                            <li>Single language (Jaclang)</li>
+                            <li>No external React dependencies</li>
+                            <li>Native JSX implementation</li>
+                            <li>Built-in authentication</li>
+                            <li>Native backend communication</li>
+                            <li>Zero configuration build</li>
                         </ul>
                     </div>
                 </div>
