@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist',
-    manifest: true, // In Vite 4, this defaults to 'dist/manifest.json' (Correct for Jac)
+    manifest: 'manifest.json', // Explicit path for jac-client compatibility
     rollupOptions: {
       input: 'src/client_runtime.js'
     }

@@ -51,9 +51,29 @@ if ! command -v jac &> /dev/null; then
     exit 1
 fi
 
-echo "✅ Environment check passed. Starting server..."
+echo "✅ Environment check passed."
 echo ""
 
+# Build frontend before serving
+echo "🏗️ Building frontend..."
+if [ -f "package.json" ]; then
+    if command -v npm &> /dev/null; then
+        echo "📦 Installing frontend dependencies..."
+        npm install
+        
+        echo "🔨 Compiling frontend..."
+        npm run compile
+        
+        echo "✅ Frontend build completed successfully!"
+    else
+        echo "⚠️ npm not found - frontend build skipped"
+        echo "💡 Install Node.js and npm for frontend compilation"
+    fi
+else
+    echo "⚠️ package.json not found - frontend build skipped"
+fi
+
+echo ""
 echo "🚀 Starting JAC server..."
 echo "📍 Access the application at: http://localhost:8000"
 echo "🌐 Pure Jaclang Frontend: http://localhost:8000/page/app"
