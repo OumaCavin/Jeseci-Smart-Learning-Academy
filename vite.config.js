@@ -3,17 +3,21 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-
-  // Restore standard Vite behavior
   build: {
     outDir: 'dist',
-    manifest: true,  // Allows Vite to place it in .vite/manifest.json
+    // 1. Force manifest to be in the root of dist
+    manifest: 'manifest.json', 
     rollupOptions: {
-      input: 'src/client_runtime.js'  // Correct entry point
-      // Remove output config - let Vite handle filenames naturally
+      input: 'src/client_runtime.js',
+      output: {
+        // 2. CRITICAL: Force the exact filename Jac expects
+        entryFileNames: 'client_runtime.js', 
+        // 3. Ensure chunks don't get hashed randomly
+        chunkFileNames: '[name].js',
+        assetFileNames: '[name].[ext]'
+      }
     }
   },
-
   server: {
     port: 3000,
     proxy: {
