@@ -24,10 +24,9 @@ node course {
 }
 
 walker init {
-    has welcome_msg: str;
+    has welcome_msg: str = "🎓 Welcome to Jeseci Smart Learning Academy!";
     
     can initialize with entry {
-        self.welcome_msg = "🎓 Welcome to Jeseci Smart Learning Academy!";
         report {
             "message": self.welcome_msg,
             "status": "initialized",
@@ -37,14 +36,11 @@ walker init {
 }
 
 walker health_check {
-    has status: str;
-    has version: str;
-    has timestamp: any;
+    has status: str = "healthy";
+    has version: str = "5.0.0";
+    has timestamp: str = "2025-12-22T02:59:00Z";
     
     can check_health with entry {
-        self.status = "healthy";
-        self.version = "5.0.0";
-        self.timestamp = "2025-12-22T02:44:26Z";
         report {
             "service": "Jeseci Smart Learning Academy",
             "status": self.status,
