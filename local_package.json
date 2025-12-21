@@ -1,0 +1,28 @@
+{
+  "name": "jeseci-smart-learning-academy",
+  "version": "1.0.0",
+  "description": "Pure Jaclang 0.9.3 Smart Learning Academy with Vite Frontend",
+  "main": "app.jac",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "compile": "vite build && jac build ./app.jac",
+    "preview": "vite preview",
+    "serve": "jac serve app.jir",
+    "full-dev": "concurrently \"npm run dev\" \"npm run serve\"",
+    "full-build": "npm run build && jac build ./app.jac && npm run serve"
+  },
+  "dependencies": {
+    "@jac-client/utils": "^0.9.3"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "concurrently": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.19.0",
+    "npm": ">=9.0.0"
+  }
+}
