@@ -15,15 +15,30 @@ fi
 echo "🔧 Activating virtual environment..."
 source venv/bin/activate
 
-# Check if the compiled JAC file exists
-if [ ! -f "app.jir" ]; then
-    echo "📦 Compiling JAC application with React JSX frontend..."
-    jac build app.jac
-    if [ $? -ne 0 ]; then
-        echo "❌ Failed to compile JAC application."
-        exit 1
-    fi
+# Always rebuild the JAC application to ensure fresh compilation
+echo "📦 Compiling JAC application with React JSX frontend..."
+echo "⏳ This ensures all syntax errors are caught before starting..."
+echo ""
+
+jac build ./app.jac
+BUILD_EXIT_CODE=$?
+
+echo ""
+
+if [ $BUILD_EXIT_CODE -ne 0 ]; then
+    echo "❌ FAILED TO COMPILE JAC APPLICATION"
+    echo "🔧 Please fix the syntax errors above and try again"
+    echo ""
+    echo "💡 Quick fixes:"
+    echo "   - Check for missing colons (:) in has declarations"
+    echo "   - Verify walker syntax with 'with entry' blocks"
+    echo "   - Ensure proper indentation and brackets"
+    echo ""
+    exit 1
 fi
+
+echo "✅ Compilation successful! Starting server..."
+echo ""
 
 echo "🚀 Starting JAC server..."
 echo "📍 Access the application at: http://localhost:8000"
