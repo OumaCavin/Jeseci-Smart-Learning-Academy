@@ -43,7 +43,7 @@ if ! python3 -c "import jac_client" 2>/dev/null; then
             echo "💡 Do you want to run setup.sh to create one? (y/n)"
             read -r response
             if [[ "$response" =~ ^[Yy]$ ]]; then
-                ./setup.sh
+                bash ./setup.sh
                 if [ $? -ne 0 ]; then
                     echo "❌ Setup failed. Please check the errors above."
                     exit 1
