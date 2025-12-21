@@ -7,25 +7,61 @@ echo "🎓 Starting Jeseci Smart Learning Academy..."
 echo "📋 Using Pure Jaclang 0.9.3 Architecture"
 
 # Function to install jac-client
-install_jac_client() {
-    echo "🐍 Installing jac-client (Python package)..."
+install_jaclang() {
+    echo "🐍 Installing jaclang and jac-client (Python packages)..."
+    
+    # Function to install with timeout and retries
+    install_with_timeout() {
+        local cmd="$1"
+        local pkg="$2"
+        echo "📦 Installing $pkg with timeout..."
+        
+        # Try with timeout and retries
+        if timeout 60 $cmd install $pkg --timeout 30 --retries 3; then
+            return 0
+        else
+            return 1
+        fi
+    }
+    
+    local success=false
+    
     if command -v uv &> /dev/null; then
-        uv pip install jac-client
+        echo "✅ Using uv package manager"
+        if install_with_timeout "uv pip" "jaclang>=0.9.3 jac-client>=0.2.3"; then
+            success=true
+        fi
     elif command -v pip &> /dev/null; then
-        pip install jac-client
+        echo "✅ Using pip package manager"
+        if install_with_timeout "pip" "jaclang>=0.9.3 jac-client>=0.2.3"; then
+            success=true
+        fi
     elif command -v pip3 &> /dev/null; then
-        pip3 install jac-client
-    else
-        echo "❌ No package manager found (uv, pip, or pip3)"
-        echo "💡 Please run ./setup.sh to install dependencies properly"
-        exit 1
+        echo "✅ Using pip3 package manager"
+        if install_with_timeout "pip3" "jaclang>=0.9.3 jac-client>=0.2.3"; then
+            success=true
+        fi
     fi
+    
+    if [ "$success" = false ]; then
+        echo "❌ Failed to install jaclang packages due to network issues"
+        echo "💡 Possible solutions:"
+        echo "   1. Check your internet connection"
+        echo "   2. Try using a different PyPI mirror"
+        echo "   3. Install manually: pip install jaclang jac-client"
+        echo "   4. Run: bash ./setup.sh (which has better error handling)"
+        return 1
+    fi
+    
+    return 0
 }
 
-# Check if jac-client is installed (try system Python first)
-if ! python3 -c "import jac_client" 2>/dev/null; then
-    # Try with current environment
-    if ! python -c "import jac_client" 2>/dev/null; then
+# Check if jac command is available (most important)
+if ! command -v jac &> /dev/null; then
+    echo "⚠️ jac command not found"
+    
+    # Check if jaclang is installed in Python
+    if ! python3 -c "import jaclang" 2>/dev/null; then
         # Check if virtual environment exists
         if [ -d "venv" ] && [ -f "venv/bin/python3" ]; then
             echo "🔧 Activating virtual environment..."
@@ -36,7 +72,9 @@ if ! python3 -c "import jac_client" 2>/dev/null; then
                 exit 1
             fi
             # Try installing in virtual environment
-            install_jac_client
+            if ! install_jaclang; then
+                exit 1
+            fi
         else
             # No virtual environment, try installing system-wide or ask to setup
             echo "⚠️ No virtual environment found"
@@ -49,15 +87,31 @@ if ! python3 -c "import jac_client" 2>/dev/null; then
                     exit 1
                 fi
                 # Try again after setup
-                if ! python3 -c "import jac_client" 2>/dev/null; then
-                    install_jac_client
+                if ! command -v jac &> /dev/null; then
+                    install_jaclang
                 fi
             else
-                echo "❌ jac-client is required. Please install it manually or run ./setup.sh"
+                echo "❌ jaclang is required. Please install it manually or run ./setup.sh"
+                echo "💡 Manual installation: pip install jaclang jac-client"
                 exit 1
             fi
         fi
+    else
+        # jaclang is installed but jac command not found - add to PATH
+        echo "🔧 jaclang found but jac command not in PATH"
+        JAC_PATH=$(python3 -c "import jaclang; import os; print(os.path.dirname(jaclang.__file__))" 2>/dev/null)
+        if [ -n "$JAC_PATH" ] && [ -d "$JAC_PATH/bin" ]; then
+            export PATH="$JAC_PATH/bin:$PATH"
+            echo "✅ Added jaclang bin to PATH"
+        fi
     fi
+fi
+
+# Final check for jac command
+if ! command -v jac &> /dev/null; then
+    echo "❌ jac command still not found after installation attempts"
+    echo "💡 Please run: bash ./setup.sh to properly install jaclang"
+    exit 1
 fi
 
 # Check if virtual environment exists and is valid
@@ -123,6 +177,14 @@ echo ""
 
 echo "Press Ctrl+C to stop the server"
 echo ""
+
+# Final check for jac command before serving
+if ! command -v jac &> /dev/null; then
+    echo "❌ jac command not found - installation may have failed"
+    echo "💡 Please run: bash ./setup.sh to properly install jaclang"
+    echo "💡 Or try manually: pip install jaclang jac-client"
+    exit 1
+fi
 
 # Start the JAC server
 jac serve app.jir
