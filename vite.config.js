@@ -4,17 +4,9 @@ export default defineConfig({
   plugins: [],
   build: {
     outDir: 'dist',
-    manifest: 'manifest.json',
+    manifest: false,
     rollupOptions: {
-      input: 'app.jac',
-      output: {
-        entryFileNames: 'client_runtime.js',
-        chunkFileNames: '[name].js',
-        assetFileNames: '[name].[ext]'
-      }
+      input: 'src/client_runtime.js'
     }
-  },
-  server: {
-    port: 3000
   }
 });
