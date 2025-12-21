@@ -246,7 +246,7 @@ with entry {
     print("🎓 Jeseci Smart Learning Academy - Native Jac Version");
     print("🚀 Full Stack Application with React Frontend");
     print("✨ Features: JAC OSP backend + React JSX frontend");
-    print("🔧 Use 'jac serve learning_portal_minimal.jir' to start the server");
+    print("🔧 Use 'jac serve app.jir' to start the server");
     print("🌐 Access the app at: http://localhost:8000/page/app");
     print("💡 Alternative HTML API: POST /function/serve_html");
 }
