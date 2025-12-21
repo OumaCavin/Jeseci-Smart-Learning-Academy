@@ -1,10 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
 
-  // 1. Force Vite to read .js files as JSX
+  resolve: {
+    alias: {
+      // THE FIX: Map the missing package to our local file
+      '@jac-client/utils': path.resolve(__dirname, 'src/jac_utils.js')
+    }
+  },
+
   esbuild: {
     loader: "jsx",
     include: /src\/.*\.js?$/,
