@@ -24,30 +24,66 @@ node course {
 }
 
 walker init {
-    has welcome_msg = "🎓 Welcome to Jeseci Smart Learning Academy!";
+    has welcome_msg: str;
+    
+    with `root entry {
+        self.welcome_msg = "🎓 Welcome to Jeseci Smart Learning Academy!";
+        report {
+            "message": self.welcome_msg,
+            "status": "initialized",
+            "version": "5.0.0"
+        };
+    }
 }
 
 walker health_check {
-    has status = "healthy";
-    has version = "5.0.0";
-    has timestamp;
+    has status: str;
+    has version: str;
+    has timestamp: any;
+    
+    with `root entry {
+        self.status = "healthy";
+        self.version = "5.0.0";
+        self.timestamp = "2025-12-22T02:31:41Z";
+        report {
+            "service": "Jeseci Smart Learning Academy",
+            "status": self.status,
+            "version": self.version,
+            "timestamp": self.timestamp
+        };
+    }
 }
 
 walker concepts {
-    has learning_concepts = [
-        "Object-Spatial Programming", 
-        "JAC Graph Architecture",
-        "Client-Server Communication",
-        "React-like Components"
-    ];
+    has learning_concepts: list;
+    
+    with `root entry {
+        self.learning_concepts = [
+            "Object-Spatial Programming", 
+            "JAC Graph Architecture",
+            "Client-Server Communication",
+            "React-like Components"
+        ];
+        report {
+            "concepts": self.learning_concepts,
+            "total_count": len(self.learning_concepts)
+        };
+    }
 }
 
 walker user_progress {
-    has user_data = {
-        "courses_completed": 3,
-        "lessons_completed": 15,
-        "current_streak": 7
-    };
+    has user_data: dict;
+    
+    with `root entry {
+        self.user_data = {
+            "courses_completed": 3,
+            "lessons_completed": 15,
+            "current_streak": 7
+        };
+        report {
+            "progress": self.user_data
+        };
+    }
 }
 
 # ==============================================================================
