@@ -75,53 +75,54 @@ if [ $? -ne 0 ]; then
 fi
 
 # Install dependencies using the available package manager with better error handling
-echo "📚 Installing dependencies from requirements file..."
+echo "📚 Installing dependencies..."
 
-# Check if requirements file exists
-REQUIREMENTS_FILE="docs/pure-jac/requirements_pure_jac.txt"
-if [ ! -f "$REQUIREMENTS_FILE" ]; then
-    echo "⚠️ Requirements file not found: $REQUIREMENTS_FILE"
-    echo "📦 Installing core jaclang packages manually..."
-    # Fallback to manual installation
-    if [ "$UV_CMD" = "uv" ]; then
-        uv pip install jaclang>=0.9.3 jac-client>=0.2.3
+# Define standard PyPI index to avoid mirror issues
+PYPI_INDEX="--index-url https://pypi.org/simple"
+
+# Function to install from requirements file with timeout
+install_from_requirements() {
+    local cmd="$1"
+    local req_file="$2"
+    echo "📦 Installing from requirements file with timeout..."
+    
+    # Use timeout command to limit execution time
+    if timeout 120 $cmd install -r "$req_file" $PYPI_INDEX; then
+        return 0
     else
-        timeout 120 $UV_CMD install jaclang>=0.9.3 jac-client>=0.2.3 --timeout 30 --retries 3
-    fi
-else
-    echo "✅ Found requirements file: $REQUIREMENTS_FILE"
-    
-    # Function to install from requirements file with timeout
-    install_from_requirements() {
-        local cmd="$1"
-        local req_file="$2"
-        echo "📦 Installing from requirements file with timeout..."
-        
-        # Use timeout command to limit execution time
-        if timeout 120 $cmd install -r "$req_file"; then
-            return 0
+        local exit_code=$?
+        if [ $exit_code -eq 124 ]; then
+            echo "⚠️ Installation timed out after 120 seconds"
         else
-            local exit_code=$?
-            if [ $exit_code -eq 124 ]; then
-                echo "⚠️ Installation timed out after 120 seconds"
-            else
-                echo "⚠️ Installation failed, trying individual packages..."
-            fi
-            # Fallback to individual package installation
-            $cmd install jaclang>=0.9.3 jac-client>=0.2.3
+            echo "⚠️ Installation failed, trying individual packages..."
         fi
-    }
-    
-    local install_success=false
-    
+        # Fallback to individual package installation
+        $cmd install jaclang>=0.9.3 jac-client>=0.2.3 $PYPI_INDEX
+    fi
+}
+
+install_success=false
+
+REQUIREMENTS_FILE="docs/pure-jac/requirements_pure_jac.txt"
+if [ -f "$REQUIREMENTS_FILE" ]; then
+    echo "✅ Found requirements file: $REQUIREMENTS_FILE"
     if [ "$UV_CMD" = "uv" ]; then
-        echo "✅ Using uv package manager"
         if install_from_requirements "uv pip" "$REQUIREMENTS_FILE"; then
             install_success=true
         fi
     else
-        echo "✅ Using $UV_CMD package manager"
         if install_from_requirements "$UV_CMD" "$REQUIREMENTS_FILE"; then
+            install_success=true
+        fi
+    fi
+else
+    echo "⚠️ Requirements file not found. Installing manually..."
+    if [ "$UV_CMD" = "uv" ]; then
+        if uv pip install jaclang>=0.9.3 jac-client>=0.2.3 $PYPI_INDEX; then
+            install_success=true
+        fi
+    else
+        if $UV_CMD install jaclang>=0.9.3 jac-client>=0.2.3 $PYPI_INDEX; then
             install_success=true
         fi
     fi
@@ -132,8 +133,7 @@ if [ "$install_success" = false ]; then
     echo "💡 This might be due to network issues or firewall restrictions"
     echo "💡 Please try:"
     echo "   1. Check your internet connection"
-    echo "   2. Install manually: $UV_CMD install jaclang jac-client"
-    echo "   3. Try again later when network is stable"
+    echo "   2. Install manually: uv pip install jaclang jac-client --index-url https://pypi.org/simple"
     exit 1
 fi
 
