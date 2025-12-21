@@ -4,18 +4,13 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
 
-  // Simplified config - client_runtime.js doesn't need complex workarounds
+  // Restore standard Vite behavior
   build: {
     outDir: 'dist',
-    manifest: 'manifest.json',
+    manifest: true,  // Allows Vite to place it in .vite/manifest.json
     rollupOptions: {
-      // THE KEY FIX: Point back to the file Jac expects
-      input: 'src/client_runtime.js',
-      output: {
-        entryFileNames: 'client_runtime.js',
-        chunkFileNames: '[name].js',
-        assetFileNames: '[name].[ext]'
-      }
+      input: 'src/client_runtime.js'  // Correct entry point
+      // Remove output config - let Vite handle filenames naturally
     }
   },
 
