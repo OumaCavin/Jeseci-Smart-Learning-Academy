@@ -1,2 +1,2 @@
 {"name": "jeseci-smart-learning-academy", "version": "1.0.0", "type": "module", "scripts": {"compile": "vite build",
-    "build": "vite build", "dev": "vite"}, "dependencies": {"react": "^18.2.0", "react-dom": "^18.2.0", "react-router-dom": "^6.21.1"}, "devDependencies": {"@vitejs/plugin-react": "^4.2.1", "vite": "^5.0.10"}}
+    "build": "vite build", "dev": "vite"}, "dependencies": {"react": "^18.2.0", "react-dom": "^18.2.0", "react-router-dom": "^6.21.1"}, "devDependencies": {"@vitejs/plugin-react": "^4.2.1", "vite": "^4.5.2"}}
