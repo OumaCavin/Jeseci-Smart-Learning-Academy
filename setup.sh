@@ -74,16 +74,50 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Install dependencies using the available package manager
-echo "📚 Installing dependencies..."
+# Install dependencies using the available package manager with better error handling
+echo "📚 Installing dependencies with network timeout handling..."
+
+# Function to install with timeout and retries
+install_with_timeout() {
+    local cmd="$1"
+    local pkg="$2"
+    echo "📦 Installing $pkg with timeout and retries..."
+    
+    # Try with timeout and retries
+    if timeout 120 $cmd install $pkg --timeout 30 --retries 3; then
+        return 0
+    else
+        echo "⚠️ Installation timed out, trying alternative method..."
+        # Try without timeout as fallback
+        if $cmd install $pkg; then
+            return 0
+        else
+            return 1
+        fi
+    fi
+}
+
+local install_success=false
+
 if [ "$UV_CMD" = "uv" ]; then
-    uv pip install jaclang>=0.9.3 jac-client>=0.2.3
+    echo "✅ Using uv package manager"
+    if install_with_timeout "uv pip" "jaclang>=0.9.3 jac-client>=0.2.3"; then
+        install_success=true
+    fi
 else
-    pip install jaclang>=0.9.3 jac-client>=0.2.3
+    echo "✅ Using pip package manager"
+    if install_with_timeout "$UV_CMD" "jaclang>=0.9.3 jac-client>=0.2.3"; then
+        install_success=true
+    fi
 fi
 
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to install dependencies"
+if [ "$install_success" = false ]; then
+    echo "❌ Failed to install jaclang packages"
+    echo "💡 This might be due to network issues or firewall restrictions"
+    echo "💡 Please try:"
+    echo "   1. Check your internet connection"
+    echo "   2. Install manually: $UV_CMD install jaclang jac-client"
+    echo "   3. Try again later when network is stable"
     exit 1
 fi
 
