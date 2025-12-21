@@ -140,15 +140,76 @@ walker user_progress {
 }
 
 # =============================================================================
-# FRONTEND: CLIENT-SIDE HTML RENDERING
+# FRONTEND: CLIENT UI (The Superior Solution)
 # =============================================================================
 
-# No client function - using pure API approach instead
-
-# Regular function to serve HTML for API access
+# Regular function to serve HTML for API access (backup)
 def serve_html -> any {
     html_content = "<!DOCTYPE html><html><head><title>Jeseci Smart Learning Academy</title><style>body{font-family:Arial,sans-serif;margin:0;padding:20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;color:#333;} .container{max-width:1200px;margin:0 auto;} .header{text-align:center;color:white;margin-bottom:40px;padding:40px;background:rgba(255,255,255,0.1);border-radius:20px;} .header h1{font-size:3em;margin:0 0 10px 0;text-shadow:2px 2px 4px rgba(0,0,0,0.3);} .card{background:rgba(255,255,255,0.95);border-radius:20px;padding:30px;margin:20px 0;box-shadow:0 8px 32px rgba(0,0,0,0.1);} .btn{display:inline-block;padding:12px 30px;background:#4CAF50;color:white;text-decoration:none;border-radius:25px;margin:10px;} .api-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin:20px 0;} .api-card{background:#f8f9fa;border-radius:10px;padding:20px;border-left:4px solid #2196F3;} .endpoint{font-family:monospace;font-weight:bold;color:#333;margin-bottom:5px;} .desc{color:#666;} .footer{text-align:center;margin-top:40px;color:rgba(255,255,255,0.8);}</style></head><body><div class='container'><div class='header'><h1>🎓 Jeseci Smart Learning Academy</h1><p>Full Stack JAC Application with Object-Spatial Programming</p></div><div class='card'><h2>✅ Application Status: Operational</h2><p><strong>Version:</strong> 5.0.0</p><p><strong>Architecture:</strong> JAC OSP with Static HTML Frontend</p><p><strong>Backend:</strong> Object-Spatial Programming APIs</p><div style='text-align:center;margin:30px 0;'><a href='/api/walker/welcome' class='btn'>🚀 Test Welcome API</a><a href='/api/walker/health_check' class='btn'>❤️ Health Check</a><a href='/api/walker/concepts' class='btn'>📚 View Concepts</a><a href='/api/walker/user_progress' class='btn'>📊 User Progress</a></div></div><div class='card'><h2>🔧 Available API Endpoints</h2><div class='api-grid'><div class='api-card'><div class='endpoint'>POST /walker/welcome</div><div class='desc'>System welcome and initialization</div></div><div class='api-card'><div class='endpoint'>POST /walker/health_check</div><div class='desc'>Health check with system status</div></div><div class='api-card'><div class='endpoint'>POST /walker/concepts</div><div class='desc'>Learning concepts management</div></div><div class='api-card'><div class='endpoint'>POST /walker/user_progress</div><div class='desc'>User progress tracking</div></div></div></div><div class='card'><h2>🚀 Quick Start</h2><ol><li>Use the API buttons above to test endpoints</li><li>Check system health and status</li><li>Explore learning concepts and progress</li><li>Build custom features using JAC OSP</li></ol></div></div><div class='footer'><p>Built with JAC Object-Spatial Programming</p><p>© 2025 Cavin Otieno • Jeseci Smart Learning Academy</p></div></div></body></html>";
     return html_content;
+}
+
+# Client function with proper JSX (Superior Solution)
+cl {
+    def app() -> any {
+        return (
+            <div style={{fontFamily: "Arial, sans-serif", maxWidth: "800px", margin: "0 auto", padding: "20px"}}>
+                
+                <div style={{textAlign: "center", padding: "40px", marginBottom: "40px", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", borderRadius: "20px", color: "white"}}>
+                    <h1 style={{fontSize: "2.5em", margin: "0"}}>🎓 Jeseci Smart Learning Academy</h1>
+                    <p>Full Stack JAC Application with Object-Spatial Programming</p>
+                </div>
+
+                <div style={{background: "white", padding: "30px", borderRadius: "20px", boxShadow: "0 8px 32px rgba(0,0,0,0.1)", border: "1px solid #eee"}}>
+                    <h2>✅ Application Status: Operational</h2>
+                    <p><strong>Version:</strong> 5.0.0</p>
+                    <p><strong>Architecture:</strong> Native Jac OSP + React Frontend</p>
+                    <p><strong>Backend:</strong> Object-Spatial Programming APIs</p>
+                    
+                    <div style={{display: "flex", gap: "10px", marginTop: "20px", flexWrap: "wrap"}}>
+                        <a href="/api/walker/welcome" style={{textDecoration: "none", background: "#4CAF50", color: "white", padding: "12px 25px", borderRadius: "25px"}}>
+                            🚀 Test Welcome API
+                        </a>
+                        <a href="/api/walker/health_check" style={{textDecoration: "none", background: "#2196F3", color: "white", padding: "12px 25px", borderRadius: "25px"}}>
+                            ❤️ Health Check
+                        </a>
+                        <a href="/api/walker/concepts" style={{textDecoration: "none", background: "#FF9800", color: "white", padding: "12px 25px", borderRadius: "25px"}}>
+                            📚 View Concepts
+                        </a>
+                        <a href="/api/walker/user_progress" style={{textDecoration: "none", background: "#9C27B0", color: "white", padding: "12px 25px", borderRadius: "25px"}}>
+                            📊 User Progress
+                        </a>
+                    </div>
+                </div>
+
+                <div style={{marginTop: "20px", padding: "20px", background: "#f8f9fa", borderRadius: "10px", borderLeft: "4px solid #764ba2"}}>
+                    <h3>🔧 Available API Endpoints</h3>
+                    <ul>
+                        <li><code>POST /walker/welcome</code> - System welcome and initialization</li>
+                        <li><code>POST /walker/health_check</code> - Health check with system status</li>
+                        <li><code>POST /walker/concepts</code> - Learning concepts management</li>
+                        <li><code>POST /walker/user_progress</code> - User progress tracking</li>
+                    </ul>
+                </div>
+
+                <div style={{marginTop: "20px", padding: "20px", background: "#e8f5e8", borderRadius: "10px", borderLeft: "4px solid #4CAF50"}}>
+                    <h3>🚀 Quick Start</h3>
+                    <ol>
+                        <li>Use the buttons above to test backend API walkers</li>
+                        <li>Check the browser console/network tab to see JSON responses</li>
+                        <li>Extend this UI by adding more JSX components in the cl block</li>
+                        <li>Experience the power of JAC Object-Spatial Programming</li>
+                    </ol>
+                </div>
+
+                <div style={{textAlign: "center", marginTop: "40px", color: "#666"}}>
+                    <p>Built with JAC Object-Spatial Programming</p>
+                    <p>© 2025 Cavin Otieno • Jeseci Smart Learning Academy</p>
+                </div>
+
+            </div>
+        );
+    }
 }
 
 # Backend walker for serving application info
@@ -182,10 +243,10 @@ walker serve_app {
 # =============================================================================
 
 with entry {
-    print("🎓 Jeseci Smart Learning Academy - Minimal Working Edition");
-    print("📚 JAC with Static HTML Frontend - No Complex Dependencies");
-    print("🚀 Use 'jac serve learning_portal_minimal.jir' to start the server");
-    print("✨ Features: API endpoints, responsive UI, progress tracking");
-    print("🔧 Built with pure JAC backend and static HTML frontend");
+    print("🎓 Jeseci Smart Learning Academy - Native Jac Version");
+    print("🚀 Full Stack Application with React Frontend");
+    print("✨ Features: JAC OSP backend + React JSX frontend");
+    print("🔧 Use 'jac serve learning_portal_minimal.jir' to start the server");
     print("🌐 Access the app at: http://localhost:8000/page/app");
+    print("💡 Alternative HTML API: POST /function/serve_html");
 }
