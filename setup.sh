@@ -77,19 +77,25 @@ fi
 # Install dependencies using the available package manager with better error handling
 echo "📚 Installing dependencies with network timeout handling..."
 
-# Function to install with timeout and retries
+# Function to install with timeout using the timeout command
 install_with_timeout() {
     local cmd="$1"
     local pkg="$2"
-    echo "📦 Installing $pkg with timeout and retries..."
+    echo "📦 Installing $pkg with timeout..."
     
-    # Try with timeout and retries
-    if timeout 120 $cmd install $pkg --timeout 30 --retries 3; then
+    # Use timeout command to limit execution time
+    if timeout 120 $cmd install $pkg; then
         return 0
     else
-        echo "⚠️ Installation timed out, trying alternative method..."
+        local exit_code=$?
+        if [ $exit_code -eq 124 ]; then
+            echo "⚠️ Installation timed out after 120 seconds"
+        else
+            echo "⚠️ Installation failed, trying alternative method..."
+        fi
         # Try without timeout as fallback
         if $cmd install $pkg; then
+            echo "✅ Fallback installation successful"
             return 0
         else
             return 1
@@ -101,12 +107,14 @@ local install_success=false
 
 if [ "$UV_CMD" = "uv" ]; then
     echo "✅ Using uv package manager"
+    # uv doesn't support --timeout and --retries arguments
     if install_with_timeout "uv pip" "jaclang>=0.9.3 jac-client>=0.2.3"; then
         install_success=true
     fi
 else
-    echo "✅ Using pip package manager"
-    if install_with_timeout "$UV_CMD" "jaclang>=0.9.3 jac-client>=0.2.3"; then
+    echo "✅ Using $UV_CMD package manager"
+    # pip supports --timeout and --retries
+    if install_with_timeout "$UV_CMD" "jaclang>=0.9.3 jac-client>=0.2.3 --timeout 30 --retries 3"; then
         install_success=true
     fi
 fi
