@@ -10,54 +10,72 @@ echo "📋 Using Pure Jaclang 0.9.3 Architecture"
 install_jaclang() {
     echo "🐍 Installing jaclang and jac-client (Python packages)..."
     
-    # Function to install with timeout using the timeout command
-    install_with_timeout() {
-        local cmd="$1"
-        local pkg="$2"
-        echo "📦 Installing $pkg with timeout..."
+    # Check if requirements file exists
+    REQUIREMENTS_FILE="docs/pure-jac/requirements_pure_jac.txt"
+    if [ ! -f "$REQUIREMENTS_FILE" ]; then
+        echo "⚠️ Requirements file not found: $REQUIREMENTS_FILE"
+        echo "📦 Installing core jaclang packages manually..."
+        # Fallback to manual installation
+        if command -v uv &> /dev/null; then
+            uv pip install jaclang>=0.9.3 jac-client>=0.2.3
+        elif command -v pip &> /dev/null; then
+            timeout 60 pip install jaclang>=0.9.3 jac-client>=0.2.3 --timeout 30 --retries 3
+        elif command -v pip3 &> /dev/null; then
+            timeout 60 pip3 install jaclang>=0.9.3 jac-client>=0.2.3 --timeout 30 --retries 3
+        fi
+        return $?
+    else
+        echo "✅ Found requirements file: $REQUIREMENTS_FILE"
         
-        # Use timeout command to limit execution time
-        if timeout 60 $cmd install $pkg; then
-            return 0
-        else
-            local exit_code=$?
-            if [ $exit_code -eq 124 ]; then
-                echo "⚠️ Installation timed out after 60 seconds"
+        # Function to install from requirements file with timeout
+        install_from_requirements() {
+            local cmd="$1"
+            local req_file="$2"
+            echo "📦 Installing from requirements file with timeout..."
+            
+            # Use timeout command to limit execution time
+            if timeout 60 $cmd install -r "$req_file"; then
+                return 0
+            else
+                local exit_code=$?
+                if [ $exit_code -eq 124 ]; then
+                    echo "⚠️ Installation timed out after 60 seconds"
+                else
+                    echo "⚠️ Installation failed, trying individual packages..."
+                fi
+                # Fallback to individual package installation
+                $cmd install jaclang>=0.9.3 jac-client>=0.2.3
             fi
+        }
+        
+        local success=false
+        
+        if command -v uv &> /dev/null; then
+            echo "✅ Using uv package manager"
+            if install_from_requirements "uv pip" "$REQUIREMENTS_FILE"; then
+                success=true
+            fi
+        elif command -v pip &> /dev/null; then
+            echo "✅ Using pip package manager"
+            if install_from_requirements "pip" "$REQUIREMENTS_FILE"; then
+                success=true
+            fi
+        elif command -v pip3 &> /dev/null; then
+            echo "✅ Using pip3 package manager"
+            if install_from_requirements "pip3" "$REQUIREMENTS_FILE"; then
+                success=true
+            fi
+        fi
+        
+        if [ "$success" = false ]; then
+            echo "❌ Failed to install jaclang packages due to network issues"
+            echo "💡 Possible solutions:"
+            echo "   1. Check your internet connection"
+            echo "   2. Try using a different PyPI mirror"
+            echo "   3. Install manually: pip install jaclang jac-client"
+            echo "   4. Run: bash ./setup.sh (which has better error handling)"
             return 1
         fi
-    }
-    
-    local success=false
-    
-    if command -v uv &> /dev/null; then
-        echo "✅ Using uv package manager"
-        # uv doesn't support --timeout and --retries arguments
-        if install_with_timeout "uv pip" "jaclang>=0.9.3 jac-client>=0.2.3"; then
-            success=true
-        fi
-    elif command -v pip &> /dev/null; then
-        echo "✅ Using pip package manager"
-        # pip supports --timeout and --retries
-        if install_with_timeout "pip" "jaclang>=0.9.3 jac-client>=0.2.3 --timeout 30 --retries 3"; then
-            success=true
-        fi
-    elif command -v pip3 &> /dev/null; then
-        echo "✅ Using pip3 package manager"
-        # pip3 supports --timeout and --retries
-        if install_with_timeout "pip3" "jaclang>=0.9.3 jac-client>=0.2.3 --timeout 30 --retries 3"; then
-            success=true
-        fi
-    fi
-    
-    if [ "$success" = false ]; then
-        echo "❌ Failed to install jaclang packages due to network issues"
-        echo "💡 Possible solutions:"
-        echo "   1. Check your internet connection"
-        echo "   2. Try using a different PyPI mirror"
-        echo "   3. Install manually: pip install jaclang jac-client"
-        echo "   4. Run: bash ./setup.sh (which has better error handling)"
-        return 1
     fi
     
     return 0
