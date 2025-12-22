@@ -1,0 +1,14 @@
+# Jeseci Smart Learning Academy - Backend Python Dependencies
+# Minimal requirements for Jaclang API backend
+
+# Core Jaclang Runtime
+jaclang>=0.9.3
+
+# AI Integration (optional but recommended for content generation)
+openai>=1.12.0
+
+# Environment Management
+python-dotenv>=1.0.0
+
+# Development and Testing (optional)
+pytest>=7.4.0
