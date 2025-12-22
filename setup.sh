@@ -83,15 +83,15 @@ PYPI_INDEX="--index-url https://pypi.org/simple"
 
 install_success=false
 
-REQUIREMENTS_FILE="backend/requirements.txt"
+REQUIREMENTS_FILE="backend/pyproject.toml"
 if [ -f "$REQUIREMENTS_FILE" ]; then
-    echo "✅ Found requirements file: $REQUIREMENTS_FILE"
+    echo "✅ Found dependencies file: $REQUIREMENTS_FILE"
     if [ "$UV_CMD" = "uv" ]; then
-        if uv pip install -r "$REQUIREMENTS_FILE" $PYPI_INDEX 2>&1; then
+        if uv pip install -e "$REQUIREMENTS_FILE" $PYPI_INDEX 2>&1; then
             install_success=true
         fi
     else
-        if $UV_CMD install -r "$REQUIREMENTS_FILE" $PYPI_INDEX 2>&1; then
+        if $UV_CMD install -e "$REQUIREMENTS_FILE" $PYPI_INDEX 2>&1; then
             install_success=true
         fi
     fi
@@ -144,7 +144,7 @@ echo "      OPENAI_API_KEY=sk-your_actual_api_key_here"
 echo ""
 echo "🚀 START THE APPLICATION:"
 echo ""
-echo "   bash run.sh"
+echo "   jac serve backend/app.jac"
 echo ""
 echo "📍 Backend API:  http://localhost:8000"
 echo "📍 Frontend App: http://localhost:3000"
@@ -158,10 +158,9 @@ echo "   • Dynamic User Progress Tracking"
 echo "   • Real-time Analytics Dashboard"
 echo "   • Personalized Recommendations"
 echo ""
-echo "💡 The run.sh script will:"
-echo "   • Check and free ports 8000 and 3000 if needed"
-echo "   • Start the Jaclang backend API server"
-echo "   • Start the React frontend server"
-echo "   • Both servers run in a single terminal"
+echo "💡 To start the application:"
+echo "   • Run: jac serve backend/app.jac"
+echo "   • This starts the Jaclang backend API server on port 8000"
+echo "   • The frontend (running separately) will connect to this API"
 echo ""
 echo "Happy coding! 🎓✨"
