@@ -1,0 +1,17 @@
+# =============================================================================
+# Database Dependencies for Jeseci Smart Learning Companion
+# =============================================================================
+# Required packages for PostgreSQL and Neo4j database connectivity
+# =============================================================================
+
+# PostgreSQL driver
+psycopg2-binary>=2.9.11
+
+# Neo4j driver
+neo4j>=5.14.0
+
+# SQLAlchemy for advanced ORM operations (optional but recommended)
+# sqlalchemy>=2.0.0
+
+# For connection pooling and advanced features
+# psycopg[binary,pool]>=3.1.0  # Alternative async driver
