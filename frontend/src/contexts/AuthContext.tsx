@@ -87,6 +87,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const userData = response.user;
         const authToken = response.access_token || response.token;
 
+        if (!authToken) {
+          throw new Error('No token received from server');
+        }
+
         // Store in localStorage for session persistence
         localStorage.setItem(AUTH_TOKEN_KEY, authToken);
         localStorage.setItem(AUTH_USER_KEY, JSON.stringify(userData));
