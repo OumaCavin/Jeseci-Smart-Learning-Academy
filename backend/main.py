@@ -25,6 +25,19 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from ai_generator import sync_generate_lesson, ai_generator
 
+# Import Multi-Agent System components
+from agents.base_agent import BaseAgent, AgentState, AgentMessage, MessageType, Priority
+from agents.message_bus import MessageBus, DeliveryPattern
+from agents.registry import AgentRegistry, AgentConfig
+
+# Import specialized agents
+from agents.orchestrator import OrchestratorAgent
+from agents.tutor import TutorAgent
+from agents.analytics import AnalyticsAgent
+from agents.assessment import AssessmentAgent
+from agents.content import ContentAgent
+from agents.path import PathAgent
+
 # Load environment variables
 load_dotenv()
 
@@ -396,6 +409,10 @@ class DataStore:
     
     _identify_improvements = lambda self, completed: ["Practice more exercises", "Review completed material"] if completed else ["Complete first course to identify areas for improvement"]
 
+# Global Multi-Agent System components (initialized in lifespan)
+message_bus: Optional[MessageBus] = None
+agent_registry: Optional[AgentRegistry] = None
+
 # Global data store
 data_store = DataStore()
 
@@ -447,7 +464,105 @@ async def lifespan(app: FastAPI):
     logger.info("Jeseci Smart Learning Academy API starting...")
     logger.info(f"OpenAI API: {'Configured' if os.getenv('OPENAI_API_KEY') else 'Not configured'}")
     logger.info(f"Backend Type: Python/FastAPI with Jaclang-compatible endpoints")
+    
+    # Initialize Multi-Agent System
+    global message_bus, agent_registry
+    message_bus = MessageBus(name="main_bus", max_history=1000)
+    agent_registry = AgentRegistry(name="main_registry", message_bus=message_bus)
+    
+    # Register agent configurations
+    agent_configs = [
+        AgentConfig(
+            agent_id="orchestrator",
+            agent_name="Orchestrator Agent",
+            agent_type="orchestrator",
+            config={"priority_coordination": True},
+            enabled=True,
+            auto_start=True,
+            dependencies=[]
+        ),
+        AgentConfig(
+            agent_id="tutor",
+            agent_name="Tutor Agent",
+            agent_type="tutor",
+            config={"adaptive_learning": True},
+            enabled=True,
+            auto_start=True,
+            dependencies=["orchestrator"]
+        ),
+        AgentConfig(
+            agent_id="analytics",
+            agent_name="Analytics Agent",
+            agent_type="analytics",
+            config={"real_time_tracking": True},
+            enabled=True,
+            auto_start=True,
+            dependencies=[]
+        ),
+        AgentConfig(
+            agent_id="assessment",
+            agent_name="Assessment Agent",
+            agent_type="assessment",
+            config={"adaptive_testing": True},
+            enabled=True,
+            auto_start=True,
+            dependencies=["analytics", "tutor"]
+        ),
+        AgentConfig(
+            agent_id="content",
+            agent_name="Content Agent",
+            agent_type="content",
+            config={"ai_generation": True},
+            enabled=True,
+            auto_start=True,
+            dependencies=[]
+        ),
+        AgentConfig(
+            agent_id="path",
+            agent_name="Path Agent",
+            agent_type="path",
+            config={"personalization": True},
+            enabled=True,
+            auto_start=True,
+            dependencies=["tutor", "analytics"]
+        )
+    ]
+    
+    # Register all agent configurations
+    for config in agent_configs:
+        agent_registry.register_config(config)
+    
+    # Instantiate and register agents
+    agents = [
+        OrchestratorAgent(agent_id="orchestrator", agent_name="Orchestrator Agent"),
+        TutorAgent(agent_id="tutor", agent_name="Tutor Agent"),
+        AnalyticsAgent(agent_id="analytics", agent_name="Analytics Agent"),
+        AssessmentAgent(agent_id="assessment", agent_name="Assessment Agent"),
+        ContentAgent(agent_id="content", agent_name="Content Agent"),
+        PathAgent(agent_id="path", agent_name="Path Agent")
+    ]
+    
+    for agent in agents:
+        agent_registry.register_agent(agent)
+    
+    # Start all agents
+    started_count = await agent_registry.start_all()
+    logger.info(f"Multi-Agent System initialized: {started_count} agents started")
+    
+    # Subscribe agents to relevant topics
+    message_bus.subscribe("tutor", "learning", DeliveryPattern.PUBLISH_SUBSCRIBE)
+    message_bus.subscribe("analytics", "analytics", DeliveryPattern.PUBLISH_SUBSCRIBE)
+    message_bus.subscribe("assessment", "assessment", DeliveryPattern.PUBLISH_SUBSCRIBE)
+    message_bus.subscribe("content", "content", DeliveryPattern.PUBLISH_SUBSCRIBE)
+    message_bus.subscribe("path", "learning", DeliveryPattern.PUBLISH_SUBSCRIBE)
+    message_bus.subscribe("orchestrator", "system", DeliveryPattern.PUBLISH_SUBSCRIBE)
+    
     yield
+    
+    # Shutdown Multi-Agent System
+    if agent_registry:
+        logger.info("Stopping all agents...")
+        await agent_registry.stop_all()
     logger.info("Jeseci Smart Learning Academy API shutting down...")
 
 app = FastAPI(
@@ -987,6 +1102,136 @@ async def get_dashboard_analytics():
         },
         "generated_at": datetime.now().isoformat()
     }
+
+# =============================================================================
+# Multi-Agent System API Endpoints
+# =============================================================================
+
+@app.get("/api/v1/agents/status")
+async def get_agents_status():
+    """
+    Get the status of all registered agents
+    Returns detailed information about each agent's state, capabilities, and queue sizes
+    """
+    if agent_registry is None:
+        return {
+            "success": False,
+            "error": "Agent system not initialized",
+            "message": "The multi-agent system is still starting up. Please try again shortly."
+        }
+    
+    try:
+        status = agent_registry.get_status()
+        return {
+            "success": True,
+            "status": status,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting agent status: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to get agent status: {str(e)}"
+        }
+
+@app.get("/api/v1/agents/list")
+async def list_agents():
+    """
+    List all registered agent IDs
+    """
+    if agent_registry is None:
+        return {
+            "success": False,
+            "error": "Agent system not initialized"
+        }
+    
+    try:
+        agents = agent_registry.list_agents()
+        return {
+            "success": True,
+            "agents": agents,
+            "total": len(agents)
+        }
+    except Exception as e:
+        logger.error(f"Error listing agents: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to list agents: {str(e)}"
+        }
+
+@app.get("/api/v1/agents/message-bus/status")
+async def get_message_bus_status():
+    """
+    Get the status and statistics of the message bus
+    """
+    if message_bus is None:
+        return {
+            "success": False,
+            "error": "Message bus not initialized"
+        }
+    
+    try:
+        stats = message_bus.get_statistics()
+        topics = message_bus.get_topics()
+        registered_agents = message_bus.get_registered_agents()
+        
+        return {
+            "success": True,
+            "message_bus": stats,
+            "topics": topics,
+            "registered_agents": registered_agents,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting message bus status: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to get message bus status: {str(e)}"
+        }
+
+@app.get("/api/v1/agents/message-bus/history")
+async def get_message_history(limit: int = 100):
+    """
+    Get the message history from the message bus
+    
+    Args:
+        limit: Maximum number of messages to return (default: 100)
+    """
+    if message_bus is None:
+        return {
+            "success": False,
+            "error": "Message bus not initialized"
+        }
+    
+    try:
+        history = message_bus.get_message_history(limit=limit)
+        
+        # Convert messages to serializable format
+        history_data = []
+        for msg in history:
+            history_data.append({
+                "msg_id": msg.msg_id,
+                "sender": msg.sender,
+                "recipient": msg.recipient,
+                "msg_type": msg.msg_type.value,
+                "priority": msg.priority.value,
+                "content": msg.content,
+                "timestamp": msg.timestamp,
+                "correlation_id": msg.correlation_id
+            })
+        
+        return {
+            "success": True,
+            "message_history": history_data,
+            "total_messages": len(history_data),
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting message history: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to get message history: {str(e)}"
+        }
 
 # =============================================================================
 # Run with: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
