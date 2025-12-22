@@ -1,6 +1,6 @@
 /**
- * API Service for communicating with FastAPI backend
- * Handles all HTTP requests to the backend API
+ * API Service for communicating with Jaclang backend
+ * Handles all HTTP requests to the Jaclang REST API
  */
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -128,7 +128,7 @@ class ApiService {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        throw new Error(errorData.detail || errorData.error || `HTTP error! status: ${response.status}`);
       }
       
       return await response.json();
@@ -140,18 +140,22 @@ class ApiService {
 
   // Health and Status
   async healthCheck(): Promise<any> {
-    return this.makeRequest('/health');
+    return this.makeRequest('/walker/health_check', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   async getWelcome(): Promise<any> {
     return this.makeRequest('/walker/init', {
-      method: 'GET',
+      method: 'POST',
+      body: JSON.stringify({}),
     });
   }
 
   // Authentication
   async login(username: string, password: string): Promise<LoginResponse> {
-    return this.makeRequest('/user/login', {
+    return this.makeRequest('/walker/user_login', {
       method: 'POST',
       body: JSON.stringify({
         username,
@@ -169,9 +173,9 @@ class ApiService {
     learning_style?: string;
     skill_level?: string;
   }): Promise<any> {
-    console.log('Sending registration request to:', `${this.baseUrl}/user/create`);
+    console.log('Sending registration request to:', `${this.baseUrl}/walker/user_create`);
     console.log('Registration data:', userData);
-    const result = this.makeRequest('/user/create', {
+    const result = this.makeRequest('/walker/user_create', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
@@ -187,19 +191,22 @@ class ApiService {
     difficulty: string;
     content_type?: string;
   }): Promise<any> {
-    return this.makeRequest('/course/create', {
+    return this.makeRequest('/walker/course_create', {
       method: 'POST',
       body: JSON.stringify(courseData),
     });
   }
 
   async getCourses(): Promise<Course[]> {
-    return this.makeRequest('/courses');
+    return this.makeRequest('/walker/courses', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   // Learning Sessions
   async startLearningSession(userId: string, moduleId: string): Promise<LearningSession> {
-    return this.makeRequest('/learning/session/start', {
+    return this.makeRequest('/walker/learning_session_start', {
       method: 'POST',
       body: JSON.stringify({
         user_id: userId,
@@ -209,7 +216,7 @@ class ApiService {
   }
 
   async endLearningSession(sessionId: string, progress: number): Promise<any> {
-    return this.makeRequest('/learning/session/end', {
+    return this.makeRequest('/walker/learning_session_end', {
       method: 'POST',
       body: JSON.stringify({
         session_id: sessionId,
@@ -220,7 +227,7 @@ class ApiService {
 
   // Progress Tracking
   async getUserProgress(userId: string): Promise<ProgressData> {
-    return this.makeRequest('/user/progress', {
+    return this.makeRequest('/walker/user_progress', {
       method: 'POST',
       body: JSON.stringify({
         user_id: userId
@@ -229,7 +236,7 @@ class ApiService {
   }
 
   async getAnalytics(userId: string): Promise<AnalyticsData> {
-    return this.makeRequest('/analytics/generate', {
+    return this.makeRequest('/walker/analytics_generate', {
       method: 'POST',
       body: JSON.stringify({
         user_id: userId
@@ -239,7 +246,7 @@ class ApiService {
 
   // AI Content Generation
   async generateAIContent(conceptName: string, domain: string, difficulty: string, relatedConcepts: string[] = []): Promise<AIGeneratedContent> {
-    return this.makeRequest('/ai/generate/content', {
+    return this.makeRequest('/walker/ai_generate_content', {
       method: 'POST',
       body: JSON.stringify({
         concept_name: conceptName,
@@ -252,7 +259,7 @@ class ApiService {
 
   // Data Export
   async exportData(format: string = 'json'): Promise<any> {
-    return this.makeRequest('/export/data', {
+    return this.makeRequest('/walker/export_data', {
       method: 'POST',
       body: JSON.stringify({
         format: format

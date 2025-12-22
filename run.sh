@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Jeseci Smart Learning Academy - Run Script
-# Architecture: React Frontend + FastAPI Backend with OpenAI Integration
+# Architecture: React Frontend + Pure Jaclang Backend with OpenAI Integration
 
 echo "🎓 Starting Jeseci Smart Learning Academy..."
-echo "📋 Using FastAPI Backend with OpenAI Integration"
+echo "📋 Using Pure Jaclang Backend with OpenAI Integration"
 
 # Function to cleanup background processes
 cleanup() {
@@ -23,41 +23,27 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM
 
-# Check if Python is available
-if ! command -v python3 &> /dev/null; then
-    echo "❌ python3 not found. Please install Python 3.8+ first"
-    exit 1
+# Check if jac command is available
+if ! command -v jac &> /dev/null; then
+    if [ -d "venv" ]; then
+        echo "🔧 Activating virtual environment..."
+        source venv/bin/activate
+    fi
 fi
 
-echo "✅ Python available."
-echo ""
+if ! command -v jac &> /dev/null; then echo "❌ jac command not found. Please run: bash setup.sh first"; exit 1; fi
 
-# Check if virtual environment exists
-if [ -d "venv" ]; then
-    echo "🔧 Activating virtual environment..."
-    source venv/bin/activate
-else
-    echo "⚠️ No virtual environment found. Using system Python."
-fi
-
-# Check if required packages are installed
-echo "🔍 Checking dependencies..."
-cd backend
-if ! python3 -c "import fastapi" 2>/dev/null; then
-    echo "📦 Installing backend dependencies..."
-    pip install -r requirements.txt
-fi
+echo "✅ Jaclang available."
 
 # Check if OpenAI API key is configured
-if [ -f "../.env" ]; then
-    if grep -q "OPENAI_API_KEY=sk-" "../.env"; then
+if [ -f ".env" ]; then
+    if grep -q "OPENAI_API_KEY=sk-" ".env"; then
         echo "✅ OpenAI API key configured."
     else
         echo "⚠️ OpenAI API key not found in .env file. AI features will use fallback templates."
     fi
 fi
 
-cd ..
 echo ""
 
 # Function to check if a port is in use
@@ -70,7 +56,7 @@ echo "🔍 Checking for existing processes..."
 
 if port_in_use 8000; then
     echo "⚠️ Port 8000 is in use. Attempting to free it..."
-    fuser -k 8000/tcp 2>/dev/null || pkill -f "uvicorn" 2>/dev/null || pkill -f "python.*main.py" 2>/dev/null || true
+    fuser -k 8000/tcp 2>/dev/null || pkill -f "jac serve" 2>/dev/null || true
     sleep 2
 fi
 
@@ -84,11 +70,11 @@ echo "✅ Ports are ready."
 echo ""
 
 # Start backend in background
-echo "🔧 Starting FastAPI Backend Server..."
+echo "🔧 Starting Jaclang Backend Server..."
 echo "======================================"
 (
     cd backend
-    python3 main.py
+    jac serve app.jac
 ) &
 BACKEND_PID=$!
 
@@ -96,7 +82,7 @@ BACKEND_PID=$!
 echo "⏳ Waiting for backend to start..."
 BACKEND_READY=false
 for i in {1..30}; do
-    if curl -s http://localhost:8000/health >/dev/null 2>&1; then
+    if curl -s -X POST http://localhost:8000/walker/health_check -H "Content-Type: application/json" -d '{}' >/dev/null 2>&1; then
         BACKEND_READY=true
         break
     fi
@@ -132,18 +118,19 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "💡 FEATURES:"
-echo "   • AI Content Generation with OpenAI GPT-4o-mini"
+echo "   • AI Content Generation (OpenAI or Fallback Templates)"
 echo "   • Dynamic User Progress Tracking"
 echo "   • Real-time Analytics Dashboard"
 echo "   • Personalized Recommendations"
 echo ""
-echo "📡 API Endpoints:"
-echo "   • POST /user/create (Register)"
-echo "   • POST /user/login (Login)"
-echo "   • GET /courses (List Courses)"
-echo "   • POST /user/progress (Get Progress)"
-echo "   • POST /ai/generate/content (Generate AI Content)"
-echo "   • POST /analytics/generate (Get Analytics)"
+echo "📡 Jaclang API Endpoints:"
+echo "   • POST /walker/user_create (Register)"
+echo "   • POST /walker/user_login (Login)"
+echo "   • POST /walker/courses (List Courses)"
+echo "   • POST /walker/course_create (Create Course)"
+echo "   • POST /walker/user_progress (Get Progress)"
+echo "   • POST /walker/ai_generate_content (Generate AI Content)"
+echo "   • POST /walker/analytics_generate (Get Analytics)"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
