@@ -895,9 +895,6 @@
 # uploads/
 # downloads/
 
-# User input files - contains temporary user data
-user_input_files/
-
 # Claude Agent SDK debug files
 **/.claude/debug/
 **/.claude/debug/**
