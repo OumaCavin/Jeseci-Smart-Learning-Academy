@@ -50,9 +50,9 @@ walker init {
 walker health_check {
     has status: str = "healthy";
     has version: str = "7.0.0";
-    has timestamp: str;
+    has timestamp: str = "";
     has database_status: str = "connected";
-    has ai_status: str;
+    has ai_status: str = "fallback";
     
     can health_check with entry {
         # Check OpenAI configuration
