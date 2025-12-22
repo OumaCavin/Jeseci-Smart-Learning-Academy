@@ -1,0 +1,748 @@
+Failed to compile.
+
+SyntaxError: /home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/src/services/api.ts: Unexpected token, expected ";" (39:14)
+  37 |   title: string;
+  38 |   description: string;
+> 39 |   domain: str = "Computer Science";
+     |               ^
+  40 |   difficulty: str = "beginner";
+  41 |   content_type: str = "interactive";
+  42 | }
+    at parser.next (<anonymous>)
+    at normalizeFile.next (<anonymous>)
+    at run.next (<anonymous>)
+    at transform.next (<anonymous>)
+WARNING in [eslint] 
+src/App.tsx
+  Line 1:38:  'useContext' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  Line 3:22:  'User' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  Line 38:6:  React Hook useEffect has a missing dependency: 'loadUserData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src/contexts/AuthContext.tsx
+  Line 136:15:  'analytics' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+ERROR in ./src/services/api.ts
+Module build failed (from ./node_modules/babel-loader/lib/index.js):
+SyntaxError: /home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/src/services/api.ts: Unexpected token, expected ";" (39:14)
+
+  37 |   title: string;
+  38 |   description: string;
+> 39 |   domain: str = "Computer Science";
+     |               ^
+  40 |   difficulty: str = "beginner";
+  41 |   content_type: str = "interactive";
+  42 | }
+    at constructor (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:367:19)
+    at TypeScriptParserMixin.raise (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:6624:19)
+    at TypeScriptParserMixin.unexpected (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:6644:16)
+    at TypeScriptParserMixin.expect (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:6924:12)
+    at TypeScriptParserMixin.tsParseTypeMemberSemicolon (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:8146:12)
+    at TypeScriptParserMixin.tsParsePropertyOrMethodSignature (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:8225:12)
+    at TypeScriptParserMixin.tsParseTypeMember (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:8260:17)
+    at TypeScriptParserMixin.tsParseList (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:7905:19)
+    at TypeScriptParserMixin.tsParseObjectTypeMembers (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:8269:26)
+    at TypeScriptParserMixin.tsInType (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:8842:14)
+    at TypeScriptParserMixin.tsParseInterfaceDeclaration (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:8805:22)
+    at TypeScriptParserMixin.parseStatementContent (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:9536:33)
+    at TypeScriptParserMixin.parseStatementLike (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:12843:17)
+    at TypeScriptParserMixin.parseStatementListItem (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:12823:17)
+    at TypeScriptParserMixin.parseExportDeclaration (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:14010:17)
+    at TypeScriptParserMixin.parseExportDeclaration (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:9690:85)
+    at TypeScriptParserMixin.maybeParseExportDeclaration (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:13969:31)
+    at TypeScriptParserMixin.parseExport (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:13888:29)
+    at TypeScriptParserMixin.parseExport (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:9446:20)
+    at TypeScriptParserMixin.parseStatementContent (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:12954:27)
+    at TypeScriptParserMixin.parseStatementContent (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:9569:18)
+    at TypeScriptParserMixin.parseStatementLike (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:12843:17)
+    at TypeScriptParserMixin.parseModuleItem (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:12820:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:13392:36)
+    at TypeScriptParserMixin.parseBlockBody (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:13385:10)
+    at TypeScriptParserMixin.parseProgram (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:12698:10)
+    at TypeScriptParserMixin.parseTopLevel (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:12688:25)
+    at TypeScriptParserMixin.parse (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:14568:25)
+    at TypeScriptParserMixin.parse (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:10183:18)
+    at parse (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/parser/lib/index.js:14602:38)
+    at parser (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/core/lib/parser/index.js:41:34)
+    at parser.next (<anonymous>)
+    at normalizeFile (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+    at normalizeFile.next (<anonymous>)
+    at run (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
+    at run.next (<anonymous>)
+    at transform (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/@babel/core/lib/transform.js:22:33)
+    at transform.next (<anonymous>)
+    at step (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/gensync/index.js:261:32)
+    at /home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (/home/cavin/projects/Jeseci-Smart-Learning-Academy/frontend/node_modules/gensync/index.js:223:11)
+
+webpack compiled with 1 error and 1 warning
+ERROR in src/contexts/AuthContext.tsx:91:46
+TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+    89 |
+    90 |         // Store in localStorage for session persistence
+  > 91 |         localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+       |                                              ^^^^^^^^^
+    92 |         localStorage.setItem(AUTH_USER_KEY, JSON.stringify(userData));
+    93 |
+    94 |         setToken(authToken);
+
+ERROR in src/contexts/AuthContext.tsx:94:18
+TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'SetStateAction<string | null>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<string | null>'.
+    92 |         localStorage.setItem(AUTH_USER_KEY, JSON.stringify(userData));
+    93 |
+  > 94 |         setToken(authToken);
+       |                  ^^^^^^^^^
+    95 |         setUser(userData);
+    96 |         setIsAuthenticated(true);
+    97 |       } else {
+
+ERROR in src/services/api.ts:39:11
+TS2304: Cannot find name 'str'.
+    37 |   title: string;
+    38 |   description: string;
+  > 39 |   domain: str = "Computer Science";
+       |           ^^^
+    40 |   difficulty: str = "beginner";
+    41 |   content_type: str = "interactive";
+    42 | }
+
+ERROR in src/services/api.ts:39:17
+TS1246: An interface property cannot have an initializer.
+    37 |   title: string;
+    38 |   description: string;
+  > 39 |   domain: str = "Computer Science";
+       |                 ^^^^^^^^^^^^^^^^^^
+    40 |   difficulty: str = "beginner";
+    41 |   content_type: str = "interactive";
+    42 | }
+
+ERROR in src/services/api.ts:40:15
+TS2304: Cannot find name 'str'.
+    38 |   description: string;
+    39 |   domain: str = "Computer Science";
+  > 40 |   difficulty: str = "beginner";
+       |               ^^^
+    41 |   content_type: str = "interactive";
+    42 | }
+    43 |
+
+ERROR in src/services/api.ts:40:21
+TS1246: An interface property cannot have an initializer.
+    38 |   description: string;
+    39 |   domain: str = "Computer Science";
+  > 40 |   difficulty: str = "beginner";
+       |                     ^^^^^^^^^^
+    41 |   content_type: str = "interactive";
+    42 | }
+    43 |
+
+ERROR in src/services/api.ts:41:17
+TS2304: Cannot find name 'str'.
+    39 |   domain: str = "Computer Science";
+    40 |   difficulty: str = "beginner";
+  > 41 |   content_type: str = "interactive";
+       |                 ^^^
+    42 | }
+    43 |
+    44 | export interface LearningPathModule {
+
+ERROR in src/services/api.ts:41:23
+TS1246: An interface property cannot have an initializer.
+    39 |   domain: str = "Computer Science";
+    40 |   difficulty: str = "beginner";
+  > 41 |   content_type: str = "interactive";
+       |                       ^^^^^^^^^^^^^
+    42 | }
+    43 |
+    44 | export interface LearningPathModule {
+
+ERROR in src/services/api.ts:77:11
+TS2304: Cannot find name 'str'.
+    75 |   name: string;
+    76 |   description: string;
+  > 77 |   domain: str = "Computer Science";
+       |           ^^^
+    78 |   difficulty: str = "beginner";
+    79 |   icon: str = "💡";
+    80 |   related_concepts: string[];
+
+ERROR in src/services/api.ts:77:17
+TS1246: An interface property cannot have an initializer.
+    75 |   name: string;
+    76 |   description: string;
+  > 77 |   domain: str = "Computer Science";
+       |                 ^^^^^^^^^^^^^^^^^^
+    78 |   difficulty: str = "beginner";
+    79 |   icon: str = "💡";
+    80 |   related_concepts: string[];
+
+ERROR in src/services/api.ts:78:15
+TS2304: Cannot find name 'str'.
+    76 |   description: string;
+    77 |   domain: str = "Computer Science";
+  > 78 |   difficulty: str = "beginner";
+       |               ^^^
+    79 |   icon: str = "💡";
+    80 |   related_concepts: string[];
+    81 | }
+
+ERROR in src/services/api.ts:78:21
+TS1246: An interface property cannot have an initializer.
+    76 |   description: string;
+    77 |   domain: str = "Computer Science";
+  > 78 |   difficulty: str = "beginner";
+       |                     ^^^^^^^^^^
+    79 |   icon: str = "💡";
+    80 |   related_concepts: string[];
+    81 | }
+
+ERROR in src/services/api.ts:79:9
+TS2304: Cannot find name 'str'.
+    77 |   domain: str = "Computer Science";
+    78 |   difficulty: str = "beginner";
+  > 79 |   icon: str = "💡";
+       |         ^^^
+    80 |   related_concepts: string[];
+    81 | }
+    82 |
+
+ERROR in src/services/api.ts:79:15
+TS1246: An interface property cannot have an initializer.
+    77 |   domain: str = "Computer Science";
+    78 |   difficulty: str = "beginner";
+  > 79 |   icon: str = "💡";
+       |               ^^^^
+    80 |   related_concepts: string[];
+    81 | }
+    82 |
+
+ERROR in src/services/api.ts:88:15
+TS2304: Cannot find name 'str'.
+    86 |   description: string;
+    87 |   questions: QuizQuestion[];
+  > 88 |   difficulty: str = "beginner";
+       |               ^^^
+    89 |   estimated_time: number;
+    90 |   completed: boolean;
+    91 |   score?: number;
+
+ERROR in src/services/api.ts:88:21
+TS1246: An interface property cannot have an initializer.
+    86 |   description: string;
+    87 |   questions: QuizQuestion[];
+  > 88 |   difficulty: str = "beginner";
+       |                     ^^^^^^^^^^
+    89 |   estimated_time: number;
+    90 |   completed: boolean;
+    91 |   score?: number;
+
+ERROR in src/services/api.ts:106:9
+TS2304: Cannot find name 'str'.
+    104 |   name: string;
+    105 |   description: string;
+  > 106 |   icon: str = "🏆";
+        |         ^^^
+    107 |   earned: boolean;
+    108 |   earned_at?: string;
+    109 |   requirement: string;
+
+ERROR in src/services/api.ts:106:15
+TS1246: An interface property cannot have an initializer.
+    104 |   name: string;
+    105 |   description: string;
+  > 106 |   icon: str = "🏆";
+        |               ^^^^
+    107 |   earned: boolean;
+    108 |   earned_at?: string;
+    109 |   requirement: string;
+
+ERROR in src/services/api.ts:110:13
+TS2304: Cannot find name 'str'.
+    108 |   earned_at?: string;
+    109 |   requirement: string;
+  > 110 |   category: str = "learning";
+        |             ^^^
+    111 | }
+    112 |
+    113 | export interface ChatMessage {
+
+ERROR in src/services/api.ts:110:19
+TS1246: An interface property cannot have an initializer.
+    108 |   earned_at?: string;
+    109 |   requirement: string;
+  > 110 |   category: str = "learning";
+        |                   ^^^^^^^^^^
+    111 | }
+    112 |
+    113 | export interface ChatMessage {
+
+ERROR in src/services/api.ts:115:9
+TS2304: Cannot find name 'str'.
+    113 | export interface ChatMessage {
+    114 |   id: number;
+  > 115 |   role: str = "user";
+        |         ^^^
+    116 |   content: string;
+    117 |   timestamp: str;
+    118 | }
+
+ERROR in src/services/api.ts:115:15
+TS1246: An interface property cannot have an initializer.
+    113 | export interface ChatMessage {
+    114 |   id: number;
+  > 115 |   role: str = "user";
+        |               ^^^^^^
+    116 |   content: string;
+    117 |   timestamp: str;
+    118 | }
+
+ERROR in src/services/api.ts:117:14
+TS2304: Cannot find name 'str'.
+    115 |   role: str = "user";
+    116 |   content: string;
+  > 117 |   timestamp: str;
+        |              ^^^
+    118 | }
+    119 |
+    120 | export interface LearningSession {
+
+ERROR in src/services/api.ts:124:11
+TS2304: Cannot find name 'str'.
+    122 |   user_id: string;
+    123 |   module_id: string;
+  > 124 |   status: str;
+        |           ^^^
+    125 |   progress: number;
+    126 | }
+    127 |
+
+ERROR in src/services/api.ts:144:19
+TS2304: Cannot find name 'str'.
+    142 |     average_progress: number;
+    143 |   };
+  > 144 |   learning_style: str;
+        |                   ^^^
+    145 |   skill_level: str;
+    146 |   recent_activity?: Array<{
+    147 |     session_id: str;
+
+ERROR in src/services/api.ts:145:16
+TS2304: Cannot find name 'str'.
+    143 |   };
+    144 |   learning_style: str;
+  > 145 |   skill_level: str;
+        |                ^^^
+    146 |   recent_activity?: Array<{
+    147 |     session_id: str;
+    148 |     course_id: str;
+
+ERROR in src/services/api.ts:147:17
+TS2304: Cannot find name 'str'.
+    145 |   skill_level: str;
+    146 |   recent_activity?: Array<{
+  > 147 |     session_id: str;
+        |                 ^^^
+    148 |     course_id: str;
+    149 |     course_title: str;
+    150 |     status: str;
+
+ERROR in src/services/api.ts:148:16
+TS2304: Cannot find name 'str'.
+    146 |   recent_activity?: Array<{
+    147 |     session_id: str;
+  > 148 |     course_id: str;
+        |                ^^^
+    149 |     course_title: str;
+    150 |     status: str;
+    151 |     progress: number;
+
+ERROR in src/services/api.ts:149:19
+TS2304: Cannot find name 'str'.
+    147 |     session_id: str;
+    148 |     course_id: str;
+  > 149 |     course_title: str;
+        |                   ^^^
+    150 |     status: str;
+    151 |     progress: number;
+    152 |     started_at?: str;
+
+ERROR in src/services/api.ts:150:13
+TS2304: Cannot find name 'str'.
+    148 |     course_id: str;
+    149 |     course_title: str;
+  > 150 |     status: str;
+        |             ^^^
+    151 |     progress: number;
+    152 |     started_at?: str;
+    153 |     completed_at?: str;
+
+ERROR in src/services/api.ts:152:18
+TS2304: Cannot find name 'str'.
+    150 |     status: str;
+    151 |     progress: number;
+  > 152 |     started_at?: str;
+        |                  ^^^
+    153 |     completed_at?: str;
+    154 |   }>;
+    155 | }
+
+ERROR in src/services/api.ts:153:20
+TS2304: Cannot find name 'str'.
+    151 |     progress: number;
+    152 |     started_at?: str;
+  > 153 |     completed_at?: str;
+        |                    ^^^
+    154 |   }>;
+    155 | }
+    156 |
+
+ERROR in src/services/api.ts:165:24
+TS2304: Cannot find name 'str'.
+    163 |     engagement_score: number;
+    164 |     knowledge_retention: number;
+  > 165 |     learning_velocity: str;
+        |                        ^^^
+    166 |     generated_at: str;
+    167 |   };
+    168 |   recommendations: string[];
+
+ERROR in src/services/api.ts:166:19
+TS2304: Cannot find name 'str'.
+    164 |     knowledge_retention: number;
+    165 |     learning_velocity: str;
+  > 166 |     generated_at: str;
+        |                   ^^^
+    167 |   };
+    168 |   recommendations: string[];
+    169 |   strengths: string[];
+
+ERROR in src/services/api.ts:175:17
+TS2304: Cannot find name 'str'.
+    173 | export interface AIGeneratedContent {
+    174 |   success: boolean;
+  > 175 |   concept_name: str;
+        |                 ^^^
+    176 |   domain: str;
+    177 |   difficulty: str;
+    178 |   content: string;
+
+ERROR in src/services/api.ts:176:11
+TS2304: Cannot find name 'str'.
+    174 |   success: boolean;
+    175 |   concept_name: str;
+  > 176 |   domain: str;
+        |           ^^^
+    177 |   difficulty: str;
+    178 |   content: string;
+    179 |   related_concepts: string[];
+
+ERROR in src/services/api.ts:177:15
+TS2304: Cannot find name 'str'.
+    175 |   concept_name: str;
+    176 |   domain: str;
+  > 177 |   difficulty: str;
+        |               ^^^
+    178 |   content: string;
+    179 |   related_concepts: string[];
+    180 |   generated_at: str;
+
+ERROR in src/services/api.ts:180:17
+TS2304: Cannot find name 'str'.
+    178 |   content: string;
+    179 |   related_concepts: string[];
+  > 180 |   generated_at: str;
+        |                 ^^^
+    181 |   source?: str;
+    182 | }
+    183 |
+
+ERROR in src/services/api.ts:181:12
+TS2304: Cannot find name 'str'.
+    179 |   related_concepts: string[];
+    180 |   generated_at: str;
+  > 181 |   source?: str;
+        |            ^^^
+    182 | }
+    183 |
+    184 | class ApiService {
+
+ERROR in src/services/api.ts:187:24
+TS2304: Cannot find name 'str'.
+    185 |   private baseUrl: string;
+    186 |
+  > 187 |   constructor(baseUrl: str = API_BASE_URL) {
+        |                        ^^^
+    188 |     this.baseUrl = baseUrl;
+    189 |   }
+    190 |
+
+ERROR in src/services/api.ts:191:42
+TS2304: Cannot find name 'str'.
+    189 |   }
+    190 |
+  > 191 |   private async makeRequest<T>(endpoint: str, options: RequestInit = {}): Promise<T> {
+        |                                          ^^^
+    192 |     const url = `${this.baseUrl}${endpoint}`;
+    193 |     
+    194 |     const defaultOptions: RequestInit = {
+
+ERROR in src/services/api.ts:233:25
+TS2304: Cannot find name 'str'.
+    231 |
+    232 |   // Authentication
+  > 233 |   async login(username: str, password: str): Promise<LoginResponse> {
+        |                         ^^^
+    234 |     return this.makeRequest('/walker/user_login', {
+    235 |       method: 'POST',
+    236 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:233:40
+TS2304: Cannot find name 'str'.
+    231 |
+    232 |   // Authentication
+  > 233 |   async login(username: str, password: str): Promise<LoginResponse> {
+        |                                        ^^^
+    234 |     return this.makeRequest('/walker/user_login', {
+    235 |       method: 'POST',
+    236 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:244:15
+TS2304: Cannot find name 'str'.
+    242 |
+    243 |   async register(userData: {
+  > 244 |     username: str;
+        |               ^^^
+    245 |     email: str;
+    246 |     password: str;
+    247 |     first_name?: str;
+
+ERROR in src/services/api.ts:245:12
+TS2304: Cannot find name 'str'.
+    243 |   async register(userData: {
+    244 |     username: str;
+  > 245 |     email: str;
+        |            ^^^
+    246 |     password: str;
+    247 |     first_name?: str;
+    248 |     last_name?: str;
+
+ERROR in src/services/api.ts:246:15
+TS2304: Cannot find name 'str'.
+    244 |     username: str;
+    245 |     email: str;
+  > 246 |     password: str;
+        |               ^^^
+    247 |     first_name?: str;
+    248 |     last_name?: str;
+    249 |     learning_style?: str;
+
+ERROR in src/services/api.ts:247:18
+TS2304: Cannot find name 'str'.
+    245 |     email: str;
+    246 |     password: str;
+  > 247 |     first_name?: str;
+        |                  ^^^
+    248 |     last_name?: str;
+    249 |     learning_style?: str;
+    250 |     skill_level?: str;
+
+ERROR in src/services/api.ts:248:17
+TS2304: Cannot find name 'str'.
+    246 |     password: str;
+    247 |     first_name?: str;
+  > 248 |     last_name?: str;
+        |                 ^^^
+    249 |     learning_style?: str;
+    250 |     skill_level?: str;
+    251 |   }): Promise<any> {
+
+ERROR in src/services/api.ts:249:22
+TS2304: Cannot find name 'str'.
+    247 |     first_name?: str;
+    248 |     last_name?: str;
+  > 249 |     learning_style?: str;
+        |                      ^^^
+    250 |     skill_level?: str;
+    251 |   }): Promise<any> {
+    252 |     console.log('Sending registration request to:', `${this.baseUrl}/walker/user_create`);
+
+ERROR in src/services/api.ts:250:19
+TS2304: Cannot find name 'str'.
+    248 |     last_name?: str;
+    249 |     learning_style?: str;
+  > 250 |     skill_level?: str;
+        |                   ^^^
+    251 |   }): Promise<any> {
+    252 |     console.log('Sending registration request to:', `${this.baseUrl}/walker/user_create`);
+    253 |     console.log('Registration data:', userData);
+
+ERROR in src/services/api.ts:264:12
+TS2304: Cannot find name 'str'.
+    262 |   // Course Management
+    263 |   async createCourse(courseData: {
+  > 264 |     title: str;
+        |            ^^^
+    265 |     description: str;
+    266 |     domain: str;
+    267 |     difficulty: str;
+
+ERROR in src/services/api.ts:265:18
+TS2304: Cannot find name 'str'.
+    263 |   async createCourse(courseData: {
+    264 |     title: str;
+  > 265 |     description: str;
+        |                  ^^^
+    266 |     domain: str;
+    267 |     difficulty: str;
+    268 |     content_type?: str;
+
+ERROR in src/services/api.ts:266:13
+TS2304: Cannot find name 'str'.
+    264 |     title: str;
+    265 |     description: str;
+  > 266 |     domain: str;
+        |             ^^^
+    267 |     difficulty: str;
+    268 |     content_type?: str;
+    269 |   }): Promise<any> {
+
+ERROR in src/services/api.ts:267:17
+TS2304: Cannot find name 'str'.
+    265 |     description: str;
+    266 |     domain: str;
+  > 267 |     difficulty: str;
+        |                 ^^^
+    268 |     content_type?: str;
+    269 |   }): Promise<any> {
+    270 |     return this.makeRequest('/walker/course_create', {
+
+ERROR in src/services/api.ts:268:20
+TS2304: Cannot find name 'str'.
+    266 |     domain: str;
+    267 |     difficulty: str;
+  > 268 |     content_type?: str;
+        |                    ^^^
+    269 |   }): Promise<any> {
+    270 |     return this.makeRequest('/walker/course_create', {
+    271 |       method: 'POST',
+
+ERROR in src/services/api.ts:307:28
+TS2304: Cannot find name 'str'.
+    305 |   }
+    306 |
+  > 307 |   async submitQuiz(quizId: str, answers: number[]): Promise<any> {
+        |                            ^^^
+    308 |     return this.makeRequest('/walker/quiz_submit', {
+    309 |       method: 'POST',
+    310 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:318:33
+TS2304: Cannot find name 'str'.
+    316 |
+    317 |   // Achievements / Motivator
+  > 318 |   async getAchievements(userId: str): Promise<Achievement[]> {
+        |                                 ^^^
+    319 |     return this.makeRequest('/walker/achievements', {
+    320 |       method: 'POST',
+    321 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:328:34
+TS2304: Cannot find name 'str'.
+    326 |
+    327 |   // Chat
+  > 328 |   async sendChatMessage(message: str): Promise<any> {
+        |                                  ^^^
+    329 |     return this.makeRequest('/walker/chat', {
+    330 |       method: 'POST',
+    331 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:338:38
+TS2304: Cannot find name 'str'.
+    336 |
+    337 |   // Learning Sessions
+  > 338 |   async startLearningSession(userId: str, moduleId: str): Promise<LearningSession> {
+        |                                      ^^^
+    339 |     return this.makeRequest('/walker/learning_session_start', {
+    340 |       method: 'POST',
+    341 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:338:53
+TS2304: Cannot find name 'str'.
+    336 |
+    337 |   // Learning Sessions
+  > 338 |   async startLearningSession(userId: str, moduleId: str): Promise<LearningSession> {
+        |                                                     ^^^
+    339 |     return this.makeRequest('/walker/learning_session_start', {
+    340 |       method: 'POST',
+    341 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:348:39
+TS2304: Cannot find name 'str'.
+    346 |   }
+    347 |
+  > 348 |   async endLearningSession(sessionId: str, progress: number): Promise<any> {
+        |                                       ^^^
+    349 |     return this.makeRequest('/walker/learning_session_end', {
+    350 |       method: 'POST',
+    351 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:359:33
+TS2304: Cannot find name 'str'.
+    357 |
+    358 |   // Progress Tracking
+  > 359 |   async getUserProgress(userId: str): Promise<ProgressData> {
+        |                                 ^^^
+    360 |     return this.makeRequest('/walker/user_progress', {
+    361 |       method: 'POST',
+    362 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:368:30
+TS2304: Cannot find name 'str'.
+    366 |   }
+    367 |
+  > 368 |   async getAnalytics(userId: str): Promise<AnalyticsData> {
+        |                              ^^^
+    369 |     return this.makeRequest('/walker/analytics_generate', {
+    370 |       method: 'POST',
+    371 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:378:40
+TS2304: Cannot find name 'str'.
+    376 |
+    377 |   // AI Content Generation
+  > 378 |   async generateAIContent(conceptName: str, domain: str, difficulty: str, relatedConcepts: string[] = []): Promise<AIGeneratedContent> {
+        |                                        ^^^
+    379 |     return this.makeRequest('/walker/ai_generate_content', {
+    380 |       method: 'POST',
+    381 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:378:53
+TS2304: Cannot find name 'str'.
+    376 |
+    377 |   // AI Content Generation
+  > 378 |   async generateAIContent(conceptName: str, domain: str, difficulty: str, relatedConcepts: string[] = []): Promise<AIGeneratedContent> {
+        |                                                     ^^^
+    379 |     return this.makeRequest('/walker/ai_generate_content', {
+    380 |       method: 'POST',
+    381 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:378:70
+TS2304: Cannot find name 'str'.
+    376 |
+    377 |   // AI Content Generation
+  > 378 |   async generateAIContent(conceptName: str, domain: str, difficulty: str, relatedConcepts: string[] = []): Promise<AIGeneratedContent> {
+        |                                                                      ^^^
+    379 |     return this.makeRequest('/walker/ai_generate_content', {
+    380 |       method: 'POST',
+    381 |       body: JSON.stringify({
+
+ERROR in src/services/api.ts:391:28
+TS2304: Cannot find name 'str'.
+    389 |
+    390 |   // Data Export
+  > 391 |   async exportData(format: str = "json"): Promise<any> {
+        |                            ^^^
+    392 |     return this.makeRequest('/walker/export_data', {
+    393 |       method: 'POST',
+    394 |       body: JSON.stringify({
