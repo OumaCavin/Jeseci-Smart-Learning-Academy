@@ -2,6 +2,9 @@
 # Jeseci Smart Learning Academy - Pure Jaclang Backend API
 # ==============================================================================
 
+# Author: Cavin Otieno
+# License: MIT License
+
 # Import standard modules
 import time;
 import os;
@@ -9,6 +12,10 @@ import os;
 # Graph database integration
 import from python { PyModule }
 glob neo4j_db = PyModule("backend.database");
+
+# PostgreSQL user management
+import from python { PyModule }
+glob pg_users = PyModule("backend.user_auth");
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -165,20 +172,34 @@ walker user_create {
     
     can user_create with entry {
         import from datetime { datetime }
-        user_id = "user_" + self.username + "_001";
-        timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ");
         
-        report {
-            "success": true,
-            "user_id": user_id,
-            "username": self.username,
-            "email": self.email,
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "learning_style": self.learning_style,
-            "skill_level": self.skill_level,
-            "message": "User created successfully"
-        };
+        # Use PostgreSQL-based user registration
+        result = pg_users.register_user(
+            self.username,
+            self.email,
+            self.password,
+            self.first_name,
+            self.last_name,
+            self.learning_style,
+            self.skill_level
+        );
+        
+        if result['success'] {
+            report {
+                "success": true,
+                "user_id": result['user_id'],
+                "username": result['username'],
+                "email": result['email'],
+                "message": result['message']
+            };
+        } else {
+            report {
+                "success": false,
+                "error": result['error'],
+                "code": result.get('code', 'ERROR'),
+                "message": "User registration failed"
+            };
+        }
     }
 }
 
@@ -187,27 +208,26 @@ walker user_login {
     has password: str;
     
     can user_login with entry {
-        import from datetime { datetime }
-        user_id = "user_" + self.username + "_001";
-        timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ");
+        # Use PostgreSQL-based authentication
+        result = pg_users.authenticate_user(self.username, self.password);
         
-        user_data = {
-            "user_id": user_id,
-            "username": self.username,
-            "email": self.username + "@example.com",
-            "first_name": "Demo",
-            "last_name": "User",
-            "learning_style": "visual",
-            "skill_level": "beginner"
-        };
-        
-        report {
-            "success": true,
-            "access_token": "token_demo_12345",
-            "token_type": "bearer",
-            "expires_in": 1800,
-            "user": user_data
-        };
+        if result['success'] {
+            report {
+                "success": true,
+                "access_token": result['access_token'],
+                "token_type": result['token_type'],
+                "expires_in": result['expires_in'],
+                "user": result['user'],
+                "message": result['message']
+            };
+        } else {
+            report {
+                "success": false,
+                "error": result['error'],
+                "code": result.get('code', 'ERROR'),
+                "message": "Login failed"
+            };
+        }
     }
 }
 
