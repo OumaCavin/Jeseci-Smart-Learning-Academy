@@ -1,16 +1,31 @@
 # =============================================================================
 # Jeseci Smart Learning Academy - Backend Python Dependencies
-# Minimal requirements for Jaclang API backend
+# Hybrid Architecture: Python/FastAPI with Jaclang-compatible endpoints
 # =============================================================================
 
-# Core Jaclang Runtime
-jaclang>=0.9.3
+# Core Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
 
 # Environment Management
 python-dotenv>=1.0.0
 
+# HTTP Client
+httpx>=0.25.0
+
+# Data Validation
+pydantic>=2.5.0
+
+# CORS Support
+flask-cors>=4.0.0  # For ai_service.py
+
 # Development and Testing (optional)
 pytest>=7.4.0
+
+# AI Integration (optional - for AI content generation)
+openai>=1.3.0
+aiohttp>=3.9.0
 
 # =============================================================================
 # Installation:
