@@ -22,9 +22,12 @@ export interface User {
 export interface LoginResponse {
   success: boolean;
   access_token?: string;
+  token?: string;
   token_type?: string;
   expires_in?: number;
   user?: User;
+  username?: string;
+  root_id?: string;
   error?: string;
 }
 
