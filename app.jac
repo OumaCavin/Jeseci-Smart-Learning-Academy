@@ -1,5 +1,5 @@
 # ==============================================================================
-# Jeseci Smart Learning Academy - Pure Jaclang 0.9.3 Architecture
+# Jeseci Smart Learning Academy - Object-Spatial Programming Architecture
 # ==============================================================================
 
 # Backend - JAC Object-Spatial Programming
@@ -87,13 +87,13 @@ cl {
             <div style={containerStyle}>
                 <div style={headerStyle}>
                     <h1 style={titleStyle}>Jeseci Smart Learning Academy</h1>
-                    <p style={subtitleStyle}>Pure Jaclang 0.9.3 Architecture</p>
+                    <p style={subtitleStyle}>Object-Spatial Programming Architecture</p>
                 </div>
                 
                 <div style={cardStyle}>
                     <h2 style={h2Style}>Application Status: Operational</h2>
                     <p><strong>Version:</strong> 5.0.0</p>
-                    <p><strong>Architecture:</strong> Pure Jaclang + Native JSX</p>
+                    <p><strong>Architecture:</strong> Object-Spatial Programming with JSX</p>
                     <p><strong>Backend:</strong> Object-Spatial Programming APIs</p>
                     <p><strong>Frontend:</strong> Built-in React-like Components</p>
                 </div>
@@ -122,7 +122,7 @@ cl {
                 </div>
                 
                 <div style={footerStyle}>
-                    <p>Built with Jaclang 0.9.3 Object-Spatial Programming</p>
+                    <p>Built with Object-Spatial Programming</p>
                     <p>© 2025 Cavin Otieno • Jeseci Smart Learning Academy</p>
                 </div>
             </div>
