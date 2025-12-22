@@ -3,7 +3,7 @@
 # Database Setup Script for Jeseci Smart Learning Companion
 # =============================================================================
 # This script sets up PostgreSQL and Neo4j databases for the application.
-# Author: MiniMax Agent
+# Author: Cavin Otieno
 # =============================================================================
 
 set -e  # Exit on error

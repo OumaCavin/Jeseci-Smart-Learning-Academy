@@ -30,7 +30,7 @@ class TeachingStrategy:
     name: str
     description: str
     techniques: List[str]
-   适用场景: List[str]
+    applicable_scenes: List[str]
     effectiveness_score: float = 0.0
 
 

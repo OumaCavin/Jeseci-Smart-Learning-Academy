@@ -1,80 +1,71 @@
-# 🎓 Jeseci Smart Learning Academy
+# 🎓 Jeseci Smart Learning Academy - Graph-Powered Adaptive Learning Platform
 
 [![JAC Language](https://img.shields.io/badge/JAC-0.9.3-blue.svg)](https://github.com/Jaseci-Labs/jaseci)
-[![Jac Cloud](https://img.shields.io/badge/Jac%20Cloud-Ready-green.svg)](https://cloud.jaseci.org)
-[![JAC Client](https://img.shields.io/badge/JAC%20Client-Frontend-purple.svg)](https://jaseci.org/docs/jac_client)
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg)](https://python.org)
+[![Neo4j](https://img.shields.io/badge/Neo4j-Graph%20Database-018BFF.svg)](https://neo4j.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791.svg)](https://postgresql.org)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **An AI-powered adaptive learning portal built entirely with JAC programming language using Object-Spatial Programming (OSP), byLLM, and Jac Client.**
+> **An AI-powered adaptive learning portal with graph-based knowledge tracking, intelligent recommendations, and real-time progress analytics. Built with JAC programming language, Neo4j graph database, and PostgreSQL.**
 
 ## 🌟 Features
 
-- 🧠 **AI-Powered Learning**: Personalized learning experiences powered by `byLLM` decorators
+### Core Learning Features
+- 🧠 **AI-Powered Learning**: Personalized learning experiences powered by OpenAI integration
+- 📊 **Graph-Based Knowledge Tracking**: Neo4j-powered concept relationships and dependencies
 - 🎯 **Adaptive Content**: Dynamic content generation and assessment using Large Language Models
-- 📊 **Progress Analytics**: Real-time learning analytics with OSP-based mastery tracking
+- 📈 **Progress Analytics**: Real-time learning analytics with mastery tracking
 - 🏆 **Intelligent Tutoring**: AI agents that analyze learning patterns and suggest next steps
 - 🔗 **Knowledge Graph**: Object-Spatial Programming models relationships between concepts
 - 💡 **Interactive Exercises**: Auto-generated quizzes and coding challenges
 - 📈 **Skill Visualization**: Visual "skill map" showing mastered and weak areas
 
-## 🏗️ Architecture Overview
+### Graph-Based Intelligence
+- **Concept Dependencies**: Track prerequisite relationships between learning topics
+- **Learning Path Navigation**: Smart recommendations based on completed concepts
+- **Progress Traversal**: Graph-based algorithms calculate learning progress
+- **Similar Concepts**: Discover related topics through graph relationships
+- **User Journey Visualization**: Chronological view of learning achievements
 
-### Core JAC Features
-- **Object-Spatial Programming (OSP)**: Graph-based data modeling for learning concepts
-- **byLLM Integration**: AI-powered content generation and assessment
-- **Jac Client**: React-style frontend components written in JAC
-- **Native Web Server**: `jac serve` provides built-in HTTP endpoints
+## 🏗️ Architecture Overview
 
 ### Technology Stack
 
-#### Backend (JAC Language)
+#### Backend (JAC Language + Python)
 - **JAC Programming Language** (0.9.3+) - Primary development language
+- **Python 3.12+** - For database drivers and AI integration
 - **Object-Spatial Programming** - Graph data structures for learning models
-- **byLLM Decorators** - AI-powered content generation and assessment
 - **Walkers** - API endpoints and graph traversal logic
 
-#### Frontend (Jac Client)
-- **Jac Client** - React-style components in JAC
-- **Interactive Code Editor** - Monaco/CodeMirror integration
-- **Progress Dashboards** - Real-time learning analytics visualization
-- **Responsive Design** - Mobile-first user interface
+#### Graph Database (Neo4j)
+- **Concept Nodes**: Learning topics with metadata
+- **Learning Path Nodes**: Structured curricula
+- **User Nodes**: Learner profiles and progress
+- **Relationship Edges**: Prerequisites, related concepts, completions
 
-#### Data Storage
-- **JAC Native Persistence** - Graph data stored in JAC's OSP system
-- **No External Databases** - All data handled by JAC's built-in capabilities
+#### Relational Database (PostgreSQL)
+- **User Management**: Authentication and profiles
+- **Concept Metadata**: Detailed concept information
+- **Progress Records**: Learning session data
+- **Achievements**: Gamification tracking
+
+#### Frontend
+- **React/TypeScript** - Modern responsive UI
+- **API Integration**: RESTful endpoints for data
+- **Interactive Dashboard**: Real-time progress visualization
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - **Python 3.12+** with pip installed
 - **Git** for repository cloning
-
-### Install pip if needed:
-```bash
-# Ubuntu/Debian
-sudo apt update && sudo apt install python3-pip
-
-# macOS
-brew install python3
-
-# Windows
-# Download Python from python.org (includes pip)
-
-# Or use Python's built-in ensurepip
-python3 -m ensurepip --upgrade
-```
+- **Neo4j** (optional, for graph features)
+- **PostgreSQL** (optional, for persistence)
 
 ### Installation
 
-#### Option 1: Simplified Setup (Recommended)
-```bash
-# Clone and setup
-git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
-cd Jeseci-Smart-Learning-Academy
-bash docs/pure-jac/setup_pure_jac.sh
-```
-
-#### Option 2: Manual Setup
+#### Step 1: Clone and Setup
 ```bash
 # Clone the repository
 git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
@@ -82,246 +73,413 @@ cd Jeseci-Smart-Learning-Academy
 
 # Create virtual environment
 python3 -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install Python dependencies
+pip install -r backend/requirements.txt
+pip install -r backend/database/requirements.txt
 
 # Install JAC dependencies
-pip install -r docs/pure-jac/requirements_pure_jac.txt
-
-# Configure environment
-cp docs/pure-jac/.env_pure_jac .env
-# Add your OpenAI API key to .env
+pip install jaclang>=0.9.3
 ```
 
-#### Option 3: Using UV (Recommended for JAC development)
+#### Step 2: Configure Environment
 ```bash
-# Clone the repository
-git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
-cd Jeseci-Smart-Learning-Academy
+# Copy environment template
+cp config/.env.template .env
 
-# Install dependencies using UV (faster and more reliable)
-uv pip install -r docs/pure-jac/requirements_pure_jac.txt
-
-# Or install individual JAC packages
-uv pip install jaclang>=0.9.3 jac-client>=0.2.3
+# Edit .env with your settings
+nano .env
 ```
 
-### ⚠️ Important: JAC Dependencies
+Required environment variables:
+```env
+# OpenAI API Key (for AI features)
+OPENAI_API_KEY=your_openai_api_key_here
 
-The application requires both JAC packages:
-- **`jaclang`** - Main JAC runtime and compiler
-- **`jac-client`** - Client-side runtime for frontend components
+# PostgreSQL Configuration
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=jeseci_learning_academy
+POSTGRES_USER=jeseci_user
+POSTGRES_PASSWORD=secure_password_123
 
-If you encounter the error `__jacRegisterClientModule is not defined`, ensure both packages are installed:
+# Neo4j Configuration
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=neo4j_secure_password_2024
+NEO4J_DATABASE=jeseci_academy
+```
+
+#### Step 3: Setup Databases (Optional)
+
+**Neo4j Setup:**
 ```bash
-uv pip install -r docs/pure-jac/requirements_pure_jac.txt
-# or individually:
-uv pip install jaclang>=0.9.3 jac-client>=0.2.3
+# Using Docker
+docker run -d --name neo4j \
+  -p 7474:7474 -p 7687:7687 \
+  -e NEO4J_AUTH=neo4j/neo4j_secure_password_2024 \
+  neo4j:latest
+
+# Or download from https://neo4j.com/download/
 ```
 
-### ⚠️ Dependency Management Note
+**PostgreSQL Setup:**
+```bash
+# Using Docker
+docker run -d --name postgres \
+  -e POSTGRES_PASSWORD=secret \
+  -e POSTGRES_DB=jeseci_learning_academy \
+  -e POSTGRES_USER=jeseci_user \
+  -p 5432:5432 \
+  postgres:latest
 
-**jac-cloud Version Compatibility**: Due to version conflicts between `jaclang>=0.9.3` and `jac-cloud==0.2.11`, this project uses manually expanded dependencies instead of the `jac-cloud` package. 
+# Run database setup script
+bash backend/database/setup_databases.sh
+```
 
-- ✅ **Resolved**: `jaclang>=0.9.3` for latest JAC features
-- ⚠️ **Note**: `jac-cloud` dependencies are installed individually, not as a package
-- 🚨 **Potential Issue**: If `jac serve` encounters issues, the custom dependency setup may need adjustment
-
-The setup script includes warnings about this approach. If you experience problems with `jac serve`, consider using an older version of JAC that supports the bundled `jac-cloud` package.
+#### Step 4: Seed Graph Data (Optional)
+```bash
+# Seed the graph with sample learning data
+jac serve backend/app.jac --port 8000 &
+curl -X POST http://localhost:8000/walker/graph_seed
+```
 
 ### Running the Application
 
-#### Option 1: Full-Stack JAC Application (Recommended)
+#### Start the Backend
 ```bash
-# Serve the working full-stack application
-jac serve learning_portal_fullstack_simple.jir
+# Method 1: Using run.sh script
+bash run.sh
 
-# Access the application:
-# Frontend UI: http://localhost:8000/page/app
-# Backend APIs: http://localhost:8000/walker/[walker_name]
+# Method 2: Direct JAC serve
+jac serve backend/app.jac --port 8000
+
+# Method 3: Python with JAC compiler
+python -c "from jaclang.cli import cli; cli.build('backend/app.jac')"
+jac serve backend/app.jir --port 8000
 ```
 
-#### Option 2: Runtime Test Application
+#### Start the Frontend (Optional)
 ```bash
-# Serve the minimal runtime test
-jac serve test_client_runtime.jir
-
-# Access at: http://localhost:8000/page/app
+cd frontend
+npm install
+npm start
 ```
 
-#### Key API Endpoints (via Walkers)
-- `POST /walker/fullstack_welcome` - System initialization
-- `POST /walker/fullstack_health_check` - Health monitoring
-- `POST /walker/fullstack_concept_management` - Learning concepts
-- `POST /walker/fullstack_user_progress` - User progress tracking
-- `POST /walker/fullstack_analytics` - Learning analytics
-
-#### Testing Backend APIs
-```bash
-# Test the welcome endpoint
-curl -X POST http://localhost:8000/walker/fullstack_welcome \
-  -H "Content-Type: application/json" \
-  -d '{"_jac_spawn_node": "root"}'
-
-# Test concepts management
-curl -X POST http://localhost:8000/walker/fullstack_concept_management \
-  -H "Content-Type: application/json" \
-  -d '{"_jac_spawn_node": "root"}'
-```
+#### Access Points
+- **Backend API**: http://localhost:8000
+- **Walker Endpoints**: http://localhost:8000/walker/[walker_name]
+- **Frontend App**: http://localhost:3000 (if running)
 
 ## 📖 Learning Portal Features
 
-### Object-Spatial Programming (OSP) Models
-- **User Nodes**: Individual learner profiles and preferences
-- **Concept Nodes**: Learning topics (walkers, OSP, byLLM, etc.)
-- **Lesson Nodes**: Structured learning content and exercises
-- **Quiz Nodes**: Auto-generated assessments and evaluations
-- **Mastery Edges**: Proficiency tracking between concepts
+### Graph-Based Knowledge Management
 
-### AI-Powered Components
-- **Content Generation**: `byLLM` decorators create personalized lesson content
-- **Quiz Generation**: AI generates questions based on learning objectives
-- **Assessment Engine**: Intelligent evaluation of free-text answers
-- **Learning Path Optimization**: AI suggests next topics based on mastery
+#### Concept Dependencies
+The platform tracks concept relationships using Neo4j:
+```
+Programming Basics → Variables → Control Flow → Functions → Data Structures
+                                            ↓
+                                    Object-Oriented Programming
+                                            ↓
+                                            Algorithms
+```
 
-### Adaptive Learning Logic
-- **Mastery Tracking**: Real-time proficiency scoring for each concept
-- **Prerequisite Analysis**: Automatic identification of knowledge gaps
-- **Difficulty Adjustment**: Dynamic quiz difficulty based on performance
-- **Personalized Recommendations**: AI-driven content suggestions
+#### Learning Path Navigation
+Users follow structured paths with intelligent recommendations:
+1. Complete prerequisite concepts
+2. Unlock next concepts automatically
+3. Get personalized suggestions based on progress
 
-## 🧩 Project Structure
+#### Progress Tracking
+- **Concept Completion**: Mark topics as completed
+- **Path Progress**: Calculate percentage through learning paths
+- **Learning Journey**: Chronological view of achievements
+- **Similar Concepts**: Discover related topics
 
-### Active Project (Minimal)
+### API Endpoints
+
+#### Core Endpoints
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/init` | GET | Initialize the application |
+| `/walker/health_check` | GET | System health status |
+| `/walker/user_create` | POST | Create new user |
+| `/walker/user_login` | POST | User authentication |
+
+#### Course & Content Endpoints
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/courses` | GET | List all courses |
+| `/walker/concepts` | GET | List all concepts |
+| `/walker/learning_paths` | GET | List learning paths |
+
+#### Graph-Based Endpoints
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/graph_init` | POST | Initialize graph engine |
+| `/walker/graph_seed` | POST | Seed sample data |
+| `/walker/graph_concepts` | GET | Get concepts from graph |
+| `/walker/graph_concept_detail` | GET | Get concept with dependencies |
+| `/walker/graph_paths` | GET | Get learning paths |
+| `/walker/graph_path_detail` | GET | Get path structure |
+| `/walker/graph_user_progress` | POST | Get user progress |
+| `/walker/graph_complete_concept` | POST | Mark concept completed |
+| `/walker/graph_enroll_path` | POST | Enroll in learning path |
+| `/walker/graph_recommendations` | GET | Get personalized recommendations |
+| `/walker/graph_next_concept` | GET | Get next concept to learn |
+| `/walker/graph_learning_journey` | GET | Get learning history |
+| `/walker/graph_popular_concepts` | GET | Get trending concepts |
+| `/walker/graph_stats` | GET | Get graph statistics |
+
+#### Progress & Analytics Endpoints
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/user_progress` | POST | Get user progress |
+| `/walker/learning_session_start` | POST | Start learning session |
+| `/walker/learning_session_end` | POST | End learning session |
+| `/walker/analytics_generate` | POST | Generate analytics |
+
+#### AI Features Endpoints
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/ai_generate_content` | POST | Generate AI content |
+| `/walker/chat` | POST | AI chat assistance |
+
+### Example API Usage
+
+#### Initialize Graph and Seed Data
+```bash
+# Initialize graph engine
+curl -X POST http://localhost:8000/walker/graph_init
+
+# Seed sample learning data
+curl -X POST http://localhost:8000/walker/graph_seed
+```
+
+#### Get Recommendations
+```bash
+# Get personalized recommendations
+curl "http://localhost:8000/walker/graph_recommendations?user_id=user123&limit=5"
+
+# Response:
+{
+  "success": true,
+  "user_id": "user123",
+  "recommendations": [
+    {
+      "id": "functions",
+      "name": "functions",
+      "display_name": "Functions",
+      "category": "Programming",
+      "difficulty": "intermediate",
+      "duration": 60
+    }
+  ],
+  "algorithm": "prerequisite_based"
+}
+```
+
+#### Complete a Concept
+```bash
+# Mark concept as completed
+curl -X POST "http://localhost:8000/walker/graph_complete_concept?user_id=user123&concept_id=variables&score=90&time_spent=45"
+
+# Response:
+{
+  "success": true,
+  "user_id": "user123",
+  "concept_id": "variables",
+  "score": 90,
+  "message": "Concept marked as completed"
+}
+```
+
+#### Get Learning Journey
+```bash
+# Get user's learning history
+curl "http://localhost:8000/walker/graph_learning_journey?user_id=user123"
+
+# Response:
+{
+  "success": true,
+  "user_id": "user123",
+  "journey": [
+    {
+      "id": "prog_basics",
+      "name": "programming_basics",
+      "category": "Programming",
+      "score": 95,
+      "completed_at": 1703200000000
+    }
+  ],
+  "category_distribution": {
+    "Programming": 1
+  }
+}
+```
+
+## 📁 Project Structure
+
 ```
 jeseci-smart-learning-academy/
-├── app.jac                          # Main JAC application with OSP models
-├── README.md                        # This documentation
-└── .gitignore                       # Git ignore rules
+├── app.jac                          # Main JAC application (compiled)
+├── app.jir                          # Compiled bytecode
+├── run.sh                           # Application startup script
+├── setup.sh                         # Setup configuration script
+├── config/
+│   ├── .env                         # Environment configuration
+│   └── .env.template                # Environment template
+│
+├── backend/
+│   ├── app.jac                      # Backend API with walkers
+│   ├── graph_engine.jac             # Graph-based features module
+│   ├── main.py                      # Python entry point
+│   ├── requirements.txt             # Python dependencies
+│   ├── database/
+│   │   ├── __init__.py              # Database connection managers
+│   │   ├── database.jac             # Jaclang database module
+│   │   ├── requirements.txt         # Database dependencies
+│   │   ├── setup_databases.sh       # Database setup script
+│   │   └── README.md                # Database documentation
+│   └── agents/                      # AI agents
+│
+├── frontend/                        # React frontend application
+├── docs/                            # Documentation
+│   ├── legacy/                      # Legacy implementation
+│   └── pure-jac/                    # Pure JAC setup files
+│
+└── README.md                        # This file
 ```
-
-### Pure JAC Setup Files
-```
-docs/pure-jac/                       # Pure JAC setup and configuration
-├── setup_pure_jac.sh                # Simplified setup script
-├── requirements_pure_jac.txt        # Minimal JAC dependencies
-├── .env_pure_jac                    # Environment template
-└── QUICKSTART_PURE_JAC.md           # Quick start guide
-```
-
-### Legacy Implementation (Previous Architecture)
-```
-docs/legacy/                         # Previous FastAPI + JAC hybrid implementation
-├── setup/                          # Legacy setup scripts
-├── config/                         # Legacy configuration files
-├── database/                       # SQLAlchemy models and migrations
-├── api/                            # FastAPI endpoints
-├── services/                       # Legacy service layer
-├── frontend/                       # Legacy frontend components
-├── migrations/                     # Database migrations
-└── docs/                           # Legacy documentation (100+ files)
-```
-
-**Note**: Legacy files are preserved for reference but not actively maintained.
-
-### Core JAC Files
-- **app.jac**: Main application with OSP graph definitions and walkers
-- **Walkers**: Graph traversal logic exposed as HTTP endpoints
-- **Jac Client**: Frontend components for user interaction
 
 ## 🔧 Configuration
 
 ### Environment Variables
 
-Create a `.env` file (copy from `docs/pure-jac/.env_pure_jac`):
+Create a `.env` file in the project root:
 
 ```env
-# OpenAI Configuration (Required for byLLM AI features)
-OPENAI_API_KEY=your_openai_api_key_here
-
 # Application Settings
 PROJECT_NAME="Jeseci Smart Learning Academy"
 PROJECT_VERSION=1.0.0
 DEBUG=true
-
-# Logging
-LOG_LEVEL=INFO
-
-# Environment
 ENVIRONMENT=development
+
+# API Configuration
+API_HOST=0.0.0.0
+API_PORT=8000
+
+# Security
+JWT_SECRET_KEY=jeseci_secret_key_change_in_production
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# OpenAI (Required for AI features)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# PostgreSQL (Optional)
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=jeseci_learning_academy
+POSTGRES_USER=jeseci_user
+POSTGRES_PASSWORD=secure_password_123
+
+# Neo4j (Optional)
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=neo4j_secure_password_2024
+NEO4J_DATABASE=jeseci_academy
 ```
 
-**Note**: No database configuration needed! JAC handles all data persistence natively.
+### Database Setup
+
+The application supports multiple database backends:
+
+#### In-Memory Mode (Default)
+- No external database required
+- All data stored in memory
+- Suitable for development and testing
+
+#### Neo4j Graph Mode
+- Install Neo4j and configure environment variables
+- Run: `bash backend/database/setup_databases.sh`
+- Graph-based recommendations and dependencies
+
+#### PostgreSQL Mode
+- Install PostgreSQL and create database
+- Run: `bash backend/database/setup_databases.sh`
+- Persistent storage for users and progress
 
 ## 🧪 Testing
 
-### Run JAC Tests
+### Test Backend Compilation
 ```bash
-# Test JAC syntax and compilation
-jac
+# Compile JAC files
+python -c "from jaclang.cli import cli; cli.build('backend/app.jac')"
+python -c "from jaclang.cli import cli; cli.build('backend/graph_engine.jac')"
 
-# Run build app.jac JAC unit tests
-jac test app.jac
-
-# Test specific walkers
-jac run app.jac --walker register_user
+# Expected output: Errors: 0, Warnings: 0
 ```
 
-### API Testing
+### Test API Endpoints
 ```bash
-# Test user registration
-curl -X GET "http://localhost:8000/functions/register_user?name=TestUser&email=test@example.com"
+# Health check
+curl http://localhost:8000/walker/health_check
 
-# Test lesson retrieval
-curl -X GET "http://localhost:8000/functions/get_lesson?concept_id=walkers"
+# Initialize graph
+curl -X POST http://localhost:8000/walker/graph_init
 
-# Test quiz generation
-curl -X GET "http://localhost:8000/functions/generate_quiz?concept_id=byllm"
+# Get concepts
+curl http://localhost:8000/walker/graph_concepts
+
+# Get recommendations
+curl "http://localhost:8000/walker/graph_recommendations?user_id=test&limit=5"
 ```
 
-## 🎯 Learning Content Structure
+### Test Graph Features
+```bash
+# Seed graph data
+curl -X POST http://localhost:8000/walker/graph_seed
 
-### Concept Hierarchy
-1. **JAC Fundamentals**
-   - Variables and Data Types
-   - Functions and Walkers
-   - Control Flow
+# Get graph statistics
+curl http://localhost:8000/walker/graph_stats
 
-2. **Object-Spatial Programming**
-   - Nodes and Edges
-   - Graph Manipulation
-   - Relationship Modeling
+# Get popular concepts
+curl http://localhost:8000/walker/graph_popular_concepts?limit=10
+```
 
-3. **AI Integration**
-   - byLLM Decorators
-   - Content Generation
-   - Intelligent Assessment
+## 📊 Monitoring & Analytics
 
-4. **Jac Client Development**
-   - Component Creation
-   - State Management
-   - Interactive UIs
+### Learning Analytics
+- **Mastery Progress**: Real-time proficiency tracking per concept
+- **Learning Velocity**: Rate of concept acquisition
+- **Difficulty Adaptation**: Success rate analysis
+- **Knowledge Retention**: Long-term memory assessment
 
-### Adaptive Learning Features
-- **Prerequisite Checking**: Automatic validation of concept dependencies
-- **Mastery-Based Unlocking**: Progressive content access based on proficiency
-- **Difficulty Scaling**: Dynamic adjustment of quiz complexity
-- **Personalized Paths**: AI-driven learning sequence optimization
+### System Health
+- **Walker Performance**: Endpoint response times
+- **Database Connectivity**: Connection pool monitoring
+- **Graph Statistics**: Node and relationship counts
 
 ## 🚀 Deployment
 
 ### Development
 ```bash
 # Start the application
-jac serve app.jac
+bash run.sh
+
+# Or manually
+jac serve backend/app.jac --port 8000
 ```
 
 ### Production
 ```bash
 # Build optimized JAC application
-jac build app.jac --optimize
+python -c "from jaclang.cli import cli; cli.build('backend/app.jac')"
 
-# Deploy with Jac Cloud
-jac cloud deploy app.jac
+# Deploy compiled bytecode
+jac serve backend/app.jir --port 8000
 ```
 
 ### Docker Support
@@ -333,40 +491,28 @@ docker build -t jeseci-academy .
 docker run -p 8000:8000 jeseci-academy
 ```
 
-## 📊 Monitoring & Analytics
-
-### Learning Analytics
-- **Mastery Progress**: Real-time proficiency tracking
-- **Learning Velocity**: Rate of concept acquisition
-- **Difficulty Adaptation**: Success rate analysis
-- **Knowledge Retention**: Long-term memory assessment
-
-### System Health
-- **Walker Performance**: Endpoint response times
-- **Database Connectivity**: Connection pool monitoring
-- **AI Generation Metrics**: byLLM processing statistics
-
 ## 🤝 Contributing
 
 ### Development Workflow
 1. **Fork** the repository
 2. **Create** a feature branch
-3. **Implement** OSP models and walkers
-4. **Test** with `jac test`
+3. **Implement** features and fix bugs
+4. **Test** with compilation and API tests
 5. **Submit** a pull request
 
 ### Code Standards
 - **JAC Syntax**: Follow JAC language conventions
-- **OSP Design**: Use graph structures for data modeling
-- **byLLM Usage**: Implement AI features responsibly
+- **Python Code**: PEP 8 style guide
+- **Graph Design**: Proper node and relationship modeling
 - **Documentation**: Update docs for new features
 
-### Commit Guidelines
+### Commit Message Format
 ```
-feat(osp): add new Concept node for advanced topics
-fix(byllm): resolve quiz generation edge case
-docs(walkers): update API endpoint documentation
-test(learning): add mastery tracking tests
+feat(graph): add concept dependency traversal algorithm
+fix(api): resolve user progress calculation edge case
+docs(readme): update setup instructions for Neo4j
+refactor(database): optimize connection pooling
+test(backend): add graph seed validation tests
 ```
 
 ## 📝 License
@@ -382,7 +528,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - [Jaseci Labs](https://github.com/Jaseci-Labs/jaseci) for the revolutionary JAC programming language
-- [JAC Documentation](https://jaseci.org/docs/) for comprehensive guides and examples
+- [Neo4j](https://neo4j.com) for powerful graph database technology
+- [OpenAI](https://openai.com) for AI capabilities
 - Open source community for continuous innovation in AI-powered education
 
 ## 📞 Support
@@ -394,4 +541,4 @@ For support and questions:
 
 ---
 
-**Made with ❤️ by Cavin Otieno using JAC's native AI-powered development ecosystem**
+**Made with ❤️ by Cavin Otieno using JAC's native AI-powered development ecosystem with Neo4j graph intelligence**
