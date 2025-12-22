@@ -17,6 +17,7 @@ export interface User {
   is_verified: boolean;
   last_login: string;
   created_at: string;
+  progress?: Record<string, any>;
 }
 
 export interface LoginResponse {
