@@ -151,7 +151,7 @@ cd frontend && npm start
 - [Architecture Diagrams Index](./ARCHITECTURE_DIAGRAMS_INDEX.md)
 - [API Reference](./api_reference.md)
 - [Onboarding Guide](./onboarding_guide.md)
-- [Mermaid Diagrams](../mermaid/)
+- [Mermaid Diagrams](./mermaid/)
 
 ## License
 

@@ -87,12 +87,12 @@ Jeseci-Smart-Learning-Academy/
 │   ├── api_reference.md     # API documentation
 │   ├── onboarding_guide.md  # Setup guide
 │   ├── ARCHITECTURE_*.md    # Architecture docs
+│   ├── mermaid/             # Architecture diagrams
+│   │   ├── system_arch.mmd  # System architecture
+│   │   ├── auth_flow.mmd    # Authentication flow
+│   │   ├── db_schema.mmd    # Database schema
+│   │   └── *.mmd            # Additional diagrams
 │   └── legacy/              # Historical documents
-├── mermaid/                 # Architecture diagrams
-│   ├── system_arch.mmd      # System architecture
-│   ├── auth_flow.mmd        # Authentication flow
-│   ├── db_schema.mmd        # Database schema
-│   └── *.mmd                # Additional diagrams
 ├── scripts/                 # Utility scripts
 ├── setup.sh                 # Environment setup
 ├── .env                     # Environment variables
@@ -151,7 +151,7 @@ See [API Reference](./docs/api_reference.md) for complete documentation.
 - [API Reference](./docs/api_reference.md)
 - [Onboarding Guide](./docs/onboarding_guide.md)
 - [Architecture Diagrams](./docs/ARCHITECTURE_DIAGRAMS_INDEX.md)
-- [Mermaid Diagrams](./mermaid/)
+- [Mermaid Diagrams](./docs/mermaid/)
 
 ## Contributing
 

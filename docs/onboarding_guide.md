@@ -152,10 +152,9 @@ Jeseci-Smart-Learning-Academy/
 │   ├── public/           # Static assets
 │   └── package.json      # Frontend dependencies
 ├── docs/                 # Documentation
-│   ├── architecture/     # Architecture docs
+│   ├── mermaid/          # Architecture diagrams
 │   ├── api_reference.md  # API documentation
 │   └── onboarding_guide.md
-├── mermaid/              # Architecture diagrams
 ├── scripts/              # Utility scripts
 └── .env                  # Environment configuration
 ```
