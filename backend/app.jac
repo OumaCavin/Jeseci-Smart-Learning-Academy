@@ -3,7 +3,33 @@
 # Decoupled Architecture: Pure Jac API Backend + React Frontend
 # ==============================================================================
 
+# Import time module for timestamps
+import time;
+
+# FastAPI CORS middleware configuration
+# This allows the React frontend (port 3000) to communicate with the backend (port 8000)
+import fastapi;
+import fastapi.middleware.cors;
+
+# ==============================================================================
+# CORS Configuration
+# ==============================================================================
+
+app = fastapi.FastAPI();
+
+# Configure CORS to allow requests from the React frontend
+app.add_middleware(
+    fastapi.middleware.cors.CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+);
+
+# ==============================================================================
 # Core Data Models
+# ==============================================================================
+
 node user {
     has user_id: str;
     has username: str;
