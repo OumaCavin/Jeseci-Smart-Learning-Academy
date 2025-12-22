@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # Jeseci Smart Learning Academy - Setup Script
-# This script sets up the development environment for FastAPI backend
+# This script sets up the development environment for Pure Jaclang backend
 
 echo "🎓 Setting up Jeseci Smart Learning Academy..."
-echo "📋 Architecture: React Frontend + FastAPI Backend + OpenAI Integration"
+echo "📋 Architecture: React Frontend + Pure Jaclang Backend"
 
 # Check if Python is installed
 if ! command -v python3 &> /dev/null; then
     echo "❌ Python 3 is required but not installed."
-    echo "💡 Please install Python 3.8 or later from: https://python.org"
+    echo "💡 Please install Python 3.12 or later from: https://python.org"
     exit 1
 fi
 
@@ -81,53 +81,39 @@ echo "📚 Installing backend dependencies..."
 # Define standard PyPI index to avoid mirror issues
 PYPI_INDEX="--index-url https://pypi.org/simple"
 
-# Function to install from requirements file with timeout
-install_from_requirements() {
-    local cmd="$1"
-    local req_file="$2"
-    echo "📦 Installing from requirements file: $req_file"
-    
-    # Use timeout command to limit execution time
-    if timeout 180 $cmd install -r "$req_file" $PYPI_INDEX 2>&1; then
-        return 0
-    else
-        local exit_code=$?
-        if [ $exit_code -eq 124 ]; then
-            echo "⚠️ Installation timed out after 180 seconds"
-        else
-            echo "⚠️ Installation failed, trying individual packages..."
-        fi
-        # Fallback to individual package installation
-        $cmd install fastapi>=0.104.0 uvicorn>=0.24.0 $PYPI_INDEX
-    fi
-}
-
 install_success=false
 
-# Install from backend requirements file
 REQUIREMENTS_FILE="backend/requirements.txt"
 if [ -f "$REQUIREMENTS_FILE" ]; then
     echo "✅ Found requirements file: $REQUIREMENTS_FILE"
     if [ "$UV_CMD" = "uv" ]; then
-        if install_from_requirements "uv pip" "$REQUIREMENTS_FILE"; then
+        if uv pip install -r "$REQUIREMENTS_FILE" $PYPI_INDEX 2>&1; then
             install_success=true
         fi
     else
-        if install_from_requirements "$UV_CMD" "$REQUIREMENTS_FILE"; then
+        if $UV_CMD install -r "$REQUIREMENTS_FILE" $PYPI_INDEX 2>&1; then
             install_success=true
         fi
     fi
 else
-    echo "❌ Requirements file not found: $REQUIREMENTS_FILE"
-    exit 1
+    echo "⚠️ Requirements file not found. Installing manually..."
+    if [ "$UV_CMD" = "uv" ]; then
+        if uv pip install jaclang>=0.9.3 jac-client>=0.2.3 $PYPI_INDEX; then
+            install_success=true
+        fi
+    else
+        if $UV_CMD install jaclang>=0.9.3 jac-client>=0.2.3 $PYPI_INDEX; then
+            install_success=true
+        fi
+    fi
 fi
 
 if [ "$install_success" = false ]; then
-    echo "❌ Failed to install backend packages"
+    echo "❌ Failed to install jaclang packages"
     echo "💡 This might be due to network issues or firewall restrictions"
     echo "💡 Please try:"
     echo "   1. Check your internet connection"
-    echo "   2. Install manually: cd backend && pip install -r requirements.txt"
+    echo "   2. Install manually: uv pip install jaclang jac-client --index-url https://pypi.org/simple"
     exit 1
 fi
 
@@ -166,14 +152,15 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "💡 FEATURES:"
-echo "   • AI Content Generation with OpenAI GPT-4o-mini"
+echo "   • Pure Jaclang Backend (Single Language Stack)"
+echo "   • AI Content Generation (OpenAI or Fallback Templates)"
 echo "   • Dynamic User Progress Tracking"
 echo "   • Real-time Analytics Dashboard"
 echo "   • Personalized Recommendations"
 echo ""
 echo "💡 The run.sh script will:"
 echo "   • Check and free ports 8000 and 3000 if needed"
-echo "   • Start the FastAPI backend server"
+echo "   • Start the Jaclang backend API server"
 echo "   • Start the React frontend server"
 echo "   • Both servers run in a single terminal"
 echo ""
