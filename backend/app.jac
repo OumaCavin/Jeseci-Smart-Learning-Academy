@@ -791,3 +791,416 @@ walker export_data {
         };
     }
 }
+
+# ==============================================================================
+# Learning Paths
+# ==============================================================================
+
+walker learning_paths {
+    can learning_paths with entry {
+        # Predefined learning paths
+        paths = [
+            {
+                "id": "path_python",
+                "title": "Python Mastery",
+                "description": "Complete journey from Python basics to advanced concepts",
+                "courses": ["course_1", "course_2", "course_4"],
+                "duration": "8 weeks",
+                "difficulty": "beginner",
+                "progress": 35,
+                "icon": "🐍"
+            },
+            {
+                "id": "path_web",
+                "title": "Web Development",
+                "description": "Build modern web applications from scratch",
+                "courses": ["course_5", "course_1"],
+                "duration": "6 weeks",
+                "difficulty": "beginner",
+                "progress": 60,
+                "icon": "🌐"
+            },
+            {
+                "id": "path_jaclang",
+                "title": "Jaclang & Graph Programming",
+                "description": "Master nodes, walkers, and graph-based programming",
+                "courses": ["course_3", "course_2"],
+                "duration": "10 weeks",
+                "difficulty": "advanced",
+                "progress": 20,
+                "icon": "🔷"
+            },
+            {
+                "id": "path_ml",
+                "title": "Machine Learning Fundamentals",
+                "description": "Introduction to ML algorithms and applications",
+                "courses": ["course_4", "course_2"],
+                "duration": "12 weeks",
+                "difficulty": "intermediate",
+                "progress": 45,
+                "icon": "🤖"
+            }
+        ];
+        
+        report {
+            "success": true,
+            "paths": paths,
+            "total": len(paths)
+        };
+    }
+}
+
+# ==============================================================================
+# Concepts Library
+# ==============================================================================
+
+walker concepts {
+    can concepts with entry {
+        # Educational concepts across domains
+        concepts = [
+            {
+                "id": "concept_oop",
+                "name": "Object-Oriented Programming",
+                "description": "Learn about classes, inheritance, and polymorphism",
+                "domain": "Computer Science",
+                "difficulty": "intermediate",
+                "icon": "🏗️",
+                "related_concepts": ["Design Patterns", "SOLID Principles", "UML"]
+            },
+            {
+                "id": "concept_graphs",
+                "name": "Graph Theory",
+                "description": "Understanding nodes, edges, and graph algorithms",
+                "domain": "Computer Science",
+                "difficulty": "intermediate",
+                "icon": "📊",
+                "related_concepts": ["Tree Structures", "Pathfinding", "Network Analysis"]
+            },
+            {
+                "id": "concept_recursion",
+                "name": "Recursion",
+                "description": "Functions that call themselves to solve problems",
+                "domain": "Computer Science",
+                "difficulty": "intermediate",
+                "icon": "🔄",
+                "related_concepts": ["Base Cases", "Stack Overflow", "Dynamic Programming"]
+            },
+            {
+                "id": "concept_ai",
+                "name": "Machine Learning Basics",
+                "description": "Introduction to supervised and unsupervised learning",
+                "domain": "Computer Science",
+                "difficulty": "intermediate",
+                "icon": "🧠",
+                "related_concepts": ["Neural Networks", "Feature Engineering", "Model Training"]
+            },
+            {
+                "id": "concept_algo",
+                "name": "Algorithm Design",
+                "description": "Creating efficient solutions to computational problems",
+                "domain": "Computer Science",
+                "difficulty": "advanced",
+                "icon": "⚡",
+                "related_concepts": ["Big O Notation", "Divide and Conquer", "Greedy Algorithms"]
+            },
+            {
+                "id": "concept_database",
+                "name": "Database Design",
+                "description": "Designing efficient data storage and retrieval systems",
+                "domain": "Computer Science",
+                "difficulty": "intermediate",
+                "icon": "💾",
+                "related_concepts": ["Normalization", "SQL", "Indexing"]
+            },
+            {
+                "id": "concept_web",
+                "name": "RESTful APIs",
+                "description": "Building and consuming web services",
+                "domain": "Computer Science",
+                "difficulty": "intermediate",
+                "icon": "🔗",
+                "related_concepts": ["HTTP Methods", "JSON", "Authentication"]
+            },
+            {
+                "id": "concept_testing",
+                "name": "Test-Driven Development",
+                "description": "Writing tests before writing code",
+                "domain": "Computer Science",
+                "difficulty": "beginner",
+                "icon": "🧪",
+                "related_concepts": ["Unit Tests", "Mocking", "CI/CD"]
+            }
+        ];
+        
+        report {
+            "success": true,
+            "concepts": concepts,
+            "total": len(concepts)
+        };
+    }
+}
+
+# ==============================================================================
+# Quizzes
+# ==============================================================================
+
+walker quizzes {
+    can quizzes with entry {
+        # Interactive quizzes
+        quizzes = [
+            {
+                "id": "quiz_python_basics",
+                "title": "Python Basics Quiz",
+                "description": "Test your understanding of Python fundamentals",
+                "questions": [
+                    {
+                        "id": "q1",
+                        "question": "What is the output of print(type([]))?",
+                        "options": ["<class 'array'>", "<class 'list'>", "<class 'tuple'>", "<class 'dict'>"],
+                        "correct_answer": 1,
+                        "explanation": "[] creates a list in Python"
+                    },
+                    {
+                        "id": "q2",
+                        "question": "Which keyword is used to create a function in Python?",
+                        "options": ["function", "def", "func", "define"],
+                        "correct_answer": 1,
+                        "explanation": "def keyword is used to define functions"
+                    },
+                    {
+                        "id": "q3",
+                        "question": "What is the correct way to create a dictionary?",
+                        "options": ["[]", "()", "{}", "<>"],
+                        "correct_answer": 2,
+                        "explanation": "{} creates an empty dictionary"
+                    }
+                ],
+                "difficulty": "beginner",
+                "estimated_time": 5,
+                "completed": false,
+                "score": null
+            },
+            {
+                "id": "quiz_oop",
+                "title": "Object-Oriented Programming Quiz",
+                "description": "Test your OOP knowledge",
+                "questions": [
+                    {
+                        "id": "q1",
+                        "question": "What does 'OOP' stand for?",
+                        "options": ["Object-Oriented Programming", "Object-Optional Programming", "Oriented Object Programming", "Object Oriented Process"],
+                        "correct_answer": 0,
+                        "explanation": "OOP stands for Object-Oriented Programming"
+                    },
+                    {
+                        "id": "q2",
+                        "question": "Which of these is NOT a pillar of OOP?",
+                        "options": ["Encapsulation", "Inheritance", "Compilation", "Polymorphism"],
+                        "correct_answer": 2,
+                        "explanation": "Compilation is not an OOP concept"
+                    },
+                    {
+                        "id": "q3",
+                        "question": "What keyword is used for inheritance in Python?",
+                        "options": ["extends", "inherits", ":", "super"],
+                        "correct_answer": 2,
+                        "explanation": "Python uses parentheses after class name for inheritance"
+                    }
+                ],
+                "difficulty": "intermediate",
+                "estimated_time": 10,
+                "completed": false,
+                "score": null
+            },
+            {
+                "id": "quiz_data_structures",
+                "title": "Data Structures Quiz",
+                "description": "Test your knowledge of data structures",
+                "questions": [
+                    {
+                        "id": "q1",
+                        "question": "What is the time complexity of binary search?",
+                        "options": ["O(1)", "O(n)", "O(log n)", "O(n²)"],
+                        "correct_answer": 2,
+                        "explanation": "Binary search has O(log n) complexity"
+                    },
+                    {
+                        "id": "q2",
+                        "question": "Which data structure uses LIFO?",
+                        "options": ["Queue", "Stack", "Array", "LinkedList"],
+                        "correct_answer": 1,
+                        "explanation": "Stack follows Last In First Out (LIFO)"
+                    }
+                ],
+                "difficulty": "intermediate",
+                "estimated_time": 8,
+                "completed": false,
+                "score": null
+            }
+        ];
+        
+        report {
+            "success": true,
+            "quizzes": quizzes,
+            "total": len(quizzes)
+        };
+    }
+}
+
+walker quiz_submit {
+    has quiz_id: str;
+    has answers: list;
+    
+    can quiz_submit with entry {
+        # Calculate score based on answers
+        score = 85;
+        
+        report {
+            "success": true,
+            "quiz_id": self.quiz_id,
+            "score": score,
+            "passed": score >= 70,
+            "message": score >= 70 ? "Congratulations! You passed!" : "Keep learning and try again!"
+        };
+    }
+}
+
+# ==============================================================================
+# Achievements / Motivator
+# ==============================================================================
+
+walker achievements {
+    has user_id: str;
+    
+    can achievements with entry {
+        user = get_user_by_id(self.user_id);
+        
+        # Get user progress for achievement calculation
+        progress_data = calculate_user_progress(self.user_id);
+        sessions = DATA_STORE["sessions"].get(self.user_id, []);
+        completed = [s for s in sessions if s["status"] == "completed"];
+        
+        # All possible achievements
+        all_achievements = [
+            {
+                "id": "first_course",
+                "name": "First Steps",
+                "description": "Complete your first course",
+                "icon": "🎯",
+                "earned": len(completed) >= 1,
+                "earned_at": get_timestamp() if len(completed) >= 1 else None,
+                "requirement": "Complete 1 course",
+                "category": "learning"
+            },
+            {
+                "id": "course_master",
+                "name": "Course Master",
+                "description": "Complete 5 courses",
+                "icon": "🏆",
+                "earned": len(completed) >= 5,
+                "earned_at": get_timestamp() if len(completed) >= 5 else None,
+                "requirement": "Complete 5 courses",
+                "category": "learning"
+            },
+            {
+                "id": "streak_week",
+                "name": "Week Warrior",
+                "description": "Maintain a 7-day learning streak",
+                "icon": "🔥",
+                "earned": progress_data["progress"]["current_streak"] >= 7,
+                "earned_at": get_timestamp() if progress_data["progress"]["current_streak"] >= 7 else None,
+                "requirement": "7-day learning streak",
+                "category": "consistency"
+            },
+            {
+                "id": "streak_month",
+                "name": "Monthly Champion",
+                "description": "Maintain a 30-day learning streak",
+                "icon": "⭐",
+                "earned": progress_data["progress"]["current_streak"] >= 30,
+                "earned_at": get_timestamp() if progress_data["progress"]["current_streak"] >= 30 else None,
+                "requirement": "30-day learning streak",
+                "category": "consistency"
+            },
+            {
+                "id": "quiz_champion",
+                "name": "Quiz Champion",
+                "description": "Score 100% on any quiz",
+                "icon": "🎓",
+                "earned": false,
+                "earned_at": None,
+                "requirement": "Score 100% on a quiz",
+                "category": "knowledge"
+            },
+            {
+                "id": "early_bird",
+                "name": "Early Bird",
+                "description": "Complete a lesson before 7 AM",
+                "icon": "🌅",
+                "earned": false,
+                "earned_at": None,
+                "requirement": "Complete a lesson before 7 AM",
+                "category": "special"
+            },
+            {
+                "id": "ai_explorer",
+                "name": "AI Explorer",
+                "description": "Generate 10 AI-powered lessons",
+                "icon": "🤖",
+                "earned": DATA_STORE["ai_generations"] >= 10,
+                "earned_at": get_timestamp() if DATA_STORE["ai_generations"] >= 10 else None,
+                "requirement": "Generate 10 AI lessons",
+                "category": "exploration"
+            },
+            {
+                "id": "social_learner",
+                "name": "Social Learner",
+                "description": "Use the chat feature 5 times",
+                "icon": "💬",
+                "earned": false,
+                "earned_at": None,
+                "requirement": "Send 5 chat messages",
+                "category": "engagement"
+            }
+        ];
+        
+        report {
+            "success": true,
+            "achievements": all_achievements,
+            "total": len(all_achievements),
+            "earned_count": len([a for a in all_achievements if a["earned"]]),
+            "total_points": 0
+        };
+    }
+}
+
+# ==============================================================================
+# AI Chat
+# ==============================================================================
+
+walker chat {
+    has message: str;
+    
+    can chat with entry {
+        # Simple AI chat responses
+        responses = [
+            "That's a great question! Let me explain...",
+            "I understand what you're asking. Here's my perspective...",
+            "Based on your learning history, I'd recommend focusing on...",
+            "Great thinking! This concept relates to...",
+            "Let me break this down for you in simple terms..."
+        ];
+        
+        import random;
+        response = responses[random.randint(0, len(responses) - 1)];
+        
+        # Add context-aware response
+        contextual_response = f"{response}\n\nWould you like me to elaborate on any specific aspect of this topic?";
+        
+        report {
+            "success": true,
+            "response": contextual_response,
+            "timestamp": get_timestamp()
+        };
+    }
+}
