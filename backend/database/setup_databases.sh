@@ -56,8 +56,8 @@ if command -v psql &> /dev/null; then
     # First, check if the target database exists by connecting to 'postgres' default db
     print_info "Checking if database '$POSTGRES_DB' exists..."
     
-    # Check if database exists
-    DB_EXISTS=$(PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$POSTGRES_DB'" 2>/dev/null)
+    # Check if database exists (with 5 second timeout)
+    DB_EXISTS=$(PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$POSTGRES_DB'" --set=connect_timeout=5 2>/dev/null)
     
     if [ "$DB_EXISTS" = "1" ]; then
         print_status "Database '$POSTGRES_DB' already exists"
