@@ -89,7 +89,10 @@ func generate_id(prefix: str) -> str {
 }
 
 func get_user_by_username(username: str) -> dict {
-    return DATA_STORE["users"].get(username, {});
+    if username in DATA_STORE["users"] {
+        return DATA_STORE["users"][username];
+    }
+    return {};
 }
 
 func get_user_by_id(user_id: str) -> dict {
@@ -104,7 +107,10 @@ func get_user_by_id(user_id: str) -> dict {
 }
 
 func calculate_user_progress(user_id: str) -> dict {
-    sessions = DATA_STORE["sessions"].get(user_id, []);
+    sessions = [];
+    if user_id in DATA_STORE["sessions"] {
+        sessions = DATA_STORE["sessions"][user_id];
+    }
     
     # Calculate dynamic metrics
     completed_sessions = [];
@@ -215,7 +221,10 @@ func generate_ai_content(concept_name: str, domain: str, difficulty: str, relate
         "advanced": "Use precise technical language, include complex examples, and focus on nuances."
     };
     
-    difficulty_instructions = difficulty_guidance.get(difficulty, difficulty_guidance["beginner"]);
+    difficulty_instructions = difficulty_guidance["beginner"];
+    if difficulty in difficulty_guidance {
+        difficulty_instructions = difficulty_guidance[difficulty];
+    }
     
     prompt = f"""
     You are an expert tutor in {domain}. Create a comprehensive, engaging lesson for the concept: "{concept_name}".
@@ -251,7 +260,8 @@ func generate_ai_content(concept_name: str, domain: str, difficulty: str, relate
     
     # For now, return fallback content (can be enhanced with actual HTTP calls)
     # In a full implementation, you would make an HTTP POST to OpenAI API here
-    return generate_fallback_content(concept_name, domain, difficulty, related_concepts);
+    report generate_fallback_content(concept_name, domain, difficulty, related_concepts);
+}
 }
 
 func generate_fallback_content(concept_name: str, domain: str, difficulty: str, related_concepts: list) -> dict {
@@ -1175,12 +1185,17 @@ walker quiz_submit {
         # Calculate score based on answers
         score = 85;
         
+        result_message = "Keep learning and try again!";
+        if score >= 70 {
+            result_message = "Congratulations! You passed!";
+        }
+        
         report {
             "success": true,
             "quiz_id": self.quiz_id,
             "score": score,
             "passed": score >= 70,
-            "message": score >= 70 ? "Congratulations! You passed!" : "Keep learning and try again!"
+            "message": result_message
         };
     }
 }
@@ -1197,8 +1212,20 @@ walker achievements {
         
         # Get user progress for achievement calculation
         progress_data = calculate_user_progress(self.user_id);
-        sessions = DATA_STORE["sessions"].get(self.user_id, []);
-        completed = [s for s in sessions if s["status"] == "completed"];
+        
+        # Safe dictionary access for sessions
+        sessions = [];
+        user_sessions = DATA_STORE["sessions"].get(self.user_id);
+        if user_sessions {
+            sessions = user_sessions;
+        }
+        
+        completed = [];
+        for s in sessions {
+            if s["status"] == "completed" {
+                completed.append(s);
+            }
+        }
         
         # All possible achievements
         all_achievements = [
