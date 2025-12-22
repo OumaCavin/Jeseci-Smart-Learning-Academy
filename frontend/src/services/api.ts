@@ -41,15 +41,33 @@ export interface Course {
   content_type: str = "interactive";
 }
 
+export interface LearningPathModule {
+  id: string;
+  title: string;
+  type: 'lesson' | 'project' | 'quiz';
+  duration: string;
+  completed: boolean;
+}
+
 export interface LearningPath {
   id: string;
   title: string;
   description: string;
   courses: string[];
+  modules: LearningPathModule[];
+  concepts: string[];
+  skills_covered: string[];
+  prerequisites: string[];
+  total_modules: number;
+  completed_modules: number;
   duration: string;
-  difficulty: str = "beginner";
+  estimated_hours: number;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
   progress: number;
-  icon: str = "📚";
+  icon: string;
+  category: string;
+  next_step: string;
+  last_activity?: string;
 }
 
 export interface Concept {
