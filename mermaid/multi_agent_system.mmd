@@ -1,0 +1,100 @@
+# Multi-Agent System Architecture
+
+```mermaid
+graph LR
+    subgraph Agent Coordinator
+        Coordinator[Main Agent<br/>Cavin Otieno]
+    end
+    
+    subgraph Learning Agents
+        ContentAgent[Content Generation<br/>AI-Powered Lessons]
+        ProgressAgent[Progress Tracker<br/>Learning Analytics]
+        RecommendationAgent[Recommendation Engine<br/>Personalized Paths]
+        QuizAgent[Quiz Manager<br/>Assessment & Scoring]
+    end
+    
+    subgraph Knowledge Sources
+        GraphDB[Neo4j Graph<br/>Concept Relationships]
+        VectorStore[Vector Database<br/>Lesson Embeddings]
+        TemplateEngine[Template System<br/>Fallback Content]
+    end
+    
+    subgraph User Interaction
+        UserInterface[Learning Dashboard]
+        ChatInterface[AI Chat Assistant]
+    end
+    
+    Coordinator -->|Coordinates| ContentAgent
+    Coordinator -->|Coordinates| ProgressAgent
+    Coordinator -->|Coordinates| RecommendationAgent
+    Coordinator -->|Coordinates| QuizAgent
+    
+    ContentAgent -->|Queries| GraphDB
+    ContentAgent -->|Embeddings| VectorStore
+    ContentAgent -->|Templates| TemplateEngine
+    
+    ProgressAgent -->|Reads/Writes| GraphDB
+    ProgressAgent -->|Tracks| UserInterface
+    
+    RecommendationAgent -->|Analyzes| GraphDB
+    RecommendationAgent -->|Generates| UserInterface
+    
+    QuizAgent -->|Assesses| UserInterface
+    QuizAgent -->|Updates| GraphDB
+    
+    UserInterface -->|Interacts| Coordinator
+    ChatInterface -->|Asks| Coordinator
+
+    style Coordinator fill:#ffc107,stroke:#333,stroke-width:3px
+    style ContentAgent fill:#28a745,stroke:#333,stroke-width:2px
+    style ProgressAgent fill:#17a2b8,stroke:#333,stroke-width:2px
+    style RecommendationAgent fill:#6f42c1,stroke:#333,stroke-width:2px
+    style QuizAgent fill:#dc3545,stroke:#333,stroke-width:2px
+```
+
+## Agent System Overview
+
+### Main Agent (Cavin Otieno)
+The central coordinator that manages all learning agents and orchestrates interactions between them. It handles:
+- User session management
+- Request routing to appropriate agents
+- Response aggregation and formatting
+
+### Specialized Learning Agents
+
+#### Content Generation Agent
+- Generates AI-powered learning content using OpenAI
+- Falls back to template-based content when AI unavailable
+- Creates concept explanations, examples, and exercises
+
+#### Progress Tracking Agent
+- Tracks user learning progress across courses
+- Calculates completion percentages and statistics
+- Updates Neo4j graph with completed concepts
+
+#### Recommendation Agent
+- Analyzes user progress and learning patterns
+- Generates personalized learning path recommendations
+- Suggests next concepts based on prerequisites
+
+#### Quiz Manager Agent
+- Creates and manages assessments
+- Calculates scores and provides feedback
+- Awards achievements for milestones
+
+### Knowledge Sources
+
+#### Neo4j Graph Database
+- Stores concept nodes and relationships
+- Tracks prerequisite connections
+- Maintains user progress data
+
+#### Vector Database
+- Stores lesson embeddings for semantic search
+- Enables content similarity matching
+- Supports AI-powered content retrieval
+
+#### Template Engine
+- Provides fallback content when AI is unavailable
+- Contains pre-written lessons and examples
+- Ensures learning continuity

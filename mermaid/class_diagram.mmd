@@ -1,0 +1,149 @@
+# Class Diagram - Jaclang Walkers and Data Models
+
+```mermaid
+classDiagram
+    %% Core Walkers
+    class Walker {
+        <<abstract>>
+        +has attributes: dict
+        +can execute() Report
+    }
+    
+    class InitWalker {
+        +welcome_msg: str
+        +version: str
+        +architecture: str
+        +with entry()
+    }
+    
+    class HealthCheckWalker {
+        +status: str
+        +timestamp: str
+        +with health_check()
+    }
+    
+    %% Authentication Walkers
+    class UserCreateWalker {
+        +username: str
+        +email: str
+        +password: str
+        +first_name: str
+        +last_name: str
+        +with user_create()
+    }
+    
+    class UserLoginWalker {
+        +username: str
+        +password: str
+        +with user_login()
+    }
+    
+    %% Course Walkers
+    class CoursesWalker {
+        +with courses()
+    }
+    
+    class CourseCreateWalker {
+        +title: str
+        +description: str
+        +domain: str
+        +difficulty: str
+        +with course_create()
+    }
+    
+    %% Progress Walkers
+    class UserProgressWalker {
+        +user_id: str
+        +with user_progress()
+    }
+    
+    class LearningSessionWalker {
+        +user_id: str
+        +module_id: str
+        +with learning_session_start()
+    }
+    
+    %% Graph Walkers
+    class GraphInitWalker {
+        +with graph_init()
+    }
+    
+    class GraphConceptsWalker {
+        +with graph_concepts()
+    }
+    
+    class GraphPathsWalker {
+        +with graph_paths()
+    }
+    
+    class GraphUserProgressWalker {
+        +user_id: str
+        +with graph_user_progress()
+    }
+    
+    class GraphSeedWalker {
+        +with graph_seed()
+    }
+    
+    class GraphRecommendationsWalker {
+        +user_id: str
+        +limit: int
+        +with graph_recommendations()
+    }
+    
+    %% Relationships
+    Walker <|-- InitWalker
+    Walker <|-- HealthCheckWalker
+    Walker <|-- UserCreateWalker
+    Walker <|-- UserLoginWalker
+    Walker <|-- CoursesWalker
+    Walker <|-- CourseCreateWalker
+    Walker <|-- UserProgressWalker
+    Walker <|-- LearningSessionWalker
+    Walker <|-- GraphInitWalker
+    Walker <|-- GraphConceptsWalker
+    Walker <|-- GraphPathsWalker
+    Walker <|-- GraphUserProgressWalker
+    Walker <|-- GraphSeedWalker
+    Walker <|-- GraphRecommendationsWalker
+    
+    %% Database Integration
+    class PostgresConnectionManager {
+        +get_connection()
+        +execute_query()
+        +test_connection()
+    }
+    
+    class Neo4jConnectionManager {
+        +get_session()
+        +execute_query()
+        +test_connection()
+    }
+    
+    class UserAuthManager {
+        +register_user()
+        +authenticate_user()
+        +get_user_by_id()
+    }
+```
+
+## Walker Architecture
+
+### Base Walker Class
+All walkers inherit from the base Walker class which provides:
+- Attribute management through `has` declarations
+- Execution handlers through `can` declarations
+- Report generation for API responses
+
+### Walker Categories
+
+1. **Core Walkers**: System initialization and health checks
+2. **Auth Walkers**: User registration and login with PostgreSQL
+3. **Course Walkers**: Course listing and creation
+4. **Progress Walkers**: Session management and progress tracking
+5. **Graph Walkers**: Neo4j integration for knowledge graphs
+
+### Database Managers
+- PostgreSQL: User and course data with connection pooling
+- Neo4j: Graph operations for concepts and learning paths
+- Auth Manager: bcrypt password hashing and JWT generation
