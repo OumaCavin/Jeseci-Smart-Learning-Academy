@@ -199,69 +199,10 @@ func call_openai_api(prompt: str, api_key: str) -> str {
 }
 
 func generate_ai_content(concept_name: str, domain: str, difficulty: str, related_concepts: list) -> dict {
-    # Get API key from environment
-    api_key = os.getenv("OPENAI_API_KEY", "");
+    # This function generates AI content for educational concepts
+    # Currently uses fallback content - can be enhanced with actual OpenAI API calls
     
-    # Check if OpenAI is configured
-    if api_key == "" or api_key.startswith("sk-proj-placeholder") {
-        # Use fallback content
-        return generate_fallback_content(concept_name, domain, difficulty, related_concepts);
-    }
-    
-    # Build the prompt for OpenAI
-    related_text = "";
-    if len(related_concepts) > 0 {
-        related_text = f"Relate this to: {', '.join(related_concepts)}.";
-    }
-    
-    # Difficulty-specific guidance
-    difficulty_guidance = {
-        "beginner": "Use simple language, provide lots of examples, and avoid jargon.",
-        "intermediate": "Balance technical accuracy with accessibility, include practical applications.",
-        "advanced": "Use precise technical language, include complex examples, and focus on nuances."
-    };
-    
-    difficulty_instructions = difficulty_guidance["beginner"];
-    if difficulty in difficulty_guidance {
-        difficulty_instructions = difficulty_guidance[difficulty];
-    }
-    
-    prompt = f"""
-    You are an expert tutor in {domain}. Create a comprehensive, engaging lesson for the concept: "{concept_name}".
-    
-    Target Audience: {difficulty} level student.
-    Instructions: {difficulty_instructions}
-    Context: {related_text}
-    
-    Format your response in clean Markdown with these exact sections:
-    
-    # {concept_name}
-    
-    ## 1. The Big Picture
-    [Explain what this concept is and why it matters in 2-3 sentences]
-    
-    ## 2. Simple Explanation
-    [Break down the concept using analogies or simple language]
-    
-    ## 3. Key Details
-    [Bulleted list of 3-5 critical characteristics or components]
-    
-    ## 4. Real-World Examples
-    [3 concrete examples where this concept is used in practice]
-    
-    ## 5. Why It Matters
-    [Explain the practical importance and applications]
-    
-    ## 6. Common Misconceptions
-    [2-3 things people often get wrong about this concept]
-    
-    Make the content engaging, educational, and appropriate for the specified difficulty level.
-    """;
-    
-    # For now, return fallback content (can be enhanced with actual HTTP calls)
-    # In a full implementation, you would make an HTTP POST to OpenAI API here
-    report generate_fallback_content(concept_name, domain, difficulty, related_concepts);
-}
+    return generate_fallback_content(concept_name, domain, difficulty, related_concepts);
 }
 
 func generate_fallback_content(concept_name: str, domain: str, difficulty: str, related_concepts: list) -> dict {
@@ -286,7 +227,7 @@ func generate_fallback_content(concept_name: str, domain: str, difficulty: str, 
 walker init {
     has welcome_msg: str = "Welcome to Jeseci Smart Learning Academy API!";
     has version: str = "7.0.0";
-    has architecture: str = "Pure Jaclang Backend with OpenAI Integration";
+    has architecture: str = "Python/FastAPI Backend with Jaclang-compatible endpoints";
     
     can init with entry {
         report {
