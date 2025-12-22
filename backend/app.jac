@@ -10,8 +10,8 @@ import time;
 import os;
 
 # Database and authentication modules
-import backend.database as db_module;
-import backend.user_auth as auth_module;
+import database as db_module;
+import user_auth as auth_module;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
