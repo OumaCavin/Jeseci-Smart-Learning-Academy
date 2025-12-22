@@ -65,12 +65,20 @@ const App: React.FC = () => {
   const handleRegister = async (userData: any) => {
     setLoading(true);
     try {
+      console.log('Starting registration with data:', userData);
       const response = await apiService.register(userData);
+      console.log('Registration response received:', response);
+      console.log('Response type:', typeof response);
+      console.log('Response keys:', Object.keys(response));
+      console.log('Response.success value:', response.success);
+      console.log('Response.success type:', typeof response.success);
       
-      if (response.success) {
+      if (response && response.success === true) {
+        console.log('Registration successful - setting message and switching tab');
         setMessage('Registration successful! You can now log in.');
         setActiveTab('login');
       } else {
+        console.log('Registration failed - response:', response);
         setMessage('Registration failed');
       }
     } catch (error) {
