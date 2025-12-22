@@ -287,15 +287,11 @@ walker health_check {
     can health_check with entry {
         # Check OpenAI configuration
         api_key = os.getenv("OPENAI_API_KEY", "");
-        ai_st = "fallback";
-        if api_key != "" {
-            key_str = api_key->str;
-            prefix_check = key_str[:12];
-            if prefix_check != "sk-proj-placeholder" {
-                ai_st = "available";
-            }
+        if api_key {
+            ai_status = "available";
+        } else {
+            ai_status = "fallback";
         }
-        ai_status = ai_st;
         
         self.timestamp = get_timestamp();
         
@@ -321,7 +317,7 @@ walker courses {
             "success": true,
             "courses": DATA_STORE["courses"],
             "total": DATA_STORE["courses"].len
-        }
+        };
     }
 }
 
@@ -333,9 +329,7 @@ walker course_create {
     has content_type: str = "interactive";
     
     can course_create with entry {
-        title_lower = self.title.lower()
-        title_underscore = title_lower.replace(" ", "_")
-        course_id = "course_" + title_underscore + "_" + time.time_ns()->str
+        course_id = "course_" + time.time_ns()->str;
         
         course_data = {
             "course_id": course_id,
@@ -344,16 +338,16 @@ walker course_create {
             "domain": self.domain,
             "difficulty": self.difficulty,
             "content_type": self.content_type
-        }
+        };
         
-        DATA_STORE["courses"] = DATA_STORE["courses"].push(course_data)
+        DATA_STORE["courses"] = DATA_STORE["courses"].push(course_data);
         
         report {
             "success": true,
             "course_id": course_id,
             "title": self.title,
             "message": "Course created successfully"
-        }
+        };
     }
 }
 
@@ -372,19 +366,20 @@ walker user_create {
     
     can user_create with entry {
         # Check for existing users
-        existing_user = get_user_by_username(self.username)
-        if existing_user != {} {
+        existing_user = get_user_by_username(self.username);
+        user_keys = existing_user.keys();
+        if user_keys.len > 0 {
             report {
                 "success": false,
                 "error": "A user with that username or email already exists."
-            }
-            return
+            };
+            return;
         }
         
         # Check if email already exists
-        users = DATA_STORE["users"]
-        user_keys = users.keys()
-        email_exists = false
+        users = DATA_STORE["users"];
+        user_keys = users.keys();
+        email_exists = false;
         for username in user_keys {
             user = users[username]
             user_email = user["email"]
@@ -444,12 +439,12 @@ walker user_login {
     
     can user_login with entry {
         # Get user by username
-        user = get_user_by_username(self.username)
-        
-        if user == {} {
+        user = get_user_by_username(self.username);
+        user_keys = user.keys();
+        if user_keys.len == 0 {
             # For demo, create user if not exists
-            user_id = "user_" + self.username + "_" + time.time_ns()->str
-            timestamp = get_timestamp()
+            user_id = "user_" + self.username + "_" + time.time_ns()->str;
+            timestamp = get_timestamp();
             
             new_user = {
                 "user_id": user_id,
@@ -505,18 +500,18 @@ walker user_progress {
     has user_id: str;
     
     can user_progress with entry {
-        user = get_user_by_id(self.user_id)
-        
-        if user == {} {
+        user = get_user_by_id(self.user_id);
+        user_keys = user.keys();
+        if user_keys.len == 0 {
             report {
                 "success": false,
                 "error": "User not found"
-            }
-            return
+            };
+            return;
         }
         
         # Calculate dynamic progress
-        progress_data = calculate_user_progress(self.user_id)
+        progress_data = calculate_user_progress(self.user_id);
         
         report {
             "user_id": self.user_id,
@@ -638,23 +633,23 @@ walker analytics_generate {
     has user_id: str;
     
     can analytics_generate with entry {
-        user = get_user_by_id(self.user_id)
-        
-        if user == {} {
+        user = get_user_by_id(self.user_id);
+        user_keys = user.keys();
+        if user_keys.len == 0 {
             report {
                 "success": false,
                 "error": "User not found"
-            }
-            return
+            };
+            return;
         }
         
-        sessions = []
-        sessions_data = DATA_STORE["sessions"]
+        sessions = [];
+        sessions_data = DATA_STORE["sessions"];
         if self.user_id in sessions_data {
-            sessions = sessions_data[self.user_id]
+            sessions = sessions_data[self.user_id];
         }
         
-        completed = []
+        completed = [];
         for session in sessions {
             status = session["status"]
             if status == "completed" {
