@@ -188,7 +188,7 @@ const App: React.FC = () => {
     <div className="dashboard">
       <div className="dashboard-header">
         <h1>Welcome to Jeseci Smart Learning Academy</h1>
-        <p>LittleX Pattern Architecture - React Frontend + Jaclang Backend</p>
+        <p>Decoupled Architecture - React Frontend + Jaclang Backend</p>
         <div className="user-info">
           <p><strong>User:</strong> {authState.user?.username}</p>
           <p><strong>Learning Style:</strong> {authState.user?.learning_style}</p>
@@ -348,7 +348,7 @@ const App: React.FC = () => {
       <header className="app-header">
         <div className="header-content">
           <h1>🎓 Jeseci Smart Learning Academy</h1>
-          <p>LittleX Pattern • React + Jaclang • AI-Powered Education</p>
+          <p>Decoupled Architecture • React + Jaclang • AI-Powered Education</p>
           {authState.isAuthenticated && (
             <div className="header-actions">
               <button onClick={handleLogout}>Logout</button>
@@ -391,7 +391,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="app-footer">
-        <p>© 2025 Jeseci Smart Learning Academy • LittleX Pattern Architecture</p>
+        <p>© 2025 Jeseci Smart Learning Academy • Decoupled Architecture</p>
         <p>Powered by React Frontend + Jaclang Backend API</p>
       </footer>
     </div>

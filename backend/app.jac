@@ -1,5 +1,5 @@
 # ==============================================================================
-# Jeseci Smart Learning Academy - LittleX Pattern Backend
+# Jeseci Smart Learning Academy - Backend API
 # Decoupled Architecture: Pure Jac API Backend + React Frontend
 # ==============================================================================
 
@@ -65,7 +65,7 @@ node assessment {
 walker init {
     has welcome_msg: str = "Welcome to Jeseci Smart Learning Academy API!";
     has version: str = "6.0.0";
-    has architecture: str = "LittleX Pattern - Decoupled Frontend/Backend";
+    has architecture: str = "Decoupled Frontend/Backend Architecture";
     
     can initialize with entry {
         report {
@@ -90,7 +90,7 @@ walker init {
 walker health_check {
     has status: str = "healthy";
     has version: str = "6.0.0";
-    has timestamp: str = "2025-12-22T07:10:19Z";
+    has timestamp: str = "2025-12-22T15:24:00Z";
     has database_status: str = "connected";
     has ai_status: str = "available";
     
@@ -102,7 +102,7 @@ walker health_check {
             "timestamp": self.timestamp,
             "database_status": self.database_status,
             "ai_status": self.ai_status,
-            "architecture": "LittleX Pattern Backend"
+            "architecture": "Decoupled Backend API"
         };
     }
 }
@@ -123,9 +123,11 @@ walker user_create {
     can create_user with entry {
         # For now, just return a success response
         # In a real implementation, this would create a user node
+        user_id = f"user_{self.username}_001";
+        
         report {
             "success": true,
-            "user_id": f"user_{self.username}_{int(time.time())}",
+            "user_id": user_id,
             "username": self.username,
             "email": self.email,
             "message": "User created successfully"
@@ -142,7 +144,7 @@ walker user_login {
         # In production, implement proper authentication
         
         user_data = {
-            "user_id": f"user_{self.username}_{int(time.time())}",
+            "user_id": f"user_{self.username}_001",
             "username": self.username,
             "email": f"{self.username}@example.com",
             "first_name": "Demo",
@@ -152,7 +154,7 @@ walker user_login {
         };
         
         # Generate simple token (in production, use JWT)
-        token = f"token_{user_data['user_id']}_{int(time.time())}";
+        token = f"token_{user_data['user_id']}_001";
         
         report {
             "success": true,
@@ -176,8 +178,10 @@ walker course_create {
     has content_type: str = "interactive";
     
     can create_course with entry {
+        course_id = f"course_{self.title.lower().replace(' ', '_')}_001";
+        
         course_data = {
-            "course_id": f"course_{int(time.time())}",
+            "course_id": course_id,
             "title": self.title,
             "description": self.description,
             "domain": self.domain,
@@ -199,7 +203,7 @@ walker learning_session_start {
     has module_id: str;
     
     can start_session with entry {
-        session_id = f"session_{self.user_id}_{self.module_id}_{int(time.time())}";
+        session_id = f"session_{self.user_id}_{self.module_id}_001";
         
         session_data = {
             "session_id": session_id,
@@ -279,7 +283,7 @@ walker analytics_generate {
             "total_study_time": 480,
             "average_score": 87.3,
             "engagement_score": 0.85,
-            "generated_at": "2025-12-22T07:10:19Z"
+            "generated_at": "2025-12-22T15:24:00Z"
         };
         
         report {
@@ -371,7 +375,7 @@ Build a comprehensive {self.concept_name} application
             "difficulty": self.difficulty,
             "content": template,
             "related_concepts": self.related_concepts,
-            "generated_at": "2025-12-22T07:10:19Z"
+            "generated_at": "2025-12-22T15:24:00Z"
         };
     }
 }
@@ -413,7 +417,7 @@ walker export_data {
                     "progress": 0.85
                 }
             ],
-            "exported_at": "2025-12-22T07:10:19Z"
+            "exported_at": "2025-12-22T15:24:00Z"
         };
         
         report {

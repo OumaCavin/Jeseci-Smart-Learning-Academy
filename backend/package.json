@@ -1,7 +1,7 @@
 {
   "name": "jeseci-smart-learning-academy-backend",
   "version": "6.0.0",
-  "description": "Jeseci Smart Learning Academy - LittleX Pattern Backend API",
+  "description": "Jeseci Smart Learning Academy - Backend API",
   "main": "app.jac",
   "scripts": {
     "serve": "jac serve app.jac",
