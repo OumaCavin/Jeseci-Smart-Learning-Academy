@@ -108,16 +108,16 @@ class ApiService {
 
   // Health and Status
   async healthCheck(): Promise<any> {
-    return this.makeRequest('/walker/health_check');
+    return this.makeRequest('/health_check');
   }
 
   async getWelcome(): Promise<any> {
-    return this.makeRequest('/walker/init');
+    return this.makeRequest('/init');
   }
 
   // Authentication
   async login(username: string, password: string): Promise<LoginResponse> {
-    return this.makeRequest('/walker/user_login', {
+    return this.makeRequest('/user/login', {
       method: 'POST',
       body: JSON.stringify({
         username,
@@ -135,9 +135,9 @@ class ApiService {
     learning_style?: string;
     skill_level?: string;
   }): Promise<any> {
-    console.log('Sending registration request to:', `${this.baseUrl}/walker/user_create`);
+    console.log('Sending registration request to:', `${this.baseUrl}/user/create`);
     console.log('Registration data:', userData);
-    const result = this.makeRequest('/walker/user_create', {
+    const result = this.makeRequest('/user/create', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
@@ -153,7 +153,7 @@ class ApiService {
     difficulty: string;
     content_type?: string;
   }): Promise<any> {
-    return this.makeRequest('/walker/course_create', {
+    return this.makeRequest('/course/create', {
       method: 'POST',
       body: JSON.stringify(courseData),
     });
@@ -183,7 +183,7 @@ class ApiService {
 
   // Learning Sessions
   async startLearningSession(userId: string, moduleId: string): Promise<LearningSession> {
-    return this.makeRequest('/walker/learning_session_start', {
+    return this.makeRequest('/learning/session/start', {
       method: 'POST',
       body: JSON.stringify({
         user_id: userId,
@@ -193,7 +193,7 @@ class ApiService {
   }
 
   async endLearningSession(sessionId: string, progress: number): Promise<any> {
-    return this.makeRequest('/walker/learning_session_end', {
+    return this.makeRequest('/learning/session/end', {
       method: 'POST',
       body: JSON.stringify({
         session_id: sessionId,
@@ -204,7 +204,7 @@ class ApiService {
 
   // Progress Tracking
   async getUserProgress(userId: string): Promise<ProgressData> {
-    return this.makeRequest('/walker/user_progress', {
+    return this.makeRequest('/user/progress', {
       method: 'POST',
       body: JSON.stringify({
         user_id: userId
@@ -213,7 +213,7 @@ class ApiService {
   }
 
   async getAnalytics(userId: string): Promise<any> {
-    return this.makeRequest('/walker/analytics_generate', {
+    return this.makeRequest('/analytics/generate', {
       method: 'POST',
       body: JSON.stringify({
         user_id: userId
@@ -223,7 +223,7 @@ class ApiService {
 
   // AI Content Generation
   async generateAIContent(conceptName: string, domain: string, difficulty: string, relatedConcepts: string[] = []): Promise<AIGeneratedContent> {
-    return this.makeRequest('/walker/ai_generate_content', {
+    return this.makeRequest('/ai/generate/content', {
       method: 'POST',
       body: JSON.stringify({
         concept_name: conceptName,
@@ -236,7 +236,7 @@ class ApiService {
 
   // Data Export
   async exportData(format: string = 'json'): Promise<any> {
-    return this.makeRequest('/walker/export_data', {
+    return this.makeRequest('/export/data', {
       method: 'POST',
       body: JSON.stringify({
         format: format
