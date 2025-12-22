@@ -1,14 +1,15 @@
 #!/bin/bash
 
 # Jeseci Smart Learning Academy - Setup Script
-# This script sets up the development environment
+# This script sets up the development environment for FastAPI backend
 
 echo "🎓 Setting up Jeseci Smart Learning Academy..."
+echo "📋 Architecture: React Frontend + FastAPI Backend + OpenAI Integration"
 
 # Check if Python is installed
 if ! command -v python3 &> /dev/null; then
     echo "❌ Python 3 is required but not installed."
-    echo "💡 Please install Python 3.12 or later from: https://python.org"
+    echo "💡 Please install Python 3.8 or later from: https://python.org"
     exit 1
 fi
 
@@ -75,7 +76,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Install dependencies using the available package manager with better error handling
-echo "📚 Installing dependencies..."
+echo "📚 Installing backend dependencies..."
 
 # Define standard PyPI index to avoid mirror issues
 PYPI_INDEX="--index-url https://pypi.org/simple"
@@ -84,26 +85,27 @@ PYPI_INDEX="--index-url https://pypi.org/simple"
 install_from_requirements() {
     local cmd="$1"
     local req_file="$2"
-    echo "📦 Installing from requirements file with timeout..."
+    echo "📦 Installing from requirements file: $req_file"
     
     # Use timeout command to limit execution time
-    if timeout 120 $cmd install -r "$req_file" $PYPI_INDEX; then
+    if timeout 180 $cmd install -r "$req_file" $PYPI_INDEX 2>&1; then
         return 0
     else
         local exit_code=$?
         if [ $exit_code -eq 124 ]; then
-            echo "⚠️ Installation timed out after 120 seconds"
+            echo "⚠️ Installation timed out after 180 seconds"
         else
             echo "⚠️ Installation failed, trying individual packages..."
         fi
         # Fallback to individual package installation
-        $cmd install jaclang>=0.9.3 jac-client>=0.2.3 $PYPI_INDEX
+        $cmd install fastapi>=0.104.0 uvicorn>=0.24.0 $PYPI_INDEX
     fi
 }
 
 install_success=false
 
-REQUIREMENTS_FILE="docs/pure-jac/requirements_pure_jac.txt"
+# Install from backend requirements file
+REQUIREMENTS_FILE="backend/requirements.txt"
 if [ -f "$REQUIREMENTS_FILE" ]; then
     echo "✅ Found requirements file: $REQUIREMENTS_FILE"
     if [ "$UV_CMD" = "uv" ]; then
@@ -116,31 +118,43 @@ if [ -f "$REQUIREMENTS_FILE" ]; then
         fi
     fi
 else
-    echo "⚠️ Requirements file not found. Installing manually..."
-    if [ "$UV_CMD" = "uv" ]; then
-        if uv pip install jaclang>=0.9.3 jac-client>=0.2.3 $PYPI_INDEX; then
-            install_success=true
-        fi
-    else
-        if $UV_CMD install jaclang>=0.9.3 jac-client>=0.2.3 $PYPI_INDEX; then
-            install_success=true
-        fi
-    fi
+    echo "❌ Requirements file not found: $REQUIREMENTS_FILE"
+    exit 1
 fi
 
 if [ "$install_success" = false ]; then
-    echo "❌ Failed to install jaclang packages"
+    echo "❌ Failed to install backend packages"
     echo "💡 This might be due to network issues or firewall restrictions"
     echo "💡 Please try:"
     echo "   1. Check your internet connection"
-    echo "   2. Install manually: uv pip install jaclang jac-client --index-url https://pypi.org/simple"
+    echo "   2. Install manually: cd backend && pip install -r requirements.txt"
     exit 1
+fi
+
+# Install frontend dependencies
+echo ""
+echo "📦 Setting up frontend dependencies..."
+if [ -d "frontend" ]; then
+    cd frontend
+    if [ -f "package.json" ]; then
+        echo "📦 Installing npm packages..."
+        npm install 2>&1 | tail -5
+    fi
+    cd ..
+else
+    echo "⚠️ Frontend directory not found, skipping npm setup"
 fi
 
 echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "🚀 CONFIGURE OPENAI API KEY:"
+echo ""
+echo "   1. Get your API key from: https://platform.openai.com/api-keys"
+echo "   2. Edit the .env file and add:"
+echo "      OPENAI_API_KEY=sk-your_actual_api_key_here"
 echo ""
 echo "🚀 START THE APPLICATION:"
 echo ""
@@ -151,9 +165,15 @@ echo "📍 Frontend App: http://localhost:3000"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
+echo "💡 FEATURES:"
+echo "   • AI Content Generation with OpenAI GPT-4o-mini"
+echo "   • Dynamic User Progress Tracking"
+echo "   • Real-time Analytics Dashboard"
+echo "   • Personalized Recommendations"
+echo ""
 echo "💡 The run.sh script will:"
 echo "   • Check and free ports 8000 and 3000 if needed"
-echo "   • Start the Jaclang backend API server"
+echo "   • Start the FastAPI backend server"
 echo "   • Start the React frontend server"
 echo "   • Both servers run in a single terminal"
 echo ""
