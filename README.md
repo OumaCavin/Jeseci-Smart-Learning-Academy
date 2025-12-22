@@ -1,5 +1,12 @@
 # Jeseci Smart Learning Academy
 
+[![JAC Language](https://img.shields.io/badge/JAC-0.9.3-blue.svg)](https://github.com/Jaseci-Labs/jaseci)
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg)](https://python.org)
+[![Node.js](https://img.shields.io/badge/Node.js-25+-339933.svg)](https://nodejs.org)
+[![Neo4j](https://img.shields.io/badge/Neo4j-Graph%20Database-018BFF.svg)](https://neo4j.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791.svg)](https://postgresql.org)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **Author:** Cavin Otieno  
 **License:** MIT License  
 **Version:** 1.0.0
@@ -33,7 +40,7 @@ An intelligent learning platform built with Jaclang, featuring AI-powered conten
 ### Prerequisites
 
 - Python 3.12+
-- Node.js 18+
+- Node.js 25+
 - PostgreSQL 16+
 - Neo4j 5.x
 
