@@ -127,15 +127,47 @@ walker user_create {
     has skill_level: str = "beginner";
     
     can user_create with entry {
-        # For now, just return a success response
-        # In a real implementation, this would create a user node
-        user_id = f"user_{self.username}_001";
+        # Check for duplicate users (simulated in-memory registry)
+        existing_users = [
+            {"username": "demo_user", "email": "demo@example.com"},
+            {"username": "test_user", "email": "test@example.com"},
+            {"username": "admin", "email": "admin@example.com"}
+        ];
+        
+        # Check if username already exists
+        for user in existing_users {
+            if user["username"] == self.username {
+                report {
+                    "success": false,
+                    "error": "A user with that username or email already exists."
+                };
+                return;
+            }
+        }
+        
+        # Check if email already exists
+        for user in existing_users {
+            if user["email"] == self.email {
+                report {
+                    "success": false,
+                    "error": "A user with that username or email already exists."
+                };
+                return;
+            }
+        }
+        
+        # User is unique, proceed with creation
+        user_id = f"user_{self.username}_{time.time_ns()}";
         
         report {
             "success": true,
             "user_id": user_id,
             "username": self.username,
             "email": self.email,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "learning_style": self.learning_style,
+            "skill_level": self.skill_level,
             "message": "User created successfully"
         };
     }
