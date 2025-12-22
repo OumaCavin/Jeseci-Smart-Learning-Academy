@@ -255,34 +255,7 @@ func generate_ai_content(concept_name: str, domain: str, difficulty: str, relate
 func generate_fallback_content(concept_name: str, domain: str, difficulty: str, related_concepts: list) -> dict {
     related_concepts_str = ", ".join(related_concepts) if len(related_concepts) > 0 else "related concepts";
     
-    template = f"""# {concept_name}
-
-## The Big Picture
-{concept_name} is an important concept in {domain} that helps us understand and work with complex systems and ideas.
-
-## Simple Explanation
-Think of {concept_name.lower()} like a toolkit that provides specific methods and approaches for solving problems in {domain.lower()}.
-
-## Key Details
-- **Purpose**: Designed to solve specific types of problems
-- **Applications**: Used across various domains within {domain}
-- **Benefits**: Provides structured approaches and proven methods
-- **Integration**: Works well with other concepts in {domain}
-
-## Real-World Examples
-1. **Technology**: Used in software development and system design
-2. **Business**: Applied in strategy and decision-making processes
-3. **Research**: Employed in academic and scientific investigations
-
-## Why It Matters
-Understanding {concept_name} helps you approach problems more systematically and develop better solutions in {domain} and beyond.
-
-## Common Misconceptions
-- It's only useful in theoretical contexts
-- It requires extensive technical background to understand
-- It can't be applied to practical, real-world problems
-
-*Note: This is a fallback content template. Configure OpenAI API key for enhanced AI-generated content.*""";
+    template = "# " + concept_name + "\n\n## The Big Picture\n" + concept_name + " is an important concept in " + domain + " that helps us understand and work with complex systems and ideas.\n\n## Simple Explanation\nThink of " + concept_name.lower() + " like a toolkit that provides specific methods and approaches for solving problems in " + domain.lower() + ".\n\n## Key Details\n- **Purpose**: Designed to solve specific types of problems\n- **Applications**: Used across various domains within " + domain + "\n- **Benefits**: Provides structured approaches and proven methods\n- **Integration**: Works well with other concepts in " + domain + "\n\n## Real-World Examples\n1. **Technology**: Used in software development and system design\n2. **Business**: Applied in strategy and decision-making processes\n3. **Research**: Employed in academic and scientific investigations\n\n## Why It Matters\nUnderstanding " + concept_name + " helps you approach problems more systematically and develop better solutions in " + domain + " and beyond.\n\n## Common Misconceptions\n- It's only useful in theoretical contexts\n- It requires extensive technical background to understand\n- It can't be applied to practical, real-world problems\n\n*Note: This is a fallback content template. Configure OpenAI API key for enhanced AI-generated content.*";
 
     return {
         "success": True,
@@ -615,7 +588,9 @@ walker learning_session_end {
     
     can learning_session_end with entry {
         # Find and update session
-        for user_id, sessions in DATA_STORE["sessions"].items() {
+        session_keys = DATA_STORE["sessions"].keys();
+        for user_id in session_keys {
+            sessions = DATA_STORE["sessions"][user_id];
             for session in sessions {
                 if session["session_id"] == self.session_id {
                     session["status"] = "completed" if self.progress >= 100 else "in_progress";
