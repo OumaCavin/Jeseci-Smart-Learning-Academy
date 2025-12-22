@@ -1,6 +1,6 @@
 /**
  * API Service for communicating with Jaclang backend
- * Handles all HTTP requests to the LittleX pattern backend
+ * Handles all HTTP requests to the backend API
  */
 
 const API_BASE_URL = 'http://localhost:8000';
