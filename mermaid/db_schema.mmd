@@ -1,0 +1,110 @@
+# Database Schema - User and Course Tables
+
+```mermaid
+erDiagram
+    USERS ||--o{ USER_PROGRESS : tracks
+    USERS ||--o{ LEARNING_SESSIONS : completes
+    USERS ||--o{ QUIZ_ATTEMPTS : submits
+    COURSES ||--o{ COURSE_MODULES : contains
+    COURSE_MODULES ||--o{ CONCEPTS : teaches
+    LEARNING_PATHS ||--o{ PATH_CONCEPTS : includes
+    CONCEPTS ||--o{ CONCEPT_PREREQUISITES : requires
+    CONCEPTS ||--o{ CONCEPT_RELATED : connects_to
+
+    USERS {
+        string user_id PK
+        string username UK
+        string email UK
+        string password_hash
+        string first_name
+        string last_name
+        string learning_style
+        string skill_level
+        timestamp created_at
+        timestamp last_login_at
+        boolean is_active
+    }
+
+    USER_PROGRESS {
+        int id PK
+        string user_id FK
+        string course_id FK
+        float progress_percent
+        int lessons_completed
+        int total_time_spent
+        timestamp last_activity
+    }
+
+    LEARNING_SESSIONS {
+        int id PK
+        string session_id PK
+        string user_id FK
+        string module_id FK
+        float progress
+        timestamp started_at
+        timestamp completed_at
+    }
+
+    COURSES {
+        string course_id PK
+        string title
+        string description
+        string domain
+        string difficulty
+        string content_type
+    }
+
+    COURSE_MODULES {
+        string module_id PK
+        string course_id FK
+        string title
+        string content_type
+        int duration_minutes
+    }
+
+    CONCEPTS {
+        string concept_id PK
+        string name
+        string display_name
+        string category
+        string difficulty
+        string description
+        int estimated_duration
+    }
+
+    LEARNING_PATHS {
+        string path_id PK
+        string name
+        string title
+        string description
+        string difficulty
+        int estimated_duration
+    }
+
+    CONCEPT_PREREQUISITES {
+        string from_concept FK
+        string to_concept FK
+    }
+
+    CONCEPT_RELATED {
+        string concept_a FK
+        string concept_b FK
+    }
+```
+
+## Database Design Principles
+
+### Users Table
+- Central authentication table with bcrypt password hashing
+- Tracks user preferences (learning_style, skill_level)
+- Maintains activity timestamps for analytics
+
+### Progress Tracking
+- Denormalized progress data for fast queries
+- Session-based tracking with start/end timestamps
+- Supports both course-level and concept-level progress
+
+### Knowledge Graph (Neo4j)
+- Concepts as nodes with metadata
+- PREREQUISITE relationships for learning paths
+- RELATED_TO connections for cross-topic exploration

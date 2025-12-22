@@ -1,0 +1,101 @@
+# Deployment Architecture
+
+```mermaid
+graph TB
+    subgraph Production Environment
+        subgraph Docker Network
+            Nginx[Nginx Reverse Proxy<br/>:80, :443]
+            
+            subgraph Backend Container
+                JacLang[Jaclang API<br/>backend/app.jac]
+                Python[Python Runtime<br/>backend/]
+            end
+            
+            subgraph Frontend Container
+                React[React Build<br/>frontend/]
+                Node[Node.js Build Tools]
+            end
+            
+            subgraph Database Containers
+                PostgreSQL[PostgreSQL:5432<br/>users, courses]
+                Neo4j[Neo4j:7687<br/>knowledge graph]
+                Redis[Redis:6379<br/>caching]
+            end
+            
+            subgraph Monitoring
+                Prometheus[Prometheus<br/>metrics]
+                Grafana[Grafana<br/>dashboards]
+            end
+        end
+        
+        subgraph External Services
+            OpenAI[OpenAI API<br/>AI generation]
+            GitHub[GitHub<br/>code repository]
+        end
+    end
+    
+    Users((Users)) --> Internet --> Nginx
+    Nginx --> JacLang
+    Nginx --> React
+    JacLang --> PostgreSQL
+    JacLang --> Neo4j
+    JacLang --> Redis
+    JacLang --> OpenAI
+    Prometheus --> JacLang
+    Prometheus --> PostgreSQL
+    Prometheus --> Neo4j
+    Grafana --> Prometheus
+
+    style Nginx fill:#ff6b35,stroke:#333,stroke-width:2px
+    style JacLang fill:#6f42c1,stroke:#333,stroke-width:3px
+    style PostgreSQL fill:#0064cc,stroke:#333,stroke-width:2px
+    style Neo4j fill:#008a00,stroke:#333,stroke-width:2px
+```
+
+## Deployment Architecture Details
+
+### Container Overview
+
+#### Nginx Reverse Proxy
+- Handles SSL termination
+- Routes traffic to frontend and backend
+- Rate limiting and caching configured
+
+#### Backend Container
+- Jaclang runtime environment
+- Python dependencies installed
+- Hot-reload for development
+
+#### Frontend Container
+- Production build of React app
+- Static file serving
+- Optimized with gzip compression
+
+#### Database Containers
+- Persistent volumes for data durability
+- Health checks configured
+- Automated backups recommended
+
+### External Integrations
+
+#### OpenAI API
+- AI-powered content generation
+- Fallback to template-based generation
+- Usage tracking and rate limiting
+
+#### GitHub
+- CI/CD pipeline integration
+- Automated testing on push
+- Deployment triggers on merge
+
+### Monitoring Stack
+
+#### Prometheus
+- Metrics collection from all services
+- Custom metrics for business logic
+- Alert rules for critical issues
+
+#### Grafana
+- Pre-built dashboards
+- Real-time monitoring
+- Custom visualization queries
