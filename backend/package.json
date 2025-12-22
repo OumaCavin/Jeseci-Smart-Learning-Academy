@@ -19,7 +19,7 @@
     "ai",
     "smart-learning"
   ],
-  "author": "MiniMax Agent",
+  "author": "Cavin Otieno",
   "license": "MIT",
   "dependencies": {
     "jaclang": "^0.9.3"
