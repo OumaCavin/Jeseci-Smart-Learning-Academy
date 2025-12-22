@@ -84,14 +84,15 @@ PYPI_INDEX="--index-url https://pypi.org/simple"
 install_success=false
 
 REQUIREMENTS_FILE="backend/pyproject.toml"
+BACKEND_DIR="backend"
 if [ -f "$REQUIREMENTS_FILE" ]; then
     echo "✅ Found dependencies file: $REQUIREMENTS_FILE"
     if [ "$UV_CMD" = "uv" ]; then
-        if uv pip install -e "$REQUIREMENTS_FILE" $PYPI_INDEX 2>&1; then
+        if uv pip install -e "$BACKEND_DIR" $PYPI_INDEX 2>&1; then
             install_success=true
         fi
     else
-        if $UV_CMD install -e "$REQUIREMENTS_FILE" $PYPI_INDEX 2>&1; then
+        if $UV_CMD install -e "$BACKEND_DIR" $PYPI_INDEX 2>&1; then
             install_success=true
         fi
     fi
