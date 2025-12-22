@@ -387,27 +387,100 @@ const AppContent: React.FC = () => {
         {/* LEARNING PATHS */}
         {activeTab === 'paths' && (
           <div className="paths-section">
-            <h2>Learning Paths</h2>
-            <p>Structured paths to master specific skills</p>
+            <div className="section-header">
+              <h2>Learning Paths</h2>
+              <p>Structured paths to master specific skills and technologies</p>
+            </div>
+            
+            <div className="paths-filter">
+              <button className="filter-btn active">All Paths</button>
+              <button className="filter-btn">In Progress</button>
+              <button className="filter-btn">Not Started</button>
+              <button className="filter-btn">Completed</button>
+            </div>
+            
             <div className="paths-grid">
               {learningPaths.map((path) => (
                 <div key={path.id} className="path-card">
-                  <h3>{path.title}</h3>
-                  <p>{path.description}</p>
-                  <div className="path-progress">
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${path.progress}%` }}></div>
+                  <div className="path-card-header">
+                    <span className="path-icon">{path.icon}</span>
+                    <span className={`difficulty-badge ${path.difficulty}`}>{path.difficulty}</span>
+                  </div>
+                  
+                  <div className="path-card-body">
+                    <h3>{path.title}</h3>
+                    <p className="path-description">{path.description}</p>
+                    
+                    <div className="path-meta">
+                      <div className="meta-item">
+                        <span className="meta-label">Duration</span>
+                        <span className="meta-value">{path.duration}</span>
+                      </div>
+                      <div className="meta-item">
+                        <span className="meta-label">Hours</span>
+                        <span className="meta-value">{path.estimated_hours}h</span>
+                      </div>
+                      <div className="meta-item">
+                        <span className="meta-label">Modules</span>
+                        <span className="meta-value">{path.total_modules}</span>
+                      </div>
                     </div>
-                    <span>{path.progress}% complete</span>
+                    
+                    <div className="path-progress-section">
+                      <div className="progress-header">
+                        <span>Progress</span>
+                        <span>{path.progress}%</span>
+                      </div>
+                      <div className="progress-bar">
+                        <div 
+                          className="progress-fill" 
+                          style={{ width: `${path.progress}%` }}
+                        ></div>
+                      </div>
+                      <div className="modules-completed">
+                        {path.completed_modules} of {path.total_modules} modules completed
+                      </div>
+                    </div>
+                    
+                    {path.next_step && path.progress > 0 && (
+                      <div className="next-step">
+                        <span className="next-label">Next up:</span>
+                        <span className="next-title">{path.next_step}</span>
+                      </div>
+                    )}
+                    
+                    <div className="skills-preview">
+                      {path.skills_covered.slice(0, 3).map((skill, index) => (
+                        <span key={index} className="skill-tag">{skill}</span>
+                      ))}
+                      {path.skills_covered.length > 3 && (
+                        <span className="skill-more">+{path.skills_covered.length - 3} more</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="path-modules">
-                    <span>{path.courses.length} modules</span>
-                    <span>{path.duration}</span>
+                  
+                  <div className="path-card-footer">
+                    <button 
+                      className="continue-btn"
+                      onClick={() => setActiveTab('concepts')}
+                    >
+                      {path.progress === 0 ? 'Start Path' : 'Continue Learning'}
+                    </button>
+                    <button className="details-btn">
+                      View Details
+                    </button>
                   </div>
-                  <button onClick={() => setActiveTab('concepts')}>Continue Path</button>
                 </div>
               ))}
             </div>
+            
+            {learningPaths.length === 0 && (
+              <div className="empty-state">
+                <span className="empty-icon">📚</span>
+                <h3>No Learning Paths Available</h3>
+                <p>Check back soon for new learning paths!</p>
+              </div>
+            )}
           </div>
         )}
 
