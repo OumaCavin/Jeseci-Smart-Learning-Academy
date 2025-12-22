@@ -5,8 +5,8 @@
 # ==============================================================================
 
 # Import standard modules
-import time
-import os
+import time;
+import os;
 
 # ==============================================================================
 # In-Memory Data Store (Simulated Database)
@@ -74,7 +74,7 @@ DATA_STORE = {
     ],
     "sessions": {},
     "ai_generations": 0
-}
+};
 
 # ==============================================================================
 # Helper Functions
@@ -252,9 +252,9 @@ can generate_fallback_content(concept_name: str, domain: str, difficulty: str, r
 # ==============================================================================
 
 walker init {
-    has welcome_msg: str = "Welcome to Jeseci Smart Learning Academy API!"
-    has version: str = "7.0.0"
-    has architecture: str = "Python/FastAPI Backend with Jaclang-compatible endpoints"
+    has welcome_msg: str = "Welcome to Jeseci Smart Learning Academy API!";
+    has version: str = "7.0.0";
+    has architecture: str = "Python/FastAPI Backend with Jaclang-compatible endpoints";
     
     can init with entry {
         report {
@@ -273,31 +273,31 @@ walker init {
                 "analytics": "POST /walker/analytics_generate",
                 "export": "POST /walker/export_data"
             }
-        }
+        };
     }
 }
 
 walker health_check {
-    has status: str = "healthy"
-    has version: str = "7.0.0"
-    has timestamp: str
-    has database_status: str = "connected"
-    has ai_status: str
+    has status: str = "healthy";
+    has version: str = "7.0.0";
+    has timestamp: str;
+    has database_status: str = "connected";
+    has ai_status: str;
     
     can health_check with entry {
         # Check OpenAI configuration
-        api_key = os.getenv("OPENAI_API_KEY", "")
-        ai_st = "fallback"
+        api_key = os.getenv("OPENAI_API_KEY", "");
+        ai_st = "fallback";
         if api_key != "" {
-            key_str = api_key->str
-            prefix_check = key_str[:12]
+            key_str = api_key->str;
+            prefix_check = key_str[:12];
             if prefix_check != "sk-proj-placeholder" {
-                ai_st = "available"
+                ai_st = "available";
             }
         }
-        ai_status = ai_st
+        ai_status = ai_st;
         
-        self.timestamp = get_timestamp()
+        self.timestamp = get_timestamp();
         
         report {
             "service": "Jeseci Smart Learning Academy API",
@@ -307,7 +307,7 @@ walker health_check {
             "database_status": self.database_status,
             "ai_status": ai_status,
             "architecture": "Pure Jaclang Backend"
-        }
+        };
     }
 }
 
@@ -326,11 +326,11 @@ walker courses {
 }
 
 walker course_create {
-    has title: str
-    has description: str
-    has domain: str
-    has difficulty: str
-    has content_type: str = "interactive"
+    has title: str;
+    has description: str;
+    has domain: str;
+    has difficulty: str;
+    has content_type: str = "interactive";
     
     can course_create with entry {
         title_lower = self.title.lower()
@@ -362,13 +362,13 @@ walker course_create {
 # ==============================================================================
 
 walker user_create {
-    has username: str
-    has email: str
-    has password: str
-    has first_name: str = ""
-    has last_name: str = ""
-    has learning_style: str = "visual"
-    has skill_level: str = "beginner"
+    has username: str;
+    has email: str;
+    has password: str;
+    has first_name: str = "";
+    has last_name: str = "";
+    has learning_style: str = "visual";
+    has skill_level: str = "beginner";
     
     can user_create with entry {
         # Check for existing users
@@ -439,8 +439,8 @@ walker user_create {
 }
 
 walker user_login {
-    has username: str
-    has password: str
+    has username: str;
+    has password: str;
     
     can user_login with entry {
         # Get user by username
@@ -502,7 +502,7 @@ walker user_login {
 # ==============================================================================
 
 walker user_progress {
-    has user_id: str
+    has user_id: str;
     
     can user_progress with entry {
         user = get_user_by_id(self.user_id)
@@ -534,8 +534,8 @@ walker user_progress {
 # ==============================================================================
 
 walker learning_session_start {
-    has user_id: str
-    has module_id: str
+    has user_id: str;
+    has module_id: str;
     
     can learning_session_start with entry {
         session_id = "session_" + self.user_id + "_" + self.module_id + "_" + time.time_ns()->str
@@ -581,8 +581,8 @@ walker learning_session_start {
 }
 
 walker learning_session_end {
-    has session_id: str
-    has progress: float
+    has session_id: str;
+    has progress: float;
     
     can learning_session_end with entry {
         # Find and update session
@@ -635,7 +635,7 @@ walker learning_session_end {
 # ==============================================================================
 
 walker analytics_generate {
-    has user_id: str
+    has user_id: str;
     
     can analytics_generate with entry {
         user = get_user_by_id(self.user_id)
@@ -737,10 +737,10 @@ walker analytics_generate {
 # ==============================================================================
 
 walker ai_generate_content {
-    has concept_name: str
-    has domain: str = "Computer Science"
-    has difficulty: str = "beginner"
-    has related_concepts: list = []
+    has concept_name: str;
+    has domain: str = "Computer Science";
+    has difficulty: str = "beginner";
+    has related_concepts: list = [];
     
     can ai_generate_content with entry {
         # Generate content using OpenAI or fallback
@@ -759,7 +759,7 @@ walker ai_generate_content {
 # ==============================================================================
 
 walker export_data {
-    has format: str = "json"
+    has format: str = "json";
     
     can export_data with entry {
         all_users = []
@@ -1196,8 +1196,8 @@ walker quizzes {
 }
 
 walker quiz_submit {
-    has quiz_id: str
-    has answers: list
+    has quiz_id: str;
+    has answers: list;
     
     can quiz_submit with entry {
         # Calculate score based on answers
@@ -1223,7 +1223,7 @@ walker quiz_submit {
 # ==============================================================================
 
 walker achievements {
-    has user_id: str
+    has user_id: str;
     
     can achievements with entry {
         user = get_user_by_id(self.user_id)
@@ -1352,7 +1352,7 @@ walker achievements {
 # ==============================================================================
 
 walker chat {
-    has message: str
+    has message: str;
     
     can chat with entry {
         # Simple AI chat responses
