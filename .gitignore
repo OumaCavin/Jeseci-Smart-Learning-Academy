@@ -895,6 +895,15 @@
 # uploads/
 # downloads/
 
+# Presentation and Demo Files
+# These are generated documentation files that should not be tracked
+*.docx
+*.pdf
+*.md
+
+# Shell output directory for temporary tool outputs
+shell_output_save/
+
 # Claude Agent SDK debug files
 **/.claude/debug/
 **/.claude/debug/**
