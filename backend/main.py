@@ -1,7 +1,7 @@
 """
 Jeseci Smart Learning Academy - FastAPI Backend
-Replaces the Jaclang REST API with a more capable Python implementation
-that supports OpenAI integration and dynamic data tracking
+Hybrid Architecture: Python/FastAPI with Jaclang-compatible walker endpoints
+Provides complete backend functionality with OpenAI integration and dynamic data tracking
 """
 
 import os
@@ -19,6 +19,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
 from dotenv import load_dotenv
+
+# Add backend directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from ai_generator import sync_generate_lesson, ai_generator
 
 # Load environment variables
 load_dotenv()
@@ -50,7 +55,14 @@ class DataStore:
                 "description": "Learn the fundamentals of programming with Python",
                 "domain": "Computer Science",
                 "difficulty": "beginner",
-                "content_type": "interactive"
+                "content_type": "interactive",
+                "lessons": [
+                    {"lesson_id": "lesson_1_1", "title": "Getting Started", "duration": "30 min"},
+                    {"lesson_id": "lesson_1_2", "title": "Variables and Data Types", "duration": "45 min"},
+                    {"lesson_id": "lesson_1_3", "title": "Control Flow", "duration": "60 min"},
+                    {"lesson_id": "lesson_1_4", "title": "Functions", "duration": "45 min"},
+                    {"lesson_id": "lesson_1_5", "title": "Project: Simple Calculator", "duration": "60 min"}
+                ]
             },
             {
                 "course_id": "course_2",
@@ -58,7 +70,14 @@ class DataStore:
                 "description": "Master essential data structures and algorithms",
                 "domain": "Computer Science",
                 "difficulty": "intermediate",
-                "content_type": "interactive"
+                "content_type": "interactive",
+                "lessons": [
+                    {"lesson_id": "lesson_2_1", "title": "Arrays and Lists", "duration": "45 min"},
+                    {"lesson_id": "lesson_2_2", "title": "Stacks and Queues", "duration": "45 min"},
+                    {"lesson_id": "lesson_2_3", "title": "Trees and Graphs", "duration": "60 min"},
+                    {"lesson_id": "lesson_2_4", "title": "Hash Tables", "duration": "45 min"},
+                    {"lesson_id": "lesson_2_5", "title": "Algorithm Analysis", "duration": "60 min"}
+                ]
             },
             {
                 "course_id": "course_3",
@@ -66,7 +85,14 @@ class DataStore:
                 "description": "Learn about nodes, walkers, and graph-based programming",
                 "domain": "Computer Science",
                 "difficulty": "advanced",
-                "content_type": "interactive"
+                "content_type": "interactive",
+                "lessons": [
+                    {"lesson_id": "lesson_3_1", "title": "Introduction to Jaclang", "duration": "45 min"},
+                    {"lesson_id": "lesson_3_2", "title": "Nodes and Edges", "duration": "60 min"},
+                    {"lesson_id": "lesson_3_3", "title": "Walkers and Navigation", "duration": "60 min"},
+                    {"lesson_id": "lesson_3_4", "title": "Graph Algorithms", "duration": "75 min"},
+                    {"lesson_id": "lesson_3_5", "title": "Advanced Patterns", "duration": "90 min"}
+                ]
             },
             {
                 "course_id": "course_4",
@@ -74,7 +100,14 @@ class DataStore:
                 "description": "Introduction to ML concepts and algorithms",
                 "domain": "Computer Science",
                 "difficulty": "intermediate",
-                "content_type": "interactive"
+                "content_type": "interactive",
+                "lessons": [
+                    {"lesson_id": "lesson_4_1", "title": "Introduction to ML", "duration": "45 min"},
+                    {"lesson_id": "lesson_4_2", "title": "Supervised Learning", "duration": "60 min"},
+                    {"lesson_id": "lesson_4_3", "title": "Unsupervised Learning", "duration": "60 min"},
+                    {"lesson_id": "lesson_4_4", "title": "Neural Networks", "duration": "75 min"},
+                    {"lesson_id": "lesson_4_5", "title": "Model Evaluation", "duration": "45 min"}
+                ]
             },
             {
                 "course_id": "course_5",
@@ -82,8 +115,114 @@ class DataStore:
                 "description": "Build modern web applications",
                 "domain": "Computer Science",
                 "difficulty": "beginner",
-                "content_type": "interactive"
+                "content_type": "interactive",
+                "lessons": [
+                    {"lesson_id": "lesson_5_1", "title": "HTML Basics", "duration": "30 min"},
+                    {"lesson_id": "lesson_5_2", "title": "CSS Styling", "duration": "45 min"},
+                    {"lesson_id": "lesson_5_3", "title": "JavaScript Fundamentals", "duration": "60 min"},
+                    {"lesson_id": "lesson_5_4", "title": "React Introduction", "duration": "60 min"},
+                    {"lesson_id": "lesson_5_5", "title": "Building a Web App", "duration": "90 min"}
+                ]
             }
+        ]
+        self.learning_paths: List[dict] = [
+            {
+                "id": "path_1",
+                "title": "Full Stack Developer",
+                "description": "Master both frontend and backend development",
+                "courses": ["course_1", "course_5"],
+                "modules": [
+                    {"id": "mod_1", "title": "Programming Fundamentals", "type": "lesson", "duration": "4 hours", "completed": False},
+                    {"id": "mod_2", "title": "Web Basics Project", "type": "project", "duration": "2 hours", "completed": False},
+                    {"id": "mod_3", "title": "Frontend Quiz", "type": "quiz", "duration": "30 min", "completed": False}
+                ],
+                "concepts": ["HTML", "CSS", "JavaScript", "React"],
+                "skills_covered": ["Frontend Development", "UI Design", "Component Architecture"],
+                "prerequisites": [],
+                "total_modules": 3,
+                "completed_modules": 0,
+                "duration": "6.5 hours",
+                "estimated_hours": 7,
+                "difficulty": "beginner",
+                "progress": 0,
+                "icon": "🌐",
+                "category": "Development",
+                "next_step": "Start with Programming Fundamentals"
+            },
+            {
+                "id": "path_2",
+                "title": "AI/ML Engineer",
+                "description": "Build intelligent systems and machine learning models",
+                "courses": ["course_1", "course_2", "course_4"],
+                "modules": [
+                    {"id": "mod_1", "title": "Programming with Python", "type": "lesson", "duration": "4 hours", "completed": False},
+                    {"id": "mod_2", "title": "Data Structures Mastery", "type": "lesson", "duration": "5 hours", "completed": False},
+                    {"id": "mod_3", "title": "ML Algorithms Project", "type": "project", "duration": "4 hours", "completed": False},
+                    {"id": "mod_4", "title": "ML Fundamentals Quiz", "type": "quiz", "duration": "45 min", "completed": False}
+                ],
+                "concepts": ["Python", "Algorithms", "Machine Learning", "Neural Networks"],
+                "skills_covered": ["Data Analysis", "Model Building", "Algorithm Design"],
+                "prerequisites": ["Basic Programming"],
+                "total_modules": 4,
+                "completed_modules": 0,
+                "duration": "14 hours",
+                "estimated_hours": 14,
+                "difficulty": "intermediate",
+                "progress": 0,
+                "icon": "🤖",
+                "category": "AI & Data",
+                "next_step": "Begin with Programming Fundamentals"
+            },
+            {
+                "id": "path_3",
+                "title": "Jaclang Graph Developer",
+                "description": "Master graph-based programming with Jaclang",
+                "courses": ["course_3"],
+                "modules": [
+                    {"id": "mod_1", "title": "Jaclang Foundations", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_2", "title": "Graph Navigation", "type": "lesson", "duration": "4 hours", "completed": False},
+                    {"id": "mod_3", "title": "Walker Patterns", "type": "lesson", "duration": "4 hours", "completed": False},
+                    {"id": "mod_4", "title": "Graph Algorithm Project", "type": "project", "duration": "3 hours", "completed": False}
+                ],
+                "concepts": ["Jaclang", "Graph Theory", "Nodes", "Walkers"],
+                "skills_covered": ["Graph Programming", "Node Navigation", "Pattern Matching"],
+                "prerequisites": ["Programming Fundamentals"],
+                "total_modules": 4,
+                "completed_modules": 0,
+                "duration": "14 hours",
+                "estimated_hours": 14,
+                "difficulty": "advanced",
+                "progress": 0,
+                "icon": "🔷",
+                "category": "Specialized",
+                "next_step": "Start with Jaclang Foundations"
+            }
+        ]
+        self.concepts: List[dict] = [
+            {"id": "concept_1", "name": "Object-Oriented Programming", "description": "Learn about classes, objects, inheritance, and polymorphism", "domain": "Computer Science", "difficulty": "intermediate", "icon": "🏗️", "related_concepts": ["Design Patterns", "Encapsulation", "Abstraction"]},
+            {"id": "concept_2", "name": "Recursion", "description": "Understanding recursive functions and their applications", "domain": "Computer Science", "difficulty": "intermediate", "icon": "🔄", "related_concepts": ["Base Case", "Stack Overflow", "Dynamic Programming"]},
+            {"id": "concept_3", "name": "Graph Theory", "description": "Study of graphs and their applications in computer science", "domain": "Computer Science", "difficulty": "advanced", "icon": "📊", "related_concepts": ["Nodes", "Edges", "Path Finding"]},
+            {"id": "concept_4", "name": "Database Design", "description": "Principles of designing efficient database schemas", "domain": "Computer Science", "difficulty": "intermediate", "icon": "🗄️", "related_concepts": ["Normalization", "SQL", "Indexing"]},
+            {"id": "concept_5", "name": "API Design", "description": "Best practices for designing RESTful APIs", "domain": "Computer Science", "difficulty": "intermediate", "icon": "🔌", "related_concepts": ["REST", "Authentication", "Rate Limiting"]}
+        ]
+        self.quizzes: List[dict] = [
+            {"id": "quiz_1", "title": "Programming Basics Quiz", "description": "Test your understanding of fundamental programming concepts", "difficulty": "beginner", "estimated_time": 15, "completed": False, "questions": [
+                {"id": "q1", "question": "What is a variable in programming?", "options": ["A container for storing data values", "A type of loop", "A function definition", "A comment"], "correct_answer": 0, "explanation": "Variables are named containers that store data values in programming."},
+                {"id": "q2", "question": "Which of the following is a programming language?", "options": ["HTML", "Python", "CSS", "SQL"], "correct_answer": 1, "explanation": "Python is a high-level programming language used for various applications."},
+                {"id": "q3", "question": "What does HTML stand for?", "options": ["Hyper Text Markup Language", "High Tech Modern Language", "Hyper Transfer Markup Language", "Home Tool Markup Language"], "correct_answer": 0, "explanation": "HTML stands for Hyper Text Markup Language, used for creating web pages."}
+            ]},
+            {"id": "quiz_2", "title": "Data Structures Quiz", "description": "Test your knowledge of data structures", "difficulty": "intermediate", "estimated_time": 20, "completed": False, "questions": [
+                {"id": "q1", "question": "What is the time complexity of accessing an element in an array by index?", "options": ["O(1)", "O(n)", "O(log n)", "O(n²)"], "correct_answer": 0, "explanation": "Array access by index is O(1) - constant time operation."},
+                {"id": "q2", "question": "Which data structure follows LIFO (Last In First Out)?", "options": ["Queue", "Stack", "Array", "Linked List"], "correct_answer": 1, "explanation": "Stack follows LIFO - the last element added is the first one removed."},
+                {"id": "q3", "question": "What is a linked list?", "options": ["An array with fixed size", "A linear collection of nodes", "A type of tree", "A hash table"], "correct_answer": 1, "explanation": "A linked list is a linear data structure where elements are stored in nodes."}
+            ]}
+        ]
+        self.achievements: List[dict] = [
+            {"id": "ach_1", "name": "First Steps", "description": "Complete your first lesson", "icon": "🎯", "earned": False, "requirement": "Complete 1 lesson", "category": "learning"},
+            {"id": "ach_2", "name": "Knowledge Seeker", "description": "Complete 5 lessons", "icon": "📚", "earned": False, "requirement": "Complete 5 lessons", "category": "learning"},
+            {"id": "ach_3", "name": "Quiz Master", "description": "Score 100% on a quiz", "icon": "🏆", "earned": False, "requirement": "Score 100% on any quiz", "category": "achievement"},
+            {"id": "ach_4", "name": "Consistent Learner", "description": "Maintain a 7-day learning streak", "icon": "🔥", "earned": False, "requirement": "7-day streak", "category": "streak"},
+            {"id": "ach_5", "name": "Course Completer", "description": "Complete an entire course", "icon": "🎓", "earned": False, "requirement": "Complete 1 course", "category": "achievement"}
         ]
         self.user_sessions: Dict[str, List[dict]] = {}
         self.ai_generations: int = 0
@@ -307,12 +446,13 @@ async def lifespan(app: FastAPI):
     """Startup and shutdown events"""
     logger.info("Jeseci Smart Learning Academy API starting...")
     logger.info(f"OpenAI API: {'Configured' if os.getenv('OPENAI_API_KEY') else 'Not configured'}")
+    logger.info(f"Backend Type: Python/FastAPI with Jaclang-compatible endpoints")
     yield
     logger.info("Jeseci Smart Learning Academy API shutting down...")
 
 app = FastAPI(
     title="Jeseci Smart Learning Academy API",
-    description="AI-Powered Learning Platform API",
+    description="AI-Powered Learning Platform API - Hybrid Python/Jaclang Architecture",
     version="7.0.0",
     lifespan=lifespan
 )
@@ -327,12 +467,12 @@ app.add_middleware(
 )
 
 # =============================================================================
-# Health & Status Endpoints
+# Health & Status Endpoints (Jaclang-compatible)
 # =============================================================================
 
-@app.get("/health")
+@app.post("/walker/health_check")
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint - Jaclang compatible"""
     return {
         "service": "Jeseci Smart Learning Academy API",
         "status": "healthy",
@@ -340,50 +480,75 @@ async def health_check():
         "timestamp": datetime.now().isoformat(),
         "database_status": "connected",
         "ai_status": "available" if os.getenv('OPENAI_API_KEY') else "fallback",
-        "architecture": "FastAPI + OpenAI Integration"
+        "architecture": "Python/FastAPI + Jaclang-compatible endpoints"
     }
 
-@app.get("/walker/init")
+@app.post("/walker/init")
 async def init():
-    """Welcome message"""
+    """Welcome message - Jaclang compatible"""
     return {
         "message": "Welcome to Jeseci Smart Learning Academy API!",
         "status": "initialized",
         "version": "7.0.0",
-        "architecture": "FastAPI Backend with OpenAI Integration",
+        "architecture": "Python/FastAPI Backend with Jaclang-compatible endpoints",
         "endpoints": {
-            "health": "GET /health",
-            "auth": "POST /user/*",
-            "users": "GET/POST /users",
-            "courses": "GET/POST /courses",
-            "progress": "GET /progress/*",
-            "learning": "POST /learning/*",
-            "ai": "POST /ai/*",
-            "analytics": "GET /analytics/*"
+            "health": "POST /walker/health_check",
+            "auth": "POST /walker/user_login, POST /walker/user_create",
+            "courses": "POST /walker/courses",
+            "progress": "POST /walker/user_progress",
+            "learning": "POST /walker/learning_session_start",
+            "ai": "POST /walker/ai_generate_content",
+            "analytics": "POST /walker/analytics_generate"
         }
     }
 
 # =============================================================================
-# Authentication Endpoints
+# Authentication Endpoints (Jaclang-compatible)
 # =============================================================================
 
-@app.post("/user/create")
-async def create_user(user_data: UserCreate):
-    """Create a new user account"""
-    # Check for existing user
-    if data_store.get_user_by_username(user_data.username):
+@app.post("/walker/user_create")
+async def user_create(request: Dict[str, Any]):
+    """Create a new user account - Jaclang compatible"""
+    # Extract data from request
+    username = request.get("username")
+    email = request.get("email")
+    password = request.get("password")
+    first_name = request.get("first_name", "")
+    last_name = request.get("last_name", "")
+    learning_style = request.get("learning_style", "visual")
+    skill_level = request.get("skill_level", "beginner")
+    
+    if not username or not email or not password:
+        return {
+            "success": False,
+            "error": "username, email, and password are required"
+        }
+    
+    # Check for existing user by username
+    if data_store.get_user_by_username(username):
         return {
             "success": False,
             "error": "A user with that username or email already exists."
         }
     
-    if any(u.get("email") == user_data.email for u in data_store.users.values()):
-        return {
-            "success": False,
-            "error": "A user with that username or email already exists."
-        }
+    # Check for existing user by email
+    for user in data_store.users.values():
+        if user.get("email") == email:
+            return {
+                "success": False,
+                "error": "A user with that username or email already exists."
+            }
     
-    user = data_store.create_user(user_data.dict())
+    # Create the user
+    user = data_store.create_user({
+        "username": username,
+        "email": email,
+        "password": password,
+        "first_name": first_name,
+        "last_name": last_name,
+        "learning_style": learning_style,
+        "skill_level": skill_level
+    })
     
     return {
         "success": True,
@@ -397,17 +562,26 @@ async def create_user(user_data: UserCreate):
         "message": "User created successfully"
     }
 
-@app.post("/user/login")
-async def login(credentials: UserLogin):
-    """Authenticate user and return token"""
-    user = data_store.get_user_by_username(credentials.username)
+@app.post("/walker/user_login")
+async def user_login(request: Dict[str, Any]):
+    """Authenticate user and return token - Jaclang compatible"""
+    username = request.get("username")
+    password = request.get("password")
+    
+    if not username or not password:
+        return {
+            "success": False,
+            "error": "username and password are required"
+        }
+    
+    user = data_store.get_user_by_username(username)
     
     if not user:
         # For demo, create user if not exists
         user = data_store.create_user({
-            "username": credentials.username,
-            "email": f"{credentials.username}@example.com",
-            "password": credentials.password,
+            "username": username,
+            "email": f"{username}@example.com",
+            "password": password,
             "learning_style": "visual",
             "skill_level": "beginner"
         })
@@ -432,127 +606,259 @@ async def login(credentials: UserLogin):
     }
 
 # =============================================================================
-# Course Endpoints
+# Course Endpoints (Jaclang-compatible)
 # =============================================================================
 
-@app.get("/courses")
-async def get_courses():
-    """Get all available courses"""
+@app.post("/walker/courses")
+async def get_courses(request: Dict[str, Any] = None):
+    """Get all available courses - Jaclang compatible"""
     return data_store.courses
 
-@app.post("/course/create")
-async def create_course(course_data: CourseCreate):
-    """Create a new course"""
-    course_id = f"course_{course_data.title.lower().replace(' ', '_')}_{int(time.time())}"
+@app.post("/walker/course_create")
+async def course_create(request: Dict[str, Any]):
+    """Create a new course - Jaclang compatible"""
+    title = request.get("title")
+    description = request.get("description")
+    domain = request.get("domain")
+    difficulty = request.get("difficulty")
+    content_type = request.get("content_type", "interactive")
+    
+    if not title or not description or not domain or not difficulty:
+        return {
+            "success": False,
+            "error": "title, description, domain, and difficulty are required"
+        }
+    
+    course_id = f"course_{title.lower().replace(' ', '_')}_{int(time.time())}"
     course = {
         "course_id": course_id,
-        **course_data.dict()
+        "title": title,
+        "description": description,
+        "domain": domain,
+        "difficulty": difficulty,
+        "content_type": content_type
     }
     data_store.courses.append(course)
     
     return {
         "success": True,
         "course_id": course_id,
-        "title": course_data.title,
+        "title": title,
         "message": "Course created successfully"
     }
 
 # =============================================================================
-# Progress Endpoints
+# Learning Paths Endpoints (Jaclang-compatible)
 # =============================================================================
 
-@app.post("/user/progress")
-async def get_user_progress(request: Dict[str, str]):
-    """Get user progress with dynamic calculations"""
-    user_id = request.get("user_id")
-    if not user_id:
-        raise HTTPException(status_code=400, detail="user_id is required")
+@app.post("/walker/learning_paths")
+async def get_learning_paths(request: Dict[str, Any] = None):
+    """Get all learning paths - Jaclang compatible"""
+    return data_store.learning_paths
+
+# =============================================================================
+# Concepts Endpoints (Jaclang-compatible)
+# =============================================================================
+
+@app.post("/walker/concepts")
+async def get_concepts(request: Dict[str, Any] = None):
+    """Get all concepts - Jaclang compatible"""
+    return data_store.concepts
+
+# =============================================================================
+# Quizzes Endpoints (Jaclang-compatible)
+# =============================================================================
+
+@app.post("/walker/quizzes")
+async def get_quizzes(request: Dict[str, Any] = None):
+    """Get all quizzes - Jaclang compatible"""
+    return data_store.quizzes
+
+@app.post("/walker/quiz_submit")
+async def quiz_submit(request: Dict[str, Any]):
+    """Submit quiz answers - Jaclang compatible"""
+    quiz_id = request.get("quiz_id")
+    answers = request.get("answers", [])
     
-    return data_store.get_user_progress(user_id)
+    # Find the quiz
+    quiz = next((q for q in data_store.quizzes if q["id"] == quiz_id), None)
+    if not quiz:
+        return {
+            "success": False,
+            "error": "Quiz not found"
+        }
+    
+    # Calculate score
+    correct_answers = 0
+    for i, question in enumerate(quiz["questions"]):
+        if i < len(answers) and answers[i] == question["correct_answer"]:
+            correct_answers += 1
+    
+    score = (correct_answers / len(quiz["questions"])) * 100 if quiz["questions"] else 0
+    
+    return {
+        "success": True,
+        "quiz_id": quiz_id,
+        "score": round(score, 1),
+        "correct_answers": correct_answers,
+        "total_questions": len(quiz["questions"]),
+        "passed": score >= 70
+    }
 
 # =============================================================================
-# Learning Session Endpoints
+# Achievements Endpoints (Jaclang-compatible)
 # =============================================================================
 
-@app.post("/learning/session/start")
-async def start_learning_session(session_data: LearningSessionStart):
-    """Start a new learning session"""
-    session_id = f"session_{session_data.user_id}_{session_data.module_id}_{int(time.time())}"
+@app.post("/walker/achievements")
+async def get_achievements(request: Dict[str, Any]):
+    """Get user achievements - Jaclang compatible"""
+    user_id = request.get("user_id")
+    
+    # Return achievements with earned status based on user progress
+    achievements = []
+    for ach in data_store.achievements:
+        earned = False
+        if ach["id"] == "ach_1":
+            earned = True  # Demo user has completed lessons
+        achievements.append({
+            **ach,
+            "earned": earned,
+            "earned_at": datetime.now().isoformat() if earned else None
+        })
+    
+    return achievements
+
+# =============================================================================
+# Learning Sessions Endpoints (Jaclang-compatible)
+# =============================================================================
+
+@app.post("/walker/learning_session_start")
+async def learning_session_start(request: Dict[str, Any]):
+    """Start a new learning session - Jaclang compatible"""
+    user_id = request.get("user_id")
+    module_id = request.get("module_id")
+    
+    if not user_id or not module_id:
+        return {
+            "success": False,
+            "error": "user_id and module_id are required"
+        }
+    
+    session_id = f"session_{user_id}_{module_id}_{int(time.time())}"
     
     # Find course title
-    course = next((c for c in data_store.courses if c["course_id"] == session_data.module_id), None)
+    course = next((c for c in data_store.courses if c["course_id"] == module_id), None)
     course_title = course["title"] if course else "Unknown Course"
     
     session = {
         "session_id": session_id,
-        "user_id": session_data.user_id,
-        "course_id": session_data.module_id,
+        "user_id": user_id,
+        "course_id": module_id,
         "course_title": course_title,
         "status": "in_progress",
         "progress": 0,
         "started_at": datetime.now().isoformat()
     }
     
-    if session_data.user_id not in data_store.user_sessions:
-        data_store.user_sessions[session_data.user_id] = []
+    if user_id not in data_store.user_sessions:
+        data_store.user_sessions[user_id] = []
     
-    data_store.user_sessions[session_data.user_id].append(session)
+    data_store.user_sessions[user_id].append(session)
     
     return {
         "success": True,
         "session_id": session_id,
-        "user_id": session_data.user_id,
-        "module_id": session_data.module_id,
+        "user_id": user_id,
+        "module_id": module_id,
         "status": "active",
         "message": "Learning session started"
     }
 
-@app.post("/learning/session/end")
-async def end_learning_session(session_data: LearningSessionEnd):
-    """End a learning session"""
+@app.post("/walker/learning_session_end")
+async def learning_session_end(request: Dict[str, Any]):
+    """End a learning session - Jaclang compatible"""
+    session_id = request.get("session_id")
+    progress = request.get("progress", 100)
+    
     # Find and update session
     for user_id, sessions in data_store.user_sessions.items():
         for session in sessions:
-            if session["session_id"] == session_data.session_id:
-                session["status"] = "completed" if session_data.progress >= 100 else "in_progress"
-                session["progress"] = session_data.progress
+            if session["session_id"] == session_id:
+                session["status"] = "completed" if progress >= 100 else "in_progress"
+                session["progress"] = progress
                 session["completed_at"] = datetime.now().isoformat()
                 
                 return {
                     "success": True,
-                    "session_id": session_data.session_id,
-                    "progress": session_data.progress,
+                    "session_id": session_id,
+                    "progress": progress,
                     "status": "completed",
                     "message": "Learning session ended"
                 }
     
     return {
         "success": True,
-        "session_id": session_data.session_id,
-        "progress": session_data.progress,
+        "session_id": session_id,
+        "progress": progress,
         "status": "completed",
         "message": "Learning session ended"
     }
 
 # =============================================================================
-# AI Content Generation Endpoints
+# Progress Tracking Endpoints (Jaclang-compatible)
 # =============================================================================
 
-@app.post("/ai/generate/content")
-async def generate_ai_content(request: AIGenerateRequest):
-    """Generate AI-powered educational content"""
+@app.post("/walker/user_progress")
+async def user_progress(request: Dict[str, Any]):
+    """Get user progress with dynamic calculations - Jaclang compatible"""
+    user_id = request.get("user_id")
+    if not user_id:
+        return {
+            "success": False,
+            "error": "user_id is required"
+        }
+    
+    return data_store.get_user_progress(user_id)
+
+@app.post("/walker/analytics_generate")
+async def analytics_generate(request: Dict[str, Any]):
+    """Generate comprehensive learning analytics - Jaclang compatible"""
+    user_id = request.get("user_id")
+    if not user_id:
+        return {
+            "success": False,
+            "error": "user_id is required"
+        }
+    
+    return data_store.get_user_analytics(user_id)
+
+# =============================================================================
+# AI Content Generation Endpoints (Jaclang-compatible)
+# =============================================================================
+
+@app.post("/walker/ai_generate_content")
+async def ai_generate_content(request: Dict[str, Any]):
+    """Generate AI-powered educational content - Jaclang compatible"""
     try:
-        # Import the AI generator
-        from ai_generator import sync_generate_lesson
+        concept_name = request.get("concept_name")
+        domain = request.get("domain", "Computer Science")
+        difficulty = request.get("difficulty", "beginner")
+        related_concepts = request.get("related_concepts", [])
         
-        logger.info(f"Generating AI content for: {request.concept_name}")
+        if not concept_name:
+            return {
+                "success": False,
+                "error": "concept_name is required"
+            }
+        
+        logger.info(f"Generating AI content for: {concept_name}")
         
         # Generate content
-        related_concepts_str = ",".join(request.related_concepts) if request.related_concepts else ""
+        related_concepts_str = ",".join(related_concepts) if related_concepts else ""
         content = sync_generate_lesson(
-            concept_name=request.concept_name,
-            domain=request.domain,
-            difficulty=request.difficulty,
+            concept_name=concept_name,
+            domain=domain,
+            difficulty=difficulty,
             related_concepts_str=related_concepts_str
         )
         
@@ -561,30 +867,108 @@ async def generate_ai_content(request: AIGenerateRequest):
         
         return {
             "success": True,
-            "concept_name": request.concept_name,
-            "domain": request.domain,
-            "difficulty": request.difficulty,
+            "concept_name": concept_name,
+            "domain": domain,
+            "difficulty": difficulty,
             "content": content,
-            "related_concepts": request.related_concepts,
+            "related_concepts": related_concepts,
             "generated_at": datetime.now().isoformat()
         }
         
     except Exception as e:
         logger.error(f"AI generation error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        return {
+            "success": False,
+            "error": f"AI generation failed: {str(e)}"
+        }
 
 # =============================================================================
-# Analytics Endpoints
+# Chat Endpoint (Jaclang-compatible)
 # =============================================================================
 
-@app.post("/analytics/generate")
-async def generate_analytics(request: Dict[str, str]):
-    """Generate comprehensive learning analytics"""
-    user_id = request.get("user_id")
-    if not user_id:
-        raise HTTPException(status_code=400, detail="user_id is required")
+@app.post("/walker/chat")
+async def chat(request: Dict[str, Any]):
+    """Simple chat endpoint - Jaclang compatible"""
+    message = request.get("message", "")
     
-    return data_store.get_user_analytics(user_id)
+    responses = [
+        "That's a great question! Let me help you understand that concept better.",
+        "I'd recommend starting with the Introduction to Programming course.",
+        "The AI content generator can create personalized lessons for any topic you want to learn.",
+        "Consistent practice is key to mastering programming concepts!",
+        "Would you like me to generate some educational content on that topic?"
+    ]
+    
+    import random
+    response = random.choice(responses)
+    
+    return {
+        "response": response,
+        "timestamp": datetime.now().isoformat()
+    }
+
+# =============================================================================
+# Data Export Endpoint (Jaclang-compatible)
+# =============================================================================
+
+@app.post("/walker/export_data")
+async def export_data(request: Dict[str, Any] = None):
+    """Export user data - Jaclang compatible"""
+    format_param = request.get("format", "json") if request else "json"
+    
+    return {
+        "success": True,
+        "format": format_param,
+        "data": {
+            "users": list(data_store.users.values()),
+            "courses": data_store.courses,
+            "learning_paths": data_store.learning_paths,
+            "sessions": data_store.user_sessions,
+            "exported_at": datetime.now().isoformat()
+        },
+        "record_count": {
+            "users": len(data_store.users),
+            "courses": len(data_store.courses),
+            "sessions": sum(len(s) for s in data_store.user_sessions.values())
+        }
+    }
+
+# =============================================================================
+# Additional REST API Endpoints (Modern format)
+# =============================================================================
+
+@app.get("/health")
+async def health_check_rest():
+    """Health check endpoint - REST style"""
+    return {
+        "service": "Jeseci Smart Learning Academy API",
+        "status": "healthy",
+        "version": "7.0.0",
+        "timestamp": datetime.now().isoformat(),
+        "database_status": "connected",
+        "ai_status": "available" if os.getenv('OPENAI_API_KEY') else "fallback",
+        "architecture": "Python/FastAPI + Jaclang-compatible endpoints"
+    }
+
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {
+        "message": "Welcome to Jeseci Smart Learning Academy API",
+        "version": "7.0.0",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
+@app.get("/users")
+async def get_users():
+    """Get all users (admin endpoint)"""
+    return list(data_store.users.values())
+
+@app.get("/courses")
+async def get_courses_rest():
+    """Get all courses - REST style"""
+    return data_store.courses
 
 @app.get("/analytics/dashboard")
 async def get_dashboard_analytics():
@@ -605,29 +989,6 @@ async def get_dashboard_analytics():
     }
 
 # =============================================================================
-# Data Export Endpoint
-# =============================================================================
-
-@app.post("/export/data")
-async def export_data(format: str = "json"):
-    """Export user data"""
-    return {
-        "success": True,
-        "format": format,
-        "data": {
-            "users": list(data_store.users.values()),
-            "courses": data_store.courses,
-            "sessions": data_store.user_sessions,
-            "exported_at": datetime.now().isoformat()
-        },
-        "record_count": {
-            "users": len(data_store.users),
-            "courses": len(data_store.courses),
-            "sessions": sum(len(s) for s in data_store.user_sessions.values())
-        }
-    }
-
-# =============================================================================
 # Run with: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 # =============================================================================
 
@@ -638,6 +999,7 @@ if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
     
     logger.info(f"Starting Jeseci Smart Learning Academy API on {host}:{port}")
+    logger.info(f"Running with Python/FastAPI backend with Jaclang-compatible endpoints")
     
     uvicorn.run(
         "main:app",

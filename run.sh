@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Jeseci Smart Learning Academy - Run Script
-# Architecture: React Frontend + Pure Jaclang Backend with OpenAI Integration
+# Architecture: React Frontend + Python/FastAPI Backend with Jaclang-compatible endpoints
 
 echo "🎓 Starting Jeseci Smart Learning Academy..."
-echo "📋 Using Pure Jaclang Backend with OpenAI Integration"
+echo "📋 Using Python/FastAPI Backend with Jaclang-compatible endpoints"
 
 # Function to cleanup background processes
 cleanup() {
@@ -23,17 +23,25 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM
 
-# Check if jac command is available
-if ! command -v jac &> /dev/null; then
-    if [ -d "venv" ]; then
-        echo "🔧 Activating virtual environment..."
-        source venv/bin/activate
-    fi
+# Check if Python is available
+if ! command -v python &> /dev/null; then
+    echo "❌ Python not found. Please install Python 3.10+ first."
+    exit 1
 fi
 
-if ! command -v jac &> /dev/null; then echo "❌ jac command not found. Please run: bash setup.sh first"; exit 1; fi
+echo "✅ Python available."
 
-echo "✅ Jaclang available."
+# Check if virtual environment exists and activate it
+if [ -d "venv" ]; then
+    echo "🔧 Activating virtual environment..."
+    source venv/bin/activate
+fi
+
+# Check if FastAPI is installed
+if ! python -c "import fastapi" 2>/dev/null; then
+    echo "📦 Installing backend dependencies..."
+    pip install -r backend/requirements.txt -q
+fi
 
 # Check if OpenAI API key is configured
 if [ -f ".env" ]; then
@@ -56,7 +64,7 @@ echo "🔍 Checking for existing processes..."
 
 if port_in_use 8000; then
     echo "⚠️ Port 8000 is in use. Attempting to free it..."
-    fuser -k 8000/tcp 2>/dev/null || pkill -f "jac serve" 2>/dev/null || true
+    fuser -k 8000/tcp 2>/dev/null || pkill -f "uvicorn" 2>/dev/null || pkill -f "python.*main.py" 2>/dev/null || true
     sleep 2
 fi
 
@@ -70,11 +78,11 @@ echo "✅ Ports are ready."
 echo ""
 
 # Start backend in background
-echo "🔧 Starting Jaclang Backend Server..."
-echo "======================================"
+echo "🔧 Starting Python/FastAPI Backend Server..."
+echo "============================================="
 (
     cd backend
-    jac serve app.jac
+    python main.py
 ) &
 BACKEND_PID=$!
 
@@ -122,12 +130,19 @@ echo "   • AI Content Generation (OpenAI or Fallback Templates)"
 echo "   • Dynamic User Progress Tracking"
 echo "   • Real-time Analytics Dashboard"
 echo "   • Personalized Recommendations"
+echo "   • Learning Paths and Achievements"
 echo ""
-echo "📡 Jaclang API Endpoints:"
+echo "📡 API Endpoints (Jaclang-compatible):"
+echo "   • POST /walker/health_check (Health Check)"
+echo "   • POST /walker/init (Welcome Message)"
 echo "   • POST /walker/user_create (Register)"
 echo "   • POST /walker/user_login (Login)"
 echo "   • POST /walker/courses (List Courses)"
 echo "   • POST /walker/course_create (Create Course)"
+echo "   • POST /walker/learning_paths (List Learning Paths)"
+echo "   • POST /walker/concepts (List Concepts)"
+echo "   • POST /walker/quizzes (List Quizzes)"
+echo "   • POST /walker/achievements (Get Achievements)"
 echo "   • POST /walker/user_progress (Get Progress)"
 echo "   • POST /walker/ai_generate_content (Generate AI Content)"
 echo "   • POST /walker/analytics_generate (Get Analytics)"
