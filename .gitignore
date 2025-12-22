@@ -895,6 +895,9 @@
 # uploads/
 # downloads/
 
+# Browser automation and testing tools
+browser/
+
 # Claude Agent SDK debug files
 **/.claude/debug/
 **/.claude/debug/**
