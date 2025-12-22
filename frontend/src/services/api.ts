@@ -1,5 +1,5 @@
 /**
- * API Service for communicating with Jaclang backend
+ * API Service for communicating with FastAPI backend
  * Handles all HTTP requests to the backend API
  */
 
@@ -62,10 +62,36 @@ export interface ProgressData {
     completion_rate: number;
     total_sessions: number;
     completed_sessions: number;
+    in_progress_sessions: number;
     average_progress: number;
   };
   learning_style: string;
   skill_level: string;
+  recent_activity?: Array<{
+    session_id: string;
+    course_id: string;
+    course_title: string;
+    status: string;
+    progress: number;
+    started_at?: string;
+    completed_at?: string;
+  }>;
+}
+
+export interface AnalyticsData {
+  user_id: string;
+  learning_analytics: {
+    modules_completed: number;
+    total_study_time: number;
+    average_score: number;
+    engagement_score: number;
+    knowledge_retention: number;
+    learning_velocity: string;
+    generated_at: string;
+  };
+  recommendations: string[];
+  strengths: string[];
+  areas_for_improvement: string[];
 }
 
 export interface AIGeneratedContent {
@@ -76,6 +102,7 @@ export interface AIGeneratedContent {
   content: string;
   related_concepts: string[];
   generated_at: string;
+  source?: string;
 }
 
 class ApiService {
@@ -100,7 +127,8 @@ class ApiService {
       const response = await fetch(url, defaultOptions);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
       }
       
       return await response.json();
@@ -112,16 +140,12 @@ class ApiService {
 
   // Health and Status
   async healthCheck(): Promise<any> {
-    return this.makeRequest('/walker/health_check', {
-      method: 'POST',
-      body: JSON.stringify({}),
-    });
+    return this.makeRequest('/health');
   }
 
   async getWelcome(): Promise<any> {
     return this.makeRequest('/walker/init', {
-      method: 'POST',
-      body: JSON.stringify({}),
+      method: 'GET',
     });
   }
 
@@ -170,25 +194,7 @@ class ApiService {
   }
 
   async getCourses(): Promise<Course[]> {
-    // For now, return mock data - in production, this would be a proper endpoint
-    return [
-      {
-        course_id: 'course_1',
-        title: 'Introduction to Programming',
-        description: 'Learn the fundamentals of programming',
-        domain: 'Computer Science',
-        difficulty: 'beginner',
-        content_type: 'interactive'
-      },
-      {
-        course_id: 'course_2',
-        title: 'Data Structures',
-        description: 'Master essential data structures',
-        domain: 'Computer Science',
-        difficulty: 'intermediate',
-        content_type: 'interactive'
-      }
-    ];
+    return this.makeRequest('/courses');
   }
 
   // Learning Sessions
@@ -222,7 +228,7 @@ class ApiService {
     });
   }
 
-  async getAnalytics(userId: string): Promise<any> {
+  async getAnalytics(userId: string): Promise<AnalyticsData> {
     return this.makeRequest('/analytics/generate', {
       method: 'POST',
       body: JSON.stringify({

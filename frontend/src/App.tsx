@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiService, User, ProgressData, AIGeneratedContent } from './services/api';
+import { apiService, User, ProgressData, AnalyticsData, AIGeneratedContent } from './services/api';
 import './App.css';
 
 interface AuthState {
@@ -17,6 +17,7 @@ const App: React.FC = () => {
   
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [userProgress, setUserProgress] = useState<ProgressData | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [aiContent, setAiContent] = useState<AIGeneratedContent | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -43,32 +44,16 @@ const App: React.FC = () => {
       const response = await apiService.login(username, password);
       console.log('Login response:', response);
       
-      // Auth endpoints return {username, token, root_id} format
-      if (response.token && response.username) {
-        const user: User = {
-          user_id: `user_${response.username}_001`,
-          username: response.username,
-          email: `${response.username}@example.com`,
-          first_name: "Demo",
-          last_name: "User",
-          learning_style: "visual",
-          skill_level: "beginner",
-          is_active: true,
-          is_verified: false,
-          last_login: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-          progress: {}
-        };
-        
+      if (response.success && response.user) {
         setAuthState({
           isAuthenticated: true,
-          user: user,
-          token: response.token
+          user: response.user,
+          token: response.access_token
         });
         setMessage('Login successful!');
         
         // Load user data
-        await loadUserData(user.user_id);
+        await loadUserData(response.user.user_id);
       } else {
         setMessage(response.error || 'Login failed');
       }
@@ -86,8 +71,7 @@ const App: React.FC = () => {
       const response = await apiService.register(userData);
       console.log('Registration response received:', response);
       
-      // Auth endpoints return {username, token, root_id} on success
-      if (response.token && response.username) {
+      if (response.success) {
         console.log('Registration successful - setting message and switching tab');
         setMessage('Registration successful! You can now log in.');
         setActiveTab('login');
@@ -109,11 +93,20 @@ const App: React.FC = () => {
 
   const loadUserData = async (userId: string) => {
     try {
+      // Load progress data
       const progress = await apiService.getUserProgress(userId);
       setUserProgress(progress);
+      console.log('User progress loaded:', progress);
       
+      // Load analytics data
+      const analyticsData = await apiService.getAnalytics(userId);
+      setAnalytics(analyticsData);
+      console.log('Analytics loaded:', analyticsData);
+      
+      // Load courses
       const coursesData = await apiService.getCourses();
       setCourses(coursesData);
+      console.log('Courses loaded:', coursesData);
     } catch (error) {
       console.error('Error loading user data:', error);
     }
@@ -123,6 +116,7 @@ const App: React.FC = () => {
     if (!authState.user) return;
     
     setLoading(true);
+    setMessage('');
     try {
       const response = await apiService.generateAIContent(
         'Object-Spatial Programming',
@@ -131,8 +125,12 @@ const App: React.FC = () => {
         ['Graph Theory', 'Node Systems', 'Walker Functions']
       );
       
-      setAiContent(response);
-      setMessage('AI content generated successfully!');
+      if (response.success) {
+        setAiContent(response);
+        setMessage('AI content generated successfully!');
+      } else {
+        setMessage('Failed to generate AI content');
+      }
     } catch (error) {
       setMessage('Failed to generate AI content');
       console.error('AI generation error:', error);
@@ -215,7 +213,7 @@ const App: React.FC = () => {
     <div className="dashboard">
       <div className="dashboard-header">
         <h1>Welcome to Jeseci Smart Learning Academy</h1>
-        <p>Decoupled Architecture - React Frontend + Jaclang Backend</p>
+        <p>AI-Powered Learning Platform with Dynamic Analytics</p>
         <div className="user-info">
           <p><strong>User:</strong> {authState.user?.username}</p>
           <p><strong>Learning Style:</strong> {authState.user?.learning_style}</p>
@@ -288,7 +286,7 @@ const App: React.FC = () => {
               </div>
               <div className="stat-card">
                 <h3>Current Streak</h3>
-                <p className="stat-number">{userProgress.progress.current_streak}</p>
+                <p className="stat-number">{userProgress.progress.current_streak} days</p>
               </div>
             </div>
             
@@ -296,16 +294,30 @@ const App: React.FC = () => {
               <h3>Analytics Overview</h3>
               <p><strong>Completion Rate:</strong> {userProgress.analytics.completion_rate.toFixed(1)}%</p>
               <p><strong>Total Sessions:</strong> {userProgress.analytics.total_sessions}</p>
-              <p><strong>Average Score:</strong> {userProgress.analytics.average_progress.toFixed(1)}</p>
+              <p><strong>Completed Sessions:</strong> {userProgress.analytics.completed_sessions}</p>
+              <p><strong>In Progress:</strong> {userProgress.analytics.in_progress_sessions}</p>
+              <p><strong>Average Score:</strong> {userProgress.analytics.average_progress.toFixed(1)}%</p>
             </div>
+            
+            {userProgress.recent_activity && userProgress.recent_activity.length > 0 && (
+              <div className="recent-activity">
+                <h3>Recent Activity</h3>
+                {userProgress.recent_activity.slice(0, 5).map((activity) => (
+                  <div key={activity.session_id} className="activity-item">
+                    <p><strong>{activity.course_title}</strong> - {activity.status}</p>
+                    <p>Progress: {activity.progress}%</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'ai' && (
           <div className="ai-section">
             <h2>AI-Powered Content Generator</h2>
-            <p>Generate personalized learning content using AI</p>
-            <button onClick={generateAIContent} disabled={loading}>
+            <p>Generate personalized learning content using OpenAI GPT-4o-mini</p>
+            <button onClick={generateAIContent} disabled={loading} className="ai-button">
               {loading ? 'Generating...' : 'Generate AI Content'}
             </button>
             
@@ -316,28 +328,70 @@ const App: React.FC = () => {
                   <pre>{aiContent.content}</pre>
                 </div>
                 <p><strong>Related Concepts:</strong> {aiContent.related_concepts.join(', ')}</p>
+                <p><strong>Generated at:</strong> {new Date(aiContent.generated_at).toLocaleString()}</p>
+                {aiContent.source && <p><strong>Source:</strong> {aiContent.source}</p>}
               </div>
             )}
           </div>
         )}
 
-        {activeTab === 'analytics' && (
+        {activeTab === 'analytics' && analytics && (
           <div className="analytics-section">
             <h2>Learning Analytics</h2>
             <p>Comprehensive insights into your learning journey</p>
+            
             <div className="analytics-grid">
               <div className="metric-card">
-                <h4>Engagement Score</h4>
-                <p className="metric-value">85%</p>
+                <h4>Modules Completed</h4>
+                <p className="metric-value">{analytics.learning_analytics.modules_completed}</p>
               </div>
               <div className="metric-card">
-                <h4>Learning Velocity</h4>
-                <p className="metric-value">Fast</p>
+                <h4>Total Study Time</h4>
+                <p className="metric-value">{analytics.learning_analytics.total_study_time} mins</p>
+              </div>
+              <div className="metric-card">
+                <h4>Average Score</h4>
+                <p className="metric-value">{analytics.learning_analytics.average_score}%</p>
+              </div>
+              <div className="metric-card">
+                <h4>Engagement Score</h4>
+                <p className="metric-value">{analytics.learning_analytics.engagement_score}%</p>
               </div>
               <div className="metric-card">
                 <h4>Knowledge Retention</h4>
-                <p className="metric-value">92%</p>
+                <p className="metric-value">{analytics.learning_analytics.knowledge_retention}%</p>
               </div>
+              <div className="metric-card">
+                <h4>Learning Velocity</h4>
+                <p className="metric-value">{analytics.learning_analytics.learning_velocity}</p>
+              </div>
+            </div>
+            
+            <div className="recommendations-section">
+              <h3>Recommendations</h3>
+              <ul>
+                {analytics.recommendations.map((rec, index) => (
+                  <li key={index}>{rec}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="strengths-section">
+              <h3>Your Strengths</h3>
+              <ul>
+                {analytics.strengths.map((strength, index) => (
+                  <li key={index}>{strength}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="improvements-section">
+              <h3>Areas for Improvement</h3>
+              <ul>
+                {analytics.areas_for_improvement.map((area, index) => (
+                  <li key={index}>{area}</li>
+                ))}
+              </ul>
             </div>
           </div>
         )}
@@ -352,6 +406,9 @@ const App: React.FC = () => {
     try {
       await apiService.startLearningSession(authState.user.user_id, courseId);
       setMessage('Learning session started!');
+      
+      // Refresh user data
+      await loadUserData(authState.user.user_id);
     } catch (error) {
       setMessage('Failed to start learning session');
       console.error('Session start error:', error);
@@ -366,6 +423,7 @@ const App: React.FC = () => {
       token: null
     });
     setUserProgress(null);
+    setAnalytics(null);
     setActiveTab('dashboard');
     setMessage('Logged out successfully');
   };
@@ -374,8 +432,8 @@ const App: React.FC = () => {
     <div className="App">
       <header className="app-header">
         <div className="header-content">
-          <h1>🎓 Jeseci Smart Learning Academy</h1>
-          <p>Decoupled Architecture • React + Jaclang • AI-Powered Education</p>
+          <h1>Jeseci Smart Learning Academy</h1>
+          <p>AI-Powered Education • Dynamic Analytics • OpenAI Integration</p>
           {authState.isAuthenticated && (
             <div className="header-actions">
               <button onClick={handleLogout}>Logout</button>
@@ -418,8 +476,8 @@ const App: React.FC = () => {
       </main>
 
       <footer className="app-footer">
-        <p>© 2025 Jeseci Smart Learning Academy • Decoupled Architecture</p>
-        <p>Powered by React Frontend + Jaclang Backend API</p>
+        <p>© 2025 Jeseci Smart Learning Academy • AI-Powered Learning Platform</p>
+        <p>Powered by FastAPI Backend + OpenAI GPT-4o-mini</p>
       </footer>
     </div>
   );
