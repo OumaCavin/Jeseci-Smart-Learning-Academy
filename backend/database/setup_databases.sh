@@ -66,9 +66,6 @@ if command -v psql &> /dev/null; then
     # Test connection to the database
     if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" 2>/dev/null; then
         print_status "PostgreSQL connection successful"
-    else
-        print_warning "Could not connect to database - tables may already exist or will be created by app"
-    fi
         
         # Create tables
         print_info "Running database migrations..."
@@ -166,24 +163,24 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
     attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 '''
-        
-        result = postgres_manager.execute_query(tables)
-        if result:
-            print_status "Database tables created successfully"
-        else:
-            print_warning "Table creation may have issues"
+
+result = postgres_manager.execute_query(tables)
+if result:
+    print_status 'Database tables created successfully'
+else:
+    print_warning 'Table creation may have issues'
 "
         
     else
-        print_warning "PostgreSQL is not running or credentials are incorrect"
-        print_info "To start PostgreSQL:"
-        print_info "  - Linux: sudo systemctl start postgresql"
-        print_info "  - macOS: brew services start postgresql"
-        print_info "  - Docker: docker run -d --name postgres -e POSTGRES_PASSWORD=secret -p 5432:5432 postgres"
+        print_warning "Could not connect to database - tables may already exist or will be created by app"
     fi
+        
 else
-    print_warning "psql command not found"
-    print_info "Please install PostgreSQL client tools or use Docker"
+    print_warning "PostgreSQL is not running or credentials are incorrect"
+    print_info "To start PostgreSQL:"
+    print_info "  - Linux: sudo systemctl start postgresql"
+    print_info "  - macOS: brew services start postgresql"
+    print_info "  - Docker: docker run -d --name postgres -e POSTGRES_PASSWORD=secret -p 5432:5432 postgres"
 fi
 
 # =============================================================================
@@ -214,9 +211,9 @@ CREATE CONSTRAINT IF NOT EXISTS FOR (p:LearningPath) REQUIRE p.path_id IS UNIQUE
 
 result = neo4j_manager.execute_query(constraints)
 if result is not None:
-    print_status 'Neo4j constraints created successfully')
+    print_status 'Neo4j constraints created successfully'
 else:
-    print_warning('Constraint creation may have issues')
+    print_warning 'Constraint creation may have issues'
 "
         
     else
