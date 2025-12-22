@@ -1,0 +1,65 @@
+# Authentication Flow - User Registration and Login
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant A as JacAPI
+    participant P as PostgreSQL
+    participant J as JWT
+
+    Note over U,F: User Registration Flow
+    U->>F: Fill registration form
+    F->>A: POST /walker/user_create<br/>{username, email, password, ...}
+    A->>P: Check existing user
+    P-->>A: No existing user found
+    A->>P: INSERT user with bcrypt hash
+    P-->>A: User created
+    A->>J: Generate JWT token
+    J-->>A: Token generated
+    A-->>F: {success: true, user_id, token}
+    F-->>U: Registration successful
+
+    Note over U,F: User Login Flow
+    U->>F: Enter credentials
+    F->>A: POST /walker/user_login<br/>{username, password}
+    A->>P: Query user by username/email
+    P-->>A: User record found
+    A->>P: Verify bcrypt password hash
+    P-->>A: Password valid
+    A->>J: Generate JWT token
+    J-->>A: Token generated
+    A-->>F: {success: true, access_token, user_data}
+    F-->>U: Login successful
+
+    Note over U,F: Protected Request Flow
+    U->>F: Access protected resource
+    F->>A: GET /walker/user_progress<br/>Headers: Authorization: Bearer {token}
+    A->>J: Validate JWT
+    J-->>A: Token valid
+    A->>P: Query user progress
+    P-->>A: Progress data
+    A-->>F: Progress data
+    F-->>U: Display progress
+```
+
+## Authentication Details
+
+### Registration Process
+1. Frontend sends user credentials to the Jaclang API
+2. API checks for duplicate username/email in PostgreSQL
+3. Password is hashed using bcrypt (12 salt rounds)
+4. User record is inserted into PostgreSQL users table
+5. JWT token is generated and returned to client
+
+### Login Process
+1. Frontend sends credentials to Jaclang API
+2. API queries PostgreSQL for user by username or email
+3. bcrypt compares input password with stored hash
+4. On success, JWT token is generated with 24-hour expiry
+5. User data and token are returned to frontend
+
+### Token Validation
+- JWT tokens contain user_id, username, email, and expiry timestamp
+- All protected endpoints validate tokens before processing requests
+- Tokens are validated on every request to ensure session validity

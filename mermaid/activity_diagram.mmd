@@ -1,0 +1,77 @@
+# Activity Diagram - User Learning Journey
+
+```mermaid
+flowchart TD
+    A[User Opens Application] --> B{Authenticated?}
+    B -->|No| C[Registration / Login]
+    C --> D[Fill Credentials]
+    D --> E[Submit to API]
+    E --> F{Database Check}
+    F -->|Valid| G[Generate JWT Token]
+    F -->|Invalid| H[Show Error]
+    H --> D
+    G --> I[Store Token in LocalStorage]
+    I --> J[Display Dashboard]
+    
+    B -->|Yes| J
+    
+    J --> K[View Available Courses]
+    J --> L[View Learning Paths]
+    J --> M[Access AI Content Generator]
+    
+    K --> N[Select Course]
+    N --> O[Start Learning Session]
+    O --> P[Complete Module]
+    P --> Q{Quiz Available?}
+    Q -->|Yes| R[Take Quiz]
+    R --> S[Submit Answers]
+    S --> T[Calculate Score]
+    T --> U[Update Progress]
+    Q -->|No| U
+    
+    U --> V{Complete Course?}
+    V -->|Yes| W[Award Achievement]
+    V -->|No| O
+    
+    W --> X[View Achievements]
+    X --> Y[Continue Learning]
+    Y --> J
+    
+    L --> Z[Select Learning Path]
+    Z --> AA[View Path Concepts]
+    AA --> AB[Get Recommendations]
+    AB --> AC[Enroll in Path]
+    AC --> O
+    
+    M --> AD[Enter Concept Request]
+    AD --> AE[AI Generates Content]
+    AE --> AF[Display Generated Lesson]
+    AF --> O
+
+    style A fill:#61dafb
+    style J fill:#28a745
+    style W fill:#ffc107
+    style G fill:#6f42c1
+```
+
+## User Journey Phases
+
+### Phase 1: Authentication
+- Users must register or login to access features
+- JWT tokens manage session state
+- Tokens stored securely in localStorage
+
+### Phase 2: Learning Activities
+- Browse courses and learning paths
+- Start interactive learning sessions
+- Complete modules and take quizzes
+
+### Phase 3: Progress Tracking
+- Real-time progress updates
+- Achievement system for milestones
+- AI-powered content generation
+
+### Phase 4: Knowledge Building
+- Concept prerequisites tracking
+- Personalized recommendations
+- Graph-based learning paths

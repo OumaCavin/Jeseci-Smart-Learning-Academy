@@ -1,0 +1,61 @@
+# System Architecture - Jeseci Smart Learning Academy
+
+```mermaid
+graph TB
+    subgraph Client Layer
+        UI[React Frontend - Port 3000]
+        Browser[Web Browser]
+    end
+
+    subgraph API Gateway Layer
+        JacAPI[Jaclang API Server - Port 8000]
+    end
+
+    subgraph Backend Services
+        Auth[User Authentication<br/>bcrypt + JWT]
+        Courses[Course Management]
+        Progress[Progress Tracking]
+        AI[AI Content Generator]
+        Graph[Graph Engine]
+    end
+
+    subgraph Data Layer
+        PostgreSQL[(PostgreSQL<br/>Users, Courses, Progress)]
+        Neo4j[(Neo4j<br/>Knowledge Graph)]
+    end
+
+    Browser --> UI
+    UI --> JacAPI
+    JacAPI --> Auth
+    JacAPI --> Courses
+    JacAPI --> Progress
+    JacAPI --> AI
+    JacAPI --> Graph
+    Auth --> PostgreSQL
+    Courses --> PostgreSQL
+    Progress --> PostgreSQL
+    Graph --> Neo4j
+
+    style JacAPI fill:#6f42c1,stroke:#333,stroke-width:2px
+    style PostgreSQL fill:#0064cc,stroke:#333,stroke-width:2px
+    style Neo4j fill:#008a00,stroke:#333,stroke-width:2px
+    style UI fill:#61dafb,stroke:#333,stroke-width:2px
+```
+
+## Architecture Overview
+
+The Jeseci Smart Learning Academy is built on a modern microservices-inspired architecture using the Jaclang programming language. The system consists of four main layers:
+
+1. **Client Layer**: React-based frontend application providing an interactive learning interface
+2. **API Gateway Layer**: Jaclang API server handling all HTTP requests and routing
+3. **Backend Services**: Modular walkers implementing business logic for auth, courses, AI generation, and graph operations
+4. **Data Layer**: Dual-database strategy with PostgreSQL for relational data and Neo4j for graph-based knowledge representation
+
+## Key Technologies
+
+- **Jaclang**: Primary backend language with built-in walker-based architecture
+- **PostgreSQL**: Relational database for user management and course data
+- **Neo4j**: Graph database for knowledge graphs and learning path recommendations
+- **React**: Frontend UI framework
+- **bcrypt**: Password hashing for secure authentication
+- **JWT**: JSON Web Tokens for session management

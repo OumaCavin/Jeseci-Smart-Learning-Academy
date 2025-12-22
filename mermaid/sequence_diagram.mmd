@@ -1,0 +1,97 @@
+# Sequence Diagram - User Login Process
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as React Frontend
+    participant A as AuthContext
+    participant API as JacAPI Server
+    participant P as PostgreSQL
+    participant B as bcrypt
+    participant J as JWT
+
+    Note over U,F: Login Flow Begins
+    U->>F: Enter username and password
+    F->>A: Call login(username, password)
+    
+    Note over A,API: API Request Preparation
+    A->>F: POST /walker/user_login
+    A->>API: Request body: {username, password}
+    A->>API: Headers: Content-Type: application/json
+    
+    Note over API,P: Database Lookup
+    API->>P: SELECT * FROM users WHERE username = $1 OR email = $1
+    P-->>API: User record found or not found
+    
+    alt User Found
+        Note over API,B: Password Verification
+        API->>B: bcrypt.checkpw(password, hash)
+        B-->>API: True/False
+        
+        alt Password Valid
+            Note over API,J: Token Generation
+            API->>J: jwt.encode(payload, secret, algorithm)
+            J-->>API: JWT token
+            
+            Note over API,F: Success Response
+            API-->>A: {success: true, access_token, user}
+            A->>F: Set authentication state
+            F-->>U: Navigate to dashboard
+            U->>F: View learning content
+            
+        else Password Invalid
+            API-->>A: {success: false, error: "Invalid credentials"}
+            A->>F: Set error state
+            F-->>U: Display error message
+        end
+        
+    else User Not Found
+        API-->>A: {success: false, error: "Invalid credentials"}
+        A->>F: Set error state
+        F-->>U: Display error message
+    end
+
+    Note over U,F: Subsequent Authenticated Requests
+    U->>F: Access protected resource
+    F->>A: Get current token
+    A->>F: Return token from state
+    F->>API: GET /walker/user_progress
+    F->>API: Headers: Authorization: Bearer {token}
+    
+    Note over API,J: Token Validation
+    API->>J: jwt.decode(token, secret)
+    J-->>API: Decoded payload with user_id
+    
+    alt Token Valid
+        API->>P: Query user progress
+        P-->>API: Progress data
+        API-->>F: Progress response
+        F-->>U: Display progress
+    else Token Expired/Invalid
+        API-->>F: 401 Unauthorized
+        F->>A: Trigger logout
+        A->>F: Clear auth state
+        F-->>U: Redirect to login
+    end
+```
+
+## Sequence Flow Explanation
+
+### Login Phase
+1. User enters credentials in React frontend
+2. AuthContext sends POST request to JacAPI
+3. API queries PostgreSQL for user record
+4. bcrypt compares password with stored hash
+5. JWT generates token on successful authentication
+6. Frontend stores token and updates UI
+
+### Protected Request Phase
+1. Frontend includes JWT in Authorization header
+2. API validates JWT signature and expiration
+3. Database query retrieves user-specific data
+4. Response sent back to frontend for display
+
+### Error Handling
+- Invalid credentials: Returns 401 with error message
+- Expired token: Triggers logout, redirects to login
+- Network errors: Shows retry option to user

@@ -1,0 +1,87 @@
+# Component Diagram - System Components and Interactions
+
+```mermaid
+graph TB
+    subgraph Frontend Components
+        React[React Application]
+        Router[React Router]
+        Context[Auth Context]
+        API[API Service Layer]
+    end
+
+    subgraph API Gateway
+        JacServer[Jaclang HTTP Server]
+        RouterWalker[Router Walker]
+        AuthMiddleware[Auth Middleware]
+    end
+
+    subgraph Backend Services
+        AuthService[Authentication Service]
+        CourseService[Course Service]
+        ProgressService[Progress Service]
+        AIGenerator[AI Generator Service]
+        GraphEngine[Graph Engine Service]
+    end
+
+    subgraph Database Layer
+        Postgres[(PostgreSQL)]
+        Neo4j[(Neo4j)]
+        Cache[(Redis Cache)]
+    end
+
+    subgraph External Services
+        OpenAI[OpenAI API]
+    end
+
+    React --> Router
+    Router --> Context
+    Context --> API
+    API --> JacServer
+    
+    JacServer --> RouterWalker
+    RouterWalker --> AuthMiddleware
+    AuthMiddleware --> AuthService
+    AuthMiddleware --> CourseService
+    AuthMiddleware --> ProgressService
+    
+    AuthService --> Postgres
+    CourseService --> Postgres
+    ProgressService --> Postgres
+    
+    GraphEngine --> Neo4j
+    GraphEngine --> Cache
+    
+    AIGenerator --> OpenAI
+    AIGenerator --> Cache
+
+    style JacServer fill:#6f42c1,stroke:#333,stroke-width:3px
+    style Postgres fill:#0064cc,stroke:#333,stroke-width:2px
+    style Neo4j fill:#008a00,stroke:#333,stroke-width:2px
+    style React fill:#61dafb,stroke:#333,stroke-width:2px
+    style AuthService fill:#28a745,stroke:#333,stroke-width:2px
+```
+
+## Component Details
+
+### Frontend Components
+- **React Application**: Main UI framework with component-based architecture
+- **React Router**: Client-side routing for navigation
+- **Auth Context**: Global state management for authentication
+- **API Service Layer**: HTTP client for backend communication
+
+### API Gateway
+- **Jaclang HTTP Server**: Handles all incoming HTTP requests
+- **Router Walker**: Routes requests to appropriate walkers
+- **Auth Middleware**: Validates JWT tokens before processing
+
+### Backend Services
+- **Authentication Service**: User management with bcrypt/JWT
+- **Course Service**: Course CRUD operations
+- **Progress Service**: Learning session and progress tracking
+- **AI Generator Service**: Content generation with OpenAI fallback
+- **Graph Engine Service**: Neo4j operations for knowledge graphs
+
+### Database Layer
+- **PostgreSQL**: Relational data (users, courses, progress)
+- **Neo4j**: Graph data (concepts, relationships, paths)
+- **Redis Cache**: Session and AI content caching
