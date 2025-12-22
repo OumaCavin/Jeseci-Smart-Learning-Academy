@@ -5,8 +5,8 @@
 # ==============================================================================
 
 # Import standard modules
-import time;
-import os;
+import time
+import os
 
 # ==============================================================================
 # In-Memory Data Store (Simulated Database)
@@ -74,89 +74,89 @@ DATA_STORE = {
     ],
     "sessions": {},
     "ai_generations": 0
-};
+}
 
 # ==============================================================================
 # Helper Functions
 # ==============================================================================
 
-func get_timestamp {
-    timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime());
-    return timestamp;
+can get_timestamp {
+    timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    return timestamp
 }
 
-func generate_id(prefix: str) -> str {
-    id_val = prefix + "_" + time.time_ns()->str;
-    return id_val;
+can generate_id(prefix: str) -> str {
+    id_val = prefix + "_" + time.time_ns()->str
+    return id_val
 }
 
-func get_user_by_username(username: str) -> dict {
-    users = DATA_STORE["users"];
+can get_user_by_username(username: str) -> dict {
+    users = DATA_STORE["users"]
     if username in users {
-        return users[username];
+        return users[username]
     }
-    return {};
+    return {}
 }
 
-func get_user_by_id(user_id: str) -> dict {
-    users = DATA_STORE["users"];
-    user_keys = users.keys();
+can get_user_by_id(user_id: str) -> dict {
+    users = DATA_STORE["users"]
+    user_keys = users.keys()
     for username in user_keys {
-        user = users[username];
-        user_id_val = user["user_id"];
+        user = users[username]
+        user_id_val = user["user_id"]
         if user_id_val == user_id {
-            return user;
+            return user
         }
     }
-    return {};
+    return {}
 }
 
-func calculate_user_progress(user_id: str) -> dict {
-    sessions = [];
-    sessions_data = DATA_STORE["sessions"];
+can calculate_user_progress(user_id: str) -> dict {
+    sessions = []
+    sessions_data = DATA_STORE["sessions"]
     if user_id in sessions_data {
-        sessions = sessions_data[user_id];
+        sessions = sessions_data[user_id]
     }
     
     # Calculate dynamic metrics
-    completed_sessions = [];
-    in_progress_sessions = [];
+    completed_sessions = []
+    in_progress_sessions = []
     
     for session in sessions {
-        status = session["status"];
+        status = session["status"]
         if status == "completed" {
-            completed_sessions = completed_sessions + [session];
+            completed_sessions = completed_sessions.push(session)
         } else {
-            in_progress_sessions = in_progress_sessions + [session];
+            in_progress_sessions = in_progress_sessions.push(session)
         }
     }
     
-    courses_completed = completed_sessions.len;
-    lessons_completed = courses_completed * 5;
-    total_sessions_count = sessions.len;
-    total_study_time = total_sessions_count * 45;
-    courses_count = courses_completed;
-    current_streak = courses_count;
+    courses_completed = completed_sessions.len
+    lessons_completed = courses_completed * 5
+    total_sessions_count = sessions.len
+    total_study_time = total_sessions_count * 45
+    courses_count = courses_completed
+    current_streak = courses_count
     if current_streak > 7 {
-        current_streak = 7;
+        current_streak = 7
     }
     
     # Calculate completion rate
-    total_courses = DATA_STORE["courses"].len;
-    completion_rate = 0;
+    total_courses = DATA_STORE["courses"].len
+    completion_rate = 0
     if total_courses > 0 {
-        completion_rate = (courses_completed / total_courses) * 100;
+        completion_rate = (courses_completed / total_courses) * 100
     }
     
     # Calculate average score
-    average_score = 0;
-    completed_count = completed_sessions.len;
+    average_score = 0
+    completed_count = completed_sessions.len
     if completed_count > 0 {
-        total_progress = 0;
+        total_progress = 0
         for session in completed_sessions {
-            total_progress = total_progress + session["progress"];
+            total_progress = total_progress + session["progress"]
         }
-        average_score = total_progress / completed_count;
+        average_score = total_progress / completed_count
     }
     
     progress_data = {
@@ -165,7 +165,7 @@ func calculate_user_progress(user_id: str) -> dict {
         "total_study_time": total_study_time,
         "current_streak": current_streak,
         "average_score": average_score
-    };
+    }
     
     analytics = {
         "completion_rate": completion_rate,
@@ -173,15 +173,15 @@ func calculate_user_progress(user_id: str) -> dict {
         "completed_sessions": courses_completed,
         "in_progress_sessions": in_progress_sessions.len,
         "average_progress": average_score
-    };
+    }
     
-    recent_activity = [];
-    sessions_count = sessions.len;
+    recent_activity = []
+    sessions_count = sessions.len
     if sessions_count > 0 {
         if sessions_count >= 5 {
-            recent_activity = sessions[-5:];
+            recent_activity = sessions[-5:]
         } else {
-            recent_activity = sessions;
+            recent_activity = sessions
         }
     }
     
@@ -189,52 +189,51 @@ func calculate_user_progress(user_id: str) -> dict {
         "progress": progress_data,
         "analytics": analytics,
         "recent_activity": recent_activity
-    };
+    }
 }
 
-func generate_recommendations(user: dict, completed: list) -> list {
-    recommendations = [];
-    completed_count = completed.len;
+can generate_recommendations(user: dict, completed: list) -> list {
+    recommendations = []
     
-    if completed_count < 3 {
-        recommendations = recommendations + ["Continue building your foundation with beginner courses"];
-        recommendations = recommendations + ["Try the AI content generator for personalized lessons"];
+    if completed.len < 3 {
+        recommendations = recommendations.push("Continue building your foundation with beginner courses")
+        recommendations = recommendations.push("Try the AI content generator for personalized lessons")
     } else {
-        recommendations = recommendations + ["Consider advancing to intermediate-level courses"];
-        recommendations = recommendations + ["Explore the AI generator for deeper concepts"];
+        recommendations = recommendations.push("Consider advancing to intermediate-level courses")
+        recommendations = recommendations.push("Explore the AI generator for deeper concepts")
     }
     
-    skill_level = user["skill_level"];
+    skill_level = user["skill_level"]
     if skill_level == "beginner" {
-        recommendations = recommendations + ["Focus on completing the Introduction to Programming course"];
+        recommendations = recommendations.push("Focus on completing the Introduction to Programming course")
     }
     
-    recommendations = recommendations + ["Maintain your learning streak for better retention"];
+    recommendations = recommendations.push("Maintain your learning streak for better retention")
     
-    return recommendations;
+    return recommendations
 }
 
 # ==============================================================================
 # OpenAI Integration
 # ==============================================================================
 
-func call_openai_api(prompt: str, api_key: str) -> str {
+can call_openai_api(prompt: str, api_key: str) -> str {
     # In Jaclang, we use HTTP request to OpenAI API
     # This is a simplified implementation - in production, use proper HTTP library
     
     # Generate fallback content when OpenAI is not available
-    return "";
+    return ""
 }
 
-func generate_ai_content(concept_name: str, domain: str, difficulty: str, related_concepts: list) -> dict {
+can generate_ai_content(concept_name: str, domain: str, difficulty: str, related_concepts: list) -> dict {
     # This function generates AI content for educational concepts
     # Currently uses fallback content - can be enhanced with actual OpenAI API calls
     
-    return generate_fallback_content(concept_name, domain, difficulty, related_concepts);
+    return generate_fallback_content(concept_name, domain, difficulty, related_concepts)
 }
 
-func generate_fallback_content(concept_name: str, domain: str, difficulty: str, related_concepts: list) -> dict {
-    template = "Fallback content template - Configure OpenAI API for enhanced AI-generated lessons.";
+can generate_fallback_content(concept_name: str, domain: str, difficulty: str, related_concepts: list) -> dict {
+    template = "Fallback content template - Configure OpenAI API for enhanced AI-generated lessons."
     
     return {
         "success": true,
@@ -245,7 +244,7 @@ func generate_fallback_content(concept_name: str, domain: str, difficulty: str, 
         "related_concepts": related_concepts,
         "generated_at": get_timestamp(),
         "source": "fallback"
-    };
+    }
 }
 
 # ==============================================================================
@@ -253,9 +252,9 @@ func generate_fallback_content(concept_name: str, domain: str, difficulty: str, 
 # ==============================================================================
 
 walker init {
-    has welcome_msg: str = "Welcome to Jeseci Smart Learning Academy API!";
-    has version: str = "7.0.0";
-    has architecture: str = "Python/FastAPI Backend with Jaclang-compatible endpoints";
+    has welcome_msg: str = "Welcome to Jeseci Smart Learning Academy API!"
+    has version: str = "7.0.0"
+    has architecture: str = "Python/FastAPI Backend with Jaclang-compatible endpoints"
     
     can init with entry {
         report {
@@ -274,31 +273,31 @@ walker init {
                 "analytics": "POST /walker/analytics_generate",
                 "export": "POST /walker/export_data"
             }
-        };
+        }
     }
 }
 
 walker health_check {
-    has status: str = "healthy";
-    has version: str = "7.0.0";
-    has timestamp: str;
-    has database_status: str = "connected";
-    has ai_status: str;
+    has status: str = "healthy"
+    has version: str = "7.0.0"
+    has timestamp: str
+    has database_status: str = "connected"
+    has ai_status: str
     
     can health_check with entry {
         # Check OpenAI configuration
-        api_key = os.getenv("OPENAI_API_KEY", "");
-        ai_st = "fallback";
+        api_key = os.getenv("OPENAI_API_KEY", "")
+        ai_st = "fallback"
         if api_key != "" {
-            key_str = api_key->str;
-            prefix_check = key_str[:12];
+            key_str = api_key->str
+            prefix_check = key_str[:12]
             if prefix_check != "sk-proj-placeholder" {
-                ai_st = "available";
+                ai_st = "available"
             }
         }
-        ai_status = ai_st;
+        ai_status = ai_st
         
-        self.timestamp = get_timestamp();
+        self.timestamp = get_timestamp()
         
         report {
             "service": "Jeseci Smart Learning Academy API",
@@ -308,7 +307,7 @@ walker health_check {
             "database_status": self.database_status,
             "ai_status": ai_status,
             "architecture": "Pure Jaclang Backend"
-        };
+        }
     }
 }
 
@@ -322,21 +321,21 @@ walker courses {
             "success": true,
             "courses": DATA_STORE["courses"],
             "total": DATA_STORE["courses"].len
-        };
+        }
     }
 }
 
 walker course_create {
-    has title: str;
-    has description: str;
-    has domain: str;
-    has difficulty: str;
-    has content_type: str = "interactive";
+    has title: str
+    has description: str
+    has domain: str
+    has difficulty: str
+    has content_type: str = "interactive"
     
     can course_create with entry {
-        title_lower = self.title.lower();
-        title_underscore = title_lower.replace(" ", "_");
-        course_id = "course_" + title_underscore + "_" + time.time_ns()->str;
+        title_lower = self.title.lower()
+        title_underscore = title_lower.replace(" ", "_")
+        course_id = "course_" + title_underscore + "_" + time.time_ns()->str
         
         course_data = {
             "course_id": course_id,
@@ -345,16 +344,16 @@ walker course_create {
             "domain": self.domain,
             "difficulty": self.difficulty,
             "content_type": self.content_type
-        };
+        }
         
-        DATA_STORE["courses"] = DATA_STORE["courses"] + [course_data];
+        DATA_STORE["courses"] = DATA_STORE["courses"].push(course_data)
         
         report {
             "success": true,
             "course_id": course_id,
             "title": self.title,
             "message": "Course created successfully"
-        };
+        }
     }
 }
 
@@ -363,35 +362,35 @@ walker course_create {
 # ==============================================================================
 
 walker user_create {
-    has username: str;
-    has email: str;
-    has password: str;
-    has first_name: str = "";
-    has last_name: str = "";
-    has learning_style: str = "visual";
-    has skill_level: str = "beginner";
+    has username: str
+    has email: str
+    has password: str
+    has first_name: str = ""
+    has last_name: str = ""
+    has learning_style: str = "visual"
+    has skill_level: str = "beginner"
     
     can user_create with entry {
         # Check for existing users
-        existing_user = get_user_by_username(self.username);
+        existing_user = get_user_by_username(self.username)
         if existing_user != {} {
             report {
                 "success": false,
                 "error": "A user with that username or email already exists."
-            };
-            return;
+            }
+            return
         }
         
         # Check if email already exists
-        users = DATA_STORE["users"];
-        user_keys = users.keys();
-        email_exists = false;
+        users = DATA_STORE["users"]
+        user_keys = users.keys()
+        email_exists = false
         for username in user_keys {
-            user = users[username];
-            user_email = user["email"];
+            user = users[username]
+            user_email = user["email"]
             if user_email == self.email {
-                email_exists = true;
-                break;
+                email_exists = true
+                break
             }
         }
         
@@ -399,13 +398,13 @@ walker user_create {
             report {
                 "success": false,
                 "error": "A user with that username or email already exists."
-            };
-            return;
+            }
+            return
         }
         
         # Create new user
-        user_id = "user_" + self.username + "_" + time.time_ns()->str;
-        timestamp = get_timestamp();
+        user_id = "user_" + self.username + "_" + time.time_ns()->str
+        timestamp = get_timestamp()
         
         new_user = {
             "user_id": user_id,
@@ -420,10 +419,10 @@ walker user_create {
             "is_verified": false,
             "created_at": timestamp,
             "last_login": timestamp
-        };
+        }
         
-        DATA_STORE["users"][self.username] = new_user;
-        DATA_STORE["sessions"][user_id] = [];
+        DATA_STORE["users"][self.username] = new_user
+        DATA_STORE["sessions"][user_id] = []
         
         report {
             "success": true,
@@ -435,22 +434,22 @@ walker user_create {
             "learning_style": self.learning_style,
             "skill_level": self.skill_level,
             "message": "User created successfully"
-        };
+        }
     }
 }
 
 walker user_login {
-    has username: str;
-    has password: str;
+    has username: str
+    has password: str
     
     can user_login with entry {
         # Get user by username
-        user = get_user_by_username(self.username);
+        user = get_user_by_username(self.username)
         
         if user == {} {
             # For demo, create user if not exists
-            user_id = "user_" + self.username + "_" + time.time_ns()->str;
-            timestamp = get_timestamp();
+            user_id = "user_" + self.username + "_" + time.time_ns()->str
+            timestamp = get_timestamp()
             
             new_user = {
                 "user_id": user_id,
@@ -465,18 +464,18 @@ walker user_login {
                 "is_verified": false,
                 "created_at": timestamp,
                 "last_login": timestamp
-            };
+            }
             
-            DATA_STORE["users"][self.username] = new_user;
-            DATA_STORE["sessions"][user_id] = [];
-            user = new_user;
+            DATA_STORE["users"][self.username] = new_user
+            DATA_STORE["sessions"][user_id] = []
+            user = new_user
         }
         
         # Update last login
-        user["last_login"] = get_timestamp();
+        user["last_login"] = get_timestamp()
         
         # Generate token
-        token = "token_" + user["user_id"] + "_" + time.time_ns()->str;
+        token = "token_" + user["user_id"] + "_" + time.time_ns()->str
         
         user_data = {
             "user_id": user["user_id"],
@@ -486,7 +485,7 @@ walker user_login {
             "last_name": user["last_name"],
             "learning_style": user["learning_style"],
             "skill_level": user["skill_level"]
-        };
+        }
         
         report {
             "success": true,
@@ -494,7 +493,7 @@ walker user_login {
             "token_type": "bearer",
             "expires_in": 1800,
             "user": user_data
-        };
+        }
     }
 }
 
@@ -503,21 +502,21 @@ walker user_login {
 # ==============================================================================
 
 walker user_progress {
-    has user_id: str;
+    has user_id: str
     
     can user_progress with entry {
-        user = get_user_by_id(self.user_id);
+        user = get_user_by_id(self.user_id)
         
         if user == {} {
             report {
                 "success": false,
                 "error": "User not found"
-            };
-            return;
+            }
+            return
         }
         
         # Calculate dynamic progress
-        progress_data = calculate_user_progress(self.user_id);
+        progress_data = calculate_user_progress(self.user_id)
         
         report {
             "user_id": self.user_id,
@@ -526,7 +525,7 @@ walker user_progress {
             "learning_style": user["learning_style"],
             "skill_level": user["skill_level"],
             "recent_activity": progress_data["recent_activity"]
-        };
+        }
     }
 }
 
@@ -535,20 +534,20 @@ walker user_progress {
 # ==============================================================================
 
 walker learning_session_start {
-    has user_id: str;
-    has module_id: str;
+    has user_id: str
+    has module_id: str
     
     can learning_session_start with entry {
-        session_id = "session_" + self.user_id + "_" + self.module_id + "_" + time.time_ns()->str;
+        session_id = "session_" + self.user_id + "_" + self.module_id + "_" + time.time_ns()->str
         
         # Find course title
-        course_title = "Unknown Course";
-        courses = DATA_STORE["courses"];
+        course_title = "Unknown Course"
+        courses = DATA_STORE["courses"]
         for course in courses {
-            course_id = course["course_id"];
+            course_id = course["course_id"]
             if course_id == self.module_id {
-                course_title = course["title"];
-                break;
+                course_title = course["title"]
+                break
             }
         }
         
@@ -560,15 +559,15 @@ walker learning_session_start {
             "status": "in_progress",
             "progress": 0,
             "started_at": get_timestamp()
-        };
-        
-        sessions = DATA_STORE["sessions"];
-        if self.user_id not in sessions {
-            DATA_STORE["sessions"][self.user_id] = [];
         }
         
-        user_sessions = DATA_STORE["sessions"][self.user_id];
-        DATA_STORE["sessions"][self.user_id] = user_sessions + [session];
+        sessions = DATA_STORE["sessions"]
+        if self.user_id not in sessions {
+            DATA_STORE["sessions"][self.user_id] = []
+        }
+        
+        user_sessions = DATA_STORE["sessions"][self.user_id]
+        DATA_STORE["sessions"][self.user_id] = user_sessions.push(session)
         
         report {
             "success": true,
@@ -577,30 +576,30 @@ walker learning_session_start {
             "module_id": self.module_id,
             "status": "active",
             "message": "Learning session started"
-        };
+        }
     }
 }
 
 walker learning_session_end {
-    has session_id: str;
-    has progress: float;
+    has session_id: str
+    has progress: float
     
     can learning_session_end with entry {
         # Find and update session
-        sessions = DATA_STORE["sessions"];
-        session_keys = sessions.keys();
-        found = false;
+        sessions = DATA_STORE["sessions"]
+        session_keys = sessions.keys()
+        found = false
         for user_id in session_keys {
-            user_sessions = sessions[user_id];
+            user_sessions = sessions[user_id]
             for session in user_sessions {
-                curr_session_id = session["session_id"];
+                curr_session_id = session["session_id"]
                 if curr_session_id == self.session_id {
-                    session["status"] = "completed";
+                    session["status"] = "completed"
                     if self.progress < 100 {
-                        session["status"] = "in_progress";
+                        session["status"] = "in_progress"
                     }
-                    session["progress"] = self.progress;
-                    session["completed_at"] = get_timestamp();
+                    session["progress"] = self.progress
+                    session["completed_at"] = get_timestamp()
                     
                     report {
                         "success": true,
@@ -608,13 +607,13 @@ walker learning_session_end {
                         "progress": self.progress,
                         "status": "completed",
                         "message": "Learning session ended"
-                    };
-                    found = true;
-                    break;
+                    }
+                    found = true
+                    break
                 }
             }
             if found {
-                break;
+                break
             }
         }
         
@@ -626,7 +625,7 @@ walker learning_session_end {
                 "progress": self.progress,
                 "status": "completed",
                 "message": "Learning session ended"
-            };
+            }
         }
     }
 }
@@ -636,55 +635,55 @@ walker learning_session_end {
 # ==============================================================================
 
 walker analytics_generate {
-    has user_id: str;
+    has user_id: str
     
     can analytics_generate with entry {
-        user = get_user_by_id(self.user_id);
+        user = get_user_by_id(self.user_id)
         
         if user == {} {
             report {
                 "success": false,
                 "error": "User not found"
-            };
-            return;
+            }
+            return
         }
         
-        sessions = [];
-        sessions_data = DATA_STORE["sessions"];
+        sessions = []
+        sessions_data = DATA_STORE["sessions"]
         if self.user_id in sessions_data {
-            sessions = sessions_data[self.user_id];
+            sessions = sessions_data[self.user_id]
         }
         
-        completed = [];
+        completed = []
         for session in sessions {
-            status = session["status"];
+            status = session["status"]
             if status == "completed" {
-                completed = completed + [session];
+                completed = completed.push(session)
             }
         }
         
         # Calculate engagement score
-        completed_count = completed.len;
-        engagement_score_val = completed_count / 10.0;
+        completed_count = completed.len
+        engagement_score_val = completed_count / 10.0
         if engagement_score_val > 1.0 {
-            engagement_score_val = 1.0;
+            engagement_score_val = 1.0
         }
-        engagement_score = engagement_score_val * 100;
+        engagement_score = engagement_score_val * 100
         
         # Determine learning velocity
-        learning_velocity = "Building";
+        learning_velocity = "Building"
         if completed_count >= 5 {
-            learning_velocity = "Fast";
+            learning_velocity = "Fast"
         } elseif completed_count >= 2 {
-            learning_velocity = "Moderate";
+            learning_velocity = "Moderate"
         }
         
         # Calculate knowledge retention
-        retention_base = 70;
-        retention_add = completed_count * 5;
-        knowledge_retention = retention_base + retention_add;
+        retention_base = 70
+        retention_add = completed_count * 5
+        knowledge_retention = retention_base + retention_add
         if knowledge_retention > 98 {
-            knowledge_retention = 98;
+            knowledge_retention = 98
         }
         
         learning_analytics = {
@@ -695,32 +694,32 @@ walker analytics_generate {
             "knowledge_retention": knowledge_retention,
             "learning_velocity": learning_velocity,
             "generated_at": get_timestamp()
-        };
+        }
         
         if completed_count > 0 {
-            total_progress = 0;
+            total_progress = 0
             for session in completed {
-                total_progress = total_progress + session["progress"];
+                total_progress = total_progress + session["progress"]
             }
-            learning_analytics["average_score"] = total_progress / completed_count;
+            learning_analytics["average_score"] = total_progress / completed_count
         }
         
-        recommendations = generate_recommendations(user, completed);
+        recommendations = generate_recommendations(user, completed)
         
-        strengths = [];
+        strengths = []
         if completed_count >= 2 {
-            strengths = strengths + ["Consistent learning"];
-            strengths = strengths + ["Practical application"];
+            strengths = strengths.push("Consistent learning")
+            strengths = strengths.push("Practical application")
         } else {
-            strengths = strengths + ["Getting started"];
+            strengths = strengths.push("Getting started")
         }
         
-        areas_for_improvement = [];
+        areas_for_improvement = []
         if completed_count > 0 {
-            areas_for_improvement = areas_for_improvement + ["Practice more exercises"];
-            areas_for_improvement = areas_for_improvement + ["Review completed material"];
+            areas_for_improvement = areas_for_improvement.push("Practice more exercises")
+            areas_for_improvement = areas_for_improvement.push("Review completed material")
         } else {
-            areas_for_improvement = areas_for_improvement + ["Complete first course to identify areas for improvement"];
+            areas_for_improvement = areas_for_improvement.push("Complete first course to identify areas for improvement")
         }
         
         report {
@@ -729,7 +728,7 @@ walker analytics_generate {
             "recommendations": recommendations,
             "strengths": strengths,
             "areas_for_improvement": areas_for_improvement
-        };
+        }
     }
 }
 
@@ -738,20 +737,20 @@ walker analytics_generate {
 # ==============================================================================
 
 walker ai_generate_content {
-    has concept_name: str;
-    has domain: str = "Computer Science";
-    has difficulty: str = "beginner";
-    has related_concepts: list = [];
+    has concept_name: str
+    has domain: str = "Computer Science"
+    has difficulty: str = "beginner"
+    has related_concepts: list = []
     
     can ai_generate_content with entry {
         # Generate content using OpenAI or fallback
-        result = generate_ai_content(self.concept_name, self.domain, self.difficulty, self.related_concepts);
+        result = generate_ai_content(self.concept_name, self.domain, self.difficulty, self.related_concepts)
         
         # Track AI generation
-        current_gen = DATA_STORE["ai_generations"];
-        DATA_STORE["ai_generations"] = current_gen + 1;
+        current_gen = DATA_STORE["ai_generations"]
+        DATA_STORE["ai_generations"] = current_gen + 1
         
-        report result;
+        report result
     }
 }
 
@@ -760,31 +759,31 @@ walker ai_generate_content {
 # ==============================================================================
 
 walker export_data {
-    has format: str = "json";
+    has format: str = "json"
     
     can export_data with entry {
-        all_users = [];
-        users = DATA_STORE["users"];
-        user_keys = users.keys();
+        all_users = []
+        users = DATA_STORE["users"]
+        user_keys = users.keys()
         for username in user_keys {
-            user = users[username];
-            user_copy = {};
-            user_keys_inner = user.keys();
+            user = users[username]
+            user_copy = {}
+            user_keys_inner = user.keys()
             for key in user_keys_inner {
                 if key != "password" {
-                    user_copy[key] = user[key];
+                    user_copy[key] = user[key]
                 }
             }
-            all_users = all_users + [user_copy];
+            all_users = all_users.push(user_copy)
         }
         
-        all_sessions = [];
-        sessions = DATA_STORE["sessions"];
-        session_keys = sessions.keys();
+        all_sessions = []
+        sessions = DATA_STORE["sessions"]
+        session_keys = sessions.keys()
         for user_id in session_keys {
-            user_sessions = sessions[user_id];
+            user_sessions = sessions[user_id]
             for session in user_sessions {
-                all_sessions = all_sessions + [session];
+                all_sessions = all_sessions.push(session)
             }
         }
         
@@ -802,7 +801,7 @@ walker export_data {
                 "courses": DATA_STORE["courses"].len,
                 "sessions": all_sessions.len
             }
-        };
+        }
     }
 }
 
@@ -988,14 +987,14 @@ walker learning_paths {
                 "next_step": "Linux Fundamentals",
                 "last_activity": null
             }
-        ];
+        ]
         
         report {
             "success": true,
             "paths": paths,
             "total": paths.len,
             "categories": ["programming", "web-development", "programming-languages", "data-science", "devops"]
-        };
+        }
     }
 }
 
@@ -1079,13 +1078,13 @@ walker concepts {
                 "icon": "test",
                 "related_concepts": ["Unit Tests", "Mocking", "CI/CD"]
             }
-        ];
+        ]
         
         report {
             "success": true,
             "concepts": concepts,
             "total": concepts.len
-        };
+        }
     }
 }
 
@@ -1186,27 +1185,27 @@ walker quizzes {
                 "completed": false,
                 "score": null
             }
-        ];
+        ]
         
         report {
             "success": true,
             "quizzes": quizzes,
             "total": quizzes.len
-        };
+        }
     }
 }
 
 walker quiz_submit {
-    has quiz_id: str;
-    has answers: list;
+    has quiz_id: str
+    has answers: list
     
     can quiz_submit with entry {
         # Calculate score based on answers
-        score = 85;
+        score = 85
         
-        result_message = "Keep learning and try again!";
+        result_message = "Keep learning and try again!"
         if score >= 70 {
-            result_message = "Congratulations! You passed!";
+            result_message = "Congratulations! You passed!"
         }
         
         report {
@@ -1215,7 +1214,7 @@ walker quiz_submit {
             "score": score,
             "passed": score >= 70,
             "message": result_message
-        };
+        }
     }
 }
 
@@ -1224,26 +1223,26 @@ walker quiz_submit {
 # ==============================================================================
 
 walker achievements {
-    has user_id: str;
+    has user_id: str
     
     can achievements with entry {
-        user = get_user_by_id(self.user_id);
+        user = get_user_by_id(self.user_id)
         
         # Get user progress for achievement calculation
-        progress_data = calculate_user_progress(self.user_id);
+        progress_data = calculate_user_progress(self.user_id)
         
         # Safe dictionary access for sessions
-        sessions = [];
-        sessions_data = DATA_STORE["sessions"];
+        sessions = []
+        sessions_data = DATA_STORE["sessions"]
         if self.user_id in sessions_data {
-            sessions = sessions_data[self.user_id];
+            sessions = sessions_data[self.user_id]
         }
         
-        completed = [];
+        completed = []
         for s in sessions {
-            status = s["status"];
+            status = s["status"]
             if status == "completed" {
-                completed = completed + [s];
+                completed = completed.push(s)
             }
         }
         
@@ -1329,12 +1328,12 @@ walker achievements {
                 "requirement": "Send 5 chat messages",
                 "category": "engagement"
             }
-        ];
+        ]
         
-        earned_count = 0;
+        earned_count = 0
         for a in all_achievements {
             if a["earned"] {
-                earned_count = earned_count + 1;
+                earned_count = earned_count + 1
             }
         }
         
@@ -1344,7 +1343,7 @@ walker achievements {
             "total": all_achievements.len,
             "earned_count": earned_count,
             "total_points": 0
-        };
+        }
     }
 }
 
@@ -1353,7 +1352,7 @@ walker achievements {
 # ==============================================================================
 
 walker chat {
-    has message: str;
+    has message: str
     
     can chat with entry {
         # Simple AI chat responses
@@ -1363,18 +1362,18 @@ walker chat {
             "Based on your learning history, I'd recommend focusing on...",
             "Great thinking! This concept relates to...",
             "Let me break this down for you in simple terms..."
-        ];
+        ]
         
-        import random;
-        response = responses[0];
+        import random
+        response = responses[0]
         
         # Add context-aware response
-        contextual_response = response + "\n\nWould you like me to elaborate on any specific aspect of this topic?";
+        contextual_response = response + "\n\nWould you like me to elaborate on any specific aspect of this topic?"
         
         report {
             "success": true,
             "response": contextual_response,
             "timestamp": get_timestamp()
-        };
+        }
     }
 }
