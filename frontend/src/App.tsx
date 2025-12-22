@@ -41,17 +41,34 @@ const App: React.FC = () => {
     setLoading(true);
     try {
       const response = await apiService.login(username, password);
+      console.log('Login response:', response);
       
-      if (response.success && response.user && response.access_token) {
+      // Auth endpoints return {username, token, root_id} format
+      if (response.token && response.username) {
+        const user: User = {
+          user_id: `user_${response.username}_001`,
+          username: response.username,
+          email: `${response.username}@example.com`,
+          first_name: "Demo",
+          last_name: "User",
+          learning_style: "visual",
+          skill_level: "beginner",
+          is_active: true,
+          is_verified: false,
+          last_login: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          progress: {}
+        };
+        
         setAuthState({
           isAuthenticated: true,
-          user: response.user,
-          token: response.access_token
+          user: user,
+          token: response.token
         });
         setMessage('Login successful!');
         
         // Load user data
-        await loadUserData(response.user.user_id);
+        await loadUserData(user.user_id);
       } else {
         setMessage(response.error || 'Login failed');
       }
@@ -68,18 +85,20 @@ const App: React.FC = () => {
       console.log('Starting registration with data:', userData);
       const response = await apiService.register(userData);
       console.log('Registration response received:', response);
-      console.log('Response type:', typeof response);
-      console.log('Response keys:', Object.keys(response));
-      console.log('Response.success value:', response.success);
-      console.log('Response.success type:', typeof response.success);
       
-      if (response && response.success === true) {
+      // Auth endpoints return {username, token, root_id} on success
+      if (response.token && response.username) {
         console.log('Registration successful - setting message and switching tab');
         setMessage('Registration successful! You can now log in.');
         setActiveTab('login');
       } else {
-        console.log('Registration failed - response:', response);
-        setMessage('Registration failed');
+        console.log('Registration response format:', response);
+        // Check if it's already registered
+        if (response.error && response.error.includes('already exists')) {
+          setMessage('User already exists. Please login.');
+        } else {
+          setMessage('Registration failed');
+        }
       }
     } catch (error) {
       setMessage('Registration failed. Please try again.');

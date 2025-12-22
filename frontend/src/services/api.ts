@@ -108,11 +108,17 @@ class ApiService {
 
   // Health and Status
   async healthCheck(): Promise<any> {
-    return this.makeRequest('/health_check');
+    return this.makeRequest('/walker/health_check', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   async getWelcome(): Promise<any> {
-    return this.makeRequest('/init');
+    return this.makeRequest('/walker/init', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   // Authentication
