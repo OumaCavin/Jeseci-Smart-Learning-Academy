@@ -1,0 +1,31 @@
+{
+  "name": "jeseci-smart-learning-academy-backend",
+  "version": "6.0.0",
+  "description": "Jeseci Smart Learning Academy - LittleX Pattern Backend API",
+  "main": "app.jac",
+  "scripts": {
+    "serve": "jac serve app.jac",
+    "compile": "jac build app.jac",
+    "build": "jac build app.jac",
+    "dev": "jac serve app.jac --watch",
+    "test": "jac test app.jac",
+    "clean": "rm -f app.jir *.session *.json"
+  },
+  "keywords": [
+    "jaclang",
+    "education",
+    "learning",
+    "api",
+    "ai",
+    "smart-learning"
+  ],
+  "author": "MiniMax Agent",
+  "license": "MIT",
+  "dependencies": {
+    "jaclang": "^0.9.3"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
