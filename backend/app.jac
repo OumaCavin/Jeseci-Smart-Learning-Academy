@@ -9,13 +9,9 @@
 import time;
 import os;
 
-# Graph database integration
-import from python { PyModule }
-glob neo4j_db = PyModule("backend.database");
-
-# PostgreSQL user management
-import from python { PyModule }
-glob pg_users = PyModule("backend.user_auth");
+# Database and authentication modules
+import backend.database as db_module;
+import backend.user_auth as auth_module;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -67,8 +63,8 @@ walker health_check {
             ai_status = "fallback";
         }
         
-        import from datetime { datetime }
-        self.timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ");
+        import datetime;
+        self.timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ");
         
         report {
             "service": "Jeseci Smart Learning Academy API",
@@ -171,10 +167,10 @@ walker user_create {
     has skill_level: str = "beginner";
     
     can user_create with entry {
-        import from datetime { datetime }
+        import datetime;
         
         # Use PostgreSQL-based user registration
-        result = pg_users.register_user(
+        result = auth_module.register_user(
             self.username,
             self.email,
             self.password,
@@ -209,7 +205,7 @@ walker user_login {
     
     can user_login with entry {
         # Use PostgreSQL-based authentication
-        result = pg_users.authenticate_user(self.username, self.password);
+        result = auth_module.authenticate_user(self.username, self.password);
         
         if result['success'] {
             report {
@@ -282,7 +278,7 @@ walker learning_session_start {
     has module_id: str;
     
     can learning_session_start with entry {
-        import from datetime { datetime }
+        import datetime;
         session_id = "session_" + self.user_id + "_" + self.module_id + "_001";
         
         report {
@@ -319,7 +315,7 @@ walker analytics_generate {
     has user_id: str;
     
     can analytics_generate with entry {
-        import from datetime { datetime }
+        import datetime;
         
         learning_analytics = {
             "modules_completed": 5,
@@ -328,7 +324,7 @@ walker analytics_generate {
             "engagement_score": 75.0,
             "knowledge_retention": 85,
             "learning_velocity": "Moderate",
-            "generated_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         };
         
         recommendations = [
@@ -368,7 +364,7 @@ walker ai_generate_content {
     has related_concepts: list = [];
     
     can ai_generate_content with entry {
-        import from datetime { datetime }
+        import datetime;
         
         result = {
             "success": true,
@@ -377,7 +373,7 @@ walker ai_generate_content {
             "difficulty": self.difficulty,
             "content": "AI-generated content for " + self.concept_name + ". This lesson covers fundamental concepts and provides hands-on examples.",
             "related_concepts": self.related_concepts,
-            "generated_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
             "source": "ai_generator"
         };
         
@@ -393,7 +389,7 @@ walker export_data {
     has format: str = "json";
     
     can export_data with entry {
-        import from datetime { datetime }
+        import datetime;
         
         report {
             "success": true,
@@ -402,7 +398,7 @@ walker export_data {
                 "users": [],
                 "courses": [],
                 "sessions": [],
-                "exported_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                "exported_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             },
             "record_count": {
                 "users": 0,
@@ -722,7 +718,7 @@ walker achievements {
     has user_id: str;
     
     can achievements with entry {
-        import from datetime { datetime }
+        import datetime;
         
         # All possible achievements
         all_achievements = [
@@ -732,7 +728,7 @@ walker achievements {
                 "description": "Complete your first course",
                 "icon": "target",
                 "earned": true,
-                "earned_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "earned_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "requirement": "Complete 1 course",
                 "category": "learning"
             },
@@ -807,7 +803,7 @@ walker chat {
             "Let me break this down for you in simple terms..."
         ];
         
-        import from datetime { datetime }
+        import datetime;
         response = responses[0];
         
         # Add context-aware response
@@ -816,7 +812,7 @@ walker chat {
         report {
             "success": true,
             "response": contextual_response,
-            "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         };
     }
 }
@@ -827,7 +823,7 @@ walker chat {
 walker graph_init {
     can graph_init with entry {
         import from python { PyModule }
-        result = neo4j_db.test_all_connections();
+        result = db_module.test_all_connections();
         
         report {
             "success": true,
@@ -845,7 +841,7 @@ walker graph_init {
 
 walker graph_concepts {
     can graph_concepts with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         query = """
         MATCH (c:Concept)
@@ -871,7 +867,7 @@ walker graph_concept_detail {
     has concept_id: str;
     
     can graph_concept_detail with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         query = """
         MATCH (c:Concept {concept_id: $concept_id})
@@ -921,7 +917,7 @@ walker graph_concept_detail {
 
 walker graph_paths {
     can graph_paths with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         query = """
         MATCH (p:LearningPath)
@@ -948,7 +944,7 @@ walker graph_path_detail {
     has path_id: str;
     
     can graph_path_detail with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         query = """
         MATCH (p:LearningPath {path_id: $path_id})
@@ -995,7 +991,7 @@ walker graph_user_progress {
     has user_id: str;
     
     can graph_user_progress with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         completed_query = """
         MATCH (u:User {user_id: $user_id})-[r:Completed]->(c:Concept)
@@ -1041,7 +1037,7 @@ walker graph_complete_concept {
     has time_spent: int = 30;
     
     can graph_complete_concept with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         user_query = """
         MERGE (u:User {user_id: $user_id})
@@ -1084,7 +1080,7 @@ walker graph_enroll_path {
     has path_id: str;
     
     can graph_enroll_path with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         enroll_query = """
         MATCH (u:User {user_id: $user_id})
@@ -1122,7 +1118,7 @@ walker graph_recommendations {
     has limit: int = 5;
     
     can graph_recommendations with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         query = """
         MATCH (u:User {user_id: $user_id})
@@ -1157,7 +1153,7 @@ walker graph_next_concept {
     has path_id: str;
     
     can graph_next_concept with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         query = """
         MATCH (u:User {user_id: $user_id})
@@ -1196,7 +1192,7 @@ walker graph_learning_journey {
     has user_id: str;
     
     can graph_learning_journey with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         query = """
         MATCH (u:User {user_id: $user_id})-[r:Completed]->(c:Concept)
@@ -1232,7 +1228,7 @@ walker graph_popular_concepts {
     has limit: int = 10;
     
     can graph_popular_concepts with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         query = """
         MATCH (c:Concept)
@@ -1260,7 +1256,7 @@ walker graph_popular_concepts {
 
 walker graph_seed {
     can graph_seed with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         concepts = [
             {"id": "prog_basics", "name": "programming_basics", "display_name": "Programming Basics", "category": "Programming", "difficulty": "beginner", "duration": 30},
@@ -1348,7 +1344,7 @@ walker graph_seed {
 
 walker graph_stats {
     can graph_stats with entry {
-        manager = neo4j_db.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
         
         concept_count = manager.execute_query("MATCH (c:Concept) RETURN count(c) AS count", None);
         user_count = manager.execute_query("MATCH (u:User) RETURN count(u) AS count", None);
