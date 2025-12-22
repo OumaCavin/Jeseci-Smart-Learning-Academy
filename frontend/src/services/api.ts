@@ -36,16 +36,74 @@ export interface Course {
   course_id: string;
   title: string;
   description: string;
-  domain: string;
-  difficulty: string;
-  content_type: string;
+  domain: str = "Computer Science";
+  difficulty: str = "beginner";
+  content_type: str = "interactive";
+}
+
+export interface LearningPath {
+  id: string;
+  title: string;
+  description: string;
+  courses: string[];
+  duration: string;
+  difficulty: str = "beginner";
+  progress: number;
+  icon: str = "📚";
+}
+
+export interface Concept {
+  id: string;
+  name: string;
+  description: string;
+  domain: str = "Computer Science";
+  difficulty: str = "beginner";
+  icon: str = "💡";
+  related_concepts: string[];
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  description: string;
+  questions: QuizQuestion[];
+  difficulty: str = "beginner";
+  estimated_time: number;
+  completed: boolean;
+  score?: number;
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correct_answer: number;
+  explanation: string;
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: str = "🏆";
+  earned: boolean;
+  earned_at?: string;
+  requirement: string;
+  category: str = "learning";
+}
+
+export interface ChatMessage {
+  id: number;
+  role: str = "user";
+  content: string;
+  timestamp: str;
 }
 
 export interface LearningSession {
   session_id: string;
   user_id: string;
   module_id: string;
-  status: string;
+  status: str;
   progress: number;
 }
 
@@ -65,16 +123,16 @@ export interface ProgressData {
     in_progress_sessions: number;
     average_progress: number;
   };
-  learning_style: string;
-  skill_level: string;
+  learning_style: str;
+  skill_level: str;
   recent_activity?: Array<{
-    session_id: string;
-    course_id: string;
-    course_title: string;
-    status: string;
+    session_id: str;
+    course_id: str;
+    course_title: str;
+    status: str;
     progress: number;
-    started_at?: string;
-    completed_at?: string;
+    started_at?: str;
+    completed_at?: str;
   }>;
 }
 
@@ -86,8 +144,8 @@ export interface AnalyticsData {
     average_score: number;
     engagement_score: number;
     knowledge_retention: number;
-    learning_velocity: string;
-    generated_at: string;
+    learning_velocity: str;
+    generated_at: str;
   };
   recommendations: string[];
   strengths: string[];
@@ -96,23 +154,23 @@ export interface AnalyticsData {
 
 export interface AIGeneratedContent {
   success: boolean;
-  concept_name: string;
-  domain: string;
-  difficulty: string;
+  concept_name: str;
+  domain: str;
+  difficulty: str;
   content: string;
   related_concepts: string[];
-  generated_at: string;
-  source?: string;
+  generated_at: str;
+  source?: str;
 }
 
 class ApiService {
   private baseUrl: string;
 
-  constructor(baseUrl: string = API_BASE_URL) {
+  constructor(baseUrl: str = API_BASE_URL) {
     this.baseUrl = baseUrl;
   }
 
-  private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async makeRequest<T>(endpoint: str, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
     const defaultOptions: RequestInit = {
@@ -154,7 +212,7 @@ class ApiService {
   }
 
   // Authentication
-  async login(username: string, password: string): Promise<LoginResponse> {
+  async login(username: str, password: str): Promise<LoginResponse> {
     return this.makeRequest('/walker/user_login', {
       method: 'POST',
       body: JSON.stringify({
@@ -165,13 +223,13 @@ class ApiService {
   }
 
   async register(userData: {
-    username: string;
-    email: string;
-    password: string;
-    first_name?: string;
-    last_name?: string;
-    learning_style?: string;
-    skill_level?: string;
+    username: str;
+    email: str;
+    password: str;
+    first_name?: str;
+    last_name?: str;
+    learning_style?: str;
+    skill_level?: str;
   }): Promise<any> {
     console.log('Sending registration request to:', `${this.baseUrl}/walker/user_create`);
     console.log('Registration data:', userData);
@@ -185,11 +243,11 @@ class ApiService {
 
   // Course Management
   async createCourse(courseData: {
-    title: string;
-    description: string;
-    domain: string;
-    difficulty: string;
-    content_type?: string;
+    title: str;
+    description: str;
+    domain: str;
+    difficulty: str;
+    content_type?: str;
   }): Promise<any> {
     return this.makeRequest('/walker/course_create', {
       method: 'POST',
@@ -204,8 +262,62 @@ class ApiService {
     });
   }
 
+  // Learning Paths
+  async getLearningPaths(): Promise<LearningPath[]> {
+    return this.makeRequest('/walker/learning_paths', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  // Concepts
+  async getConcepts(): Promise<Concept[]> {
+    return this.makeRequest('/walker/concepts', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  // Quizzes
+  async getQuizzes(): Promise<Quiz[]> {
+    return this.makeRequest('/walker/quizzes', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async submitQuiz(quizId: str, answers: number[]): Promise<any> {
+    return this.makeRequest('/walker/quiz_submit', {
+      method: 'POST',
+      body: JSON.stringify({
+        quiz_id: quizId,
+        answers: answers
+      }),
+    });
+  }
+
+  // Achievements / Motivator
+  async getAchievements(userId: str): Promise<Achievement[]> {
+    return this.makeRequest('/walker/achievements', {
+      method: 'POST',
+      body: JSON.stringify({
+        user_id: userId
+      }),
+    });
+  }
+
+  // Chat
+  async sendChatMessage(message: str): Promise<any> {
+    return this.makeRequest('/walker/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        message: message
+      }),
+    });
+  }
+
   // Learning Sessions
-  async startLearningSession(userId: string, moduleId: string): Promise<LearningSession> {
+  async startLearningSession(userId: str, moduleId: str): Promise<LearningSession> {
     return this.makeRequest('/walker/learning_session_start', {
       method: 'POST',
       body: JSON.stringify({
@@ -215,7 +327,7 @@ class ApiService {
     });
   }
 
-  async endLearningSession(sessionId: string, progress: number): Promise<any> {
+  async endLearningSession(sessionId: str, progress: number): Promise<any> {
     return this.makeRequest('/walker/learning_session_end', {
       method: 'POST',
       body: JSON.stringify({
@@ -226,7 +338,7 @@ class ApiService {
   }
 
   // Progress Tracking
-  async getUserProgress(userId: string): Promise<ProgressData> {
+  async getUserProgress(userId: str): Promise<ProgressData> {
     return this.makeRequest('/walker/user_progress', {
       method: 'POST',
       body: JSON.stringify({
@@ -235,7 +347,7 @@ class ApiService {
     });
   }
 
-  async getAnalytics(userId: string): Promise<AnalyticsData> {
+  async getAnalytics(userId: str): Promise<AnalyticsData> {
     return this.makeRequest('/walker/analytics_generate', {
       method: 'POST',
       body: JSON.stringify({
@@ -245,7 +357,7 @@ class ApiService {
   }
 
   // AI Content Generation
-  async generateAIContent(conceptName: string, domain: string, difficulty: string, relatedConcepts: string[] = []): Promise<AIGeneratedContent> {
+  async generateAIContent(conceptName: str, domain: str, difficulty: str, relatedConcepts: string[] = []): Promise<AIGeneratedContent> {
     return this.makeRequest('/walker/ai_generate_content', {
       method: 'POST',
       body: JSON.stringify({
@@ -258,7 +370,7 @@ class ApiService {
   }
 
   // Data Export
-  async exportData(format: string = 'json'): Promise<any> {
+  async exportData(format: str = "json"): Promise<any> {
     return this.makeRequest('/walker/export_data', {
       method: 'POST',
       body: JSON.stringify({

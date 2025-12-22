@@ -1,32 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { apiService, User, ProgressData, AnalyticsData, AIGeneratedContent } from './services/api';
+import React, { useState, useEffect, useContext } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { apiService, User, ProgressData, AnalyticsData, AIGeneratedContent, LearningPath, Concept, Quiz, Achievement, ChatMessage } from './services/api';
 import './App.css';
 
-interface AuthState {
-  isAuthenticated: boolean;
-  user: User | null;
-  token: string | null;
-}
+// =============================================================================
+// MAIN APP COMPONENT
+// =============================================================================
 
-const App: React.FC = () => {
-  const [authState, setAuthState] = useState<AuthState>({
-    isAuthenticated: false,
-    user: null,
-    token: null
-  });
-  
+const AppContent: React.FC = () => {
+  const { isAuthenticated, user, loading, login, register, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [userProgress, setUserProgress] = useState<ProgressData | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [aiContent, setAiContent] = useState<AIGeneratedContent | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingState, setLoadingState] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
+
+  // Additional state for new features
+  const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
+  const [concepts, setConcepts] = useState<Concept[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [newMessage, setNewMessage] = useState<string>('');
 
   // Check backend health on mount
   useEffect(() => {
     checkBackendHealth();
   }, []);
+
+  // Load user data when authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      loadUserData();
+    }
+  }, [isAuthenticated, user]);
 
   const checkBackendHealth = async () => {
     try {
@@ -38,90 +47,81 @@ const App: React.FC = () => {
     }
   };
 
-  const handleLogin = async (username: string, password: string) => {
-    setLoading(true);
+  const loadUserData = async () => {
+    if (!user) return;
+    
     try {
-      const response = await apiService.login(username, password);
-      console.log('Login response:', response);
+      setLoadingState(true);
       
-      if (response.success && response.user) {
-        setAuthState({
-          isAuthenticated: true,
-          user: response.user,
-          token: response.access_token || null
-        });
-        setMessage('Login successful!');
-        
-        // Load user data
-        await loadUserData(response.user.user_id);
-      } else {
-        setMessage(response.error || 'Login failed');
-      }
+      // Load all user data
+      const progress = await apiService.getUserProgress(user.user_id);
+      setUserProgress(progress);
+      
+      const analyticsData = await apiService.getAnalytics(user.user_id);
+      setAnalytics(analyticsData);
+      
+      const coursesData = await apiService.getCourses();
+      setCourses(coursesData);
+      
+      // Load additional features
+      const paths = await apiService.getLearningPaths();
+      setLearningPaths(paths);
+      
+      const conceptsData = await apiService.getConcepts();
+      setConcepts(conceptsData);
+      
+      const quizzesData = await apiService.getQuizzes();
+      setQuizzes(quizzesData);
+      
+      const achievementsData = await apiService.getAchievements(user.user_id);
+      setAchievements(achievementsData);
+      
+      console.log('All user data loaded successfully');
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setLoadingState(false);
+    }
+  };
+
+  const handleLogin = async (username: string, password: string) => {
+    setLoadingState(true);
+    try {
+      await login(username, password);
+      setMessage('Login successful!');
+      setActiveTab('dashboard');
     } catch (error) {
       setMessage('Login failed. Please check your credentials.');
       console.error('Login error:', error);
+    } finally {
+      setLoadingState(false);
     }
-    setLoading(false);
   };
 
   const handleRegister = async (userData: any) => {
-    setLoading(true);
+    setLoadingState(true);
     try {
-      console.log('Starting registration with data:', userData);
-      const response = await apiService.register(userData);
-      console.log('Registration response received:', response);
-      
-      if (response.success) {
-        console.log('Registration successful - setting message and switching tab');
-        setMessage('Registration successful! You can now log in.');
-        setActiveTab('login');
-      } else {
-        console.log('Registration response format:', response);
-        // Check if it's already registered
-        if (response.error && response.error.includes('already exists')) {
-          setMessage('User already exists. Please login.');
-        } else {
-          setMessage('Registration failed');
-        }
-      }
+      await register(userData);
+      setMessage('Registration successful! Welcome to Jeseci Academy.');
+      setActiveTab('dashboard');
     } catch (error) {
       setMessage('Registration failed. Please try again.');
       console.error('Registration error:', error);
-    }
-    setLoading(false);
-  };
-
-  const loadUserData = async (userId: string) => {
-    try {
-      // Load progress data
-      const progress = await apiService.getUserProgress(userId);
-      setUserProgress(progress);
-      console.log('User progress loaded:', progress);
-      
-      // Load analytics data
-      const analyticsData = await apiService.getAnalytics(userId);
-      setAnalytics(analyticsData);
-      console.log('Analytics loaded:', analyticsData);
-      
-      // Load courses
-      const coursesData = await apiService.getCourses();
-      setCourses(coursesData);
-      console.log('Courses loaded:', coursesData);
-    } catch (error) {
-      console.error('Error loading user data:', error);
+    } finally {
+      setLoadingState(false);
     }
   };
 
-  const generateAIContent = async () => {
-    if (!authState.user) return;
+  const generateAIContent = async (conceptName?: string, domain?: string, difficulty?: string) => {
+    if (!user) return;
     
-    setLoading(true);
+    setLoadingState(true);
     setMessage('');
     try {
       const response = await apiService.generateAIContent(
-        'Object-Spatial Programming',
-        'Computer Science',
-        'beginner',
+        conceptName || 'Object-Spatial Programming',
+        domain || 'Computer Science',
+        difficulty || 'beginner',
         ['Graph Theory', 'Node Systems', 'Walker Functions']
       );
       
@@ -134,9 +134,62 @@ const App: React.FC = () => {
     } catch (error) {
       setMessage('Failed to generate AI content');
       console.error('AI generation error:', error);
+    } finally {
+      setLoadingState(false);
     }
-    setLoading(false);
   };
+
+  const sendChatMessage = async () => {
+    if (!newMessage.trim() || !user) return;
+    
+    const userMsg: ChatMessage = {
+      id: Date.now(),
+      role: 'user',
+      content: newMessage,
+      timestamp: new Date().toISOString()
+    };
+    
+    setChatMessages(prev => [...prev, userMsg]);
+    setNewMessage('');
+    
+    try {
+      const response = await apiService.sendChatMessage(newMessage);
+      const botMsg: ChatMessage = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: response.response || 'I understand. Let me help you with that.',
+        timestamp: new Date().toISOString()
+      };
+      setChatMessages(prev => [...prev, botMsg]);
+    } catch (error) {
+      console.error('Chat error:', error);
+    }
+  };
+
+  const startCourse = async (courseId: string) => {
+    if (!user) return;
+    
+    setLoadingState(true);
+    try {
+      await apiService.startLearningSession(user.user_id, courseId);
+      setMessage('Learning session started!');
+      await loadUserData();
+    } catch (error) {
+      setMessage('Failed to start learning session');
+      console.error('Session start error:', error);
+    } finally {
+      setLoadingState(false);
+    }
+  };
+
+  const startQuiz = async (quizId: string) => {
+    setActiveTab('quiz');
+    setMessage(`Starting quiz ${quizId}...`);
+  };
+
+  // =============================================================================
+  // AUTH FORMS
+  // =============================================================================
 
   const renderLoginForm = () => (
     <div className="auth-container">
@@ -149,8 +202,8 @@ const App: React.FC = () => {
         }}>
           <input name="username" type="text" placeholder="Username or Email" required />
           <input name="password" type="password" placeholder="Password" required />
-          <button type="submit" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+          <button type="submit" disabled={loadingState}>
+            {loadingState ? 'Logging in...' : 'Login'}
           </button>
         </form>
         
@@ -196,8 +249,8 @@ const App: React.FC = () => {
             <option value="intermediate">Intermediate</option>
             <option value="advanced">Advanced</option>
           </select>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Registering...' : 'Register'}
+          <button type="submit" disabled={loadingState}>
+            {loadingState ? 'Registering...' : 'Register'}
           </button>
         </form>
         
@@ -209,46 +262,107 @@ const App: React.FC = () => {
     </div>
   );
 
+  // =============================================================================
+  // DASHBOARD SECTIONS
+  // =============================================================================
+
   const renderDashboard = () => (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Welcome to Jeseci Smart Learning Academy</h1>
-        <p>AI-Powered Learning Platform with Dynamic Analytics</p>
+        <h1>Welcome back, {user?.first_name || user?.username || 'Learner'}!</h1>
+        <p>Your personalized learning journey continues</p>
         <div className="user-info">
-          <p><strong>User:</strong> {authState.user?.username}</p>
-          <p><strong>Learning Style:</strong> {authState.user?.learning_style}</p>
-          <p><strong>Skill Level:</strong> {authState.user?.skill_level}</p>
+          <span className="user-badge">{user?.learning_style} Learner</span>
+          <span className="user-badge">{user?.skill_level}</span>
         </div>
       </div>
 
       <div className="dashboard-tabs">
-        <button 
-          className={activeTab === 'courses' ? 'active' : ''} 
-          onClick={() => setActiveTab('courses')}
-        >
+        <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
+          Dashboard
+        </button>
+        <button className={activeTab === 'courses' ? 'active' : ''} onClick={() => setActiveTab('courses')}>
           Courses
         </button>
-        <button 
-          className={activeTab === 'progress' ? 'active' : ''} 
-          onClick={() => setActiveTab('progress')}
-        >
+        <button className={activeTab === 'paths' ? 'active' : ''} onClick={() => setActiveTab('paths')}>
+          Learning Paths
+        </button>
+        <button className={activeTab === 'concepts' ? 'active' : ''} onClick={() => setActiveTab('concepts')}>
+          Concepts
+        </button>
+        <button className={activeTab === 'progress' ? 'active' : ''} onClick={() => setActiveTab('progress')}>
           Progress
         </button>
-        <button 
-          className={activeTab === 'ai' ? 'active' : ''} 
-          onClick={() => setActiveTab('ai')}
-        >
+        <button className={activeTab === 'motivator' ? 'active' : ''} onClick={() => setActiveTab('motivator')}>
+          Achievements
+        </button>
+        <button className={activeTab === 'quizzes' ? 'active' : ''} onClick={() => setActiveTab('quizzes')}>
+          Quizzes
+        </button>
+        <button className={activeTab === 'ai' ? 'active' : ''} onClick={() => setActiveTab('ai')}>
           AI Generator
         </button>
-        <button 
-          className={activeTab === 'analytics' ? 'active' : ''} 
-          onClick={() => setActiveTab('analytics')}
-        >
+        <button className={activeTab === 'chat' ? 'active' : ''} onClick={() => setActiveTab('chat')}>
+          AI Chat
+        </button>
+        <button className={activeTab === 'analytics' ? 'active' : ''} onClick={() => setActiveTab('analytics')}>
           Analytics
         </button>
       </div>
 
       <div className="dashboard-content">
+        {/* MAIN DASHBOARD OVERVIEW */}
+        {activeTab === 'dashboard' && userProgress && (
+          <div className="dashboard-overview">
+            <div className="stats-grid">
+              <div className="stat-card">
+                <h3>Courses Completed</h3>
+                <p className="stat-number">{userProgress.progress.courses_completed}</p>
+              </div>
+              <div className="stat-card">
+                <h3>Lessons Completed</h3>
+                <p className="stat-number">{userProgress.progress.lessons_completed}</p>
+              </div>
+              <div className="stat-card">
+                <h3>Study Time</h3>
+                <p className="stat-number">{userProgress.progress.total_study_time} mins</p>
+              </div>
+              <div className="stat-card">
+                <h3>Current Streak</h3>
+                <p className="stat-number">{userProgress.progress.current_streak} days</p>
+              </div>
+            </div>
+
+            {userProgress.recent_activity && userProgress.recent_activity.length > 0 && (
+              <div className="recent-activity-section">
+                <h3>Recent Activity</h3>
+                {userProgress.recent_activity.slice(0, 5).map((activity) => (
+                  <div key={activity.session_id} className="activity-item">
+                    <span className="activity-course">{activity.course_title}</span>
+                    <span className="activity-status">{activity.status}</span>
+                    <span className="activity-progress">{activity.progress}%</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {achievements.length > 0 && (
+              <div className="achievements-preview">
+                <h3>Recent Achievements</h3>
+                <div className="achievements-grid">
+                  {achievements.slice(0, 4).map((achievement) => (
+                    <div key={achievement.id} className="achievement-card">
+                      <span className="achievement-icon">{achievement.icon}</span>
+                      <span className="achievement-name">{achievement.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* COURSES */}
         {activeTab === 'courses' && (
           <div className="courses-section">
             <h2>Available Courses</h2>
@@ -257,8 +371,10 @@ const App: React.FC = () => {
                 <div key={course.course_id} className="course-card">
                   <h3>{course.title}</h3>
                   <p>{course.description}</p>
-                  <p><strong>Domain:</strong> {course.domain}</p>
-                  <p><strong>Difficulty:</strong> {course.difficulty}</p>
+                  <div className="course-meta">
+                    <span className="course-domain">{course.domain}</span>
+                    <span className="course-difficulty">{course.difficulty}</span>
+                  </div>
                   <button onClick={() => startCourse(course.course_id)}>
                     Start Learning
                   </button>
@@ -268,6 +384,58 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {/* LEARNING PATHS */}
+        {activeTab === 'paths' && (
+          <div className="paths-section">
+            <h2>Learning Paths</h2>
+            <p>Structured paths to master specific skills</p>
+            <div className="paths-grid">
+              {learningPaths.map((path) => (
+                <div key={path.id} className="path-card">
+                  <h3>{path.title}</h3>
+                  <p>{path.description}</p>
+                  <div className="path-progress">
+                    <div className="progress-bar">
+                      <div className="progress-fill" style={{ width: `${path.progress}%` }}></div>
+                    </div>
+                    <span>{path.progress}% complete</span>
+                  </div>
+                  <div className="path-modules">
+                    <span>{path.courses.length} modules</span>
+                    <span>{path.duration}</span>
+                  </div>
+                  <button onClick={() => setActiveTab('concepts')}>Continue Path</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* CONCEPTS */}
+        {activeTab === 'concepts' && (
+          <div className="concepts-section">
+            <h2>Concepts Library</h2>
+            <p>Explore topics across different domains</p>
+            <div className="concepts-grid">
+              {concepts.map((concept) => (
+                <div key={concept.id} className="concept-card">
+                  <span className="concept-icon">{concept.icon}</span>
+                  <h3>{concept.name}</h3>
+                  <p>{concept.description}</p>
+                  <div className="concept-meta">
+                    <span className="concept-domain">{concept.domain}</span>
+                    <span className="concept-difficulty">{concept.difficulty}</span>
+                  </div>
+                  <button onClick={() => generateAIContent(concept.name, concept.domain, concept.difficulty)}>
+                    Learn with AI
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* PROGRESS */}
         {activeTab === 'progress' && userProgress && (
           <div className="progress-section">
             <h2>Your Learning Progress</h2>
@@ -281,8 +449,8 @@ const App: React.FC = () => {
                 <p className="stat-number">{userProgress.progress.lessons_completed}</p>
               </div>
               <div className="stat-card">
-                <h3>Study Time (mins)</h3>
-                <p className="stat-number">{userProgress.progress.total_study_time}</p>
+                <h3>Study Time</h3>
+                <p className="stat-number">{userProgress.progress.total_study_time} mins</p>
               </div>
               <div className="stat-card">
                 <h3>Current Streak</h3>
@@ -294,47 +462,154 @@ const App: React.FC = () => {
               <h3>Analytics Overview</h3>
               <p><strong>Completion Rate:</strong> {userProgress.analytics.completion_rate.toFixed(1)}%</p>
               <p><strong>Total Sessions:</strong> {userProgress.analytics.total_sessions}</p>
-              <p><strong>Completed Sessions:</strong> {userProgress.analytics.completed_sessions}</p>
-              <p><strong>In Progress:</strong> {userProgress.analytics.in_progress_sessions}</p>
               <p><strong>Average Score:</strong> {userProgress.analytics.average_progress.toFixed(1)}%</p>
             </div>
-            
-            {userProgress.recent_activity && userProgress.recent_activity.length > 0 && (
-              <div className="recent-activity">
-                <h3>Recent Activity</h3>
-                {userProgress.recent_activity.slice(0, 5).map((activity) => (
-                  <div key={activity.session_id} className="activity-item">
-                    <p><strong>{activity.course_title}</strong> - {activity.status}</p>
-                    <p>Progress: {activity.progress}%</p>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
+        {/* MOTIVATOR / ACHIEVEMENTS */}
+        {activeTab === 'motivator' && (
+          <div className="motivator-section">
+            <h2>Achievements & Gamification</h2>
+            <p>Track your accomplishments and stay motivated</p>
+            
+            <div className="achievements-categories">
+              <div className="achievement-category">
+                <h3>Earned Badges</h3>
+                <div className="achievements-grid">
+                  {achievements.filter(a => a.earned).map((achievement) => (
+                    <div key={achievement.id} className="achievement-card earned">
+                      <span className="achievement-icon">{achievement.icon}</span>
+                      <h4>{achievement.name}</h4>
+                      <p>{achievement.description}</p>
+                      <span className="achievement-date">Earned: {achievement.earned_at}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="achievement-category">
+                <h3>Locked Achievements</h3>
+                <div className="achievements-grid">
+                  {achievements.filter(a => !a.earned).map((achievement) => (
+                    <div key={achievement.id} className="achievement-card locked">
+                      <span className="achievement-icon">🔒</span>
+                      <h4>{achievement.name}</h4>
+                      <p>{achievement.description}</p>
+                      <p className="achievement-requirement">Requirement: {achievement.requirement}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* QUIZZES */}
+        {activeTab === 'quizzes' && (
+          <div className="quizzes-section">
+            <h2>Knowledge Checks</h2>
+            <p>Test your understanding with interactive quizzes</p>
+            <div className="quizzes-grid">
+              {quizzes.map((quiz) => (
+                <div key={quiz.id} className="quiz-card">
+                  <h3>{quiz.title}</h3>
+                  <p>{quiz.description}</p>
+                  <div className="quiz-meta">
+                    <span>{quiz.questions.length} questions</span>
+                    <span>{quiz.difficulty}</span>
+                    <span>{quiz.estimated_time} mins</span>
+                  </div>
+                  <button onClick={() => startQuiz(quiz.id)}>
+                    {quiz.completed ? 'Retake Quiz' : 'Start Quiz'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* AI GENERATOR */}
         {activeTab === 'ai' && (
           <div className="ai-section">
             <h2>AI-Powered Content Generator</h2>
-            <p>Generate personalized learning content using OpenAI GPT-4o-mini</p>
-            <button onClick={generateAIContent} disabled={loading} className="ai-button">
-              {loading ? 'Generating...' : 'Generate AI Content'}
-            </button>
-            
-            {aiContent && (
-              <div className="ai-content">
-                <h3>Generated Content: {aiContent.concept_name}</h3>
-                <div className="content-display">
-                  <pre>{aiContent.content}</pre>
-                </div>
-                <p><strong>Related Concepts:</strong> {aiContent.related_concepts.join(', ')}</p>
-                <p><strong>Generated at:</strong> {new Date(aiContent.generated_at).toLocaleString()}</p>
-                {aiContent.source && <p><strong>Source:</strong> {aiContent.source}</p>}
+            <p>Generate personalized learning content using AI</p>
+            <div className="ai-generator">
+              <div className="ai-inputs">
+                <input 
+                  type="text" 
+                  placeholder="What concept do you want to learn?" 
+                  defaultValue="Object-Spatial Programming"
+                />
+                <select defaultValue="Computer Science">
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="Physics">Physics</option>
+                  <option value="Biology">Biology</option>
+                </select>
+                <select defaultValue="beginner">
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+                <button onClick={() => generateAIContent()} disabled={loadingState}>
+                  {loadingState ? 'Generating...' : 'Generate AI Content'}
+                </button>
               </div>
-            )}
+              
+              {aiContent && (
+                <div className="ai-content">
+                  <h3>Generated: {aiContent.concept_name}</h3>
+                  <div className="content-display">
+                    <pre>{aiContent.content}</pre>
+                  </div>
+                  <p><strong>Related Concepts:</strong> {aiContent.related_concepts.join(', ')}</p>
+                  <p><strong>Generated:</strong> {new Date(aiContent.generated_at).toLocaleString()}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
+        {/* AI CHAT */}
+        {activeTab === 'chat' && (
+          <div className="chat-section">
+            <h2>AI Learning Assistant</h2>
+            <p>Chat with your AI tutor for personalized help</p>
+            <div className="chat-container">
+              <div className="chat-messages">
+                {chatMessages.length === 0 ? (
+                  <div className="chat-empty">
+                    <p>Start a conversation with your AI learning assistant!</p>
+                    <p>Ask questions, get explanations, or discuss concepts.</p>
+                  </div>
+                ) : (
+                  chatMessages.map((msg) => (
+                    <div key={msg.id} className={`chat-message ${msg.role}`}>
+                      <span className="message-role">{msg.role === 'user' ? 'You' : 'AI'}</span>
+                      <p className="message-content">{msg.content}</p>
+                      <span className="message-time">
+                        {new Date(msg.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="chat-input">
+                <input 
+                  type="text" 
+                  placeholder="Ask your AI tutor..." 
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
+                />
+                <button onClick={sendChatMessage}>Send</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ANALYTICS */}
         {activeTab === 'analytics' && analytics && (
           <div className="analytics-section">
             <h2>Learning Analytics</h2>
@@ -368,28 +643,10 @@ const App: React.FC = () => {
             </div>
             
             <div className="recommendations-section">
-              <h3>Recommendations</h3>
+              <h3>Personalized Recommendations</h3>
               <ul>
                 {analytics.recommendations.map((rec, index) => (
                   <li key={index}>{rec}</li>
-                ))}
-              </ul>
-            </div>
-            
-            <div className="strengths-section">
-              <h3>Your Strengths</h3>
-              <ul>
-                {analytics.strengths.map((strength, index) => (
-                  <li key={index}>{strength}</li>
-                ))}
-              </ul>
-            </div>
-            
-            <div className="improvements-section">
-              <h3>Areas for Improvement</h3>
-              <ul>
-                {analytics.areas_for_improvement.map((area, index) => (
-                  <li key={index}>{area}</li>
                 ))}
               </ul>
             </div>
@@ -399,44 +656,31 @@ const App: React.FC = () => {
     </div>
   );
 
-  const startCourse = async (courseId: string) => {
-    if (!authState.user) return;
-    
-    setLoading(true);
-    try {
-      await apiService.startLearningSession(authState.user.user_id, courseId);
-      setMessage('Learning session started!');
-      
-      // Refresh user data
-      await loadUserData(authState.user.user_id);
-    } catch (error) {
-      setMessage('Failed to start learning session');
-      console.error('Session start error:', error);
-    }
-    setLoading(false);
-  };
+  // =============================================================================
+  // MAIN RENDER
+  // =============================================================================
 
-  const handleLogout = () => {
-    setAuthState({
-      isAuthenticated: false,
-      user: null,
-      token: null
-    });
-    setUserProgress(null);
-    setAnalytics(null);
-    setActiveTab('dashboard');
-    setMessage('Logged out successfully');
-  };
+  if (loading) {
+    return (
+      <div className="App loading">
+        <div className="loading-spinner">
+          <h1>🎓 Jeseci Academy</h1>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="App">
       <header className="app-header">
         <div className="header-content">
-          <h1>Jeseci Smart Learning Academy</h1>
-          <p>AI-Powered Education • Dynamic Analytics • OpenAI Integration</p>
-          {authState.isAuthenticated && (
+          <h1>🎓 Jeseci Smart Learning Academy</h1>
+          <p>AI-Powered Personalized Learning</p>
+          {isAuthenticated && (
             <div className="header-actions">
-              <button onClick={handleLogout}>Logout</button>
+              <span className="user-greeting">Hello, {user?.first_name || user?.username}</span>
+              <button onClick={logout}>Logout</button>
             </div>
           )}
         </div>
@@ -450,7 +694,7 @@ const App: React.FC = () => {
       )}
 
       <main className="app-main">
-        {!authState.isAuthenticated ? (
+        {!isAuthenticated ? (
           <div className="auth-section">
             <div className="auth-tabs">
               <button 
@@ -476,10 +720,19 @@ const App: React.FC = () => {
       </main>
 
       <footer className="app-footer">
-        <p>© 2025 Jeseci Smart Learning Academy • AI-Powered Learning Platform</p>
-        <p>Powered by FastAPI Backend + OpenAI GPT-4o-mini</p>
+        <p>© 2025 Jeseci Smart Learning Academy • Pure Jaclang Backend</p>
+        <p>Powered by React + Jaclang + OpenAI</p>
       </footer>
     </div>
+  );
+};
+
+// Wrap App with AuthProvider
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 
