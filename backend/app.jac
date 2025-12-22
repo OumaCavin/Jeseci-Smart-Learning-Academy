@@ -67,7 +67,7 @@ walker init {
     has version: str = "6.0.0";
     has architecture: str = "Decoupled Frontend/Backend Architecture";
     
-    can initialize with entry {
+    can init with entry {
         report {
             "message": self.welcome_msg,
             "status": "initialized",
@@ -94,7 +94,7 @@ walker health_check {
     has database_status: str = "connected";
     has ai_status: str = "available";
     
-    can check_health with entry {
+    can health_check with entry {
         report {
             "service": "Jeseci Smart Learning Academy API",
             "status": self.status,
@@ -120,7 +120,7 @@ walker user_create {
     has learning_style: str = "visual";
     has skill_level: str = "beginner";
     
-    can create_user with entry {
+    can user_create with entry {
         # For now, just return a success response
         # In a real implementation, this would create a user node
         user_id = f"user_{self.username}_001";
@@ -139,7 +139,7 @@ walker user_login {
     has username: str;
     has password: str;
     
-    can authenticate_user with entry {
+    can user_login with entry {
         # For demo purposes, accept any username/password combination
         # In production, implement proper authentication
         
@@ -177,7 +177,7 @@ walker course_create {
     has difficulty: str;
     has content_type: str = "interactive";
     
-    can create_course with entry {
+    can course_create with entry {
         course_id = f"course_{self.title.lower().replace(' ', '_')}_001";
         
         course_data = {
@@ -202,7 +202,7 @@ walker learning_session_start {
     has user_id: str;
     has module_id: str;
     
-    can start_session with entry {
+    can learning_session_start with entry {
         session_id = f"session_{self.user_id}_{self.module_id}_001";
         
         session_data = {
@@ -228,7 +228,7 @@ walker learning_session_end {
     has session_id: str;
     has progress: float;
     
-    can end_session with entry {
+    can learning_session_end with entry {
         report {
             "success": true,
             "session_id": self.session_id,
@@ -246,7 +246,7 @@ walker learning_session_end {
 walker user_progress {
     has user_id: str;
     
-    can get_progress with entry {
+    can user_progress with entry {
         # Generate mock progress data
         progress_data = {
             "courses_completed": 3,
@@ -276,7 +276,7 @@ walker user_progress {
 walker analytics_generate {
     has user_id: str;
     
-    can generate_analytics with entry {
+    can analytics_generate with entry {
         # Generate comprehensive learning analytics
         learning_analytics = {
             "modules_completed": 12,
@@ -308,7 +308,7 @@ walker ai_generate_content {
     has difficulty: str;
     has related_concepts: list = [];
     
-    can generate_content with entry {
+    can ai_generate_content with entry {
         # Basic content generation templates
         content_templates = {
             "programming": {
@@ -387,7 +387,7 @@ Build a comprehensive {self.concept_name} application
 walker export_data {
     has format: str = "json";
     
-    can export with entry {
+    can export_data with entry {
         # Generate mock export data
         graph_data = {
             "users": [
