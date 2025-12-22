@@ -798,54 +798,189 @@ walker export_data {
 
 walker learning_paths {
     can learning_paths with entry {
-        # Predefined learning paths
+        # Detailed learning paths with modules and concepts
         paths = [
             {
                 "id": "path_python",
                 "title": "Python Mastery",
-                "description": "Complete journey from Python basics to advanced concepts",
+                "description": "Master Python from fundamentals to advanced concepts. Learn programming basics, data structures, algorithms, and build real-world applications.",
                 "courses": ["course_1", "course_2", "course_4"],
+                "modules": [
+                    {"id": "mod_python_basics", "title": "Python Basics", "type": "lesson", "duration": "2 hours", "completed": True},
+                    {"id": "mod_variables", "title": "Variables and Data Types", "type": "lesson", "duration": "1.5 hours", "completed": True},
+                    {"id": "mod_control_flow", "title": "Control Flow", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_functions", "title": "Functions", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_data_structures", "title": "Data Structures", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_oop", "title": "Object-Oriented Programming", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_file_handling", "title": "File Handling", "type": "project", "duration": "2 hours", "completed": False},
+                    {"id": "mod_final_project", "title": "Final Project", "type": "project", "duration": "4 hours", "completed": False}
+                ],
+                "concepts": ["concept_oop", "concept_algo", "concept_recursion"],
+                "skills_covered": ["Programming Fundamentals", "Data Structures", "Algorithm Design", "Problem Solving"],
+                "prerequisites": [],
+                "total_modules": 8,
+                "completed_modules": 2,
                 "duration": "8 weeks",
+                "estimated_hours": 20,
                 "difficulty": "beginner",
-                "progress": 35,
-                "icon": "🐍"
+                "progress": 25,
+                "icon": "🐍",
+                "category": "programming",
+                "next_step": "Control Flow",
+                "last_activity": "2025-12-21T14:30:00Z"
             },
             {
                 "id": "path_web",
-                "title": "Web Development",
-                "description": "Build modern web applications from scratch",
+                "title": "Full-Stack Web Development",
+                "description": "Build modern, responsive web applications from scratch. Learn HTML, CSS, JavaScript, and backend technologies.",
                 "courses": ["course_5", "course_1"],
-                "duration": "6 weeks",
+                "modules": [
+                    {"id": "mod_html_basics", "title": "HTML Fundamentals", "type": "lesson", "duration": "1.5 hours", "completed": True},
+                    {"id": "mod_css_styling", "title": "CSS Styling", "type": "lesson", "duration": "2 hours", "completed": True},
+                    {"id": "mod_css_layouts", "title": "CSS Layouts & Flexbox", "type": "lesson", "duration": "2 hours", "completed": True},
+                    {"id": "mod_javascript_basics", "title": "JavaScript Basics", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_dom_manipulation", "title": "DOM Manipulation", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_fetch_api", "title": "Fetch API & Async", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_backend_intro", "title": "Backend Basics", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_fullstack_project", "title": "Full-Stack Project", "type": "project", "duration": "6 hours", "completed": False}
+                ],
+                "concepts": ["concept_web", "concept_database", "concept_testing"],
+                "skills_covered": ["HTML5", "CSS3", "JavaScript ES6+", "Responsive Design", "REST APIs"],
+                "prerequisites": ["path_python"],
+                "total_modules": 8,
+                "completed_modules": 3,
+                "duration": "10 weeks",
+                "estimated_hours": 25,
                 "difficulty": "beginner",
-                "progress": 60,
-                "icon": "🌐"
+                "progress": 37,
+                "icon": "🌐",
+                "category": "web-development",
+                "next_step": "JavaScript Basics",
+                "last_activity": "2025-12-22T09:15:00Z"
             },
             {
                 "id": "path_jaclang",
                 "title": "Jaclang & Graph Programming",
-                "description": "Master nodes, walkers, and graph-based programming",
+                "description": "Master the innovative Jaclang language with nodes, walkers, and graph-based programming paradigms.",
                 "courses": ["course_3", "course_2"],
-                "duration": "10 weeks",
+                "modules": [
+                    {"id": "mod_graph_intro", "title": "Introduction to Graph Theory", "type": "lesson", "duration": "2 hours", "completed": True},
+                    {"id": "mod_nodes_basics", "title": "Nodes Basics", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_walkers_intro", "title": "Walkers Introduction", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_jac_syntax", "title": "Jaclang Syntax", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_advanced_walkers", "title": "Advanced Walkers", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_graph_algorithms", "title": "Graph Algorithms", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_node_patterns", "title": "Node Patterns", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_graph_project", "title": "Graph Programming Project", "type": "project", "duration": "5 hours", "completed": False}
+                ],
+                "concepts": ["concept_graphs", "concept_algo", "concept_recursion"],
+                "skills_covered": ["Graph Theory", "Node Systems", "Walker Functions", "Graph Algorithms", "Pattern Matching"],
+                "prerequisites": ["path_python"],
+                "total_modules": 8,
+                "completed_modules": 1,
+                "duration": "12 weeks",
+                "estimated_hours": 30,
                 "difficulty": "advanced",
-                "progress": 20,
-                "icon": "🔷"
+                "progress": 12,
+                "icon": "🔷",
+                "category": "programming-languages",
+                "next_step": "Nodes Basics",
+                "last_activity": "2025-12-20T16:45:00Z"
             },
             {
                 "id": "path_ml",
                 "title": "Machine Learning Fundamentals",
-                "description": "Introduction to ML algorithms and applications",
+                "description": "Dive into machine learning algorithms, supervised and unsupervised learning, and practical applications.",
                 "courses": ["course_4", "course_2"],
-                "duration": "12 weeks",
+                "modules": [
+                    {"id": "mod_ml_intro", "title": "Introduction to ML", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_linear_regression", "title": "Linear Regression", "type": "lesson", "duration": "2.5 hours", "completed": False},
+                    {"id": "mod_logistic_regression", "title": "Logistic Regression", "type": "lesson", "duration": "2.5 hours", "completed": False},
+                    {"id": "mod_decision_trees", "title": "Decision Trees", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_random_forest", "title": "Random Forest", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_clustering", "title": "Clustering Algorithms", "type": "lesson", "duration": "2.5 hours", "completed": False},
+                    {"id": "mod_neural_nets", "title": "Neural Networks Intro", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_ml_project", "title": "ML Capstone Project", "type": "project", "duration": "8 hours", "completed": False}
+                ],
+                "concepts": ["concept_ai", "concept_algo", "concept_database"],
+                "skills_covered": ["Supervised Learning", "Unsupervised Learning", "Model Evaluation", "Feature Engineering", "Neural Networks"],
+                "prerequisites": ["path_python", "path_math"],
+                "total_modules": 8,
+                "completed_modules": 0,
+                "duration": "14 weeks",
+                "estimated_hours": 35,
                 "difficulty": "intermediate",
-                "progress": 45,
-                "icon": "🤖"
+                "progress": 0,
+                "icon": "🤖",
+                "category": "data-science",
+                "next_step": "Introduction to ML",
+                "last_activity": None
+            },
+            {
+                "id": "path_data_science",
+                "title": "Data Science Essentials",
+                "description": "Learn data analysis, visualization, and statistical methods to extract insights from data.",
+                "courses": ["course_4", "course_2"],
+                "modules": [
+                    {"id": "mod_data_analysis", "title": "Data Analysis with Python", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_pandas", "title": "Pandas Library", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_numpy", "title": "NumPy Fundamentals", "type": "lesson", "duration": "2.5 hours", "completed": False},
+                    {"id": "mod_data_viz", "title": "Data Visualization", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_statistics", "title": "Statistics for Data Science", "type": "lesson", "duration": "4 hours", "completed": False},
+                    {"id": "mod_sql_data", "title": "SQL for Data Analysis", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_eda", "title": "Exploratory Data Analysis", "type": "project", "duration": "4 hours", "completed": False},
+                    {"id": "mod_data_project", "title": "Data Science Project", "type": "project", "duration": "6 hours", "completed": False}
+                ],
+                "concepts": ["concept_database", "concept_algo", "concept_ai"],
+                "skills_covered": ["Data Analysis", "Statistical Analysis", "Data Visualization", "SQL", "Pandas", "NumPy"],
+                "prerequisites": ["path_python"],
+                "total_modules": 8,
+                "completed_modules": 0,
+                "duration": "12 weeks",
+                "estimated_hours": 30,
+                "difficulty": "intermediate",
+                "progress": 0,
+                "icon": "📊",
+                "category": "data-science",
+                "next_step": "Data Analysis with Python",
+                "last_activity": None
+            },
+            {
+                "id": "path_devops",
+                "title": "DevOps & Cloud Engineering",
+                "description": "Master DevOps practices, containerization, CI/CD pipelines, and cloud platforms.",
+                "courses": ["course_5"],
+                "modules": [
+                    {"id": "mod_linux_basics", "title": "Linux Fundamentals", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_docker", "title": "Docker Containers", "type": "lesson", "duration": "4 hours", "completed": False},
+                    {"id": "mod_kubernetes", "title": "Kubernetes Basics", "type": "lesson", "duration": "4 hours", "completed": False},
+                    {"id": "mod_ci_cd", "title": "CI/CD Pipelines", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_gitops", "title": "GitOps Practices", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_cloud_aws", "title": "AWS Cloud Basics", "type": "lesson", "duration": "4 hours", "completed": False},
+                    {"id": "mod_monitoring", "title": "Monitoring & Logging", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_devops_project", "title": "DevOps Capstone", "type": "project", "duration": "8 hours", "completed": False}
+                ],
+                "concepts": ["concept_web", "concept_database", "concept_testing"],
+                "skills_covered": ["Docker", "Kubernetes", "CI/CD", "AWS", "Linux", "Infrastructure as Code"],
+                "prerequisites": ["path_python", "path_web"],
+                "total_modules": 8,
+                "completed_modules": 0,
+                "duration": "16 weeks",
+                "estimated_hours": 40,
+                "difficulty": "intermediate",
+                "progress": 0,
+                "icon": "⚙️",
+                "category": "devops",
+                "next_step": "Linux Fundamentals",
+                "last_activity": None
             }
         ];
         
         report {
             "success": true,
             "paths": paths,
-            "total": len(paths)
+            "total": len(paths),
+            "categories": ["programming", "web-development", "programming-languages", "data-science", "devops"]
         };
     }
 }
