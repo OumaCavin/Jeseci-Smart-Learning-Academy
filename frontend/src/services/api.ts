@@ -135,10 +135,14 @@ class ApiService {
     learning_style?: string;
     skill_level?: string;
   }): Promise<any> {
-    return this.makeRequest('/walker/user_create', {
+    console.log('Sending registration request to:', `${this.baseUrl}/walker/user_create`);
+    console.log('Registration data:', userData);
+    const result = this.makeRequest('/walker/user_create', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
+    console.log('Registration response:', result);
+    return result;
   }
 
   // Course Management
