@@ -48,7 +48,7 @@ const App: React.FC = () => {
         setAuthState({
           isAuthenticated: true,
           user: response.user,
-          token: response.access_token
+          token: response.access_token || null
         });
         setMessage('Login successful!');
         
