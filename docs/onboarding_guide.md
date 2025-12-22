@@ -11,7 +11,7 @@ Before you begin, ensure you have the following installed:
 | Software | Version | Purpose |
 |----------|---------|---------|
 | Python | 3.12+ | Backend runtime |
-| Node.js | 18+ | Frontend build tools |
+| Node.js | 25+ | Frontend build tools |
 | PostgreSQL | 16+ | Relational database |
 | Neo4j | 5.x | Graph database |
 | Git | 2.0+ | Version control |
