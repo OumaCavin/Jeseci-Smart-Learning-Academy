@@ -53,21 +53,41 @@ echo -e "\n${BLUE}Setting up PostgreSQL...${NC}\n"
 if command -v psql &> /dev/null; then
     print_status "psql found: $(which psql)"
     
-    # Try to connect to PostgreSQL
-    if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" &> /dev/null; then
-        print_status "PostgreSQL connection successful"
+    # First, check if the target database exists by connecting to 'postgres' default db
+    print_info "Checking if database '$POSTGRES_DB' exists..."
+    
+    # Check if database exists
+    DB_EXISTS=$(PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$POSTGRES_DB'" 2>/dev/null)
+    
+    if [ "$DB_EXISTS" = "1" ]; then
+        print_status "Database '$POSTGRES_DB' already exists"
         
-        # Create database if it doesn't exist
-        if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$POSTGRES_DB'" | grep -q 1; then
-            print_status "Database '$POSTGRES_DB' already exists"
+        # Test connection to the database
+        if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" &> /dev/null; then
+            print_status "PostgreSQL connection successful"
         else
-            print_info "Creating database '$POSTGRES_DB'..."
-            if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE $POSTGRES_DB;" &> /dev/null; then
-                print_status "Database '$POSTGRES_DB' created successfully"
+            print_warning "Database exists but connection failed - check credentials"
+        fi
+    else
+        print_info "Database '$POSTGRES_DB' does not exist, creating..."
+        
+        # Try to create database (may need sudo if user doesn't have CREATEDB privilege)
+        if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE $POSTGRES_DB;" &> /dev/null; then
+            print_status "Database '$POSTGRES_DB' created successfully"
+        else
+            print_warning "Failed to create database as user, trying with postgres user..."
+            
+            # Fallback: Create database using postgres system user
+            if command -v sudo &> /dev/null; then
+                sudo -u postgres createdb "$POSTGRES_DB" 2>/dev/null && \
+                sudo -u postgres psql -c "ALTER DATABASE $POSTGRES_DB OWNER TO $POSTGRES_USER;" 2>/dev/null && \
+                print_status "Database '$POSTGRES_DB' created and ownership transferred" || \
+                print_error "Could not create database. Run manually: sudo -u postgres createdb $POSTGRES_DB"
             else
-                print_error "Failed to create database '$POSTGRES_DB'"
+                print_error "Cannot create database. Run: sudo -u postgres createdb $POSTGRES_DB"
             fi
         fi
+    fi
         
         # Create tables
         print_info "Running database migrations..."
