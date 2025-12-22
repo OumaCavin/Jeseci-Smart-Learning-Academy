@@ -81,136 +81,140 @@ DATA_STORE = {
 # ==============================================================================
 
 can get_timestamp {
-    timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    return timestamp
+timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+return timestamp
 }
 
 can generate_id(prefix: str) -> str {
-    id_val = prefix + "_" + time.time_ns()->str
-    return id_val
+id_val = prefix + "_" + time.time_ns()->str
+return id_val
 }
 
 can get_user_by_username(username: str) -> dict {
-    users = DATA_STORE["users"]
-    if username in users {
-        return users[username]
-    }
-    return {}
+users = DATA_STORE["users"]
+if username in users {
+    return users[username]
+}
+
+return {}
 }
 
 can get_user_by_id(user_id: str) -> dict {
-    users = DATA_STORE["users"]
-    user_keys = users.keys()
-    for username in user_keys {
-        user = users[username]
-        user_id_val = user["user_id"]
-        if user_id_val == user_id {
-            return user
-        }
-    }
-    return {}
+users = DATA_STORE["users"]
+user_keys = users.keys()
+for username in user_keys {
+    user = users[username]
+    user_id_val = user["user_id"]
+    if user_id_val == user_id {
+        return user
+}
+
+}
+return {}
 }
 
 can calculate_user_progress(user_id: str) -> dict {
-    sessions = []
-    sessions_data = DATA_STORE["sessions"]
-    if user_id in sessions_data {
-        sessions = sessions_data[user_id]
-    }
-    
-    # Calculate dynamic metrics
-    completed_sessions = []
-    in_progress_sessions = []
-    
-    for session in sessions {
-        status = session["status"]
-        if status == "completed" {
-            completed_sessions = completed_sessions.push(session)
-        } else {
-            in_progress_sessions = in_progress_sessions.push(session)
-        }
-    }
-    
-    courses_completed = completed_sessions.len
-    lessons_completed = courses_completed * 5
-    total_sessions_count = sessions.len
-    total_study_time = total_sessions_count * 45
-    courses_count = courses_completed
-    current_streak = courses_count
-    if current_streak > 7 {
-        current_streak = 7
-    }
-    
-    # Calculate completion rate
-    total_courses = DATA_STORE["courses"].len
-    completion_rate = 0
-    if total_courses > 0 {
-        completion_rate = (courses_completed / total_courses) * 100
-    }
-    
-    # Calculate average score
-    average_score = 0
-    completed_count = completed_sessions.len
-    if completed_count > 0 {
-        total_progress = 0
-        for session in completed_sessions {
-            total_progress = total_progress + session["progress"]
-        }
-        average_score = total_progress / completed_count
-    }
-    
-    progress_data = {
-        "courses_completed": courses_completed,
-        "lessons_completed": lessons_completed,
-        "total_study_time": total_study_time,
-        "current_streak": current_streak,
-        "average_score": average_score
-    }
-    
-    analytics = {
-        "completion_rate": completion_rate,
-        "total_sessions": total_sessions_count,
-        "completed_sessions": courses_completed,
-        "in_progress_sessions": in_progress_sessions.len,
-        "average_progress": average_score
-    }
-    
-    recent_activity = []
-    sessions_count = sessions.len
-    if sessions_count > 0 {
-        if sessions_count >= 5 {
-            recent_activity = sessions[-5:]
-        } else {
-            recent_activity = sessions
-        }
-    }
-    
-    return {
-        "progress": progress_data,
-        "analytics": analytics,
-        "recent_activity": recent_activity
+sessions = []
+sessions_data = DATA_STORE["sessions"]
+if user_id in sessions_data {
+    sessions = sessions_data[user_id]
+}
+
+
+# Calculate dynamic metrics
+completed_sessions = []
+in_progress_sessions = []
+
+for session in sessions {
+    status = session["status"]
+    if status == "completed" {
+        completed_sessions = completed_sessions.push(session)
+    } else {
+        in_progress_sessions = in_progress_sessions.push(session)
     }
 }
 
-can generate_recommendations(user: dict, completed: list) -> list {
-    recommendations = []
-    
-    if completed.len < 3 {
-        recommendations = recommendations.push("Continue building your foundation with beginner courses")
-        recommendations = recommendations.push("Try the AI content generator for personalized lessons")
+courses_completed = completed_sessions.len
+lessons_completed = courses_completed * 5
+total_sessions_count = sessions.len
+total_study_time = total_sessions_count * 45
+courses_count = courses_completed
+current_streak = courses_count
+if current_streak > 7 {
+    current_streak = 7
+}
+
+# Calculate completion rate
+total_courses = DATA_STORE["courses"].len
+completion_rate = 0
+if total_courses > 0 {
+    completion_rate = (courses_completed / total_courses) * 100
+}
+
+# Calculate average score
+average_score = 0
+completed_count = completed_sessions.len
+if completed_count > 0 {
+    total_progress = 0
+    for session in completed_sessions {
+        total_progress = total_progress + session["progress"]
+    }
+    average_score = total_progress / completed_count
+}
+
+progress_data = {
+    "courses_completed": courses_completed,
+    "lessons_completed": lessons_completed,
+    "total_study_time": total_study_time,
+    "current_streak": current_streak,
+    "average_score": average_score
+}
+
+analytics = {
+    "completion_rate": completion_rate,
+    "total_sessions": total_sessions_count,
+    "completed_sessions": courses_completed,
+    "in_progress_sessions": in_progress_sessions.len,
+    "average_progress": average_score
+}
+
+recent_activity = []
+sessions_count = sessions.len
+if sessions_count > 0 {
+    if sessions_count >= 5 {
+        recent_activity = sessions[-5:]
     } else {
-        recommendations = recommendations.push("Consider advancing to intermediate-level courses")
-        recommendations = recommendations.push("Explore the AI generator for deeper concepts")
+        recent_activity = sessions
     }
-    
-    skill_level = user["skill_level"]
-    if skill_level == "beginner" {
-        recommendations = recommendations.push("Focus on completing the Introduction to Programming course")
-    }
-    
-    recommendations = recommendations.push("Maintain your learning streak for better retention")
-    
-    return recommendations
+}
+
+return {
+    "progress": progress_data,
+    "analytics": analytics,
+    "recent_activity": recent_activity
+}
+}
+
+can generate_recommendations(user: dict, completed: list) -> list {
+recommendations = []
+
+if completed.len < 3 {
+    recommendations = recommendations.push("Continue building your foundation with beginner courses")
+    recommendations = recommendations.push("Try the AI content generator for personalized lessons")
+} else {
+    recommendations = recommendations.push("Consider advancing to intermediate-level courses")
+    recommendations = recommendations.push("Explore the AI generator for deeper concepts")
+}
+
+
+skill_level = user["skill_level"]
+if skill_level == "beginner" {
+    recommendations = recommendations.push("Focus on completing the Introduction to Programming course")
+}
+
+recommendations = recommendations.push("Maintain your learning streak for better retention")
+
+return recommendations
 }
 
 # ==============================================================================
@@ -218,33 +222,34 @@ can generate_recommendations(user: dict, completed: list) -> list {
 # ==============================================================================
 
 can call_openai_api(prompt: str, api_key: str) -> str {
-    # In Jaclang, we use HTTP request to OpenAI API
-    # This is a simplified implementation - in production, use proper HTTP library
-    
-    # Generate fallback content when OpenAI is not available
-    return ""
+# In Jaclang, we use HTTP request to OpenAI API
+# This is a simplified implementation - in production, use proper HTTP library
+
+# Generate fallback content when OpenAI is not available
+return ""
 }
 
 can generate_ai_content(concept_name: str, domain: str, difficulty: str, related_concepts: list) -> dict {
-    # This function generates AI content for educational concepts
-    # Currently uses fallback content - can be enhanced with actual OpenAI API calls
-    
-    return generate_fallback_content(concept_name, domain, difficulty, related_concepts)
+# This function generates AI content for educational concepts
+# Currently uses fallback content - can be enhanced with actual OpenAI API calls
+
+return generate_fallback_content(concept_name, domain, difficulty, related_concepts)
 }
 
 can generate_fallback_content(concept_name: str, domain: str, difficulty: str, related_concepts: list) -> dict {
-    template = "Fallback content template - Configure OpenAI API for enhanced AI-generated lessons."
-    
-    return {
-        "success": true,
-        "concept_name": concept_name,
-        "domain": domain,
-        "difficulty": difficulty,
-        "content": template,
-        "related_concepts": related_concepts,
-        "generated_at": get_timestamp(),
-        "source": "fallback"
-    }
+template = "Fallback content template - Configure OpenAI API for enhanced AI-generated lessons."
+
+return {
+    "success": true,
+    "concept_name": concept_name,
+    "domain": domain,
+    "difficulty": difficulty,
+    "content": template,
+    "related_concepts": related_concepts,
+    "generated_at": get_timestamp(),
+    "source": "fallback"
+}
+
 }
 
 # ==============================================================================
