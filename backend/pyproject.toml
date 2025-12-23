@@ -56,6 +56,7 @@ dependencies = [
  # Database Drivers
  "psycopg2-binary>=2.9.9",
  "neo4j>=5.14.0",
+ "sqlalchemy>=2.0.0",
 ]
 
 [build-system]
