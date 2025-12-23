@@ -749,3 +749,59 @@ walker get_relationships {
         };
     }
 }
+
+# ==============================================================================
+# Entry Point - Run seeder when file is executed directly
+# ==============================================================================
+import sys;
+
+# Parse command line arguments and run the appropriate walker
+def parse_args_and_run() {
+    mode = "all";
+    verbose = true;
+    dry_run = false;
+
+    args = sys.argv;
+    
+    # Look for arguments
+    for i, arg in enumerate(args) {
+        if arg == "--mode" or arg == "-m" {
+            if i + 1 < len(args) {
+                mode = args[i + 1];
+            }
+        }
+        elif arg == "--verbose" or arg == "-v" {
+            verbose = true;
+        }
+        elif arg == "--quiet" or arg == "-q" {
+            verbose = false;
+        }
+        elif arg == "--dry-run" or arg == "-d" {
+            dry_run = true;
+        }
+        elif arg == "--help" or arg == "-h" {
+            print("Usage: jac run backend.seed [options]");
+            print("Options:");
+            print("  --mode, -m <mode>  Seeding mode: concepts, paths, relationships, all (default: all)");
+            print("  --verbose, -v      Enable verbose output");
+            print("  --quiet, -q        Disable verbose output");
+            print("  --dry-run, -d      Show what would be done without making changes");
+            print("  --help, -h         Show this help message");
+            print("");
+            print("Examples:");
+            print("  jac run backend.seed                    # Seed all data");
+            print("  jac run backend.seed --mode concepts    # Seed only concepts");
+            print("  jac run backend.seed --dry-run          # Preview seeding");
+            return;
+        }
+    }
+
+    # Create and spawn the seeder walker
+    seeder_walker = seeder(mode=mode, dry_run=dry_run, verbose=verbose);
+    result = spawn seeder_walker::run;
+    
+    print("\nSeeding completed successfully!");
+}
+
+# Auto-run when file is executed directly
+parse_args_and_run();
