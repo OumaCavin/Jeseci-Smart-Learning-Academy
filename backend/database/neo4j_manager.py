@@ -225,15 +225,19 @@ class Neo4jManager:
         Returns:
             Number of nodes
         """
+        if not self.driver:
+            if not self.connect():
+                return 0
+        
         if label:
             query = f"MATCH (n:{label}) RETURN count(n) AS count"
         else:
             query = "MATCH (n) RETURN count(n) AS count"
         
-        result = self.execute_query(query)
-        if result:
-            return result.single()["count"]
-        return 0
+        with self.driver.session(database=self.database) as session:
+            result = session.run(query)
+            record = result.single()
+            return record["count"] if record else 0
     
     def get_relationship_count(self) -> int:
         """
@@ -242,10 +246,14 @@ class Neo4jManager:
         Returns:
             Number of relationships
         """
-        result = self.execute_query("MATCH ()-[r]->() RETURN count(r) AS count")
-        if result:
-            return result.single()["count"]
-        return 0
+        if not self.driver:
+            if not self.connect():
+                return 0
+        
+        with self.driver.session(database=self.database) as session:
+            result = session.run("MATCH ()-[r]->() RETURN count(r) AS count")
+            record = result.single()
+            return record["count"] if record else 0
     
     def verify_setup(self) -> Dict[str, Any]:
         """
