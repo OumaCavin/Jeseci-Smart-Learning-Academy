@@ -895,6 +895,11 @@
 # uploads/
 # downloads/
 
+# Project-specific files and directories (must be untracked first)
+browser/
+tmp/
+workspace.json
+
 # Claude Agent SDK debug files
 **/.claude/debug/
 **/.claude/debug/**
