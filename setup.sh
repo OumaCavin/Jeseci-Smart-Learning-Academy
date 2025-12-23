@@ -55,27 +55,27 @@ fi
 
 # Check if virtual environment exists and is valid
 VENV_VALID=false
-if [ -d "venv" ]; then
-    if [ -f "venv/bin/python3" ] || [ -f "venv/bin/python" ]; then
+if [ -d ".venv" ]; then
+    if [ -f ".venv/bin/python3" ] || [ -f ".venv/bin/python" ]; then
         echo "📦 Found existing virtual environment"
         # Test if virtual environment works
-        if source venv/bin/activate && python3 --version &> /dev/null; then
+        if source .venv/bin/activate && python3 --version &> /dev/null; then
             VENV_VALID=true
             echo "✅ Virtual environment is valid"
         else
             echo "⚠️ Virtual environment is broken, recreating..."
-            rm -rf venv
+            rm -rf .venv
         fi
     else
         echo "⚠️ Virtual environment is incomplete, recreating..."
-        rm -rf venv
+        rm -rf .venv
     fi
 fi
 
 # Create virtual environment if needed
 if [ "$VENV_VALID" = false ]; then
     echo "📦 Creating new virtual environment..."
-    python3 -m venv venv
+    python3 -m venv .venv
     
     if [ ! $? -eq 0 ]; then
         echo "❌ Failed to create virtual environment"
@@ -87,7 +87,7 @@ fi
 
 # Activate virtual environment and install dependencies
 echo "🔧 Activating virtual environment..."
-source venv/bin/activate
+source .venv/bin/activate
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to activate virtual environment"
