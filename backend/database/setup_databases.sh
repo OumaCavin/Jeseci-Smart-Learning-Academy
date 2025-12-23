@@ -66,7 +66,41 @@ else
     NEO4J_URI="bolt://localhost:7687"
     NEO4J_USER="neo4j"
     NEO4J_PASSWORD="neo4j_secure_password_2024"
-    NEO4J_DATABASE="jeseci_academy"
+    NEO4J_DATABASE="neo4j"
+fi
+
+# =============================================================================
+# Check and Install Python Dependencies
+# =============================================================================
+print_section "Checking Python Dependencies"
+
+# Activate virtual environment if it exists
+if [ -d "venv" ]; then
+    print_info "Activating virtual environment..."
+    source venv/bin/activate
+    
+    # Check if psycopg2-binary is installed
+    if ! python -c "import psycopg2" 2>/dev/null; then
+        print_warning "psycopg2-binary not found. Installing..."
+        pip install psycopg2-binary -q
+        print_status "psycopg2-binary installed successfully"
+    else
+        print_status "psycopg2-binary is available"
+    fi
+    
+    # Check if neo4j is installed
+    if ! python -c "import neo4j" 2>/dev/null; then
+        print_warning "neo4j driver not found. Installing..."
+        pip install neo4j -q
+        print_status "neo4j driver installed successfully"
+    else
+        print_status "neo4j driver is available"
+    fi
+else
+    print_warning "Virtual environment not found. Python dependencies may not be available."
+    print_info "To install dependencies manually:"
+    echo "  pip install psycopg2-binary neo4j"
+    echo ""
 fi
 
 # =============================================================================
@@ -78,7 +112,7 @@ print_section "PostgreSQL Database Setup"
 if command -v psql &> /dev/null; then
     print_status "psql found: $(which psql)"
     
-    print_info "Target configuration:"
+    print_info "Target configuration (from .env):"
     echo "  ${CYAN}Host:${NC}     $POSTGRES_HOST:$POSTGRES_PORT"
     echo "  ${CYAN}Database:${NC} $POSTGRES_DB"
     echo "  ${CYAN}User:${NC}     $POSTGRES_USER"
@@ -119,63 +153,60 @@ if command -v psql &> /dev/null; then
             echo ""
             
             print_section "Creating PostgreSQL User and Database"
-            print_info "Follow these steps to create the required user and database:"
-            echo ""
-            print_step "Step 1: Log in as PostgreSQL superuser"
-            echo "    ${CYAN}sudo -u postgres psql${NC}"
-            echo ""
-            print_step "Step 2: Run these SQL commands in the psql prompt:"
-            echo ""
-            echo "    ${YELLOW}-- Create the user with password from your .env file${NC}"
-            echo "    ${GREEN}CREATE USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';${NC}"
-            echo ""
-            echo "    ${YELLOW}-- Create the database and assign owner${NC}"
-            echo "    ${GREEN}CREATE DATABASE $POSTGRES_DB OWNER $POSTGRES_USER;${NC}"
-            echo ""
-            echo "    ${YELLOW}-- Grant all privileges${NC}"
-            echo "    ${GREEN}GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB TO $POSTGRES_USER;${NC}"
-            echo ""
-            echo "    ${YELLOW}-- Grant schema permissions${NC}"
-            echo "    ${GREEN}GRANT ALL ON SCHEMA public TO $POSTGRES_USER;${NC}"
-            echo ""
-            echo "    ${YELLOW}-- Exit psql${NC}"
-            echo "    ${GREEN}\\q${NC}"
+            print_info "Using configuration values from your .env file..."
             echo ""
             
-            # Try to create user and database automatically as postgres user
-            print_section "Auto-Create User and Database"
+            # Try to create user and database automatically
+            # Note: CREATE USER can be in DO block, but CREATE DATABASE cannot
             print_info "Attempting to create user and database automatically..."
             echo ""
             
-            CREATE_OUTPUT=$(sudo -u postgres psql <<EOF
--- Create user if not exists
-DO \$\$ BEGIN
-    CREATE USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END \$\$;
-
--- Create database if not exists  
-DO \$\$ BEGIN
-    CREATE DATABASE $POSTGRES_DB OWNER $POSTGRES_USER;
-EXCEPTION
-    WHEN duplicate_database THEN null;
-END \$\$;
-
--- Grant privileges
-GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB TO $POSTGRES_USER;
-GRANT ALL ON SCHEMA public TO $POSTGRES_USER;
-
--- Output result
-SELECT 'User and database created successfully' AS status;
-EOF
-)
-            
-            if echo "$CREATE_OUTPUT" | grep -q "created successfully"; then
-                print_status "User '$POSTGRES_USER' and database '$POSTGRES_DB' created successfully!"
-                echo ""
+            # Step 1: Create user (using DO block)
+            USER_CREATED=false
+            if sudo -u postgres psql -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$POSTGRES_USER') THEN CREATE USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD'; END IF; END \$\$;" 2>/dev/null; then
+                print_status "User '$POSTGRES_USER' created or already exists"
+                USER_CREATED=true
             else
-                print_warning "Could not auto-create. Please create manually using the steps above."
+                print_warning "Could not create user. It may already exist or you lack permissions."
+            fi
+            
+            # Step 2: Create database (separate command, cannot be in transaction block)
+            DB_CREATED=false
+            if sudo -u postgres psql -c "SELECT 1 FROM pg_database WHERE datname = '$POSTGRES_DB';" 2>/dev/null | grep -q 1; then
+                print_info "Database '$POSTGRES_DB' already exists"
+                DB_CREATED=true
+            else
+                if sudo -u postgres psql -c "CREATE DATABASE $POSTGRES_DB OWNER $POSTGRES_USER;" 2>/dev/null; then
+                    print_status "Database '$POSTGRES_DB' created successfully"
+                    DB_CREATED=true
+                else
+                    print_warning "Could not create database. It may already exist or you lack permissions."
+                fi
+            fi
+            
+            # Step 3: Grant privileges
+            sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB TO $POSTGRES_USER;" 2>/dev/null || true
+            sudo -u postgres psql -c "GRANT ALL ON SCHEMA public TO $POSTGRES_USER;" 2>/dev/null || true
+            
+            echo ""
+            
+            # Show manual SQL commands as backup if auto-creation failed
+            if [ "$USER_CREATED" = false ] || [ "$DB_CREATED" = false ]; then
+                print_step "Manual SQL Commands (if auto-creation failed):"
+                echo "    ${CYAN}sudo -u postgres psql${NC}"
+                echo ""
+                echo "    ${CYAN}-- Create user using POSTGRES_USER and POSTGRES_PASSWORD from .env${NC}"
+                echo "    ${GREEN}CREATE USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';${NC}"
+                echo ""
+                echo "    ${CYAN}-- Create database using POSTGRES_DB from .env${NC}"
+                echo "    ${GREEN}CREATE DATABASE $POSTGRES_DB OWNER $POSTGRES_USER;${NC}"
+                echo ""
+                echo "    ${CYAN}-- Grant privileges${NC}"
+                echo "    ${GREEN}GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB TO $POSTGRES_USER;${NC}"
+                echo "    ${GREEN}GRANT ALL ON SCHEMA public TO $POSTGRES_USER;${NC}"
+                echo ""
+                echo "    ${CYAN}-- Exit psql${NC}"
+                echo "    ${GREEN}\\q${NC}"
                 echo ""
             fi
         fi
@@ -317,7 +348,26 @@ else:
             
         else
             print_error "Could not connect to PostgreSQL database"
-            print_warning "Please create the user and database manually using the steps above"
+            print_warning "Please create the user and database manually:"
+            echo ""
+            print_step "Step 1: Log in as PostgreSQL superuser"
+            echo "    ${CYAN}sudo -u postgres psql${NC}"
+            echo ""
+            print_step "Step 2: Run these SQL commands (using values from your .env):"
+            echo ""
+            echo "    ${CYAN}-- Create user (using POSTGRES_USER and POSTGRES_PASSWORD)${NC}"
+            echo "    ${GREEN}CREATE USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';${NC}"
+            echo ""
+            echo "    ${CYAN}-- Create database (using POSTGRES_DB)${NC}"
+            echo "    ${GREEN}CREATE DATABASE $POSTGRES_DB OWNER $POSTGRES_USER;${NC}"
+            echo ""
+            echo "    ${CYAN}-- Grant privileges${NC}"
+            echo "    ${GREEN}GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB TO $POSTGRES_USER;${NC}"
+            echo "    ${GREEN}GRANT ALL ON SCHEMA public TO $POSTGRES_USER;${NC}"
+            echo ""
+            echo "    ${CYAN}-- Exit psql${NC}"
+            echo "    ${GREEN}\\q${NC}"
+            echo ""
         fi
     fi
         
@@ -349,18 +399,10 @@ if command -v neo4j &> /dev/null; then
     fi
 fi
 
-# Method 3: Check via Docker (as fallback, but won't recommend)
-if command -v docker &> /dev/null; then
-    if docker ps --format '{{.Names}}' | grep -q "neo4j\|jeseci-neo4j"; then
-        neo4j_running=true
-        print_warning "Neo4j is running via Docker (not recommended for production)"
-    fi
-fi
-
 if [ "$neo4j_running" = true ]; then
     print_status "Neo4j is running and accessible"
     
-    print_info "Target configuration:"
+    print_info "Target configuration (from .env):"
     echo "  ${CYAN}URI:${NC}       $NEO4J_URI"
     echo "  ${CYAN}Database:${NC} $NEO4J_DATABASE"
     echo "  ${CYAN}User:${NC}     $NEO4J_USER"
@@ -462,38 +504,6 @@ else
     echo "  4. Set initial password to: $NEO4J_PASSWORD"
     echo ""
     
-    # Check and suggest .env update for database name
-    print_section "Neo4j Database Name Configuration"
-    print_info "Your .env specifies: NEO4J_DATABASE=$NEO4J_DATABASE"
-    echo ""
-    
-    if [ "$NEO4J_DATABASE" != "neo4j" ]; then
-        print_warning "Note: Neo4j Community Edition only supports 'neo4j' as the default database."
-        print_info "If you encounter errors, update your .env file:"
-        echo ""
-        echo "  ${CYAN}# Change this:${NC}"
-        echo "  NEO4J_DATABASE=$NEO4J_DATABASE"
-        echo ""
-        echo "  ${CYAN}# To this:${NC}"
-        echo "  NEO4J_DATABASE=neo4j"
-        echo ""
-        
-        # Offer to update .env
-        read -p "Would you like to update .env to use 'neo4j' as the database name? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            # Update .env file
-            if [ -f ".env" ]; then
-                sed -i 's/NEO4J_DATABASE=.*/NEO4J_DATABASE=neo4j/' .env
-                print_status "Updated .env file: NEO4J_DATABASE=neo4j"
-                NEO4J_DATABASE="neo4j"
-            else
-                print_warning ".env file not found. Please update manually."
-            fi
-        fi
-        echo ""
-    fi
-    
     print_info "After starting Neo4j, run this script again to verify connection."
 fi
 
@@ -502,7 +512,7 @@ fi
 # =============================================================================
 print_section "📊 Database Setup Summary"
 
-echo "Configuration:"
+echo "Configuration (from .env):"
 echo "  ${CYAN}PostgreSQL:${NC}  $POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB (user: $POSTGRES_USER)"
 echo "  ${CYAN}Neo4j:${NC}       $NEO4J_URI (database: $NEO4J_DATABASE)"
 echo ""
@@ -522,7 +532,7 @@ fi
 
 echo ""
 echo "Next steps:"
-echo "  1. ${CYAN}Ensure both databases are running${NC}"
+echo "  1. ${CYAN}Ensure both databases are running and configured${NC}"
 echo "  2. ${CYAN}Run seed data${NC} to populate initial content (if needed)"
 echo "  3. ${CYAN}Start backend:${NC}    jac serve backend/app.jac"
 echo "  4. ${CYAN}Access API:${NC}       http://localhost:8000"
