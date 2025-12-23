@@ -36,23 +36,7 @@ concept_relations = Table(
     Column("relation_type", String(50), default="related"),  # prerequisite, related, builds_on
 )
 
-# Learning Path to Concepts (existing, preserved)
-learning_path_concepts = Table(
-    "learning_path_concepts",
-    Base.metadata,
-    Column("path_id", String(50), ForeignKey("learning_paths.path_id", ondelete="CASCADE"), primary_key=True),
-    Column("concept_id", String(50), ForeignKey("concepts.concept_id", ondelete="CASCADE"), primary_key=True),
-    Column("sequence_order", Integer, default=0),
-)
 
-# Lesson to Concepts association
-lesson_concepts = Table(
-    "lesson_concepts",
-    Base.metadata,
-    Column("lesson_id", String(50), ForeignKey("lessons.lesson_id", ondelete="CASCADE"), primary_key=True),
-    Column("concept_id", String(50), ForeignKey("concepts.concept_id", ondelete="CASCADE"), primary_key=True),
-    Column("sequence_order", Integer, default=0),
-)
 
 
 # =============================================================================
@@ -183,6 +167,9 @@ class Concept(Base):
     learning_path_concepts: Mapped[List["LearningPathConcept"]] = relationship(
         "LearningPathConcept", back_populates="concept"
     )
+    lesson_concepts: Mapped[List["LessonConcept"]] = relationship(
+        "LessonConcept", back_populates="concept"
+    )
     user_progress: Mapped[List["UserConceptProgress"]] = relationship(
         "UserConceptProgress", back_populates="concept"
     )
@@ -242,9 +229,9 @@ class LearningPath(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
-    concepts: Mapped[List["Concept"]] = relationship(
-        "Concept", secondary=learning_path_concepts, viewonly=True
+    # Relationships - access concepts through LearningPathConcept association objects
+    path_concepts: Mapped[List["LearningPathConcept"]] = relationship(
+        "LearningPathConcept", back_populates="learning_path", cascade="all, delete-orphan"
     )
     lessons: Mapped[List["Lesson"]] = relationship(
         "Lesson", back_populates="learning_path", cascade="all, delete-orphan"
@@ -271,10 +258,10 @@ class Lesson(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
+    # Relationships - access concepts through LessonConcept association objects
     learning_path: Mapped["LearningPath"] = relationship("LearningPath", back_populates="lessons")
-    concepts: Mapped[List["Concept"]] = relationship(
-        "Concept", secondary=lesson_concepts, viewonly=True
+    lesson_concepts: Mapped[List["LessonConcept"]] = relationship(
+        "LessonConcept", back_populates="lesson", cascade="all, delete-orphan"
     )
     quizzes: Mapped[List["Quiz"]] = relationship(
         "Quiz", back_populates="lesson", cascade="all, delete-orphan"
@@ -298,8 +285,8 @@ class LearningPathConcept(Base):
     is_required: Mapped[bool] = mapped_column(Boolean, default=True)
     
     # Relationships
-    learning_path: Mapped["LearningPath"] = relationship("LearningPath")
-    concept: Mapped["Concept"] = relationship("Concept")
+    learning_path: Mapped["LearningPath"] = relationship("LearningPath", back_populates="path_concepts")
+    concept: Mapped["Concept"] = relationship("Concept", back_populates="learning_path_concepts")
     
     __table_args__ = (
         UniqueConstraint("path_id", "concept_id", name="uq_path_concept"),
@@ -309,6 +296,30 @@ class LearningPathConcept(Base):
     
     def __repr__(self) -> str:
         return f"<LearningPathConcept(path_id='{self.path_id}', concept_id='{self.concept_id}')>"
+
+
+class LessonConcept(Base):
+    """Association table for Lesson - Concept many-to-many relationship"""
+    __tablename__ = "lesson_concepts"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    lesson_id: Mapped[str] = mapped_column(String(50), ForeignKey("lessons.lesson_id", ondelete="CASCADE"))
+    concept_id: Mapped[str] = mapped_column(String(50), ForeignKey("concepts.concept_id", ondelete="CASCADE"))
+    sequence_order: Mapped[int] = mapped_column(Integer, default=0)
+    is_required: Mapped[bool] = mapped_column(Boolean, default=True)
+    
+    # Relationships
+    lesson: Mapped["Lesson"] = relationship("Lesson", back_populates="lesson_concepts")
+    concept: Mapped["Concept"] = relationship("Concept", back_populates="lesson_concepts")
+    
+    __table_args__ = (
+        UniqueConstraint("lesson_id", "concept_id", name="uq_lesson_concept"),
+        Index("idx_lc_lesson_id", "lesson_id"),
+        Index("idx_lc_concept_id", "concept_id"),
+    )
+    
+    def __repr__(self) -> str:
+        return f"<LessonConcept(lesson_id='{self.lesson_id}', concept_id='{self.concept_id}')>"
 
 
 # =============================================================================
