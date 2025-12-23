@@ -50,6 +50,24 @@ print_header() {
 
 print_header
 
+# =============================================================================
+# Install Python Dependencies
+# =============================================================================
+print_section "Installing Python Dependencies"
+
+print_info "Installing required Python packages..."
+
+# Install bcrypt and other required packages
+if command -v uv &> /dev/null; then
+    print_info "Using uv to install packages..."
+    uv pip install bcrypt --quiet 2>/dev/null || uv add bcrypt --quiet 2>/dev/null || true
+    print_status "bcrypt installed successfully"
+else
+    print_info "uv not found, trying pip..."
+    pip install bcrypt --quiet 2>/dev/null || python -m pip install bcrypt --quiet 2>/dev/null || true
+    print_status "bcrypt installed (or already present)"
+fi
+
 # Change to project root
 cd "$(dirname "$0")/../.."
 
