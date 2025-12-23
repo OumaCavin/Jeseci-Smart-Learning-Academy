@@ -69,7 +69,7 @@ class UserAuthManager:
             'host': os.getenv("POSTGRES_HOST", "localhost"),
             'port': int(os.getenv("POSTGRES_PORT", 5432)),
             'database': os.getenv("POSTGRES_DB", "jeseci_learning_academy"),
-            'user': os.getenv("POSTGRES_USER", "jeseci_user"),
+            'user': os.getenv("POSTGRES_USER", "jeseci_academy_user"),
             'password': os.getenv("POSTGRES_PASSWORD", "secure_password_123")
         }
     
