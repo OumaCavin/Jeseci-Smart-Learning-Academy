@@ -183,7 +183,7 @@ if command -v psql &> /dev/null; then
                 echo ""
                 echo "    ${CYAN}-- Grant privileges${NC}"
                 echo "    ${GREEN}GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB TO $POSTGRES_USER;${NC}"
-                echo "    ${GREEN}GRANT ALL ON SCHEMA public TO $POSTGRES_USER;${NC}"
+                echo "    ${GREEN}CREATE SCHEMA $DB_SCHEMA AUTHORIZATION $POSTGRES_USER;${NC}"
                 echo ""
                 echo "    ${CYAN}-- Exit psql${NC}"
                 echo "    ${GREEN}\\q${NC}"
@@ -201,7 +201,7 @@ if command -v psql &> /dev/null; then
             print_info "Checking for existing tables in '$POSTGRES_DB'..."
             echo ""
             
-            TABLES=$(PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;" 2>/dev/null)
+            TABLES=$(PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c "SELECT table_name FROM information_schema.tables WHERE table_schema = '$DB_SCHEMA' ORDER BY table_name;" 2>/dev/null)
             
             if [ -n "$TABLES" ]; then
                 echo -e "${GREEN}Existing tables in database:${NC}"
@@ -221,11 +221,16 @@ if command -v psql &> /dev/null; then
             print_info "Running database migrations using SQLAlchemy..."
             echo ""
             
-            # Ensure public schema exists with proper permissions
-            print_info "Ensuring public schema exists..."
-            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "CREATE SCHEMA IF NOT EXISTS public;" 2>/dev/null || true
-            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "GRANT ALL ON SCHEMA public TO $POSTGRES_USER;" 2>/dev/null || true
-            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $POSTGRES_USER;" 2>/dev/null || true
+            # Drop existing schema objects to fix duplicate index errors
+            print_info "Dropping existing schema '$DB_SCHEMA' to fix any duplicate objects..."
+            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "DROP SCHEMA IF EXISTS $DB_SCHEMA CASCADE;" 2>/dev/null || true
+            
+            # Create the schema fresh
+            print_info "Creating schema '$DB_SCHEMA'..."
+            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "CREATE SCHEMA $DB_SCHEMA;" 2>/dev/null || true
+            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "GRANT ALL ON SCHEMA $DB_SCHEMA TO $POSTGRES_USER;" 2>/dev/null || true
+            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON TABLES TO $POSTGRES_USER;" 2>/dev/null || true
+            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON SEQUENCES TO $POSTGRES_USER;" 2>/dev/null || true
             
             # Run table creation and capture output
             PYTHON_OUTPUT=$(python3 << 'PYTHON_SCRIPT'

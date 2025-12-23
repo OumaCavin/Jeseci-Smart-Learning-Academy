@@ -16,7 +16,7 @@ Models included:
 
 import os
 from typing import Generator
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Session
 from sqlalchemy.pool import QueuePool
 
@@ -36,6 +36,7 @@ def get_database_url() -> str:
     - POSTGRES_DB: Database name (default: jeseci_learning_academy)
     - POSTGRES_USER: Database user (default: jeseci_academy_user)
     - POSTGRES_PASSWORD: Database password (default: jeseci_secure_password_2024)
+    - DB_SCHEMA: Database schema (default: jeseci_academy)
     
     Returns:
         PostgreSQL connection URL for SQLAlchemy
@@ -55,6 +56,16 @@ def get_database_url() -> str:
     return url
 
 
+def get_schema() -> str:
+    """
+    Get the database schema to use.
+    
+    Returns:
+        Schema name (default: jeseci_academy)
+    """
+    return os.getenv("DB_SCHEMA", "jeseci_academy")
+
+
 def get_engine():
     """
     Create and return SQLAlchemy engine with optimal settings.
@@ -63,6 +74,7 @@ def get_engine():
     for a web application.
     """
     database_url = get_database_url()
+    schema = get_schema()
     
     engine = create_engine(
         database_url,
@@ -72,10 +84,17 @@ def get_engine():
         pool_timeout=30,
         pool_recycle=1800,
         echo=False,  # Set to True for SQL debugging
-        connect_args={"options": "-c search_path=public"}  # Set default schema
+        connect_args={"options": f"-c search_path={schema}"}
     )
     
-    print("[INFO] SQLAlchemy engine created successfully")
+    # Set the schema on the engine
+    @event_listener(engine, "connect")
+    def set_search_path(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute(f"SET search_path TO {schema}")
+        cursor.close()
+    
+    print(f"[INFO] SQLAlchemy engine created with schema: {schema}")
     
     return engine
 
@@ -115,6 +134,14 @@ def init_db():
     Initialize database by creating all tables from models.
     This function creates the schema if it doesn't exist.
     """
+    engine = get_engine()
+    schema = get_schema()
+    
+    # Create schema if it doesn't exist
+    with engine.connect() as conn:
+        conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
+        conn.commit()
+    
     # Import all models to ensure they are registered with Base.metadata
     from backend.database.models import (
         # User Domain
@@ -132,12 +159,13 @@ def init_db():
         SystemLog, SystemHealth, AIAgent,
     )
     
-    engine = get_engine()
+    # Set the schema for all models
+    Base.metadata.schema = schema
     
     # Create all tables defined in models
     Base.metadata.create_all(bind=engine)
     
-    print("[INFO] Database tables created/verified successfully")
+    print(f"[INFO] Database tables created/verified in schema '{schema}' successfully")
     
     return engine
 
@@ -152,7 +180,7 @@ def check_db_connection() -> bool:
     try:
         engine = get_engine()
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         return True
     except Exception as e:
         print(f"[ERROR] Database connection failed: {e}")
@@ -161,3 +189,7 @@ def check_db_connection() -> bool:
 
 # Global session factory for import convenience
 SessionLocal = get_session_factory()
+
+
+# Import event_listener for setting search_path
+from sqlalchemy import event_listener
