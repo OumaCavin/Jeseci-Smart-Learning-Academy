@@ -122,26 +122,34 @@ NEO4J_USER="${NEO4J_USER:-neo4j}"
 NEO4J_PASSWORD="${NEO4J_PASSWORD:-password}"
 NEO4J_DATABASE="${NEO4J_DATABASE:-neo4j}"
 
-# Try to connect to Neo4j and clean up
-echo -e "${YELLOW}[i] Attempting to clean Neo4j database...${NC}"
+# Try to connect to Neo4j and clean up project data
+echo -e "${YELLOW}[i] Attempting to clean Neo4j project data...${NC}"
 
-# Create a Python script for Neo4j cleanup
+# Create a Python script for Neo4j cleanup using labels
 python3 << 'PYTHON_SCRIPT'
 import sys
-from neo4j import GraphDatabase
+import os
+sys.path.insert(0, 'backend')
 
-uri = "bolt://localhost:7687"
-user = "neo4j"
-password = "password"
+from database.neo4j_manager import Neo4jManager
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
 
 try:
-    driver = GraphDatabase.driver(uri, auth=(user, password))
-    with driver.session(database="neo4j") as session:
-        # Delete all nodes and relationships
-        result = session.run("MATCH (n) DETACH DELETE n")
-        summary = result.consume()
-        print(f"[✓] Neo4j cleanup completed successfully")
-    driver.close()
+    neo4j = Neo4jManager()
+    if neo4j.connect():
+        # Clear only project-specific data using labels
+        if neo4j.clear_project_data():
+            print("[✓] Neo4j project data cleaned successfully")
+            print("    (Preserves other data in the database using different labels)")
+        else:
+            print("[!] Failed to clear Neo4j data")
+        neo4j.disconnect()
+    else:
+        print("[!] Could not connect to Neo4j")
+        print("    (This is optional - Neo4j Community Edition uses a single database)")
+        print("    (Project data is organized using labels, so existing data won't conflict)")
 except Exception as e:
     print(f"[!] Neo4j cleanup skipped: {str(e)}")
     print("    (This is optional - Neo4j will work fine with existing data)")

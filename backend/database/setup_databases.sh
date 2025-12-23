@@ -367,30 +367,38 @@ if [ "$neo4j_running" = true ]; then
         
         echo ""
         
-        # Create constraints
-        print_info "Creating Neo4j constraints..."
+        # Create constraints and indexes using the Neo4j manager
+        print_info "Creating Neo4j constraints and indexes..."
         python -c "
 import sys
 sys.path.insert(0, 'backend')
-from database import neo4j_manager
+from database.neo4j_manager import Neo4jManager
 
-# Execute each constraint separately - Neo4j driver only accepts one statement at a time
-constraints = [
-'CREATE CONSTRAINT IF NOT EXISTS FOR (c:Concept) REQUIRE c.concept_id IS UNIQUE',
-'CREATE CONSTRAINT IF NOT EXISTS FOR (u:User) REQUIRE u.user_id IS UNIQUE',
-'CREATE CONSTRAINT IF NOT EXISTS FOR (p:LearningPath) REQUIRE p.path_id IS UNIQUE'
-]
+# Create Neo4j manager instance
+neo4j = Neo4jManager()
 
-success_count = 0
-for constraint in constraints:
-    result = neo4j_manager.execute_query(constraint)
-    if result is not None:
-        success_count += 1
-
-if success_count == len(constraints):
-    print('[✓] Neo4j constraints created successfully')
+# Connect to Neo4j
+if neo4j.connect():
+    # Create constraints
+    constraint_count = neo4j.create_constraints()
+    print(f'[✓] Created {constraint_count} constraints')
+    
+    # Create indexes
+    index_count = neo4j.create_indexes()
+    print(f'[✓] Created {index_count} indexes')
+    
+    # Verify setup
+    setup = neo4j.verify_setup()
+    print(f'[✓] Neo4j setup verified: {setup[\"concept_count\"]} concepts, ' 
+          f'{setup[\"learning_path_count\"]} learning paths, '
+          f'{setup[\"lesson_count\"]} lessons, '
+          f'{setup[\"user_count\"]} users, '
+          f'{setup[\"relationship_count\"]} relationships')
+    
+    neo4j.disconnect()
+    print('[✓] Neo4j constraints and indexes created successfully')
 else:
-    print(f'[!] Only {success_count}/{len(constraints)} constraints created')
+    print('[!] Could not connect to Neo4j to create constraints')
 "
         
         echo ""
@@ -458,6 +466,10 @@ echo "Configuration (from .env):"
 echo "  ${CYAN}PostgreSQL:${NC}  $POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB (user: $POSTGRES_USER)"
 echo "  ${CYAN}Neo4j:${NC}       $NEO4J_URI (database: $NEO4J_DATABASE)"
 echo ""
+echo "${YELLOW}Note: Neo4j Community Edition uses a single database.${NC}"
+echo "${YELLOW}Data is organized using labels (Concept, LearningPath, Lesson, etc.)${NC}"
+echo "and relationship types (CONTAINS, PREREQUISITE, BELONGS_TO, etc.)."
+echo ""
 
 echo "Status:"
 if command -v psql &> /dev/null && PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" &>/dev/null; then
@@ -467,7 +479,7 @@ else
 fi
 
 if command -v cypher-shell &> /dev/null && echo "RETURN 1;" | cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" &>/dev/null; then
-    echo "  ${GREEN}✓${NC} Neo4j: Connected"
+    echo "  ${GREEN}✓${NC} Neo4j: Connected (using labels for data organization)"
 else
     echo "  ${RED}✗${NC} Neo4j: Not connected"
 fi
