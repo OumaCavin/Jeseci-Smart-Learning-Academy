@@ -49,24 +49,33 @@ echo -e "\n${BLUE}🗄️  Database Setup for Jeseci Smart Learning Companion${N
 cd "$(dirname "$0")/../.."
 
 # Load environment variables if .env exists
-ENV_FILE=".env"
+# Check config/ directory first, then fall back to project root
+ENV_FILE="config/.env"
 if [ -f "$ENV_FILE" ]; then
     print_info "Loading environment variables from $ENV_FILE..."
     set -a  # Auto-export variables
     source "$ENV_FILE"
     set +a
 else
-    print_warning "$ENV_FILE file not found. Using default configuration."
-    # Set defaults
-    POSTGRES_HOST="localhost"
-    POSTGRES_PORT="5432"
-    POSTGRES_DB="jeseci_learning_academy"
-    POSTGRES_USER="jeseci_user"
-    POSTGRES_PASSWORD="secure_password_123"
-    NEO4J_URI="bolt://localhost:7687"
-    NEO4J_USER="neo4j"
-    NEO4J_PASSWORD="neo4j_secure_password_2024"
-    NEO4J_DATABASE="neo4j"
+    ENV_FILE=".env"
+    if [ -f "$ENV_FILE" ]; then
+        print_info "Loading environment variables from $ENV_FILE..."
+        set -a  # Auto-export variables
+        source "$ENV_FILE"
+        set +a
+    else
+        print_warning "$ENV_FILE file not found. Using default configuration."
+        # Set defaults
+        POSTGRES_HOST="localhost"
+        POSTGRES_PORT="5432"
+        POSTGRES_DB="jeseci_learning_academy"
+        POSTGRES_USER="jeseci_user"
+        POSTGRES_PASSWORD="jeseci_secure_password_2024"
+        NEO4J_URI="bolt://localhost:7687"
+        NEO4J_USER="neo4j"
+        NEO4J_PASSWORD="neo4j_secure_password_2024"
+        NEO4J_DATABASE="neo4j"
+    fi
 fi
 
 # =============================================================================
