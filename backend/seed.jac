@@ -4,9 +4,6 @@
 # This module seeds the database with Jac programming language concepts,
 # learning paths, and establishes relationships between them.
 # ==============================================================================
-# Author: MiniMax Agent
-# Created: 2025-12-24
-# ==============================================================================
 
 import datetime;
 
@@ -14,257 +11,312 @@ import datetime;
 import database as db_module;
 
 # ==============================================================================
-# Jac Language Concept Data
-# Ported from seed_jac_concepts (1).py
+# Helper Functions for Data Access
 # ==============================================================================
 
-# Global concept data - accessible to all walkers
+# Get value from dictionary with key
+def get_dict_value(d: dict, key: str, default: any) -> any {
+    if key in d { return d[key]; }
+    return default;
+}
+
+# Get concept by name from concepts list
+def get_concept_by_name(concepts: list, name: str) -> dict {
+    for c in concepts {
+        if c['name'] == name { return c; }
+    }
+    return {};
+}
+
+# Get path by ID from paths list
+def get_path_by_id(paths: list, path_id: str) -> dict {
+    for p in paths {
+        if p['path_id'] == path_id { return p; }
+    }
+    return {};
+}
+
+# ==============================================================================
+# Jac Language Concept Data
+# ==============================================================================
+
+# Concept 1
+jac_concept_1 = {
+    "name": "jac_programming_fundamentals",
+    "display_name": "JAC Programming Fundamentals",
+    "description": "Introduction to JAC programming language",
+    "detailed_description": "JAC introduces Object-Spatial Programming",
+    "category": "JAC Programming",
+    "subcategory": "Introduction",
+    "domain": "Computer Science",
+    "difficulty_level": "beginner",
+    "complexity_score": 6.0,
+    "cognitive_load": 6.5,
+    "key_terms": ["JAC", "OSP", "nodes", "walkers"],
+    "synonyms": ["JAC Language"]
+};
+
+# Concept 2
+jac_concept_2 = {
+    "name": "jac_variables_data_types",
+    "display_name": "JAC Variables and Data Types",
+    "description": "Understanding JAC type system",
+    "detailed_description": "JAC uses strong typing with annotations",
+    "category": "JAC Programming",
+    "subcategory": "Fundamentals",
+    "domain": "Computer Science",
+    "difficulty_level": "beginner",
+    "complexity_score": 4.0,
+    "cognitive_load": 4.5,
+    "key_terms": ["variable", "type", "annotation"],
+    "synonyms": ["data types"]
+};
+
+# Concept 3
+jac_concept_3 = {
+    "name": "jac_control_flow",
+    "display_name": "JAC Control Flow",
+    "description": "Mastering conditionals and loops",
+    "detailed_description": "JAC provides traditional control flow structures",
+    "category": "JAC Programming",
+    "subcategory": "Fundamentals",
+    "domain": "Computer Science",
+    "difficulty_level": "beginner",
+    "complexity_score": 5.0,
+    "cognitive_load": 5.5,
+    "key_terms": ["if", "else", "while", "for"],
+    "synonyms": ["conditionals", "loops"]
+};
+
+# Concept 4
+jac_concept_4 = {
+    "name": "jac_functions",
+    "display_name": "JAC Functions",
+    "description": "Creating reusable code blocks",
+    "detailed_description": "JAC functions use def keyword with type annotations",
+    "category": "JAC Programming",
+    "subcategory": "Fundamentals",
+    "domain": "Computer Science",
+    "difficulty_level": "beginner",
+    "complexity_score": 5.5,
+    "cognitive_load": 6.0,
+    "key_terms": ["function", "parameter", "return"],
+    "synonyms": ["method", "procedure"]
+};
+
+# Concept 5
+jac_concept_5 = {
+    "name": "jac_collections",
+    "display_name": "JAC Collections",
+    "description": "Working with lists and dictionaries",
+    "detailed_description": "JAC supports lists and dicts with strong typing",
+    "category": "JAC Programming",
+    "subcategory": "Intermediate",
+    "domain": "Computer Science",
+    "difficulty_level": "intermediate",
+    "complexity_score": 6.5,
+    "cognitive_load": 7.0,
+    "key_terms": ["list", "dict", "collection"],
+    "synonyms": ["data structures"]
+};
+
+# Concept 6
+jac_concept_6 = {
+    "name": "jac_oop",
+    "display_name": "JAC Object-Oriented Programming",
+    "description": "Implementing classes and objects",
+    "detailed_description": "JAC supports OOP with obj keyword",
+    "category": "JAC Programming",
+    "subcategory": "Intermediate",
+    "domain": "Computer Science",
+    "difficulty_level": "intermediate",
+    "complexity_score": 7.0,
+    "cognitive_load": 7.5,
+    "key_terms": ["object", "class", "method", "obj"],
+    "synonyms": ["OOP"]
+};
+
+# Concept 7
+jac_concept_7 = {
+    "name": "jac_object_spatial_programming",
+    "display_name": "JAC Object-Spatial Programming",
+    "description": "Understanding OSP paradigm",
+    "detailed_description": "OSP moves computation to data",
+    "category": "JAC Programming",
+    "subcategory": "Advanced",
+    "domain": "Computer Science",
+    "difficulty_level": "advanced",
+    "complexity_score": 8.5,
+    "cognitive_load": 9.0,
+    "key_terms": ["OSP", "node", "edge", "walker"],
+    "synonyms": ["graph programming"]
+};
+
+# Concept 8
+jac_concept_8 = {
+    "name": "jac_nodes_edges",
+    "display_name": "JAC Nodes and Edges",
+    "description": "Creating nodes and edges",
+    "detailed_description": "Nodes and edges form graph structures",
+    "category": "JAC Programming",
+    "subcategory": "Advanced",
+    "domain": "Computer Science",
+    "difficulty_level": "advanced",
+    "complexity_score": 8.0,
+    "cognitive_load": 8.5,
+    "key_terms": ["node", "edge", "graph"],
+    "synonyms": ["vertices", "links"]
+};
+
+# Concept 9
+jac_concept_9 = {
+    "name": "jac_walkers",
+    "display_name": "JAC Walkers and Graph Traversal",
+    "description": "Implementing walkers for traversal",
+    "detailed_description": "Walkers traverse graphs performing tasks",
+    "category": "JAC Programming",
+    "subcategory": "Advanced",
+    "domain": "Computer Science",
+    "difficulty_level": "advanced",
+    "complexity_score": 8.5,
+    "cognitive_load": 9.0,
+    "key_terms": ["walker", "spawn", "visit"],
+    "synonyms": ["mobile agents"]
+};
+
+# Concept 10
+jac_concept_10 = {
+    "name": "jac_ai_integration",
+    "display_name": "JAC AI Integration with byLLM",
+    "description": "Integrating LLMs into JAC apps",
+    "detailed_description": "JAC provides native AI integration",
+    "category": "JAC Programming",
+    "subcategory": "Expert",
+    "domain": "Computer Science",
+    "difficulty_level": "expert",
+    "complexity_score": 9.0,
+    "cognitive_load": 9.5,
+    "key_terms": ["byLLM", "AI", "LLM"],
+    "synonyms": ["AI integration"]
+};
+
+# Concept 11
+jac_concept_11 = {
+    "name": "jac_scale_agnostic_programming",
+    "display_name": "JAC Scale-Agnostic Programming",
+    "description": "Building scalable applications",
+    "detailed_description": "JAC enables scale-agnostic programming",
+    "category": "JAC Programming",
+    "subcategory": "Expert",
+    "domain": "Computer Science",
+    "difficulty_level": "expert",
+    "complexity_score": 9.0,
+    "cognitive_load": 9.0,
+    "key_terms": ["scale", "distributed", "persistence"],
+    "synonyms": ["elastic programming"]
+};
+
+# Global concept data list
 jac_concepts_data = [
-    {
-        "name": "jac_programming_fundamentals",
-        "display_name": "JAC Programming Fundamentals",
-        "description": "Introduction to JAC (Java-like Architecture for Computation) programming language with Object-Spatial Programming paradigm",
-        "detailed_description": "JAC is a revolutionary programming language that introduces Object-Spatial Programming (OSP) where computation moves to data, enabling scalable and distributed applications. It offers a unique dual paradigm: traditional programming and Object-Spatial Programming.",
-        "category": "JAC Programming",
-        "subcategory": "Introduction",
-        "domain": "Computer Science",
-        "difficulty_level": "beginner",
-        "complexity_score": 6.0,
-        "cognitive_load": 6.5,
-        "key_terms": ["JAC", "Object-Spatial Programming", "OSP", "nodes", "edges", "walkers"],
-        "synonyms": ["Java-like Architecture for Computation", "JAC Language"]
-    },
-    {
-        "name": "jac_variables_data_types",
-        "display_name": "JAC Variables and Data Types",
-        "description": "Understanding JAC's type system, variable declarations, and data type annotations",
-        "detailed_description": "JAC uses strong typing with type annotations for all variables and collections. Variables are declared with the assignment operator and require explicit type annotations. Supported types include str, int, float, bool, list, dict, set, and tuples.",
-        "category": "JAC Programming",
-        "subcategory": "Fundamentals",
-        "domain": "Computer Science",
-        "difficulty_level": "beginner",
-        "complexity_score": 4.0,
-        "cognitive_load": 4.5,
-        "key_terms": ["variable", "type annotation", "string", "integer", "float", "boolean", "list", "dict", "set"],
-        "synonyms": ["data types", "variable declaration", "type system"]
-    },
-    {
-        "name": "jac_control_flow",
-        "display_name": "JAC Control Flow",
-        "description": "Mastering conditional statements, loops, and pattern matching in JAC",
-        "detailed_description": "JAC provides traditional control flow structures including if-elif-else statements, while loops, for loops (counting and iterating), and advanced pattern matching. All control structures use curly braces for block definition.",
-        "category": "JAC Programming",
-        "subcategory": "Fundamentals",
-        "domain": "Computer Science",
-        "difficulty_level": "beginner",
-        "complexity_score": 5.0,
-        "cognitive_load": 5.5,
-        "key_terms": ["if", "elif", "else", "while", "for", "break", "continue", "pattern matching", "comparison operators"],
-        "synonyms": ["conditionals", "loops", "decision making", "iteration"]
-    },
-    {
-        "name": "jac_functions",
-        "display_name": "JAC Functions",
-        "description": "Creating reusable code blocks with parameters, return values, and default arguments",
-        "detailed_description": "JAC functions are defined using the 'def' keyword with type annotations for parameters and return types. Functions support default parameters, named parameters, and can return values using the 'return' statement.",
-        "category": "JAC Programming",
-        "subcategory": "Fundamentals",
-        "domain": "Computer Science",
-        "difficulty_level": "beginner",
-        "complexity_score": 5.5,
-        "cognitive_load": 6.0,
-        "key_terms": ["function", "parameter", "return", "default parameter", "type annotation", "named parameter"],
-        "synonyms": ["method", "procedure", "subroutine", "function definition"]
-    },
-    {
-        "name": "jac_collections",
-        "display_name": "JAC Collections and Data Structures",
-        "description": "Working with lists, dictionaries, sets, and collection comprehensions in JAC",
-        "detailed_description": "JAC supports lists, dictionaries, sets, and tuples with strong typing. All collections require explicit type annotations and support comprehensions similar to Python. Collections are fundamental for organizing and managing data.",
-        "category": "JAC Programming",
-        "subcategory": "Intermediate",
-        "domain": "Computer Science",
-        "difficulty_level": "intermediate",
-        "complexity_score": 6.5,
-        "cognitive_load": 7.0,
-        "key_terms": ["list", "dictionary", "set", "tuple", "collection comprehension", "append", "extend", "items"],
-        "synonyms": ["data structures", "arrays", "maps", "hash tables"]
-    },
-    {
-        "name": "jac_oop",
-        "display_name": "JAC Object-Oriented Programming",
-        "description": "Implementing classes, objects, methods, and interface/implementation separation",
-        "detailed_description": "JAC supports OOP with 'obj' keyword for defining classes, 'has' for attributes, and 'def' for methods. It encourages separation between interface (.jac) and implementation (.impl.jac) files for better code organization.",
-        "category": "JAC Programming",
-        "subcategory": "Intermediate",
-        "domain": "Computer Science",
-        "difficulty_level": "intermediate",
-        "complexity_score": 7.0,
-        "cognitive_load": 7.5,
-        "key_terms": ["object", "class", "method", "attribute", "self", "interface", "implementation", "obj"],
-        "synonyms": ["OOP", "object-oriented", "class-based programming"]
-    },
-    {
-        "name": "jac_object_spatial_programming",
-        "display_name": "JAC Object-Spatial Programming (OSP)",
-        "description": "Understanding the revolutionary OSP paradigm with nodes, edges, and walkers",
-        "detailed_description": "Object-Spatial Programming is JAC's unique paradigm where computation moves to data. Built on three fundamentals: Nodes (stateful entities), Edges (typed relationships), and Walkers (mobile computation that traverses graphs).",
-        "category": "JAC Programming",
-        "subcategory": "Advanced",
-        "domain": "Computer Science",
-        "difficulty_level": "advanced",
-        "complexity_score": 8.5,
-        "cognitive_load": 9.0,
-        "key_terms": ["Object-Spatial Programming", "OSP", "node", "edge", "walker", "graph", "traversal", "scale-agnostic"],
-        "synonyms": ["graph programming", "spatial computation", "distributed programming"]
-    },
-    {
-        "name": "jac_nodes_edges",
-        "display_name": "JAC Nodes and Edges",
-        "description": "Creating and managing nodes (data entities) and edges (relationships) in JAC",
-        "detailed_description": "Nodes are objects with location in graph structure, created using 'node' keyword. Edges create typed connections between nodes and can have properties. Both support inheritance and complex relationship modeling.",
-        "category": "JAC Programming",
-        "subcategory": "Advanced",
-        "domain": "Computer Science",
-        "difficulty_level": "advanced",
-        "complexity_score": 8.0,
-        "cognitive_load": 8.5,
-        "key_terms": ["node", "edge", "relationship", "graph structure", "typed edge", "edge properties", "root"],
-        "synonyms": ["vertices", "connections", "links", "associations"]
-    },
-    {
-        "name": "jac_walkers",
-        "display_name": "JAC Walkers and Graph Traversal",
-        "description": "Implementing mobile computation through walkers that traverse graphs of nodes and edges",
-        "detailed_description": "Walkers are programs that traverse graphs performing tasks. They have 'can' abilities that execute when landing on specific node types. Walkers use 'visit' statements to traverse edges and 'spawn' to initiate traversal.",
-        "category": "JAC Programming",
-        "subcategory": "Advanced",
-        "domain": "Computer Science",
-        "difficulty_level": "advanced",
-        "complexity_score": 8.5,
-        "cognitive_load": 9.0,
-        "key_terms": ["walker", "spawn", "visit", "traverse", "ability", "here", "entry"],
-        "synonyms": ["mobile agents", "graph algorithms", "traversal agents"]
-    },
-    {
-        "name": "jac_ai_integration",
-        "display_name": "JAC AI Integration with byLLM",
-        "description": "Integrating Large Language Models into JAC applications using byLLM annotations",
-        "detailed_description": "JAC provides native AI integration through byLLM annotations. Functions can be marked with 'byllm()' to have their implementation generated by configured LLMs, enabling dynamic content generation and intelligent responses.",
-        "category": "JAC Programming",
-        "subcategory": "Expert",
-        "domain": "Computer Science",
-        "difficulty_level": "expert",
-        "complexity_score": 9.0,
-        "cognitive_load": 9.5,
-        "key_terms": ["byLLM", "AI integration", "LLM", "Model", "artificial intelligence", "dynamic generation"],
-        "synonyms": ["machine learning integration", "AI-powered programming", "LLM annotation"]
-    },
-    {
-        "name": "jac_scale_agnostic_programming",
-        "display_name": "JAC Scale-Agnostic Programming",
-        "description": "Building applications that work seamlessly from single user to millions of users",
-        "detailed_description": "JAC enables scale-agnostic programming where code works for single users or millions without changes. This is achieved through automatic persistence, multi-user isolation, and graph-based architecture.",
-        "category": "JAC Programming",
-        "subcategory": "Expert",
-        "domain": "Computer Science",
-        "difficulty_level": "expert",
-        "complexity_score": 9.0,
-        "cognitive_load": 9.0,
-        "key_terms": ["scale-agnostic", "automatic persistence", "multi-user", "isolation", "distributed"],
-        "synonyms": ["elastic programming", "auto-scaling", "cloud-native"]
-    }
+    jac_concept_1, jac_concept_2, jac_concept_3, jac_concept_4,
+    jac_concept_5, jac_concept_6, jac_concept_7, jac_concept_8,
+    jac_concept_9, jac_concept_10, jac_concept_11
 ];
 
-# Learning path definitions
-jac_learning_paths = [
-    {
-        "path_id": "jac_fundamentals_journey",
-        "name": "JAC Programming Fundamentals Journey",
-        "title": "JAC Programming Fundamentals Journey",
-        "description": "Master the essential concepts of JAC programming from basic syntax to Object-Spatial Programming",
-        "category": "JAC Programming",
-        "difficulty_level": "beginner",
-        "estimated_duration": 40,
-        "target_audience": "Beginner programmers new to JAC",
-        "concepts": [
-            "jac_programming_fundamentals",
-            "jac_variables_data_types",
-            "jac_control_flow",
-            "jac_functions"
-        ]
-    },
-    {
-        "path_id": "jac_oop_collections_mastery",
-        "name": "JAC Object-Oriented and Collections Mastery",
-        "title": "JAC Object-Oriented and Collections Mastery",
-        "description": "Advanced JAC programming with OOP, collections, and interface separation",
-        "category": "JAC Programming",
-        "difficulty_level": "intermediate",
-        "estimated_duration": 35,
-        "target_audience": "Intermediate programmers with JAC basics",
-        "concepts": [
-            "jac_collections",
-            "jac_oop"
-        ]
-    },
-    {
-        "path_id": "jac_osp_expert",
-        "name": "JAC Object-Spatial Programming Expert",
-        "title": "JAC Object-Spatial Programming Expert",
-        "description": "Master the revolutionary OSP paradigm with nodes, edges, and walkers",
-        "category": "JAC Programming",
-        "difficulty_level": "advanced",
-        "estimated_duration": 50,
-        "target_audience": "Advanced programmers ready for OSP",
-        "concepts": [
-            "jac_object_spatial_programming",
-            "jac_nodes_edges",
-            "jac_walkers"
-        ]
-    },
-    {
-        "path_id": "jac_ai_expert",
-        "name": "JAC AI Integration and Expert Level",
-        "title": "JAC AI Integration and Expert Level",
-        "description": "Expert-level JAC with AI integration, production deployment, and advanced features",
-        "category": "JAC Programming",
-        "difficulty_level": "expert",
-        "estimated_duration": 45,
-        "target_audience": "Expert programmers and system architects",
-        "concepts": [
-            "jac_ai_integration",
-            "jac_scale_agnostic_programming"
-        ]
-    }
-];
+# ==============================================================================
+# Learning Path Data
+# ==============================================================================
 
-# Relationship definitions
+# Path 1
+jac_path_1 = {
+    "path_id": "jac_fundamentals_journey",
+    "name": "JAC Programming Fundamentals Journey",
+    "title": "JAC Programming Fundamentals Journey",
+    "description": "Master essential JAC concepts",
+    "category": "JAC Programming",
+    "difficulty_level": "beginner",
+    "estimated_duration": 40,
+    "target_audience": "Beginner programmers",
+    "concepts": ["jac_programming_fundamentals", "jac_variables_data_types", "jac_control_flow", "jac_functions"]
+};
+
+# Path 2
+jac_path_2 = {
+    "path_id": "jac_oop_collections_mastery",
+    "name": "JAC OOP and Collections Mastery",
+    "title": "JAC OOP and Collections Mastery",
+    "description": "Advanced JAC with OOP and collections",
+    "category": "JAC Programming",
+    "difficulty_level": "intermediate",
+    "estimated_duration": 35,
+    "target_audience": "Intermediate programmers",
+    "concepts": ["jac_collections", "jac_oop"]
+};
+
+# Path 3
+jac_path_3 = {
+    "path_id": "jac_osp_expert",
+    "name": "JAC OSP Expert",
+    "title": "JAC OSP Expert",
+    "description": "Master OSP with nodes, edges, walkers",
+    "category": "JAC Programming",
+    "difficulty_level": "advanced",
+    "estimated_duration": 50,
+    "target_audience": "Advanced programmers",
+    "concepts": ["jac_object_spatial_programming", "jac_nodes_edges", "jac_walkers"]
+};
+
+# Path 4
+jac_path_4 = {
+    "path_id": "jac_ai_expert",
+    "name": "JAC AI Integration Expert",
+    "title": "JAC AI Integration Expert",
+    "description": "Expert JAC with AI integration",
+    "category": "JAC Programming",
+    "difficulty_level": "expert",
+    "estimated_duration": 45,
+    "target_audience": "Expert programmers",
+    "concepts": ["jac_ai_integration", "jac_scale_agnostic_programming"]
+};
+
+# Global learning paths list
+jac_learning_paths = [jac_path_1, jac_path_2, jac_path_3, jac_path_4];
+
+# ==============================================================================
+# Relationship Data (stored as list of tuples for Jac compatibility)
+# ==============================================================================
+
+# Relationships stored as list: [from, to, type, strength]
+jac_rel_1 = ["jac_programming_fundamentals", "jac_variables_data_types", "PREREQUISITE", 1];
+jac_rel_2 = ["jac_variables_data_types", "jac_control_flow", "PREREQUISITE", 1];
+jac_rel_3 = ["jac_control_flow", "jac_functions", "PREREQUISITE", 1];
+jac_rel_4 = ["jac_functions", "jac_collections", "PREREQUISITE", 1];
+jac_rel_5 = ["jac_collections", "jac_oop", "PREREQUISITE", 1];
+jac_rel_6 = ["jac_oop", "jac_object_spatial_programming", "PREREQUISITE", 1];
+jac_rel_7 = ["jac_object_spatial_programming", "jac_nodes_edges", "PREREQUISITE", 1];
+jac_rel_8 = ["jac_nodes_edges", "jac_walkers", "PREREQUISITE", 1];
+jac_rel_9 = ["jac_walkers", "jac_ai_integration", "PREREQUISITE", 1];
+jac_rel_10 = ["jac_ai_integration", "jac_scale_agnostic_programming", "PREREQUISITE", 1];
+
+# Related concepts
+jac_rel_11 = ["jac_control_flow", "jac_functions", "RELATED_TO", 0.5];
+jac_rel_12 = ["jac_variables_data_types", "jac_collections", "RELATED_TO", 0.5];
+jac_rel_13 = ["jac_oop", "jac_collections", "RELATED_TO", 0.5];
+jac_rel_14 = ["jac_object_spatial_programming", "jac_walkers", "RELATED_TO", 0.5];
+jac_rel_15 = ["jac_nodes_edges", "jac_walkers", "RELATED_TO", 0.5];
+jac_rel_16 = ["jac_ai_integration", "jac_walkers", "RELATED_TO", 0.5];
+
+# Builds upon relationships
+jac_rel_17 = ["jac_oop", "jac_object_spatial_programming", "BUILDS_UPON", 1];
+jac_rel_18 = ["jac_nodes_edges", "jac_ai_integration", "BUILDS_UPON", 0.8];
+jac_rel_19 = ["jac_scale_agnostic_programming", "jac_object_spatial_programming", "BUILDS_UPON", 0.8];
+
+# Global relationships list
 jac_relationships = [
-    # Hierarchy / Prerequisites
-    {"from": "jac_programming_fundamentals", "to": "jac_variables_data_types", "type": "PREREQUISITE", "strength": 1},
-    {"from": "jac_variables_data_types", "to": "jac_control_flow", "type": "PREREQUISITE", "strength": 1},
-    {"from": "jac_control_flow", "to": "jac_functions", "type": "PREREQUISITE", "strength": 1},
-    {"from": "jac_functions", "to": "jac_collections", "type": "PREREQUISITE", "strength": 1},
-    {"from": "jac_collections", "to": "jac_oop", "type": "PREREQUISITE", "strength": 1},
-    {"from": "jac_oop", "to": "jac_object_spatial_programming", "type": "PREREQUISITE", "strength": 1},
-    {"from": "jac_object_spatial_programming", "to": "jac_nodes_edges", "type": "PREREQUISITE", "strength": 1},
-    {"from": "jac_nodes_edges", "to": "jac_walkers", "type": "PREREQUISITE", "strength": 1},
-    {"from": "jac_walkers", "to": "jac_ai_integration", "type": "PREREQUISITE", "strength": 1},
-    {"from": "jac_ai_integration", "to": "jac_scale_agnostic_programming", "type": "PREREQUISITE", "strength": 1},
-
-    # Related concepts (can be learned in parallel)
-    {"from": "jac_control_flow", "to": "jac_functions", "type": "RELATED_TO", "strength": 0.5},
-    {"from": "jac_variables_data_types", "to": "jac_collections", "type": "RELATED_TO", "strength": 0.5},
-    {"from": "jac_oop", "to": "jac_collections", "type": "RELATED_TO", "strength": 0.5},
-    {"from": "jac_object_spatial_programming", "to": "jac_walkers", "type": "RELATED_TO", "strength": 0.5},
-    {"from": "jac_nodes_edges", "to": "jac_walkers", "type": "RELATED_TO", "strength": 0.5},
-    {"from": "jac_ai_integration", "to": "jac_walkers", "type": "RELATED_TO", "strength": 0.5},
-
-    # Builds upon relationships
-    {"from": "jac_oop", "to": "jac_object_spatial_programming", "type": "BUILDS_UPON", "strength": 1},
-    {"from": "jac_nodes_edges", "to": "jac_ai_integration", "type": "BUILDS_UPON", "strength": 0.8},
-    {"from": "jac_scale_agnostic_programming", "to": "jac_object_spatial_programming", "type": "BUILDS_UPON", "strength": 0.8}
+    jac_rel_1, jac_rel_2, jac_rel_3, jac_rel_4, jac_rel_5,
+    jac_rel_6, jac_rel_7, jac_rel_8, jac_rel_9, jac_rel_10,
+    jac_rel_11, jac_rel_12, jac_rel_13, jac_rel_14, jac_rel_15, jac_rel_16,
+    jac_rel_17, jac_rel_18, jac_rel_19
 ];
 
 # ==============================================================================
@@ -272,7 +324,6 @@ jac_relationships = [
 # ==============================================================================
 
 walker seeder {
-    # Operation mode: 'concepts', 'paths', 'relationships', 'all'
     has mode: str = "all";
     has dry_run: bool = false;
     has verbose: bool = true;
@@ -294,9 +345,10 @@ walker seeder {
     }
 
     # Helper to seed concepts to Neo4j
-    can seed_concepts_to_neo4j(manager, dry_run, verbose) -> dict {
+    can seed_concepts_to_neo4j(manager, dry_run, verbose) {
         if dry_run {
-            return {"success": true, "concepts_created": 0, "message": "Dry run - concepts not seeded"};
+            print("Dry run - concepts not seeded");
+            return {"success": true, "concepts_created": 0};
         }
 
         # Clear existing Jac concepts
@@ -312,67 +364,79 @@ walker seeder {
         concepts_skipped = 0;
 
         for concept_data in jac_concepts_data {
-            concept_id = "jac_" + concept_data['name'].replace("jac_", "").replace("_", "_");
+            # Get values using helper function
+            name = get_dict_value(concept_data, "name", "");
+            display_name = get_dict_value(concept_data, "display_name", "");
+            category = get_dict_value(concept_data, "category", "");
+            subcategory = get_dict_value(concept_data, "subcategory", "");
+            domain = get_dict_value(concept_data, "domain", "");
+            difficulty_level = get_dict_value(concept_data, "difficulty_level", "");
+            complexity_score = get_dict_value(concept_data, "complexity_score", 0);
+            cognitive_load = get_dict_value(concept_data, "cognitive_load", 0);
+            description = get_dict_value(concept_data, "description", "");
+            detailed_description = get_dict_value(concept_data, "detailed_description", "");
+            key_terms = get_dict_value(concept_data, "key_terms", []);
+            synonyms = get_dict_value(concept_data, "synonyms", []);
+
+            # Generate concept_id
+            concept_id = "jac_" + name;
 
             create_query = """
-            MERGE (c:Concept {concept_id: \$concept_id})
-            SET c.name = \$name,
-                c.display_name = \$display_name,
-                c.category = \$category,
-                c.subcategory = \$subcategory,
-                c.domain = \$domain,
-                c.difficulty = \$difficulty_level,
-                c.complexity_score = \$complexity_score,
-                c.cognitive_load = \$cognitive_load,
-                c.description = \$description,
-                c.detailed_description = \$detailed_description,
-                c.key_terms = \$key_terms,
-                c.synonyms = \$synonyms,
+            MERGE (c:Concept {concept_id: $concept_id})
+            SET c.name = $name,
+                c.display_name = $display_name,
+                c.category = $category,
+                c.subcategory = $subcategory,
+                c.domain = $domain,
+                c.difficulty = $difficulty_level,
+                c.complexity_score = $complexity_score,
+                c.cognitive_load = $cognitive_load,
+                c.description = $description,
+                c.detailed_description = $detailed_description,
+                c.key_terms = $key_terms,
+                c.synonyms = $synonyms,
                 c.created_at = datetime()
             """;
 
             params = {
                 "concept_id": concept_id,
-                "name": concept_data['name'],
-                "display_name": concept_data['display_name'],
-                "category": concept_data['category'],
-                "subcategory": concept_data['subcategory'],
-                "domain": concept_data['domain'],
-                "difficulty_level": concept_data['difficulty_level'],
-                "complexity_score": concept_data['complexity_score'],
-                "cognitive_load": concept_data['cognitive_load'],
-                "description": concept_data['description'],
-                "detailed_description": concept_data['detailed_description'],
-                "key_terms": concept_data['key_terms'],
-                "synonyms": concept_data['synonyms']
+                "name": name,
+                "display_name": display_name,
+                "category": category,
+                "subcategory": subcategory,
+                "domain": domain,
+                "difficulty_level": difficulty_level,
+                "complexity_score": complexity_score,
+                "cognitive_load": cognitive_load,
+                "description": description,
+                "detailed_description": detailed_description,
+                "key_terms": key_terms,
+                "synonyms": synonyms
             };
 
             try {
                 manager.execute_query(create_query, params);
                 concepts_created += 1;
                 if verbose {
-                    print("Created concept: " + concept_data['display_name']);
+                    print("Created concept: " + display_name);
                 }
             } except Exception as e {
                 concepts_skipped += 1;
                 if verbose {
-                    print("Failed to create: " + concept_data['display_name'] + " - " + str(e));
+                    print("Failed to create: " + display_name + " - " + str(e));
                 }
             }
         }
 
-        return {
-            "success": true,
-            "concepts_created": concepts_created,
-            "concepts_skipped": concepts_skipped,
-            "message": "Concepts seeded successfully"
-        };
+        print("Concepts created: " + str(concepts_created));
+        return {"success": true, "concepts_created": concepts_created};
     }
 
     # Helper to seed learning paths to Neo4j
-    can seed_paths_to_neo4j(manager, dry_run, verbose) -> dict {
+    can seed_paths_to_neo4j(manager, dry_run, verbose) {
         if dry_run {
-            return {"success": true, "paths_created": 0, "relationships_created": 0, "message": "Dry run - paths not seeded"};
+            print("Dry run - paths not seeded");
+            return {"success": true, "paths_created": 0};
         }
 
         # Clear existing learning paths
@@ -388,52 +452,63 @@ walker seeder {
         relationships_created = 0;
 
         for path_data in jac_learning_paths {
-            # Create path node
+            path_id = get_dict_value(path_data, "path_id", "");
+            name = get_dict_value(path_data, "name", "");
+            title = get_dict_value(path_data, "title", "");
+            description = get_dict_value(path_data, "description", "");
+            category = get_dict_value(path_data, "category", "");
+            difficulty_level = get_dict_value(path_data, "difficulty_level", "");
+            estimated_duration = get_dict_value(path_data, "estimated_duration", 0);
+            target_audience = get_dict_value(path_data, "target_audience", "");
+            concepts = get_dict_value(path_data, "concepts", []);
+
+            concept_count = len(concepts);
+
             create_path_query = """
-            MERGE (p:LearningPath {path_id: \$path_id})
-            SET p.name = \$name,
-                p.title = \$title,
-                p.description = \$description,
-                p.category = \$category,
-                p.difficulty = \$difficulty_level,
-                p.estimated_duration = \$estimated_duration,
-                p.target_audience = \$target_audience,
-                p.concept_count = \$concept_count,
+            MERGE (p:LearningPath {path_id: $path_id})
+            SET p.name = $name,
+                p.title = $title,
+                p.description = $description,
+                p.category = $category,
+                p.difficulty = $difficulty_level,
+                p.estimated_duration = $estimated_duration,
+                p.target_audience = $target_audience,
+                p.concept_count = $concept_count,
                 p.created_at = datetime()
             """;
 
             path_params = {
-                "path_id": path_data['path_id'],
-                "name": path_data['name'],
-                "title": path_data['title'],
-                "description": path_data['description'],
-                "category": path_data['category'],
-                "difficulty_level": path_data['difficulty_level'],
-                "estimated_duration": path_data['estimated_duration'],
-                "target_audience": path_data['target_audience'],
-                "concept_count": len(path_data['concepts'])
+                "path_id": path_id,
+                "name": name,
+                "title": title,
+                "description": description,
+                "category": category,
+                "difficulty_level": difficulty_level,
+                "estimated_duration": estimated_duration,
+                "target_audience": target_audience,
+                "concept_count": concept_count
             };
 
             try {
                 manager.execute_query(create_path_query, path_params);
                 paths_created += 1;
                 if verbose {
-                    print("Created learning path: " + path_data['title']);
+                    print("Created learning path: " + title);
                 }
 
                 # Link concepts to path
                 order = 1;
-                for concept_name in path_data['concepts'] {
-                    concept_id = "jac_" + concept_name.replace("jac_", "").replace("_", "_");
+                for concept_name in concepts {
+                    concept_id = "jac_" + concept_name;
 
                     link_query = """
-                    MATCH (p:LearningPath {path_id: \$path_id})
-                    MATCH (c:Concept {name: \$concept_name})
-                    MERGE (p)-[r:PathContains {order_index: \$order, is_required: true, created_at: datetime()}]->(c)
+                    MATCH (p:LearningPath {path_id: $path_id})
+                    MATCH (c:Concept {name: $concept_name})
+                    MERGE (p)-[r:PathContains {order_index: $order, is_required: true, created_at: datetime()}]->(c)
                     """;
 
                     link_params = {
-                        "path_id": path_data['path_id'],
+                        "path_id": path_id,
                         "concept_name": concept_name,
                         "order": order
                     };
@@ -450,64 +525,81 @@ walker seeder {
                 }
             } except Exception as e {
                 if verbose {
-                    print("Failed to create path: " + path_data['title'] + " - " + str(e));
+                    print("Failed to create path: " + title + " - " + str(e));
                 }
             }
         }
 
-        return {
-            "success": true,
-            "paths_created": paths_created,
-            "relationships_created": relationships_created,
-            "message": "Learning paths seeded successfully"
-        };
+        print("Paths created: " + str(paths_created));
+        print("Path-concept relationships: " + str(relationships_created));
+        return {"success": true, "paths_created": paths_created};
     }
 
     # Helper to seed relationships to Neo4j
-    can seed_relationships_to_neo4j(manager, dry_run, verbose) -> dict {
+    can seed_relationships_to_neo4j(manager, dry_run, verbose) {
         if dry_run {
-            return {"success": true, "relationships_created": 0, "message": "Dry run - relationships not seeded"};
+            print("Dry run - relationships not seeded");
+            return {"success": true, "relationships_created": 0};
         }
 
         relationships_created = 0;
         relationships_skipped = 0;
 
         for rel in jac_relationships {
-            # Build dynamic query with correct relationship type
-            rel_query = """
-            MATCH (a:Concept {name: \$from_name})
-            MATCH (b:Concept {name: \$to_name})
-            MERGE (a)-[r:REL_TYPE {strength: \$strength, created_at: datetime()}]->(b)
-            SET r.type = \$type
-            """.replace("REL_TYPE", rel['type']);
+            # rel is [from, to, type, strength]
+            from_name = rel[0];
+            to_name = rel[1];
+            rel_type = rel[2];
+            strength = rel[3];
+
+            # Build query based on relationship type
+            rel_query = "";
+            if rel_type == "PREREQUISITE" {
+                rel_query = """
+                MATCH (a:Concept {name: $from_name})
+                MATCH (b:Concept {name: $to_name})
+                MERGE (a)-[r:PREREQUISITE {strength: $strength, created_at: datetime()}]->(b)
+                SET r.type = "PREREQUISITE"
+                """;
+            } elif rel_type == "RELATED_TO" {
+                rel_query = """
+                MATCH (a:Concept {name: $from_name})
+                MATCH (b:Concept {name: $to_name})
+                MERGE (a)-[r:RELATED_TO {strength: $strength, created_at: datetime()}]->(b)
+                SET r.type = "RELATED_TO"
+                """;
+            } else {
+                rel_query = """
+                MATCH (a:Concept {name: $from_name})
+                MATCH (b:Concept {name: $to_name})
+                MERGE (a)-[r:BUILDS_UPON {strength: $strength, created_at: datetime()}]->(b)
+                SET r.type = "BUILDS_UPON"
+                """;
+            }
 
             params = {
-                "from_name": rel['from'],
-                "to_name": rel['to'],
-                "type": rel['type'],
-                "strength": rel['strength']
+                "from_name": from_name,
+                "to_name": to_name,
+                "type": rel_type,
+                "strength": strength
             };
 
             try {
                 manager.execute_query(rel_query, params);
                 relationships_created += 1;
                 if verbose {
-                    print("Created relationship: " + rel['from'] + " --[" + rel['type'] + "]--> " + rel['to']);
+                    print("Created: " + from_name + " --[" + rel_type + "]--> " + to_name);
                 }
             } except Exception as e {
                 relationships_skipped += 1;
                 if verbose {
-                    print("Failed: " + rel['from'] + " --[" + rel['type'] + "]--> " + rel['to']);
+                    print("Failed: " + from_name + " --[" + rel_type + "]--> " + to_name);
                 }
             }
         }
 
-        return {
-            "success": true,
-            "relationships_created": relationships_created,
-            "relationships_skipped": relationships_skipped,
-            "message": "Relationships seeded successfully"
-        };
+        print("Relationships created: " + str(relationships_created));
+        return {"success": true, "relationships_created": relationships_created};
     }
 
     # Main entry point
@@ -530,24 +622,22 @@ walker seeder {
             self.create_constraints(manager);
         }
 
-        results = {};
-
         if self.mode == "all" or self.mode == "concepts" {
             print("\nSeeding Concepts...");
             print("-" * 50);
-            results['concepts'] = self.seed_concepts_to_neo4j(manager, self.dry_run, self.verbose);
+            self.seed_concepts_to_neo4j(manager, self.dry_run, self.verbose);
         }
 
         if self.mode == "all" or self.mode == "paths" {
             print("\nSeeding Learning Paths...");
             print("-" * 50);
-            results['paths'] = self.seed_paths_to_neo4j(manager, self.dry_run, self.verbose);
+            self.seed_paths_to_neo4j(manager, self.dry_run, self.verbose);
         }
 
         if self.mode == "all" or self.mode == "relationships" {
             print("\nSeeding Relationships...");
             print("-" * 50);
-            results['relationships'] = self.seed_relationships_to_neo4j(manager, self.dry_run, self.verbose);
+            self.seed_relationships_to_neo4j(manager, self.dry_run, self.verbose);
         }
 
         end_time = datetime.datetime.now();
@@ -557,44 +647,9 @@ walker seeder {
         print("Seeding Complete!");
         print("=" * 70);
         print("Duration: " + str(duration) + " seconds");
-
-        # Calculate totals
-        total_concepts = 0;
-        total_paths = 0;
-        total_relationships = 0;
-
-        if 'concepts' in results and results['concepts'] {
-            if 'concepts_created' in results['concepts'] {
-                total_concepts = results['concepts']['concepts_created'];
-            }
-        }
-        if 'paths' in results and results['paths'] {
-            if 'paths_created' in results['paths'] {
-                total_paths = results['paths']['paths_created'];
-            }
-        }
-        if 'relationships' in results and results['relationships'] {
-            if 'relationships_created' in results['relationships'] {
-                total_relationships = results['relationships']['relationships_created'];
-            }
-        }
-
-        print("Concepts Created: " + str(total_concepts));
-        print("Learning Paths Created: " + str(total_paths));
-        print("Relationships Created: " + str(total_relationships));
         print("=" * 70);
 
-        report {
-            "success": true,
-            "mode": self.mode,
-            "duration_seconds": duration,
-            "summary": {
-                "concepts_created": total_concepts,
-                "paths_created": total_paths,
-                "relationships_created": total_relationships
-            },
-            "results": results
-        };
+        report {"success": true};
     }
 }
 
@@ -609,12 +664,18 @@ walker seed_status {
         # Count concepts
         concept_query = "MATCH (c:Concept {category: 'JAC Programming'}) RETURN count(c) AS count";
         concept_result = manager.execute_query(concept_query, None);
-        jac_concepts_count = concept_result[0]['count'] if concept_result else 0;
+        jac_concepts_count = 0;
+        if concept_result and len(concept_result) > 0 {
+            jac_concepts_count = concept_result[0]['count'];
+        }
 
         # Count learning paths
         path_query = "MATCH (p:LearningPath {category: 'JAC Programming'}) RETURN count(p) AS count";
         path_result = manager.execute_query(path_query, None);
-        jac_paths_count = path_result[0]['count'] if path_result else 0;
+        jac_paths_count = 0;
+        if path_result and len(path_result) > 0 {
+            jac_paths_count = path_result[0]['count'];
+        }
 
         # Count relationships
         rel_query = """
@@ -623,27 +684,16 @@ walker seed_status {
         RETURN count(r) AS count
         """;
         rel_result = manager.execute_query(rel_query, None);
-        jac_rels_count = rel_result[0]['count'] if rel_result else 0;
-
-        # Get all concepts
-        concepts_query = """
-        MATCH (c:Concept {category: 'JAC Programming'})
-        RETURN c.name AS name, c.display_name AS display_name, c.difficulty AS difficulty
-        ORDER BY c.name
-        """;
-        concepts_result = manager.execute_query(concepts_query, None);
-        concepts_list = concepts_result or [];
+        jac_rels_count = 0;
+        if rel_result and len(rel_result) > 0 {
+            jac_rels_count = rel_result[0]['count'];
+        }
 
         report {
             "success": true,
-            "status": {
-                "jac_concepts": jac_concepts_count,
-                "jac_learning_paths": jac_paths_count,
-                "jac_relationships": jac_rels_count,
-                "is_seeded": jac_concepts_count > 0
-            },
-            "concepts": concepts_list,
-            "message": "JAC seeder status retrieved successfully"
+            "jac_concepts": jac_concepts_count,
+            "jac_learning_paths": jac_paths_count,
+            "jac_relationships": jac_rels_count
         };
     }
 }
@@ -664,7 +714,7 @@ walker seed_reset {
 
         # Clear relationships first
         rel_query = """
-        MATCH (a:Concept)-[r:PREREQUISITE|RELATED_TO|BUILDS_UPON|PathContains|NEXT_IN_PATH]->(b:Concept)
+        MATCH (a:Concept)-[r:PREREQUISITE|RELATED_TO|BUILDS_UPON|PathContains]->(b:Concept)
         WHERE a.category = 'JAC Programming' OR b.category = 'JAC Programming'
         DELETE r
         """;
@@ -694,114 +744,15 @@ walker seed_reset {
         }
 
         print("\nReset complete! All JAC data has been cleared.");
-
-        report {
-            "success": true,
-            "message": "JAC database reset completed successfully"
-        };
+        report {"success": true};
     }
 }
 
 # ==============================================================================
-# Walker to Get Concept Data (for verification)
+# Entry Point - Run seeder when file is executed
 # ==============================================================================
 
-walker get_concepts {
-    can get_concepts with entry {
-        report {
-            "success": true,
-            "concepts": jac_concepts_data,
-            "count": len(jac_concepts_data),
-            "categories": {
-                "beginner": 4,
-                "intermediate": 2,
-                "advanced": 3,
-                "expert": 2
-            }
-        };
-    }
-}
-
-# ==============================================================================
-# Walker to Get Learning Path Data (for verification)
-# ==============================================================================
-
-walker get_paths {
-    can get_paths with entry {
-        report {
-            "success": true,
-            "paths": jac_learning_paths,
-            "count": len(jac_learning_paths)
-        };
-    }
-}
-
-# ==============================================================================
-# Walker to Get Relationship Data (for verification)
-# ==============================================================================
-
-walker get_relationships {
-    can get_relationships with entry {
-        report {
-            "success": true,
-            "relationships": jac_relationships,
-            "count": len(jac_relationships)
-        };
-    }
-}
-
-# ==============================================================================
-# Entry Point - Run seeder when file is executed directly
-# ==============================================================================
-import sys;
-
-# Parse command line arguments and run the appropriate walker
-def parse_args_and_run() {
-    mode = "all";
-    verbose = true;
-    dry_run = false;
-
-    args = sys.argv;
-    
-    # Look for arguments
-    for i, arg in enumerate(args) {
-        if arg == "--mode" or arg == "-m" {
-            if i + 1 < len(args) {
-                mode = args[i + 1];
-            }
-        }
-        elif arg == "--verbose" or arg == "-v" {
-            verbose = true;
-        }
-        elif arg == "--quiet" or arg == "-q" {
-            verbose = false;
-        }
-        elif arg == "--dry-run" or arg == "-d" {
-            dry_run = true;
-        }
-        elif arg == "--help" or arg == "-h" {
-            print("Usage: jac run backend.seed [options]");
-            print("Options:");
-            print("  --mode, -m <mode>  Seeding mode: concepts, paths, relationships, all (default: all)");
-            print("  --verbose, -v      Enable verbose output");
-            print("  --quiet, -q        Disable verbose output");
-            print("  --dry-run, -d      Show what would be done without making changes");
-            print("  --help, -h         Show this help message");
-            print("");
-            print("Examples:");
-            print("  jac run backend.seed                    # Seed all data");
-            print("  jac run backend.seed --mode concepts    # Seed only concepts");
-            print("  jac run backend.seed --dry-run          # Preview seeding");
-            return;
-        }
-    }
-
-    # Create and spawn the seeder walker
-    seeder_walker = seeder(mode=mode, dry_run=dry_run, verbose=verbose);
-    result = spawn seeder_walker::run;
-    
-    print("\nSeeding completed successfully!");
-}
-
-# Auto-run when file is executed directly
-parse_args_and_run();
+# Simple entry point - spawn the seeder walker with defaults
+print("Starting Database Seeder...");
+spawn seeder(mode="all", dry_run=false, verbose=true)::run;
+print("Seeding completed!");
