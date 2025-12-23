@@ -53,6 +53,7 @@ dependencies = [
  "mypy>=1.16.1",
  # PDF Processing
  "weasyprint>=65.1",
+ "bcrypt>=5.0.0",
 ]
 
 [build-system]
