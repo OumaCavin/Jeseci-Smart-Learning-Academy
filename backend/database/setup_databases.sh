@@ -207,108 +207,56 @@ if command -v psql &> /dev/null; then
                 print_info "No tables found in database (tables will be created by application)"
             fi
             
-            # Create tables
+            # Create tables using SQLAlchemy
             print_section "Creating Database Tables"
-            print_info "Running database migrations to create tables..."
+            print_info "Running database migrations using SQLAlchemy..."
             echo ""
             
             python -c "
 import sys
 sys.path.insert(0, 'backend')
-from database import postgres_manager
 
-# List of tables to create - execute each separately with fetch=False for DDL statements
-tables = [
-'''CREATE TABLE IF NOT EXISTS users (
-    user_id SERIAL PRIMARY KEY,
-    username VARCHAR(100) UNIQUE NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    display_name VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP
-)''',
-'''CREATE TABLE IF NOT EXISTS concepts (
-    concept_id VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    display_name VARCHAR(200) NOT NULL,
-    category VARCHAR(100),
-    difficulty_level VARCHAR(50),
-    description TEXT,
-    lesson_content TEXT,
-    lesson_generated_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)''',
-'''CREATE TABLE IF NOT EXISTS learning_paths (
-    path_id VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    title VARCHAR(200) NOT NULL,
-    difficulty VARCHAR(50),
-    estimated_duration INT,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)''',
-'''CREATE TABLE IF NOT EXISTS learning_path_concepts (
-    id SERIAL PRIMARY KEY,
-    path_id VARCHAR(50) REFERENCES learning_paths(path_id),
-    concept_id VARCHAR(50) REFERENCES concepts(concept_id),
-    sequence_order INT DEFAULT 0
-)''',
-'''CREATE TABLE IF NOT EXISTS user_concept_progress (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(user_id),
-    concept_id VARCHAR(50) REFERENCES concepts(concept_id),
-    progress_percent INT DEFAULT 0,
-    mastery_level INT DEFAULT 0,
-    time_spent_minutes INT DEFAULT 0,
-    last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    completed_at TIMESTAMP,
-    UNIQUE(user_id, concept_id)
-)''',
-'''CREATE TABLE IF NOT EXISTS user_learning_paths (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(user_id),
-    path_id VARCHAR(50) REFERENCES learning_paths(path_id),
-    progress_percent INT DEFAULT 0,
-    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)''',
-'''CREATE TABLE IF NOT EXISTS achievements (
-    achievement_id VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    icon VARCHAR(100),
-    criteria TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)''',
-'''CREATE TABLE IF NOT EXISTS user_achievements (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(user_id),
-    achievement_id VARCHAR(50) REFERENCES achievements(achievement_id),
-    earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)''',
-'''CREATE TABLE IF NOT EXISTS quiz_attempts (
-    attempt_id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(user_id),
-    concept_id VARCHAR(50) REFERENCES concepts(concept_id),
-    score INT,
-    total_questions INT,
-    time_taken_seconds INT,
-    attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)'''
-]
+# Import SQLAlchemy configuration and models
+from config.database import Base, get_engine
+from database.models import User, Concept, LearningPath
+from database.models import LearningPathConcept, UserConceptProgress
+from database.models import UserLearningPath, Achievement, UserAchievement
+from database.models import QuizAttempt
 
-success_count = 0
-for table_sql in tables:
-    result = postgres_manager.execute_query(table_sql, fetch=False)
-    if result is not None:
-        success_count += 1
-
-if success_count == len(tables):
-    print('[✓] All database tables created successfully')
-else:
-    print(f'[!] Only {success_count}/{len(tables)} tables created')
+try:
+    # Create all tables from models
+    engine = get_engine()
+    Base.metadata.create_all(bind=engine)
+    
+    # Verify tables were created by querying information_schema
+    from sqlalchemy import inspect
+    inspector = inspect(engine)
+    tables = inspector.get_table_names()
+    
+    expected_tables = [
+        'users', 'concepts', 'learning_paths', 'learning_path_concepts',
+        'user_concept_progress', 'user_learning_paths', 'achievements',
+        'user_achievements', 'quiz_attempts'
+    ]
+    
+    created_count = 0
+    for table in expected_tables:
+        if table in tables:
+            created_count += 1
+            print(f'[✓] Table \"{table}\" exists')
+        else:
+            print(f'[!] Table \"{table}\" not found')
+    
+    if created_count == len(expected_tables):
+        print('')
+        print('[✓] All database tables created successfully using SQLAlchemy!')
+    else:
+        print(f'[!] Only {created_count}/{len(expected_tables)} tables verified')
+        
+except Exception as e:
+    print(f'[!] Error creating tables: {e}')
+    import traceback
+    traceback.print_exc()
 "
             
             echo ""
