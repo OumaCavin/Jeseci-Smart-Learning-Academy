@@ -114,8 +114,13 @@ if command -v psql &> /dev/null; then
         if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" &>/dev/null; then
             print_status "PostgreSQL connection successful!"
         else
-            print_error "Could not connect as user '$POSTGRES_USER'"
-            print_warning "This usually means the user or database doesn't exist yet."
+            print_error "Could not connect as user '$POSTGRES_USER' to database '$POSTGRES_DB'"
+            print_warning "This usually means:"
+            echo "  1. The user '$POSTGRES_USER' doesn't exist yet, OR"
+            echo "  2. The password for user '$POSTGRES_USER' doesn't match POSTGRES_PASSWORD in .env"
+            echo ""
+            print_info "If the user already exists with a different password, recreate it with:"
+            echo "  ${CYAN}sudo -u postgres psql -c \"DROP USER IF EXISTS $POSTGRES_USER;\"${NC}"
             echo ""
             
             print_section "Creating PostgreSQL User and Database"
@@ -313,7 +318,7 @@ else:
             print_status "PostgreSQL setup completed successfully"
             
         else
-            print_error "Could not connect to PostgreSQL database"
+            print_error "Could not connect to database '$POSTGRES_DB'"
             print_warning "Please create the user and database manually:"
             echo ""
             print_step "Step 1: Log in as PostgreSQL superuser"
@@ -485,9 +490,9 @@ echo ""
 
 echo "Status:"
 if command -v psql &> /dev/null && PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" &>/dev/null; then
-    echo "  ${GREEN}✓${NC} PostgreSQL: Connected"
+    echo "  ${GREEN}✓${NC} $POSTGRES_DB: Connected"
 else
-    echo "  ${RED}✗${NC} PostgreSQL: Not connected"
+    echo "  ${RED}✗${NC} $POSTGRES_DB: Not connected"
 fi
 
 if command -v cypher-shell &> /dev/null && echo "RETURN 1;" | cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" &>/dev/null; then
