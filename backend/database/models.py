@@ -383,8 +383,8 @@ class UserLearningPath(Base):
     
     __table_args__ = (
         UniqueConstraint("user_id", "path_id", name="uq_user_learning_path"),
-        Index("idx_ulp_user_id", "user_id"),
-        Index("idx_ulp_path_id", "path_id"),
+        Index("idx_ulpath_user_id", "user_id"),
+        Index("idx_ulpath_path_id", "path_id"),
     )
     
     def __repr__(self) -> str:
@@ -411,8 +411,8 @@ class UserLessonProgress(Base):
     
     __table_args__ = (
         UniqueConstraint("user_id", "lesson_id", name="uq_user_lesson_progress"),
-        Index("idx_ulp_user_id", "user_id"),
-        Index("idx_ulp_lesson_id", "lesson_id"),
+        Index("idx_ullp_user_id", "user_id"),
+        Index("idx_ullp_lesson_id", "lesson_id"),
     )
     
     def __repr__(self) -> str:
