@@ -60,6 +60,8 @@ dependencies = [
  # Authentication
  "bcrypt>=4.1.0",
  "python-jose[cryptography]>=3.3.0",
+ # Configuration
+ "python-dotenv>=1.0.0",
  # Jaclang (Jac programming language tools)
  "jaclang>=0.9.3",
  "jac-client>=0.2.3",
