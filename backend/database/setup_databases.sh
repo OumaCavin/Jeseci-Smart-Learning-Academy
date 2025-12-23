@@ -458,7 +458,7 @@ if neo4j.connect():
     
     neo4j.disconnect()
     print('[OK] Neo4j constraints and indexes created successfully')
-else
+else:
     print('[!] Could not connect to Neo4j to create constraints')
 "
         
