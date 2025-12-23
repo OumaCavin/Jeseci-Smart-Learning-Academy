@@ -43,6 +43,7 @@ echo -e "  PostgreSQL:"
 echo -e "    Host:     ${POSTGRES_HOST:-localhost}:${POSTGRES_PORT:-5432}"
 echo -e "    Database: ${POSTGRES_DB:-jeseci_learning_academy}"
 echo -e "    User:     ${POSTGRES_USER:-jeseci_academy_user}"
+echo -e "    Schema:   ${DB_SCHEMA:-jeseci_academy}"
 echo ""
 echo -e "  Neo4j:"
 echo -e "    URI:      ${NEO4J_URI:-bolt://localhost:7687}"
@@ -76,36 +77,22 @@ fi
 # Get PostgreSQL superuser
 PG_SUPERUSER="${PG_SUPERUSER:-postgres}"
 PG_DATABASE="${POSTGRES_DB:-jeseci_learning_academy}"
+DB_SCHEMA="${DB_SCHEMA:-jeseci_academy}"
 
-echo -e "${YELLOW}[i] Dropping all tables from database '${PG_DATABASE}'...${NC}"
+echo -e "${YELLOW}[i] Dropping schema '${DB_SCHEMA}' from database '${PG_DATABASE}'...${NC}"
 
-# Method 1: Drop schema and recreate (fastest)
+# Method: Drop schema and recreate (fastest)
 if sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "SELECT 1" 2>/dev/null; then
     echo -e "${YELLOW}[i] Using DROP SCHEMA method...${NC}"
-    sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;" 2>/dev/null
-    echo -e "${GREEN}[✓] PostgreSQL database cleaned successfully${NC}"
+    sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "DROP SCHEMA IF EXISTS ${DB_SCHEMA} CASCADE; CREATE SCHEMA ${DB_SCHEMA};" 2>/dev/null
+    echo -e "${GREEN}[✓] PostgreSQL schema '${DB_SCHEMA}' cleaned successfully${NC}"
 else
-    # Method 2: Drop tables individually (safer if schema method fails)
-    echo -e "${YELLOW}[i] Using individual DROP TABLE method...${NC}"
-    
-    TABLES=(
-        "system_logs" "user_badges" "badges" "user_achievements" "achievements"
-        "quiz_attempts" "quizzes" "learning_sessions" "user_lesson_progress"
-        "user_learning_paths" "user_concept_progress" "lesson_concepts"
-        "learning_path_concepts" "lessons" "learning_paths" "concept_content"
-        "concepts" "user_learning_preferences" "user_profile" "users"
-        "system_health" "ai_agents"
-    )
-    
-    for table in "${TABLES[@]}"; do
-        sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "DROP TABLE IF EXISTS $table CASCADE;" 2>/dev/null || true
-    done
-    echo -e "${GREEN}[✓] PostgreSQL tables dropped successfully${NC}"
+    echo -e "${RED}[✗] Could not connect to database${NC}"
 fi
 
 # Verify cleanup
-TABLE_COUNT=$(sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null | xargs)
-echo -e "${GREEN}[✓] Remaining tables in database: $TABLE_COUNT${NC}"
+TABLE_COUNT=$(sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${DB_SCHEMA}';" 2>/dev/null | xargs)
+echo -e "${GREEN}[✓] Remaining tables in schema '${DB_SCHEMA}': $TABLE_COUNT${NC}"
 
 echo ""
 
