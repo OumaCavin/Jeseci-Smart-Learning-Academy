@@ -900,6 +900,19 @@
 **/.claude/debug/**
 
 # ==============================================================================
+# JESECI PROJECT SPECIFIC IGNORES
+# ==============================================================================
+# Frontend browser directory (auto-generated)
+browser/
+
+# Temporary files directory
+tmp/
+
+# Workspace configuration files
+workspace.json
+workspace/
+
+# ==============================================================================
 # NESTED GIT REPOSITORIES
 # ==============================================================================
 # Temporarily renamed .git directories (used by WorkspaceGitManager)
