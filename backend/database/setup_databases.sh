@@ -221,36 +221,54 @@ if command -v psql &> /dev/null; then
             print_info "Running database migrations using SQLAlchemy..."
             echo ""
             
-            python -c "
+            # Run table creation and capture output
+            PYTHON_OUTPUT=$(python3 << 'PYTHON_SCRIPT'
 import sys
-sys.path.insert(0, 'backend')
+import os
 
-# Import SQLAlchemy configuration and ALL models
-from config.database import Base, get_engine
-from database.models import (
-    # User Domain
-    User, UserProfile, UserLearningPreference,
-    # Content Domain
-    Concept, ConceptContent, LearningPath, Lesson, LearningPathConcept,
-    # Progress & Tracking
-    UserConceptProgress, UserLearningPath, UserLessonProgress, LearningSession,
-    # Assessment
-    Quiz, QuizAttempt,
-    # Gamification
-    Achievement, UserAchievement, Badge, UserBadge,
-    # System & Monitoring
-    SystemLog, SystemHealth, AIAgent,
-)
+# Add project root to path
+sys.path.insert(0, os.getcwd())
+
+print("[INFO] Starting table creation...")
+print(f"[INFO] Current directory: {os.getcwd()}")
+print(f"[INFO] Python path: {sys.path[:3]}...")
 
 try:
+    # Import SQLAlchemy configuration and ALL models
+    from config.database import Base, get_engine
+    print("[INFO] Imported config.database successfully")
+    
+    from database.models import (
+        # User Domain
+        User, UserProfile, UserLearningPreference,
+        # Content Domain
+        Concept, ConceptContent, LearningPath, Lesson, LearningPathConcept,
+        concept_relations,
+        # Progress & Tracking
+        UserConceptProgress, UserLearningPath, UserLessonProgress, LearningSession,
+        # Assessment
+        Quiz, QuizAttempt,
+        # Gamification
+        Achievement, UserAchievement, Badge, UserBadge,
+        # System & Monitoring
+        SystemLog, SystemHealth, AIAgent,
+    )
+    print("[INFO] Imported all models successfully")
+    
     # Create all tables from models
+    print("[INFO] Creating engine...")
     engine = get_engine()
+    print(f"[INFO] Engine created: {engine}")
+    
+    print("[INFO] Creating tables...")
     Base.metadata.create_all(bind=engine)
+    print("[INFO] Tables created successfully")
     
     # Verify tables were created by querying information_schema
     from sqlalchemy import inspect
     inspector = inspect(engine)
     tables = inspector.get_table_names()
+    print(f"[INFO] Found {len(tables)} tables in database")
     
     expected_tables = [
         # User Domain
@@ -272,9 +290,9 @@ try:
     for table in sorted(expected_tables):
         if table in tables:
             created_count += 1
-            print(f'[✓] Table \"{table}\" exists')
+            print(f'[✓] Table "{table}" exists')
         else:
-            print(f'[!] Table \"{table}\" not found')
+            print(f'[!] Table "{table}" not found')
     
     print('')
     if created_count == len(expected_tables):
@@ -286,10 +304,27 @@ except Exception as e:
     print(f'[!] Error creating tables: {e}')
     import traceback
     traceback.print_exc()
-"
+    sys.exit(1)
+PYTHON_SCRIPT
+)
             
-            echo ""
-            print_status "PostgreSQL setup completed successfully"
+            echo "$PYTHON_OUTPUT"
+            
+            # Check if Python script exited with error
+            if [ $? -ne 0 ]; then
+                echo ""
+                print_error "Failed to create database tables"
+                exit 1
+            fi
+            
+            # Check if all tables were created
+            if echo "$PYTHON_OUTPUT" | grep -q "All 23 database tables created successfully"; then
+                echo ""
+                print_status "PostgreSQL setup completed successfully (23 tables created)"
+            else
+                echo ""
+                print_warning "PostgreSQL setup completed but not all tables were created"
+            fi
             
         else
             print_error "Could not connect to database '$POSTGRES_DB'"
