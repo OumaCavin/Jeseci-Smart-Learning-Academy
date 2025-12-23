@@ -1,6 +1,3 @@
-# Database Schema - User and Course Tables
-
-```mermaid
 erDiagram
     USERS ||--o{ USER_PROGRESS : tracks
     USERS ||--o{ LEARNING_SESSIONS : completes
@@ -90,21 +87,3 @@ erDiagram
         string concept_a FK
         string concept_b FK
     }
-```
-
-## Database Design Principles
-
-### Users Table
-- Central authentication table with bcrypt password hashing
-- Tracks user preferences (learning_style, skill_level)
-- Maintains activity timestamps for analytics
-
-### Progress Tracking
-- Denormalized progress data for fast queries
-- Session-based tracking with start/end timestamps
-- Supports both course-level and concept-level progress
-
-### Knowledge Graph (Neo4j)
-- Concepts as nodes with metadata
-- PREREQUISITE relationships for learning paths
-- RELATED_TO connections for cross-topic exploration
