@@ -221,9 +221,11 @@ if command -v psql &> /dev/null; then
             print_info "Running database migrations using SQLAlchemy..."
             echo ""
             
-            # Ensure public schema exists
+            # Ensure public schema exists with proper permissions
             print_info "Ensuring public schema exists..."
             sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "CREATE SCHEMA IF NOT EXISTS public;" 2>/dev/null || true
+            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "GRANT ALL ON SCHEMA public TO $POSTGRES_USER;" 2>/dev/null || true
+            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $POSTGRES_USER;" 2>/dev/null || true
             
             # Run table creation and capture output
             PYTHON_OUTPUT=$(python3 << 'PYTHON_SCRIPT'
