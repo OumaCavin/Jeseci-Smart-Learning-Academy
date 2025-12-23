@@ -129,7 +129,7 @@ walker courses {
         ];
         
         report {
-            "success": true,
+            "success": True,
             "courses": courses,
             "total": courses.len
         };
@@ -145,7 +145,7 @@ walker course_create {
     
     can course_create with entry {
         report {
-            "success": true,
+            "success": True,
             "course_id": "course_new_001",
             "title": self.title,
             "message": "Course created successfully"
@@ -182,7 +182,7 @@ walker user_create {
         
         if result['success'] {
             report {
-                "success": true,
+                "success": True,
                 "user_id": result['user_id'],
                 "username": result['username'],
                 "email": result['email'],
@@ -190,7 +190,7 @@ walker user_create {
             };
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result['error'],
                 "code": result.get('code', 'ERROR'),
                 "message": "User registration failed"
@@ -209,7 +209,7 @@ walker user_login {
         
         if result['success'] {
             report {
-                "success": true,
+                "success": True,
                 "access_token": result['access_token'],
                 "token_type": result['token_type'],
                 "expires_in": result['expires_in'],
@@ -218,7 +218,7 @@ walker user_login {
             };
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result['error'],
                 "code": result.get('code', 'ERROR'),
                 "message": "Login failed"
@@ -282,7 +282,7 @@ walker learning_session_start {
         session_id = "session_" + self.user_id + "_" + self.module_id + "_001";
         
         report {
-            "success": true,
+            "success": True,
             "session_id": session_id,
             "user_id": self.user_id,
             "module_id": self.module_id,
@@ -298,7 +298,7 @@ walker learning_session_end {
     
     can learning_session_end with entry {
         report {
-            "success": true,
+            "success": True,
             "session_id": self.session_id,
             "progress": self.progress,
             "status": "completed",
@@ -367,7 +367,7 @@ walker ai_generate_content {
         import datetime;
         
         result = {
-            "success": true,
+            "success": True,
             "concept_name": self.concept_name,
             "domain": self.domain,
             "difficulty": self.difficulty,
@@ -392,7 +392,7 @@ walker export_data {
         import datetime;
         
         report {
-            "success": true,
+            "success": True,
             "format": self.format,
             "data": {
                 "users": [],
@@ -423,14 +423,14 @@ walker learning_paths {
                 "description": "Master Python from fundamentals to advanced concepts. Learn programming basics, data structures, algorithms, and build real-world applications.",
                 "courses": ["course_1", "course_2", "course_4"],
                 "modules": [
-                    {"id": "mod_python_basics", "title": "Python Basics", "type": "lesson", "duration": "2 hours", "completed": true},
-                    {"id": "mod_variables", "title": "Variables and Data Types", "type": "lesson", "duration": "1.5 hours", "completed": true},
-                    {"id": "mod_control_flow", "title": "Control Flow", "type": "lesson", "duration": "2 hours", "completed": false},
-                    {"id": "mod_functions", "title": "Functions", "type": "lesson", "duration": "2 hours", "completed": false},
-                    {"id": "mod_data_structures", "title": "Data Structures", "type": "lesson", "duration": "3 hours", "completed": false},
-                    {"id": "mod_oop", "title": "Object-Oriented Programming", "type": "lesson", "duration": "3 hours", "completed": false},
-                    {"id": "mod_file_handling", "title": "File Handling", "type": "project", "duration": "2 hours", "completed": false},
-                    {"id": "mod_final_project", "title": "Final Project", "type": "project", "duration": "4 hours", "completed": false}
+                    {"id": "mod_python_basics", "title": "Python Basics", "type": "lesson", "duration": "2 hours", "completed": True},
+                    {"id": "mod_variables", "title": "Variables and Data Types", "type": "lesson", "duration": "1.5 hours", "completed": True},
+                    {"id": "mod_control_flow", "title": "Control Flow", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_functions", "title": "Functions", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_data_structures", "title": "Data Structures", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_oop", "title": "Object-Oriented Programming", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_file_handling", "title": "File Handling", "type": "project", "duration": "2 hours", "completed": False},
+                    {"id": "mod_final_project", "title": "Final Project", "type": "project", "duration": "4 hours", "completed": False}
                 ],
                 "concepts": ["concept_oop", "concept_algo", "concept_recursion"],
                 "skills_covered": ["Programming Fundamentals", "Data Structures", "Algorithm Design", "Problem Solving"],
@@ -452,14 +452,14 @@ walker learning_paths {
                 "description": "Build modern, responsive web applications from scratch. Learn HTML, CSS, JavaScript, and backend technologies.",
                 "courses": ["course_5", "course_1"],
                 "modules": [
-                    {"id": "mod_html_basics", "title": "HTML Fundamentals", "type": "lesson", "duration": "1.5 hours", "completed": true},
-                    {"id": "mod_css_styling", "title": "CSS Styling", "type": "lesson", "duration": "2 hours", "completed": true},
-                    {"id": "mod_css_layouts", "title": "CSS Layouts & Flexbox", "type": "lesson", "duration": "2 hours", "completed": true},
-                    {"id": "mod_javascript_basics", "title": "JavaScript Basics", "type": "lesson", "duration": "3 hours", "completed": false},
-                    {"id": "mod_dom_manipulation", "title": "DOM Manipulation", "type": "lesson", "duration": "2 hours", "completed": false},
-                    {"id": "mod_fetch_api", "title": "Fetch API & Async", "type": "lesson", "duration": "2 hours", "completed": false},
-                    {"id": "mod_backend_intro", "title": "Backend Basics", "type": "lesson", "duration": "3 hours", "completed": false},
-                    {"id": "mod_fullstack_project", "title": "Full-Stack Project", "type": "project", "duration": "6 hours", "completed": false}
+                    {"id": "mod_html_basics", "title": "HTML Fundamentals", "type": "lesson", "duration": "1.5 hours", "completed": True},
+                    {"id": "mod_css_styling", "title": "CSS Styling", "type": "lesson", "duration": "2 hours", "completed": True},
+                    {"id": "mod_css_layouts", "title": "CSS Layouts & Flexbox", "type": "lesson", "duration": "2 hours", "completed": True},
+                    {"id": "mod_javascript_basics", "title": "JavaScript Basics", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_dom_manipulation", "title": "DOM Manipulation", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_fetch_api", "title": "Fetch API & Async", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_backend_intro", "title": "Backend Basics", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_fullstack_project", "title": "Full-Stack Project", "type": "project", "duration": "6 hours", "completed": False}
                 ],
                 "concepts": ["concept_web", "concept_database", "concept_testing"],
                 "skills_covered": ["HTML5", "CSS3", "JavaScript ES6+", "Responsive Design", "REST APIs"],
@@ -481,14 +481,14 @@ walker learning_paths {
                 "description": "Master the innovative Jaclang language with nodes, walkers, and graph-based programming paradigms.",
                 "courses": ["course_3", "course_2"],
                 "modules": [
-                    {"id": "mod_graph_intro", "title": "Introduction to Graph Theory", "type": "lesson", "duration": "2 hours", "completed": true},
-                    {"id": "mod_nodes_basics", "title": "Nodes Basics", "type": "lesson", "duration": "2 hours", "completed": false},
-                    {"id": "mod_walkers_intro", "title": "Walkers Introduction", "type": "lesson", "duration": "3 hours", "completed": false},
-                    {"id": "mod_jac_syntax", "title": "Jaclang Syntax", "type": "lesson", "duration": "3 hours", "completed": false},
-                    {"id": "mod_advanced_walkers", "title": "Advanced Walkers", "type": "lesson", "duration": "3 hours", "completed": false},
-                    {"id": "mod_graph_algorithms", "title": "Graph Algorithms", "type": "lesson", "duration": "3 hours", "completed": false},
-                    {"id": "mod_node_patterns", "title": "Node Patterns", "type": "lesson", "duration": "2 hours", "completed": false},
-                    {"id": "mod_graph_project", "title": "Graph Programming Project", "type": "project", "duration": "5 hours", "completed": false}
+                    {"id": "mod_graph_intro", "title": "Introduction to Graph Theory", "type": "lesson", "duration": "2 hours", "completed": True},
+                    {"id": "mod_nodes_basics", "title": "Nodes Basics", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_walkers_intro", "title": "Walkers Introduction", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_jac_syntax", "title": "Jaclang Syntax", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_advanced_walkers", "title": "Advanced Walkers", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_graph_algorithms", "title": "Graph Algorithms", "type": "lesson", "duration": "3 hours", "completed": False},
+                    {"id": "mod_node_patterns", "title": "Node Patterns", "type": "lesson", "duration": "2 hours", "completed": False},
+                    {"id": "mod_graph_project", "title": "Graph Programming Project", "type": "project", "duration": "5 hours", "completed": False}
                 ],
                 "concepts": ["concept_graphs", "concept_algo", "concept_recursion"],
                 "skills_covered": ["Graph Theory", "Node Systems", "Walker Functions", "Graph Algorithms", "Pattern Matching"],
@@ -507,7 +507,7 @@ walker learning_paths {
         ];
         
         report {
-            "success": true,
+            "success": True,
             "paths": paths,
             "total": paths.len,
             "categories": ["programming", "web-development", "programming-languages", "data-science", "devops"]
@@ -598,7 +598,7 @@ walker concepts {
         ];
         
         report {
-            "success": true,
+            "success": True,
             "concepts": concepts,
             "total": concepts.len
         };
@@ -642,7 +642,7 @@ walker quizzes {
                 ],
                 "difficulty": "beginner",
                 "estimated_time": 5,
-                "completed": false,
+                "completed": False,
                 "score": null
             },
             {
@@ -674,13 +674,13 @@ walker quizzes {
                 ],
                 "difficulty": "intermediate",
                 "estimated_time": 10,
-                "completed": false,
+                "completed": False,
                 "score": null
             }
         ];
         
         report {
-            "success": true,
+            "success": True,
             "quizzes": quizzes,
             "total": quizzes.len
         };
@@ -701,7 +701,7 @@ walker quiz_submit {
         }
         
         report {
-            "success": true,
+            "success": True,
             "quiz_id": self.quiz_id,
             "score": score,
             "passed": score >= 70,
@@ -727,7 +727,7 @@ walker achievements {
                 "name": "First Steps",
                 "description": "Complete your first course",
                 "icon": "target",
-                "earned": true,
+                "earned": True,
                 "earned_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "requirement": "Complete 1 course",
                 "category": "learning"
@@ -737,7 +737,7 @@ walker achievements {
                 "name": "Course Master",
                 "description": "Complete 5 courses",
                 "icon": "trophy",
-                "earned": false,
+                "earned": False,
                 "earned_at": null,
                 "requirement": "Complete 5 courses",
                 "category": "learning"
@@ -747,7 +747,7 @@ walker achievements {
                 "name": "Week Warrior",
                 "description": "Maintain a 7-day learning streak",
                 "icon": "fire",
-                "earned": false,
+                "earned": False,
                 "earned_at": null,
                 "requirement": "7-day learning streak",
                 "category": "consistency"
@@ -757,7 +757,7 @@ walker achievements {
                 "name": "Quiz Champion",
                 "description": "Score 100% on any quiz",
                 "icon": "graduate",
-                "earned": false,
+                "earned": False,
                 "earned_at": null,
                 "requirement": "Score 100% on a quiz",
                 "category": "knowledge"
@@ -767,7 +767,7 @@ walker achievements {
                 "name": "AI Explorer",
                 "description": "Generate 10 AI-powered lessons",
                 "icon": "robot",
-                "earned": false,
+                "earned": False,
                 "earned_at": null,
                 "requirement": "Generate 10 AI lessons",
                 "category": "exploration"
@@ -777,7 +777,7 @@ walker achievements {
         earned_count = 1;
         
         report {
-            "success": true,
+            "success": True,
             "achievements": all_achievements,
             "total": all_achievements.len,
             "earned_count": earned_count,
@@ -810,7 +810,7 @@ walker chat {
         contextual_response = response + "\n\nWould you like me to elaborate on any specific aspect of this topic?";
         
         report {
-            "success": true,
+            "success": True,
             "response": contextual_response,
             "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         };
@@ -826,7 +826,7 @@ walker graph_init {
         result = db_module.test_all_connections();
         
         report {
-            "success": true,
+            "success": True,
             "graph_engine": "initialized",
             "neo4j_connected": result['neo4j'],
             "postgresql_connected": result['postgresql'],
@@ -855,7 +855,7 @@ walker graph_concepts {
         result = manager.execute_query(query, None);
         
         report {
-            "success": true,
+            "success": True,
             "concepts": result or [],
             "count": len(result) if result else 0,
             "source": "graph_database"
@@ -898,12 +898,12 @@ walker graph_concept_detail {
             };
             
             report {
-                "success": true,
+                "success": True,
                 "concept": concept_data
             };
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": "Concept not found",
                 "concept_id": self.concept_id
             };
@@ -932,7 +932,7 @@ walker graph_paths {
         result = manager.execute_query(query, None);
         
         report {
-            "success": true,
+            "success": True,
             "paths": result or [],
             "count": len(result) if result else 0,
             "source": "graph_database"
@@ -970,12 +970,12 @@ walker graph_path_detail {
         
         if result and result[0] {
             report {
-                "success": true,
+                "success": True,
                 "path": result[0]
             };
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": "Path not found",
                 "path_id": self.path_id
             };
@@ -1017,7 +1017,7 @@ walker graph_user_progress {
         stats_result = manager.execute_query(stats_query, {"user_id": self.user_id});
         
         report {
-            "success": true,
+            "success": True,
             "user_id": self.user_id,
             "completed_concepts": completed_result or [],
             "enrolled_paths": enrolled_result or [],
@@ -1139,7 +1139,7 @@ walker graph_recommendations {
         });
         
         report {
-            "success": true,
+            "success": True,
             "user_id": self.user_id,
             "recommendations": result or [],
             "count": len(result) if result else 0,
@@ -1243,7 +1243,7 @@ walker graph_popular_concepts {
         result = manager.execute_query(query, {"limit": self.limit});
         
         report {
-            "success": true,
+            "success": True,
             "popular_concepts": result or [],
             "count": len(result) if result else 0
         };
@@ -1327,13 +1327,13 @@ walker graph_seed {
             contain_query = """
             MATCH (p:LearningPath {path_id: $path})
             MATCH (c:Concept {concept_id: $concept})
-            MERGE (p)-[:PathContains {order_index: $order, is_required: true, created_at: timestamp()}]->(c)
+            MERGE (p)-[:PathContains {order_index: $order, is_required: True, created_at: timestamp()}]->(c)
             """;
             manager.execute_query(contain_query, pc);
         }
         
         report {
-            "success": true,
+            "success": True,
             "message": "Graph seeded successfully",
             "concepts_created": len(concepts),
             "prerequisites_created": len(prereqs),
@@ -1352,7 +1352,7 @@ walker graph_stats {
         rel_count = manager.execute_query("MATCH ()-[r:PREREQUISITE]->() RETURN count(r) AS count", None);
         
         report {
-            "success": true,
+            "success": True,
             "graph_stats": {
                 "concepts": concept_count[0]['count'] if concept_count else 0,
                 "users": user_count[0]['count'] if user_count else 0,
