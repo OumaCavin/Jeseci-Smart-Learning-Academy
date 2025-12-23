@@ -8,42 +8,47 @@
 
 set -e  # Exit on error
 
-# Colors for output
+# Colors for output (using printf-friendly format)
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
+BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 print_status() {
-    echo -e "${GREEN}[✓]${NC} $1"
+    printf "${GREEN}[OK]${NC} %s\n" "$1"
 }
 
 print_error() {
-    echo -e "${RED}[✗]${NC} $1"
+    printf "${RED}[ERROR]${NC} %s\n" "$1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[!]${NC} $1"
+    printf "${YELLOW}[WARNING]${NC} %s\n" "$1"
 }
 
 print_info() {
-    echo -e "${BLUE}[i]${NC} $1"
+    printf "${BLUE}[INFO]${NC} %s\n" "$1"
 }
 
 print_section() {
-    echo -e "\n${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${CYAN} $1 ${NC}"
-    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+    printf "\n${CYAN}============================================================${NC}\n"
+    printf "${CYAN} %s ${NC}\n" "$1"
+    printf "${CYAN}============================================================${NC}\n\n"
 }
 
 print_step() {
-    echo -e "${MAGENTA}→${NC} $1"
+    printf "${MAGENTA}->${NC} %s\n" "$1"
 }
 
-echo -e "\n${BLUE}🗄️  Database Setup for Jeseci Smart Learning Companion${NC}\n"
+print_header() {
+    printf "\n${BLUE}DATABASE SETUP FOR JESECI SMART LEARNING COMPANION${NC}\n\n"
+}
+
+print_header
 
 # Change to project root
 cd "$(dirname "$0")/../.."
@@ -88,10 +93,10 @@ if command -v psql &> /dev/null; then
     print_status "psql found: $(which psql)"
     
     print_info "Target configuration (from .env):"
-    echo "  ${CYAN}Host:${NC}     $POSTGRES_HOST:$POSTGRES_PORT"
-    echo "  ${CYAN}Database:${NC} $POSTGRES_DB"
-    echo "  ${CYAN}User:${NC}     $POSTGRES_USER"
-    echo ""
+    printf "  ${CYAN}Host:${NC}     %s:%s\n" "$POSTGRES_HOST" "$POSTGRES_PORT"
+    printf "  ${CYAN}Database:${NC} %s\n" "$POSTGRES_DB"
+    printf "  ${CYAN}User:${NC}     %s\n" "$POSTGRES_USER"
+    printf "\n"
     
     # First, check if PostgreSQL service is running
     print_info "Checking PostgreSQL service status..."
@@ -106,14 +111,14 @@ if command -v psql &> /dev/null; then
         print_status "PostgreSQL service is running (accessible via network)"
     else
         print_warning "PostgreSQL service may not be running"
-        echo ""
+        printf "\n"
         print_info "To start PostgreSQL service:"
-        echo ""
-        echo "  ${CYAN}• Ubuntu/Debian:${NC}  sudo systemctl start postgresql"
-        echo "  ${CYAN}• CentOS/RHEL:${NC}    sudo systemctl start postgresql"
-        echo "  ${CYAN}• macOS:${NC}          brew services start postgresql"
-        echo "  ${CYAN}• Windows:${NC}        Start PostgreSQL from Services"
-        echo ""
+        printf "\n"
+        printf "  ${CYAN}Ubuntu/Debian:${NC}  sudo systemctl start postgresql\n"
+        printf "  ${CYAN}CentOS/RHEL:${NC}    sudo systemctl start postgresql\n"
+        printf "  ${CYAN}macOS:${NC}          brew services start postgresql\n"
+        printf "  ${CYAN}Windows:${NC}        Start PostgreSQL from Services\n"
+        printf "\n"
     fi
     
     if [ "$PG_RUNNING" = true ]; then
@@ -125,21 +130,21 @@ if command -v psql &> /dev/null; then
         else
             print_error "Could not connect as user '$POSTGRES_USER' to database '$POSTGRES_DB'"
             print_warning "This usually means:"
-            echo "  1. The user '$POSTGRES_USER' doesn't exist yet, OR"
-            echo "  2. The password for user '$POSTGRES_USER' doesn't match POSTGRES_PASSWORD in .env"
-            echo ""
+            printf "  1. The user '%s' doesn't exist yet, OR\n" "$POSTGRES_USER"
+            printf "  2. The password for user '%s' doesn't match POSTGRES_PASSWORD in .env\n" "$POSTGRES_USER"
+            printf "\n"
             print_info "If the user already exists with a different password, recreate it with:"
-            echo "  ${CYAN}sudo -u postgres psql -c \"DROP USER IF EXISTS $POSTGRES_USER;\"${NC}"
-            echo ""
+            printf "  ${CYAN}sudo -u postgres psql -c \"DROP USER IF EXISTS %s;\"${NC}\n" "$POSTGRES_USER"
+            printf "\n"
             
             print_section "Creating PostgreSQL User and Database"
             print_info "Using configuration values from your .env file..."
-            echo ""
+            printf "\n"
             
             # Try to create user and database automatically
             # Note: CREATE USER can be in DO block, but CREATE DATABASE cannot
             print_info "Attempting to create user and database automatically..."
-            echo ""
+            printf "\n"
             
             # Step 1: Create user (using DO block)
             USER_CREATED=false
@@ -168,26 +173,26 @@ if command -v psql &> /dev/null; then
             sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB TO $POSTGRES_USER;" 2>/dev/null || true
             sudo -u postgres psql -c "GRANT ALL ON SCHEMA public TO $POSTGRES_USER;" 2>/dev/null || true
             
-            echo ""
+            printf "\n"
             
             # Show manual SQL commands as backup if auto-creation failed
             if [ "$USER_CREATED" = false ] || [ "$DB_CREATED" = false ]; then
                 print_step "Manual SQL Commands (if auto-creation failed):"
-                echo "    ${CYAN}sudo -u postgres psql${NC}"
-                echo ""
-                echo "    ${CYAN}-- Create user using POSTGRES_USER and POSTGRES_PASSWORD from .env${NC}"
-                echo "    ${GREEN}CREATE USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';${NC}"
-                echo ""
-                echo "    ${CYAN}-- Create database using POSTGRES_DB from .env${NC}"
-                echo "    ${GREEN}CREATE DATABASE $POSTGRES_DB OWNER $POSTGRES_USER;${NC}"
-                echo ""
-                echo "    ${CYAN}-- Grant privileges${NC}"
-                echo "    ${GREEN}GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB TO $POSTGRES_USER;${NC}"
-                echo "    ${GREEN}CREATE SCHEMA $DB_SCHEMA AUTHORIZATION $POSTGRES_USER;${NC}"
-                echo ""
-                echo "    ${CYAN}-- Exit psql${NC}"
-                echo "    ${GREEN}\\q${NC}"
-                echo ""
+                printf "    ${CYAN}sudo -u postgres psql${NC}\n"
+                printf "\n"
+                printf "    ${CYAN}-- Create user using POSTGRES_USER and POSTGRES_PASSWORD from .env${NC}\n"
+                printf "    ${GREEN}CREATE USER %s WITH PASSWORD '%s';${NC}\n" "$POSTGRES_USER" "$POSTGRES_PASSWORD"
+                printf "\n"
+                printf "    ${CYAN}-- Create database using POSTGRES_DB from .env${NC}\n"
+                printf "    ${GREEN}CREATE DATABASE %s OWNER %s;${NC}\n" "$POSTGRES_DB" "$POSTGRES_USER"
+                printf "\n"
+                printf "    ${CYAN}-- Grant privileges${NC}\n"
+                printf "    ${GREEN}GRANT ALL PRIVILEGES ON DATABASE %s TO %s;${NC}\n" "$POSTGRES_DB" "$POSTGRES_USER"
+                printf "    ${GREEN}CREATE SCHEMA %s AUTHORIZATION %s;${NC}\n" "$DB_SCHEMA" "$POSTGRES_USER"
+                printf "\n"
+                printf "    ${CYAN}-- Exit psql${NC}\n"
+                printf "    ${GREEN}\\q${NC}\n"
+                printf "\n"
             fi
         fi
         
@@ -199,19 +204,19 @@ if command -v psql &> /dev/null; then
             # Show database tables
             print_section "PostgreSQL Tables"
             print_info "Checking for existing tables in '$POSTGRES_DB'..."
-            echo ""
+            printf "\n"
             
             TABLES=$(PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c "SELECT table_name FROM information_schema.tables WHERE table_schema = '$DB_SCHEMA' ORDER BY table_name;" 2>/dev/null)
             
             if [ -n "$TABLES" ]; then
-                echo -e "${GREEN}Existing tables in database:${NC}"
+                printf "${GREEN}Existing tables in database:${NC}\n"
                 echo "$TABLES" | while read -r table; do
                     table=$(echo "$table" | xargs)
                     if [ -n "$table" ]; then
-                        echo -e "  ${GREEN}✓${NC} $table"
+                        printf "  ${GREEN}[OK]${NC} %s\n" "$table"
                     fi
                 done
-                echo ""
+                printf "\n"
             else
                 print_info "No tables found in database (tables will be created by application)"
             fi
@@ -219,7 +224,7 @@ if command -v psql &> /dev/null; then
             # Create tables using SQLAlchemy
             print_section "Creating Database Tables"
             print_info "Running database migrations using SQLAlchemy..."
-            echo ""
+            printf "\n"
             
             # Drop existing schema objects to fix duplicate index errors
             print_info "Dropping existing schema '$DB_SCHEMA' to fix any duplicate objects..."
@@ -324,42 +329,42 @@ PYTHON_SCRIPT
             
             # Check if Python script exited with error
             if [ $? -ne 0 ]; then
-                echo ""
+                printf "\n"
                 print_error "Failed to create database tables"
                 exit 1
             fi
             
             # Check if all tables were created
             if echo "$PYTHON_OUTPUT" | grep -q "All 23 database tables created successfully"; then
-                echo ""
+                printf "\n"
                 print_status "PostgreSQL setup completed successfully (23 tables created)"
             else
-                echo ""
+                printf "\n"
                 print_warning "PostgreSQL setup completed but not all tables were created"
             fi
             
         else
             print_error "Could not connect to database '$POSTGRES_DB'"
             print_warning "Please create the user and database manually:"
-            echo ""
+            printf "\n"
             print_step "Step 1: Log in as PostgreSQL superuser"
-            echo "    ${CYAN}sudo -u postgres psql${NC}"
-            echo ""
+            printf "    ${CYAN}sudo -u postgres psql${NC}\n"
+            printf "\n"
             print_step "Step 2: Run these SQL commands (using values from your .env):"
-            echo ""
-            echo "    ${CYAN}-- Create user (using POSTGRES_USER and POSTGRES_PASSWORD)${NC}"
-            echo "    ${GREEN}CREATE USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';${NC}"
-            echo ""
-            echo "    ${CYAN}-- Create database (using POSTGRES_DB)${NC}"
-            echo "    ${GREEN}CREATE DATABASE $POSTGRES_DB OWNER $POSTGRES_USER;${NC}"
-            echo ""
-            echo "    ${CYAN}-- Grant privileges${NC}"
-            echo "    ${GREEN}GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB TO $POSTGRES_USER;${NC}"
-            echo "    ${GREEN}GRANT ALL ON SCHEMA public TO $POSTGRES_USER;${NC}"
-            echo ""
-            echo "    ${CYAN}-- Exit psql${NC}"
-            echo "    ${GREEN}\\q${NC}"
-            echo ""
+            printf "\n"
+            printf "    ${CYAN}-- Create user (using POSTGRES_USER and POSTGRES_PASSWORD)${NC}\n"
+            printf "    ${GREEN}CREATE USER %s WITH PASSWORD '%s';${NC}\n" "$POSTGRES_USER" "$POSTGRES_PASSWORD"
+            printf "\n"
+            printf "    ${CYAN}-- Create database (using POSTGRES_DB)${NC}\n"
+            printf "    ${GREEN}CREATE DATABASE %s OWNER %s;${NC}\n" "$POSTGRES_DB" "$POSTGRES_USER"
+            printf "\n"
+            printf "    ${CYAN}-- Grant privileges${NC}\n"
+            printf "    ${GREEN}GRANT ALL PRIVILEGES ON DATABASE %s TO %s;${NC}\n" "$POSTGRES_DB" "$POSTGRES_USER"
+            printf "    ${GREEN}GRANT ALL ON SCHEMA public TO %s;${NC}\n" "$POSTGRES_USER"
+            printf "\n"
+            printf "    ${CYAN}-- Exit psql${NC}\n"
+            printf "    ${GREEN}\\q${NC}\n"
+            printf "\n"
         fi
     fi
         
@@ -395,10 +400,10 @@ if [ "$neo4j_running" = true ]; then
     print_status "Neo4j is running and accessible"
     
     print_info "Target configuration (from .env):"
-    echo "  ${CYAN}URI:${NC}       $NEO4J_URI"
-    echo "  ${CYAN}Database:${NC} $NEO4J_DATABASE"
-    echo "  ${CYAN}User:${NC}     $NEO4J_USER"
-    echo ""
+    printf "  ${CYAN}URI:${NC}       %s\n" "$NEO4J_URI"
+    printf "  ${CYAN}Database:${NC} %s\n" "$NEO4J_DATABASE"
+    printf "  ${CYAN}User:${NC}     %s\n" "$NEO4J_USER"
+    printf "\n"
     
     # Try to connect to Neo4j
     print_info "Testing Neo4j connection..."
@@ -407,11 +412,11 @@ if [ "$neo4j_running" = true ]; then
     
     if echo "$NEO4J_RESULT" | grep -q "1 row\|test" && [ $NEO4J_EXIT -eq 0 ]; then
         print_status "Neo4j connection successful!"
-        echo ""
+        printf "\n"
         
         # Show existing nodes
         print_info "Querying Neo4j for existing nodes..."
-        echo ""
+        printf "\n"
         
         NODE_COUNT=$(echo "MATCH (n) RETURN count(n) AS count;" | cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" 2>/dev/null | grep -E "^[0-9]+" | head -1 || echo "0")
         
@@ -421,7 +426,7 @@ if [ "$neo4j_running" = true ]; then
             print_info "No nodes found in database (will be created by application)"
         fi
         
-        echo ""
+        printf "\n"
         
         # Create constraints and indexes using the Neo4j manager
         print_info "Creating Neo4j constraints and indexes..."
@@ -452,12 +457,12 @@ if neo4j.connect():
           f'{setup[\"relationship_count\"]} relationships')
     
     neo4j.disconnect()
-    print('[✓] Neo4j constraints and indexes created successfully')
-else:
+    print('[OK] Neo4j constraints and indexes created successfully')
+else
     print('[!] Could not connect to Neo4j to create constraints')
 "
         
-        echo ""
+        printf "\n"
         print_status "Neo4j setup completed successfully"
         
     else
@@ -468,47 +473,47 @@ else:
 else
     print_error "Neo4j is not running!"
     print_warning "Please start Neo4j using one of these methods:"
-    echo ""
+    printf "\n"
     
     print_step "Option 1: Neo4j Desktop (Recommended for Development)"
-    echo "  1. Download from: https://neo4j.com/download/"
-    echo "  2. Install and open Neo4j Desktop"
-    echo "  3. Create a new database"
-    echo "  4. Set password to: $NEO4J_PASSWORD"
-    echo "  5. Update .env if connection details differ"
-    echo ""
+    printf "  1. Download from: https://neo4j.com/download/\n"
+    printf "  2. Install and open Neo4j Desktop\n"
+    printf "  3. Create a new database\n"
+    printf "  4. Set password to: %s\n" "$NEO4J_PASSWORD"
+    printf "  5. Update .env if connection details differ\n"
+    printf "\n"
     
     print_step "Option 2: System Service (Linux)"
-    echo "  ${CYAN}sudo systemctl start neo4j${NC}"
-    echo "  ${CYAN}sudo systemctl enable neo4j${NC}  # Auto-start on boot"
-    echo ""
+    printf "  ${CYAN}sudo systemctl start neo4j${NC}\n"
+    printf "  ${CYAN}sudo systemctl enable neo4j${NC}  # Auto-start on boot\n"
+    printf "\n"
     
     print_step "Option 3: Manual Installation (Linux)"
-    echo "  # Download Neo4j Community Edition"
-    echo "  wget https://neo4j.com/artifact.php?name=neo4j-community-5.14.0-linux.tar.gz"
-    echo "  tar -xzf neo4j-community-5.14.0-linux.tar.gz"
-    echo "  cd neo4j-community-5.14.0"
-    echo ""
-    echo "  # Configure in conf/neo4j.conf:"
-    echo "  dbms.connector.http.listen_address=:7474"
-    echo "  dbms.connector.bolt.listen_address=:7687"
-    echo "  dbms.security.auth_enabled=true"
-    echo ""
-    echo "  # Start Neo4j"
-    echo "  ./bin/neo4j start"
-    echo ""
+    printf "  # Download Neo4j Community Edition\n"
+    printf "  wget https://neo4j.com/artifact.php?name=neo4j-community-5.14.0-linux.tar.gz\n"
+    printf "  tar -xzf neo4j-community-5.14.0-linux.tar.gz\n"
+    printf "  cd neo4j-community-5.14.0\n"
+    printf "\n"
+    printf "  # Configure in conf/neo4j.conf:\n"
+    printf "  dbms.connector.http.listen_address=:7474\n"
+    printf "  dbms.connector.bolt.listen_address=:7687\n"
+    printf "  dbms.security.auth_enabled=true\n"
+    printf "\n"
+    printf "  # Start Neo4j\n"
+    printf "  ./bin/neo4j start\n"
+    printf "\n"
     
     print_step "Option 4: macOS (Homebrew)"
-    echo "  ${CYAN}brew install neo4j${NC}"
-    echo "  ${CYAN}brew services start neo4j${NC}"
-    echo ""
+    printf "  ${CYAN}brew install neo4j${NC}\n"
+    printf "  ${CYAN}brew services start neo4j${NC}\n"
+    printf "\n"
     
     print_step "Option 5: Windows (Manual)"
-    echo "  1. Download from: https://neo4j.com/download/"
-    echo "  2. Run the installer"
-    echo "  3. Start Neo4j from Start Menu"
-    echo "  4. Set initial password to: $NEO4J_PASSWORD"
-    echo ""
+    printf "  1. Download from: https://neo4j.com/download/\n"
+    printf "  2. Run the installer\n"
+    printf "  3. Start Neo4j from Start Menu\n"
+    printf "  4. Set initial password to: %s\n" "$NEO4J_PASSWORD"
+    printf "\n"
     
     print_info "After starting Neo4j, run this script again to verify connection."
 fi
@@ -516,36 +521,36 @@ fi
 # =============================================================================
 # Summary
 # =============================================================================
-print_section "📊 Database Setup Summary"
+print_section "DATABASE SETUP SUMMARY"
 
-echo "Configuration (from .env):"
-echo "  ${CYAN}PostgreSQL:${NC}  $POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB (user: $POSTGRES_USER)"
-echo "  ${CYAN}Neo4j:${NC}       $NEO4J_URI (database: $NEO4J_DATABASE)"
-echo ""
-echo "${YELLOW}Note: Neo4j Community Edition uses a single database.${NC}"
-echo "${YELLOW}Data is organized using labels (Concept, LearningPath, Lesson, etc.)${NC}"
-echo "and relationship types (CONTAINS, PREREQUISITE, BELONGS_TO, etc.)."
-echo ""
+printf "Configuration (from .env):\n"
+printf "  ${CYAN}PostgreSQL:${NC}  %s:%s/%s (user: %s)\n" "$POSTGRES_HOST" "$POSTGRES_PORT" "$POSTGRES_DB" "$POSTGRES_USER"
+printf "  ${CYAN}Neo4j:${NC}       %s (database: %s)\n" "$NEO4J_URI" "$NEO4J_DATABASE"
+printf "\n"
+printf "${YELLOW}Note: Neo4j Community Edition uses a single database.${NC}\n"
+printf "${YELLOW}Data is organized using labels (Concept, LearningPath, Lesson, etc.)${NC}\n"
+printf "and relationship types (CONTAINS, PREREQUISITE, BELONGS_TO, etc.).\n"
+printf "\n"
 
-echo "Status:"
+printf "Status:\n"
 if command -v psql &> /dev/null && PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" &>/dev/null; then
-    echo "  ${GREEN}✓${NC} $POSTGRES_DB: Connected"
+    printf "  ${GREEN}[OK]${NC} %s: Connected\n" "$POSTGRES_DB"
 else
-    echo "  ${RED}✗${NC} $POSTGRES_DB: Not connected"
+    printf "  ${RED}[ERROR]${NC} %s: Not connected\n" "$POSTGRES_DB"
 fi
 
 if command -v cypher-shell &> /dev/null && echo "RETURN 1;" | cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD" &>/dev/null; then
-    echo "  ${GREEN}✓${NC} Neo4j: Connected (using labels for data organization)"
+    printf "  ${GREEN}[OK]${NC} Neo4j: Connected (using labels for data organization)\n"
 else
-    echo "  ${RED}✗${NC} Neo4j: Not connected"
+    printf "  ${RED}[ERROR]${NC} Neo4j: Not connected\n"
 fi
 
-echo ""
-echo "Next steps:"
-echo "  1. ${CYAN}Ensure both databases are running and configured${NC}"
-echo "  2. ${CYAN}Run seed data${NC} to populate initial content (if needed)"
-echo "  3. ${CYAN}Start backend:${NC}    jac serve backend/app.jac"
-echo "  4. ${CYAN}Access API:${NC}       http://localhost:8000"
-echo ""
+printf "\n"
+printf "Next steps:\n"
+printf "  1. ${CYAN}Ensure both databases are running and configured${NC}\n"
+printf "  2. ${CYAN}Run seed data${NC} to populate initial content (if needed)\n"
+printf "  3. ${CYAN}Start backend:${NC}    jac serve backend/app.jac\n"
+printf "  4. ${CYAN}Access API:${NC}       http://localhost:8000\n"
+printf "\n"
 
 print_status "Database setup complete!"
