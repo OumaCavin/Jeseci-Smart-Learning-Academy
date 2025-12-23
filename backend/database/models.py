@@ -470,6 +470,7 @@ class QuizAttempt(Base):
     attempt_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"))
     quiz_id: Mapped[str] = mapped_column(String(50), ForeignKey("quizzes.quiz_id", ondelete="CASCADE"))
+    concept_id: Mapped[Optional[str]] = mapped_column(String(50), ForeignKey("concepts.concept_id", ondelete="SET NULL"), nullable=True)
     score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     total_questions: Mapped[int] = mapped_column(Integer, nullable=True)
     correct_answers: Mapped[int] = mapped_column(Integer, default=0)
