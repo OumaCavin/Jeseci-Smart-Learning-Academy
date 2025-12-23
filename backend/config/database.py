@@ -4,6 +4,14 @@ SQLAlchemy Database Configuration for Jeseci Smart Learning Academy
 This module provides the database engine, session management, and base class
 for SQLAlchemy ORM models. It loads configuration from environment variables
 and supports PostgreSQL connections.
+
+Models included:
+- User Domain: User, UserProfile, UserLearningPreference
+- Content Domain: Concept, ConceptContent, LearningPath, Lesson, LearningPathConcept
+- Progress Tracking: UserConceptProgress, UserLearningPath, UserLessonProgress, LearningSession
+- Assessment: Quiz, QuizAttempt
+- Gamification: Achievement, UserAchievement, Badge, UserBadge
+- System: SystemLog, SystemHealth, AIAgent
 """
 
 import os
@@ -112,10 +120,22 @@ def init_db():
     Initialize database by creating all tables from models.
     This function creates the schema if it doesn't exist.
     """
-    from backend.database.models import Base, User, Concept, LearningPath
-    from backend.database.models import LearningPathConcept, UserConceptProgress
-    from backend.database.models import UserLearningPath, Achievement, UserAchievement
-    from backend.database.models import QuizAttempt
+    # Import all models to ensure they are registered with Base.metadata
+    from backend.database.models import (
+        # User Domain
+        User, UserProfile, UserLearningPreference,
+        # Content Domain
+        Concept, ConceptContent, LearningPath, Lesson, LearningPathConcept,
+        concept_relations,
+        # Progress & Tracking
+        UserConceptProgress, UserLearningPath, UserLessonProgress, LearningSession,
+        # Assessment
+        Quiz, QuizAttempt,
+        # Gamification
+        Achievement, UserAchievement, Badge, UserBadge,
+        # System & Monitoring
+        SystemLog, SystemHealth, AIAgent,
+    )
     
     engine = get_engine()
     
