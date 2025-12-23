@@ -14,8 +14,8 @@ glob py_db = PyModule("backend.database");
 
 ## Database Connection Status
 node DatabaseStatus {
-    has postgresql_connected: bool = false;
-    has neo4j_connected: bool = false;
+    has postgresql_connected: bool = False;
+    has neo4j_connected: bool = False;
     has last_check: str = "";
 }
 
@@ -75,7 +75,7 @@ walker DatabaseManager {
         report {
             "postgresql": result['postgresql'],
             "neo4j": result['neo4j'],
-            "initialized": true
+            "initialized": True
         };
     }
     
@@ -130,13 +130,13 @@ walker DatabaseManager {
         
         if db_result {
             report {
-                "success": true,
+                "success": True,
                 "data": db_result,
                 "count": len(db_result)
             };
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": "Query execution failed"
             };
         }
@@ -150,13 +150,13 @@ walker DatabaseManager {
         
         if db_result {
             report {
-                "success": true,
+                "success": True,
                 "data": db_result,
                 "count": len(db_result)
             };
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": "Query execution failed"
             };
         }
@@ -242,7 +242,7 @@ walker DatabaseManager {
         py_db.close_all_connections();
         
         report {
-            "success": true,
+            "success": True,
             "message": "All database connections closed"
         };
     }
@@ -255,7 +255,7 @@ walker InitDatabase {
         manager = py_db.DualWriteManager();
         
         report {
-            "initialized": true,
+            "initialized": True,
             "message": "Database module ready"
         };
     }
