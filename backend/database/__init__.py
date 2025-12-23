@@ -7,6 +7,11 @@ interfaces for database operations.
 """
 
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', 'config', '.env'))
+
 import psycopg2
 from psycopg2 import pool, extras
 from neo4j import GraphDatabase
