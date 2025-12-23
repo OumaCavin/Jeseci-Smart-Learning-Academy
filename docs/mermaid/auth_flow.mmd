@@ -1,6 +1,3 @@
-# Authentication Flow - User Registration and Login
-
-```mermaid
 sequenceDiagram
     participant U as User
     participant F as Frontend
@@ -41,25 +38,3 @@ sequenceDiagram
     P-->>A: Progress data
     A-->>F: Progress data
     F-->>U: Display progress
-```
-
-## Authentication Details
-
-### Registration Process
-1. Frontend sends user credentials to the Jaclang API
-2. API checks for duplicate username/email in PostgreSQL
-3. Password is hashed using bcrypt (12 salt rounds)
-4. User record is inserted into PostgreSQL users table
-5. JWT token is generated and returned to client
-
-### Login Process
-1. Frontend sends credentials to Jaclang API
-2. API queries PostgreSQL for user by username or email
-3. bcrypt compares input password with stored hash
-4. On success, JWT token is generated with 24-hour expiry
-5. User data and token are returned to frontend
-
-### Token Validation
-- JWT tokens contain user_id, username, email, and expiry timestamp
-- All protected endpoints validate tokens before processing requests
-- Tokens are validated on every request to ensure session validity
