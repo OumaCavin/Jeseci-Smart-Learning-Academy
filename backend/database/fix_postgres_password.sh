@@ -21,7 +21,7 @@ else
     exit 1
 fi
 
-POSTGRES_USER=${POSTGRES_USER:-jeseci_user}
+POSTGRES_USER=${POSTGRES_USER:-jeseci_academy_user}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secure_password_123}
 
 echo "📋 Will update user '$POSTGRES_USER' with password from .env"
