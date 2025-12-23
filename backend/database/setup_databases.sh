@@ -216,12 +216,22 @@ if command -v psql &> /dev/null; then
 import sys
 sys.path.insert(0, 'backend')
 
-# Import SQLAlchemy configuration and models
+# Import SQLAlchemy configuration and ALL models
 from config.database import Base, get_engine
-from database.models import User, Concept, LearningPath
-from database.models import LearningPathConcept, UserConceptProgress
-from database.models import UserLearningPath, Achievement, UserAchievement
-from database.models import QuizAttempt
+from database.models import (
+    # User Domain
+    User, UserProfile, UserLearningPreference,
+    # Content Domain
+    Concept, ConceptContent, LearningPath, Lesson, LearningPathConcept,
+    # Progress & Tracking
+    UserConceptProgress, UserLearningPath, UserLessonProgress, LearningSession,
+    # Assessment
+    Quiz, QuizAttempt,
+    # Gamification
+    Achievement, UserAchievement, Badge, UserBadge,
+    # System & Monitoring
+    SystemLog, SystemHealth, AIAgent,
+)
 
 try:
     # Create all tables from models
@@ -234,22 +244,32 @@ try:
     tables = inspector.get_table_names()
     
     expected_tables = [
-        'users', 'concepts', 'learning_paths', 'learning_path_concepts',
-        'user_concept_progress', 'user_learning_paths', 'achievements',
-        'user_achievements', 'quiz_attempts'
+        # User Domain
+        'users', 'user_profile', 'user_learning_preferences',
+        # Content Domain
+        'concepts', 'concept_content', 'learning_paths', 'lessons', 'learning_path_concepts',
+        'concept_relations', 'lesson_concepts',
+        # Progress & Tracking
+        'user_concept_progress', 'user_learning_paths', 'user_lesson_progress', 'learning_sessions',
+        # Assessment
+        'quizzes', 'quiz_attempts',
+        # Gamification
+        'achievements', 'user_achievements', 'badges', 'user_badges',
+        # System & Monitoring
+        'system_logs', 'system_health', 'ai_agents'
     ]
     
     created_count = 0
-    for table in expected_tables:
+    for table in sorted(expected_tables):
         if table in tables:
             created_count += 1
             print(f'[✓] Table \"{table}\" exists')
         else:
             print(f'[!] Table \"{table}\" not found')
     
+    print('')
     if created_count == len(expected_tables):
-        print('')
-        print('[✓] All database tables created successfully using SQLAlchemy!')
+        print(f'[✓] All {len(expected_tables)} database tables created successfully using SQLAlchemy!')
     else:
         print(f'[!] Only {created_count}/{len(expected_tables)} tables verified')
         
