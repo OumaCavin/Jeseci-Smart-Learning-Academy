@@ -70,40 +70,6 @@ else
 fi
 
 # =============================================================================
-# Check and Install Python Dependencies
-# =============================================================================
-print_section "Checking Python Dependencies"
-
-# Activate virtual environment if it exists
-if [ -d "venv" ]; then
-    print_info "Activating virtual environment..."
-    source venv/bin/activate
-    
-    # Check if psycopg2-binary is installed
-    if ! python -c "import psycopg2" 2>/dev/null; then
-        print_warning "psycopg2-binary not found. Installing..."
-        pip install psycopg2-binary -q
-        print_status "psycopg2-binary installed successfully"
-    else
-        print_status "psycopg2-binary is available"
-    fi
-    
-    # Check if neo4j is installed
-    if ! python -c "import neo4j" 2>/dev/null; then
-        print_warning "neo4j driver not found. Installing..."
-        pip install neo4j -q
-        print_status "neo4j driver installed successfully"
-    else
-        print_status "neo4j driver is available"
-    fi
-else
-    print_warning "Virtual environment not found. Python dependencies may not be available."
-    print_info "To install dependencies manually:"
-    echo "  pip install psycopg2-binary neo4j"
-    echo ""
-fi
-
-# =============================================================================
 # PostgreSQL Setup
 # =============================================================================
 print_section "PostgreSQL Database Setup"
