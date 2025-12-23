@@ -1,6 +1,3 @@
-# Component Diagram - System Components and Interactions
-
-```mermaid
 graph TB
     subgraph Frontend Components
         React[React Application]
@@ -59,29 +56,3 @@ graph TB
     style Neo4j fill:#008a00,stroke:#333,stroke-width:2px
     style React fill:#61dafb,stroke:#333,stroke-width:2px
     style AuthService fill:#28a745,stroke:#333,stroke-width:2px
-```
-
-## Component Details
-
-### Frontend Components
-- **React Application**: Main UI framework with component-based architecture
-- **React Router**: Client-side routing for navigation
-- **Auth Context**: Global state management for authentication
-- **API Service Layer**: HTTP client for backend communication
-
-### API Gateway
-- **Jaclang HTTP Server**: Handles all incoming HTTP requests
-- **Router Walker**: Routes requests to appropriate walkers
-- **Auth Middleware**: Validates JWT tokens before processing
-
-### Backend Services
-- **Authentication Service**: User management with bcrypt/JWT
-- **Course Service**: Course CRUD operations
-- **Progress Service**: Learning session and progress tracking
-- **AI Generator Service**: Content generation with OpenAI fallback
-- **Graph Engine Service**: Neo4j operations for knowledge graphs
-
-### Database Layer
-- **PostgreSQL**: Relational data (users, courses, progress)
-- **Neo4j**: Graph data (concepts, relationships, paths)
-- **Redis Cache**: Session and AI content caching

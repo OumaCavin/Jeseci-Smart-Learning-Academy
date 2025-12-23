@@ -1,6 +1,3 @@
-# Class Diagram - Jaclang Walkers and Data Models
-
-```mermaid
 classDiagram
     %% Core Walkers
     class Walker {
@@ -125,25 +122,3 @@ classDiagram
         +authenticate_user()
         +get_user_by_id()
     }
-```
-
-## Walker Architecture
-
-### Base Walker Class
-All walkers inherit from the base Walker class which provides:
-- Attribute management through `has` declarations
-- Execution handlers through `can` declarations
-- Report generation for API responses
-
-### Walker Categories
-
-1. **Core Walkers**: System initialization and health checks
-2. **Auth Walkers**: User registration and login with PostgreSQL
-3. **Course Walkers**: Course listing and creation
-4. **Progress Walkers**: Session management and progress tracking
-5. **Graph Walkers**: Neo4j integration for knowledge graphs
-
-### Database Managers
-- PostgreSQL: User and course data with connection pooling
-- Neo4j: Graph operations for concepts and learning paths
-- Auth Manager: bcrypt password hashing and JWT generation

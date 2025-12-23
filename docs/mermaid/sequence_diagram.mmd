@@ -1,6 +1,3 @@
-# Sequence Diagram - User Login Process
-
-```mermaid
 sequenceDiagram
     participant U as User
     participant F as React Frontend
@@ -73,25 +70,3 @@ sequenceDiagram
         A->>F: Clear auth state
         F-->>U: Redirect to login
     end
-```
-
-## Sequence Flow Explanation
-
-### Login Phase
-1. User enters credentials in React frontend
-2. AuthContext sends POST request to JacAPI
-3. API queries PostgreSQL for user record
-4. bcrypt compares password with stored hash
-5. JWT generates token on successful authentication
-6. Frontend stores token and updates UI
-
-### Protected Request Phase
-1. Frontend includes JWT in Authorization header
-2. API validates JWT signature and expiration
-3. Database query retrieves user-specific data
-4. Response sent back to frontend for display
-
-### Error Handling
-- Invalid credentials: Returns 401 with error message
-- Expired token: Triggers logout, redirects to login
-- Network errors: Shows retry option to user

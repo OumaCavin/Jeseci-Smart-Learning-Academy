@@ -1,6 +1,3 @@
-# Deployment Architecture
-
-```mermaid
 graph TB
     subgraph Production Environment
         subgraph Docker Network
@@ -50,52 +47,3 @@ graph TB
     style JacLang fill:#6f42c1,stroke:#333,stroke-width:3px
     style PostgreSQL fill:#0064cc,stroke:#333,stroke-width:2px
     style Neo4j fill:#008a00,stroke:#333,stroke-width:2px
-```
-
-## Deployment Architecture Details
-
-### Container Overview
-
-#### Nginx Reverse Proxy
-- Handles SSL termination
-- Routes traffic to frontend and backend
-- Rate limiting and caching configured
-
-#### Backend Container
-- Jaclang runtime environment
-- Python dependencies installed
-- Hot-reload for development
-
-#### Frontend Container
-- Production build of React app
-- Static file serving
-- Optimized with gzip compression
-
-#### Database Containers
-- Persistent volumes for data durability
-- Health checks configured
-- Automated backups recommended
-
-### External Integrations
-
-#### OpenAI API
-- AI-powered content generation
-- Fallback to template-based generation
-- Usage tracking and rate limiting
-
-#### GitHub
-- CI/CD pipeline integration
-- Automated testing on push
-- Deployment triggers on merge
-
-### Monitoring Stack
-
-#### Prometheus
-- Metrics collection from all services
-- Custom metrics for business logic
-- Alert rules for critical issues
-
-#### Grafana
-- Pre-built dashboards
-- Real-time monitoring
-- Custom visualization queries
