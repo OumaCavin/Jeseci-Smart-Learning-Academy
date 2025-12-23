@@ -155,8 +155,19 @@ class Concept(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     display_name: Mapped[str] = mapped_column(String(200), nullable=False)
     category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    subcategory: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    domain: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     difficulty_level: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    detailed_description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    complexity_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    cognitive_load: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    key_terms: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # List of key terms
+    synonyms: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # List of synonyms
+    learning_objectives: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # List of learning objectives
+    practical_applications: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # List of practical applications
+    real_world_examples: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # List of real-world examples
+    common_misconceptions: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # List of common misconceptions
     lesson_content: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     lesson_generated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -228,9 +239,14 @@ class LearningPath(Base):
     path_id: Mapped[str] = mapped_column(String(50), primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
+    category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     difficulty: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     estimated_duration: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # in minutes
+    target_audience: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    prerequisites: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # List of prerequisite path names
+    learning_outcomes: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # List of learning outcomes
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False)
     is_published: Mapped[bool] = mapped_column(Boolean, default=False)
     thumbnail_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
