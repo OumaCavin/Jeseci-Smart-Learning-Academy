@@ -1,0 +1,144 @@
+(venv) cavin@DESKTOP-KR7GL8A:~/projects/Jeseci-Smart-Learning-Academy$ bash backend/database/setup_databases.sh
+
+🗄️  Database Setup for Jeseci Smart Learning Companion
+
+[i] Loading environment variables from config/.env...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PostgreSQL Database Setup 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[✓] psql found: /usr/bin/psql
+[i] Target configuration (from .env):
+  \033[0;36mHost:\033[0m     localhost:5432
+  \033[0;36mDatabase:\033[0m jeseci_learning_academy
+  \033[0;36mUser:\033[0m     jeseci_user
+
+[i] Checking PostgreSQL service status...
+[sudo] password for cavin: 
+[✓] PostgreSQL service is running
+[i] Attempting connection with configured user 'jeseci_user'...
+[✓] PostgreSQL connection successful!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Testing PostgreSQL Connection 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[✓] PostgreSQL connection successful!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PostgreSQL Tables 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[i] Checking for existing tables in 'jeseci_learning_academy'...
+
+[i] No tables found in database (tables will be created by application)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Creating Database Tables 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[i] Running database migrations using SQLAlchemy...
+
+[INFO] Database URL constructed: postgresql+psycopg2://jeseci_user:***@localhost:5432/jeseci_learning_academy
+[INFO] SQLAlchemy engine created successfully
+INFO:database:PostgreSQL connection pool initialized: localhost:5432/jeseci_learning_academy
+[INFO] Database URL constructed: postgresql+psycopg2://jeseci_user:***@localhost:5432/jeseci_learning_academy
+[INFO] SQLAlchemy engine created successfully
+[INFO] Database URL constructed: postgresql+psycopg2://jeseci_user:***@localhost:5432/jeseci_learning_academy
+[INFO] SQLAlchemy engine created successfully
+[!] Table "achievements" not found
+[!] Table "ai_agents" not found
+[!] Table "badges" not found
+[!] Table "concept_content" not found
+[!] Table "concept_relations" not found
+[!] Table "concepts" not found
+[!] Table "learning_path_concepts" not found
+[!] Table "learning_paths" not found
+[!] Table "learning_sessions" not found
+[!] Table "lesson_concepts" not found
+[!] Table "lessons" not found
+[!] Table "quiz_attempts" not found
+[!] Table "quizzes" not found
+[!] Table "system_health" not found
+[!] Table "system_logs" not found
+[!] Table "user_achievements" not found
+[!] Table "user_badges" not found
+[!] Table "user_concept_progress" not found
+[!] Table "user_learning_paths" not found
+[!] Table "user_learning_preferences" not found
+[!] Table "user_lesson_progress" not found
+[!] Table "user_profile" not found
+[!] Table "users" not found
+
+[!] Only 0/23 tables verified
+
+[✓] PostgreSQL setup completed successfully
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Neo4j Graph Database Setup 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[✓] Neo4j is running and accessible
+[i] Target configuration (from .env):
+  \033[0;36mURI:\033[0m       bolt://localhost:7687
+  \033[0;36mDatabase:\033[0m neo4j
+  \033[0;36mUser:\033[0m     neo4j
+
+[i] Testing Neo4j connection...
+[✓] Neo4j connection successful!
+
+[i] Querying Neo4j for existing nodes...
+
+[i] No nodes found in database (will be created by application)
+
+[i] Creating Neo4j constraints and indexes...
+INFO:database:PostgreSQL connection pool initialized: localhost:5432/jeseci_learning_academy
+[✓] Connected to Neo4j at bolt://localhost:7687
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE CONSTRAINT IF NOT EXISTS FOR (e:Concept) REQUIRE (e.concept_id) IS UNIQUE' has no effect. The index or constraint specified by 'CONSTRAINT concept_id_unique FOR (e:Concept) REQUIRE (e.concept_id) IS UNIQUE' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE CONSTRAINT IF NOT EXISTS FOR (c:Concept) REQUIRE c.concept_id IS UNIQUE'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE CONSTRAINT IF NOT EXISTS FOR (e:Concept) REQUIRE (e.name) IS UNIQUE' has no effect. The index or constraint specified by 'CONSTRAINT constraint_713b07a FOR (e:Concept) REQUIRE (e.name) IS UNIQUE' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE CONSTRAINT IF NOT EXISTS FOR (c:Concept) REQUIRE c.name IS UNIQUE'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE CONSTRAINT IF NOT EXISTS FOR (e:LearningPath) REQUIRE (e.path_id) IS UNIQUE' has no effect. The index or constraint specified by 'CONSTRAINT path_id_unique FOR (e:LearningPath) REQUIRE (e.path_id) IS UNIQUE' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE CONSTRAINT IF NOT EXISTS FOR (p:LearningPath) REQUIRE p.path_id IS UNIQUE'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE CONSTRAINT IF NOT EXISTS FOR (e:Lesson) REQUIRE (e.lesson_id) IS UNIQUE' has no effect. The index or constraint specified by 'CONSTRAINT constraint_dc3033e6 FOR (e:Lesson) REQUIRE (e.lesson_id) IS UNIQUE' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE CONSTRAINT IF NOT EXISTS FOR (l:Lesson) REQUIRE l.lesson_id IS UNIQUE'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE CONSTRAINT IF NOT EXISTS FOR (e:User) REQUIRE (e.user_id) IS UNIQUE' has no effect. The index or constraint specified by 'CONSTRAINT constraint_f6ec32a1 FOR (e:User) REQUIRE (e.user_id) IS UNIQUE' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE CONSTRAINT IF NOT EXISTS FOR (u:User) REQUIRE u.user_id IS UNIQUE'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE CONSTRAINT IF NOT EXISTS FOR (e:User) REQUIRE (e.username) IS UNIQUE' has no effect. The index or constraint specified by 'CONSTRAINT constraint_e64eb639 FOR (e:User) REQUIRE (e.username) IS UNIQUE' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE CONSTRAINT IF NOT EXISTS FOR (u:User) REQUIRE u.username IS UNIQUE'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE CONSTRAINT IF NOT EXISTS FOR (e:User) REQUIRE (e.email) IS UNIQUE' has no effect. The index or constraint specified by 'CONSTRAINT constraint_23e3da56 FOR (e:User) REQUIRE (e.email) IS UNIQUE' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE CONSTRAINT IF NOT EXISTS FOR (u:User) REQUIRE u.email IS UNIQUE'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE CONSTRAINT IF NOT EXISTS FOR (e:Quiz) REQUIRE (e.quiz_id) IS UNIQUE' has no effect. The index or constraint specified by 'CONSTRAINT constraint_7e3f577c FOR (e:Quiz) REQUIRE (e.quiz_id) IS UNIQUE' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE CONSTRAINT IF NOT EXISTS FOR (q:Quiz) REQUIRE q.quiz_id IS UNIQUE'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE CONSTRAINT IF NOT EXISTS FOR (e:Achievement) REQUIRE (e.achievement_id) IS UNIQUE' has no effect. The index or constraint specified by 'CONSTRAINT constraint_cf742b99 FOR (e:Achievement) REQUIRE (e.achievement_id) IS UNIQUE' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE CONSTRAINT IF NOT EXISTS FOR (a:Achievement) REQUIRE a.achievement_id IS UNIQUE'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE CONSTRAINT IF NOT EXISTS FOR (e:Badge) REQUIRE (e.badge_id) IS UNIQUE' has no effect. The index or constraint specified by 'CONSTRAINT constraint_e89a8bfe FOR (e:Badge) REQUIRE (e.badge_id) IS UNIQUE' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE CONSTRAINT IF NOT EXISTS FOR (b:Badge) REQUIRE b.badge_id IS UNIQUE'
+[✓] Created 10 constraints
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE RANGE INDEX IF NOT EXISTS FOR (e:Concept) ON (e.category)' has no effect. The index or constraint specified by 'RANGE INDEX index_d54c82b6 FOR (e:Concept) ON (e.category)' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE INDEX IF NOT EXISTS FOR (c:Concept) ON (c.category)'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE RANGE INDEX IF NOT EXISTS FOR (e:Concept) ON (e.difficulty_level)' has no effect. The index or constraint specified by 'RANGE INDEX index_62e5e82a FOR (e:Concept) ON (e.difficulty_level)' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE INDEX IF NOT EXISTS FOR (c:Concept) ON (c.difficulty_level)'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE RANGE INDEX IF NOT EXISTS FOR (e:LearningPath) ON (e.is_published)' has no effect. The index or constraint specified by 'RANGE INDEX index_cc7776d9 FOR (e:LearningPath) ON (e.is_published)' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE INDEX IF NOT EXISTS FOR (p:LearningPath) ON (p.is_published)'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE RANGE INDEX IF NOT EXISTS FOR (e:LearningPath) ON (e.difficulty)' has no effect. The index or constraint specified by 'RANGE INDEX index_9521e05b FOR (e:LearningPath) ON (e.difficulty)' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE INDEX IF NOT EXISTS FOR (p:LearningPath) ON (p.difficulty)'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE RANGE INDEX IF NOT EXISTS FOR (e:Lesson) ON (e.learning_path_id)' has no effect. The index or constraint specified by 'RANGE INDEX index_aa5e7c2d FOR (e:Lesson) ON (e.learning_path_id)' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE INDEX IF NOT EXISTS FOR (l:Lesson) ON (l.learning_path_id)'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE RANGE INDEX IF NOT EXISTS FOR (e:Lesson) ON (e.is_published)' has no effect. The index or constraint specified by 'RANGE INDEX index_25dc0a08 FOR (e:Lesson) ON (e.is_published)' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE INDEX IF NOT EXISTS FOR (l:Lesson) ON (l.is_published)'
+INFO:neo4j.notifications:Received notification from DBMS server: <GqlStatusObject gql_status='00NA0', status_description="note: successful completion - index or constraint already exists. The command 'CREATE RANGE INDEX IF NOT EXISTS FOR (e:User) ON (e.is_active)' has no effect. The index or constraint specified by 'RANGE INDEX index_50780d9 FOR (e:User) ON (e.is_active)' already exists.", position=None, raw_classification='SCHEMA', classification=<NotificationClassification.SCHEMA: 'SCHEMA'>, raw_severity='INFORMATION', severity=<NotificationSeverity.INFORMATION: 'INFORMATION'>, diagnostic_record={'_classification': 'SCHEMA', '_severity': 'INFORMATION', 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'CREATE INDEX IF NOT EXISTS FOR (u:User) ON (u.is_active)'
+[✓] Created 7 indexes
+[✓] Neo4j setup verified: 0 concepts, 0 learning paths, 0 lessons, 0 users, 0 relationships
+[✓] Neo4j constraints and indexes created successfully
+
+[✓] Neo4j setup completed successfully
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📊 Database Setup Summary 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Configuration (from .env):
+  \033[0;36mPostgreSQL:\033[0m  localhost:5432/jeseci_learning_academy (user: jeseci_user)
+  \033[0;36mNeo4j:\033[0m       bolt://localhost:7687 (database: neo4j)
+
+\033[1;33mNote: Neo4j Community Edition uses a single database.\033[0m
+\033[1;33mData is organized using labels (Concept, LearningPath, Lesson, etc.)\033[0m
+and relationship types (CONTAINS, PREREQUISITE, BELONGS_TO, etc.).
+
+Status:
+  \033[0;32m✓\033[0m jeseci_learning_academy: Connected
+  \033[0;32m✓\033[0m Neo4j: Connected (using labels for data organization)
+
+Next steps:
+  1. \033[0;36mEnsure both databases are running and configured\033[0m
+  2. \033[0;36mRun seed data\033[0m to populate initial content (if needed)
+  3. \033[0;36mStart backend:\033[0m    jac serve backend/app.jac
+  4. \033[0;36mAccess API:\033[0m       http://localhost:8000
+
+[✓] Database setup complete!
