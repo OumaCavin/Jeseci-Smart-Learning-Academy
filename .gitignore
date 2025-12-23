@@ -895,6 +895,12 @@
 # uploads/
 # downloads/
 
+# Project-specific directories and files
+user_input_files/
+browser/
+tmp/
+workspace.json
+
 # Claude Agent SDK debug files
 **/.claude/debug/
 **/.claude/debug/**
