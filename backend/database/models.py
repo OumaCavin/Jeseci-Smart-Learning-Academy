@@ -31,9 +31,10 @@ from backend.config.database import Base
 concept_relations = Table(
     "concept_relations",
     Base.metadata,
-    Column("source_concept_id", String(50), ForeignKey("concepts.concept_id", ondelete="CASCADE"), primary_key=True),
-    Column("target_concept_id", String(50), ForeignKey("concepts.concept_id", ondelete="CASCADE"), primary_key=True),
+    Column("source_concept_id", String(50), ForeignKey("jeseci_academy.concepts.concept_id", ondelete="CASCADE"), primary_key=True),
+    Column("target_concept_id", String(50), ForeignKey("jeseci_academy.concepts.concept_id", ondelete="CASCADE"), primary_key=True),
     Column("relation_type", String(50), default="related"),  # prerequisite, related, builds_on
+    schema="jeseci_academy",
 )
 
 
@@ -46,6 +47,7 @@ concept_relations = Table(
 class User(Base):
     """Core User model for authentication and tracking"""
     __tablename__ = "users"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     user_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
@@ -97,9 +99,10 @@ class User(Base):
 class UserProfile(Base):
     """Extended user profile information (1:1 with User)"""
     __tablename__ = "user_profile"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), unique=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.user_id", ondelete="CASCADE"), unique=True)
     first_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     last_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     bio: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -118,9 +121,10 @@ class UserProfile(Base):
 class UserLearningPreference(Base):
     """User learning preferences and settings (1:1 with User)"""
     __tablename__ = "user_learning_preferences"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), unique=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.user_id", ondelete="CASCADE"), unique=True)
     daily_goal_minutes: Mapped[int] = mapped_column(Integer, default=30)
     preferred_difficulty: Mapped[str] = mapped_column(String(20), default="intermediate")  # beginner, intermediate, advanced
     preferred_content_type: Mapped[str] = mapped_column(String(50), default="text")  # text, video, interactive
@@ -145,6 +149,7 @@ class UserLearningPreference(Base):
 class Concept(Base):
     """Learning Concept model representing topics in the curriculum"""
     __tablename__ = "concepts"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     concept_id: Mapped[str] = mapped_column(String(50), primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -194,9 +199,10 @@ class Concept(Base):
 class ConceptContent(Base):
     """Content blocks associated with a concept (1:N relationship)"""
     __tablename__ = "concept_content"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    concept_id: Mapped[str] = mapped_column(String(50), ForeignKey("concepts.concept_id", ondelete="CASCADE"))
+    concept_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.concepts.concept_id", ondelete="CASCADE"))
     content_type: Mapped[str] = mapped_column(String(50), nullable=False)  # text, video, image, code, interactive
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     body: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Markdown or HTML content
@@ -217,6 +223,7 @@ class ConceptContent(Base):
 class LearningPath(Base):
     """Learning Path model for organizing concepts into structured courses"""
     __tablename__ = "learning_paths"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     path_id: Mapped[str] = mapped_column(String(50), primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -247,9 +254,10 @@ class LearningPath(Base):
 class Lesson(Base):
     """Lesson model for organizing content within a learning path"""
     __tablename__ = "lessons"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     lesson_id: Mapped[str] = mapped_column(String(50), primary_key=True)
-    learning_path_id: Mapped[str] = mapped_column(String(50), ForeignKey("learning_paths.path_id", ondelete="CASCADE"))
+    learning_path_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.learning_paths.path_id", ondelete="CASCADE"))
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     sequence_order: Mapped[int] = mapped_column(Integer, default=0)
@@ -277,10 +285,11 @@ class Lesson(Base):
 class LearningPathConcept(Base):
     """Association table for Learning Path - Concept many-to-many relationship"""
     __tablename__ = "learning_path_concepts"
+    __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    path_id: Mapped[str] = mapped_column(String(50), ForeignKey("learning_paths.path_id", ondelete="CASCADE"))
-    concept_id: Mapped[str] = mapped_column(String(50), ForeignKey("concepts.concept_id", ondelete="CASCADE"))
+    path_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.learning_paths.path_id", ondelete="CASCADE"))
+    concept_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.concepts.concept_id", ondelete="CASCADE"))
     sequence_order: Mapped[int] = mapped_column(Integer, default=0)
     is_required: Mapped[bool] = mapped_column(Boolean, default=True)
     
@@ -301,10 +310,11 @@ class LearningPathConcept(Base):
 class LessonConcept(Base):
     """Association table for Lesson - Concept many-to-many relationship"""
     __tablename__ = "lesson_concepts"
+    __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    lesson_id: Mapped[str] = mapped_column(String(50), ForeignKey("lessons.lesson_id", ondelete="CASCADE"))
-    concept_id: Mapped[str] = mapped_column(String(50), ForeignKey("concepts.concept_id", ondelete="CASCADE"))
+    lesson_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.lessons.lesson_id", ondelete="CASCADE"))
+    concept_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.concepts.concept_id", ondelete="CASCADE"))
     sequence_order: Mapped[int] = mapped_column(Integer, default=0)
     is_required: Mapped[bool] = mapped_column(Boolean, default=True)
     
@@ -329,10 +339,11 @@ class LessonConcept(Base):
 class UserConceptProgress(Base):
     """Tracks user progress through individual concepts"""
     __tablename__ = "user_concept_progress"
+    __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"))
-    concept_id: Mapped[str] = mapped_column(String(50), ForeignKey("concepts.concept_id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.user_id", ondelete="CASCADE"))
+    concept_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.concepts.concept_id", ondelete="CASCADE"))
     progress_percent: Mapped[int] = mapped_column(Integer, default=0)
     mastery_level: Mapped[int] = mapped_column(Integer, default=0)
     time_spent_minutes: Mapped[int] = mapped_column(Integer, default=0)
@@ -356,10 +367,11 @@ class UserConceptProgress(Base):
 class UserLearningPath(Base):
     """Tracks user enrollment and progress in learning paths"""
     __tablename__ = "user_learning_paths"
+    __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"))
-    path_id: Mapped[str] = mapped_column(String(50), ForeignKey("learning_paths.path_id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.user_id", ondelete="CASCADE"))
+    path_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.learning_paths.path_id", ondelete="CASCADE"))
     progress_percent: Mapped[float] = mapped_column(Float, default=0.0)
     started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     last_accessed: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -382,10 +394,11 @@ class UserLearningPath(Base):
 class UserLessonProgress(Base):
     """Tracks user progress through individual lessons"""
     __tablename__ = "user_lesson_progress"
+    __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"))
-    lesson_id: Mapped[str] = mapped_column(String(50), ForeignKey("lessons.lesson_id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.user_id", ondelete="CASCADE"))
+    lesson_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.lessons.lesson_id", ondelete="CASCADE"))
     progress_percent: Mapped[int] = mapped_column(Integer, default=0)
     is_completed: Mapped[bool] = mapped_column(Boolean, default=False)
     started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -409,9 +422,10 @@ class UserLessonProgress(Base):
 class LearningSession(Base):
     """Tracks individual learning sessions"""
     __tablename__ = "learning_sessions"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.user_id", ondelete="CASCADE"))
     start_time: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     end_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     duration_seconds: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
@@ -439,12 +453,13 @@ class LearningSession(Base):
 class Quiz(Base):
     """Quiz model for assessments linked to concepts or lessons"""
     __tablename__ = "quizzes"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     quiz_id: Mapped[str] = mapped_column(String(50), primary_key=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    concept_id: Mapped[Optional[str]] = mapped_column(String(50), ForeignKey("concepts.concept_id", ondelete="SET NULL"), nullable=True)
-    lesson_id: Mapped[Optional[str]] = mapped_column(String(50), ForeignKey("lessons.lesson_id", ondelete="SET NULL"), nullable=True)
+    concept_id: Mapped[Optional[str]] = mapped_column(String(50), ForeignKey("jeseci_academy.concepts.concept_id", ondelete="SET NULL"), nullable=True)
+    lesson_id: Mapped[Optional[str]] = mapped_column(String(50), ForeignKey("jeseci_academy.lessons.lesson_id", ondelete="SET NULL"), nullable=True)
     passing_score: Mapped[int] = mapped_column(Integer, default=70)  # percentage
     time_limit_minutes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     max_attempts: Mapped[int] = mapped_column(Integer, default=3)
@@ -466,11 +481,12 @@ class Quiz(Base):
 class QuizAttempt(Base):
     """Records quiz attempts by users"""
     __tablename__ = "quiz_attempts"
+    __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
     
     attempt_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"))
-    quiz_id: Mapped[str] = mapped_column(String(50), ForeignKey("quizzes.quiz_id", ondelete="CASCADE"))
-    concept_id: Mapped[Optional[str]] = mapped_column(String(50), ForeignKey("concepts.concept_id", ondelete="SET NULL"), nullable=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.user_id", ondelete="CASCADE"))
+    quiz_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.quizzes.quiz_id", ondelete="CASCADE"))
+    concept_id: Mapped[Optional[str]] = mapped_column(String(50), ForeignKey("jeseci_academy.concepts.concept_id", ondelete="SET NULL"), nullable=True)
     score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     total_questions: Mapped[int] = mapped_column(Integer, nullable=True)
     correct_answers: Mapped[int] = mapped_column(Integer, default=0)
@@ -502,6 +518,7 @@ class QuizAttempt(Base):
 class Achievement(Base):
     """Achievement model for gamification milestones"""
     __tablename__ = "achievements"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     achievement_id: Mapped[str] = mapped_column(String(50), primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -526,10 +543,11 @@ class Achievement(Base):
 class UserAchievement(Base):
     """Tracks achievements earned by users"""
     __tablename__ = "user_achievements"
+    __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"))
-    achievement_id: Mapped[str] = mapped_column(String(50), ForeignKey("achievements.achievement_id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.user_id", ondelete="CASCADE"))
+    achievement_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.achievements.achievement_id", ondelete="CASCADE"))
     earned_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     notification_sent: Mapped[bool] = mapped_column(Boolean, default=False)
     
@@ -550,6 +568,7 @@ class UserAchievement(Base):
 class Badge(Base):
     """Badge model for visual rewards"""
     __tablename__ = "badges"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     badge_id: Mapped[str] = mapped_column(String(50), primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -574,10 +593,11 @@ class Badge(Base):
 class UserBadge(Base):
     """Tracks badges earned by users"""
     __tablename__ = "user_badges"
+    __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"))
-    badge_id: Mapped[str] = mapped_column(String(50), ForeignKey("badges.badge_id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.user_id", ondelete="CASCADE"))
+    badge_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.badges.badge_id", ondelete="CASCADE"))
     earned_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     notification_sent: Mapped[bool] = mapped_column(Boolean, default=False)
     
@@ -602,13 +622,14 @@ class UserBadge(Base):
 class SystemLog(Base):
     """System log for debugging and monitoring"""
     __tablename__ = "system_logs"
+    __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     level: Mapped[str] = mapped_column(String(20), nullable=False)  # DEBUG, INFO, WARNING, ERROR, CRITICAL
     module: Mapped[str] = mapped_column(String(100), nullable=True)  # e.g., database, api, auth
     message: Mapped[str] = mapped_column(Text, nullable=False)
     context: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # Additional context as JSON
-    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("jeseci_academy.users.user_id", ondelete="SET NULL"), nullable=True)
     ip_address: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     
@@ -625,6 +646,7 @@ class SystemLog(Base):
 class SystemHealth(Base):
     """System health and status monitoring"""
     __tablename__ = "system_health"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     component: Mapped[str] = mapped_column(String(100), nullable=False)  # database, api, neo4j, openai
@@ -646,6 +668,7 @@ class SystemHealth(Base):
 class AIAgent(Base):
     """AI Agent configuration for content generation"""
     __tablename__ = "ai_agents"
+    __table_args__ = {"schema": "jeseci_academy"}
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
