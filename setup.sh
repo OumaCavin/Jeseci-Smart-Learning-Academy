@@ -17,6 +17,25 @@ fi
 PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
 echo "🐍 Found Python: $PYTHON_VERSION"
 
+# =============================================================================
+# Environment Configuration Setup
+# =============================================================================
+echo ""
+echo "📋 Setting up environment configuration..."
+
+# Check if config/.env exists, if not copy from template
+if [ ! -f "config/.env" ]; then
+    if [ -f "config/.env.template" ]; then
+        cp config/.env.template config/.env
+        echo "✅ Created config/.env from template"
+        echo "⚠️  Please update config/.env with your API keys and database passwords"
+    else
+        echo "⚠️  config/.env.template not found - you may need to create config/.env manually"
+    fi
+else
+    echo "✅ config/.env already exists"
+fi
+
 # Check if uv is available (preferred)
 if command -v uv &> /dev/null; then
     echo "✅ Using uv package manager"
@@ -140,15 +159,13 @@ echo ""
 echo "🚀 CONFIGURE OPENAI API KEY:"
 echo ""
 echo "   1. Get your API key from: https://platform.openai.com/api-keys"
-echo "   2. Edit the .env file and add:"
+echo "   2. Edit the config/.env file and add:"
 echo "      OPENAI_API_KEY=sk-your_actual_api_key_here"
 echo ""
 echo "🚀 START THE APPLICATION:"
 echo ""
-echo "   jac serve backend/app.jac"
-echo ""
-echo "📍 Backend API:  http://localhost:8000"
-echo "📍 Frontend App: http://localhost:3000"
+echo "   bash ./backend/database/setup_databases.sh"
+echo "   jac serve backend/app.jac --port 8000"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
