@@ -1,0 +1,117 @@
+(venv) cavin@DESKTOP-KR7GL8A:~/projects/Jeseci-Smart-Learning-Academy$ bash backend/database/setup_databases.sh
+
+🗄️  Database Setup for Jeseci Smart Learning Companion
+
+[i] Loading environment variables from backend/config/.env...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PostgreSQL Database Setup 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[✓] psql found: /usr/bin/psql
+[i] Target configuration (from .env):
+  \033[0;36mHost:\033[0m     localhost:5432
+  \033[0;36mDatabase:\033[0m jeseci_learning_academy
+  \033[0;36mUser:\033[0m     jeseci_user
+
+[i] Checking PostgreSQL service status...
+[✓] PostgreSQL service is running
+[i] Attempting connection with configured user 'jeseci_user'...
+[✓] PostgreSQL connection successful!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Testing PostgreSQL Connection 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[✓] PostgreSQL connection successful!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PostgreSQL Tables 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[i] Checking for existing tables in 'jeseci_learning_academy'...
+
+[i] No tables found in database (tables will be created by application)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Creating Database Tables 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[i] Running database migrations using SQLAlchemy...
+
+INFO:database:PostgreSQL connection pool initialized: localhost:5432/jeseci_learning_academy
+Traceback (most recent call last):
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.InvalidSchemaName: no schema has been selected to create in
+LINE 2: CREATE TABLE users (
+                     ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 40, in <module>
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 5928, in create_all
+    bind._run_ddl_visitor(
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3260, in _run_ddl_visitor
+    conn._run_ddl_visitor(visitorcallable, element, **kwargs)
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2467, in _run_ddl_visitor
+    ).traverse_single(element)
+      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/sql/visitors.py", line 661, in traverse_single
+    return meth(obj, **kw)
+           ^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/sql/ddl.py", line 984, in visit_metadata
+    self.traverse_single(
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/sql/visitors.py", line 661, in traverse_single
+    return meth(obj, **kw)
+           ^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/sql/ddl.py", line 1022, in visit_table
+    )._invoke_with(self.connection)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/sql/ddl.py", line 321, in _invoke_with
+    return bind.execute(self)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/sql/ddl.py", line 187, in _execute_on_connection
+    return connection._execute_ddl(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1530, in _execute_ddl
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/cavin/projects/Jeseci-Smart-Learning-Academy/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.InvalidSchemaName) no schema has been selected to create in
+LINE 2: CREATE TABLE users (
+                     ^
+
+[SQL: 
+CREATE TABLE users (
+        user_id SERIAL NOT NULL, 
+        username VARCHAR(100) NOT NULL, 
+        email VARCHAR(255) NOT NULL, 
+        password_hash VARCHAR(255) NOT NULL, 
+        display_name VARCHAR(100), 
+        is_active BOOLEAN NOT NULL, 
+        is_admin BOOLEAN NOT NULL, 
+        created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+        last_login TIMESTAMP WITHOUT TIME ZONE, 
+        PRIMARY KEY (user_id)
+)
+
+]
+(Background on this error at: https://sqlalche.me/e/20/f405)
