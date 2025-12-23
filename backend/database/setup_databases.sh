@@ -226,8 +226,9 @@ if command -v psql &> /dev/null; then
 import sys
 import os
 
-# Add project root to path
+# Add project root to path, then backend for config imports
 sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.getcwd(), 'backend'))
 
 print("[INFO] Starting table creation...")
 print(f"[INFO] Current directory: {os.getcwd()}")
@@ -235,8 +236,8 @@ print(f"[INFO] Python path: {sys.path[:3]}...")
 
 try:
     # Import SQLAlchemy configuration and ALL models
-    from config.database import Base, get_engine
-    print("[INFO] Imported config.database successfully")
+    from backend.config.database import Base, get_engine
+    print("[INFO] Imported backend.config.database successfully")
     
     from database.models import (
         # User Domain
