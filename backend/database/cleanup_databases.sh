@@ -22,15 +22,15 @@ echo ""
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Load environment variables from .env file
-if [ -f "$SCRIPT_DIR/../../config/.env" ]; then
-    source "$SCRIPT_DIR/../../config/.env"
+if [ -f "$SCRIPT_DIR/../../backend/config/.env" ]; then
+    source "$SCRIPT_DIR/../../backend/config/.env"
     echo -e "${GREEN}[✓] Loaded environment variables from .env${NC}"
 elif [ -f "$SCRIPT_DIR/../../.env" ]; then
     source "$SCRIPT_DIR/../../.env"
     echo -e "${GREEN}[✓] Loaded environment variables from .env${NC}"
 else
     echo -e "${RED}[✗] .env file not found${NC}"
-    echo "Please ensure your .env file exists in the config/ or project root directory"
+    echo "Please ensure your .env file exists in the backend/config/ or project root directory"
     exit 1
 fi
 
@@ -134,7 +134,7 @@ sys.path.insert(0, 'backend')
 from database.neo4j_manager import Neo4jManager
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', 'config', '.env'))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', 'backend', 'config', '.env'))
 
 try:
     neo4j = Neo4jManager()
