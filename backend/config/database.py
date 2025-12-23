@@ -16,7 +16,7 @@ Models included:
 
 import os
 from typing import Generator
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, event
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Session
 from sqlalchemy.pool import QueuePool
 
@@ -88,11 +88,12 @@ def get_engine():
     )
     
     # Set the schema on the engine
-    @event_listener(engine, "connect")
     def set_search_path(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
         cursor.execute(f"SET search_path TO {schema}")
         cursor.close()
+    
+    event.listen(engine, "connect", set_search_path)
     
     print(f"[INFO] SQLAlchemy engine created with schema: {schema}")
     
@@ -189,7 +190,3 @@ def check_db_connection() -> bool:
 
 # Global session factory for import convenience
 SessionLocal = get_session_factory()
-
-
-# Import event_listener for setting search_path
-from sqlalchemy import event_listener
