@@ -55,17 +55,17 @@ print_header
 # =============================================================================
 print_section "Installing Python Dependencies"
 
-print_info "Installing required Python packages..."
+print_info "Installing required Python packages from pyproject.toml..."
 
-# Install bcrypt and other required packages
+# Install dependencies using uv (the project's package manager)
 if command -v uv &> /dev/null; then
-    print_info "Using uv to install packages..."
-    uv pip install bcrypt --quiet 2>/dev/null || uv add bcrypt --quiet 2>/dev/null || true
-    print_status "bcrypt installed successfully"
+    print_info "Using uv to install dependencies..."
+    cd "$(dirname "$0")/.."
+    uv pip sync pyproject.toml --quiet 2>/dev/null || uv pip install -e . --quiet 2>/dev/null || true
+    cd - > /dev/null
+    print_status "Python dependencies installed successfully"
 else
-    print_info "uv not found, trying pip..."
-    pip install bcrypt --quiet 2>/dev/null || python -m pip install bcrypt --quiet 2>/dev/null || true
-    print_status "bcrypt installed (or already present)"
+    print_warning "uv not found. Please install uv or manually install dependencies from backend/pyproject.toml"
 fi
 
 # Change to project root
