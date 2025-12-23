@@ -50,24 +50,6 @@ print_header() {
 
 print_header
 
-# =============================================================================
-# Install Python Dependencies
-# =============================================================================
-print_section "Installing Python Dependencies"
-
-print_info "Installing required Python packages from pyproject.toml..."
-
-# Install dependencies using uv (the project's package manager)
-if command -v uv &> /dev/null; then
-    print_info "Using uv to install dependencies..."
-    cd "$(dirname "$0")/.."
-    uv pip sync pyproject.toml --quiet 2>/dev/null || uv pip install -e . --quiet 2>/dev/null || true
-    cd - > /dev/null
-    print_status "Python dependencies installed successfully"
-else
-    print_warning "uv not found. Please install uv or manually install dependencies from backend/pyproject.toml"
-fi
-
 # Change to project root
 cd "$(dirname "$0")/../.."
 
