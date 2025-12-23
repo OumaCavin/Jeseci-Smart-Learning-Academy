@@ -42,7 +42,7 @@ echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━�
 echo -e "  PostgreSQL:"
 echo -e "    Host:     ${POSTGRES_HOST:-localhost}:${POSTGRES_PORT:-5432}"
 echo -e "    Database: ${POSTGRES_DB:-jeseci_learning_academy}"
-echo -e "    User:     ${POSTGRES_USER:-jeseci_user}"
+echo -e "    User:     ${POSTGRES_USER:-jeseci_academy_user}"
 echo ""
 echo -e "  Neo4j:"
 echo -e "    URI:      ${NEO4J_URI:-bolt://localhost:7687}"

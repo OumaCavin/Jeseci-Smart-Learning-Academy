@@ -34,7 +34,7 @@ def get_database_url() -> str:
     - POSTGRES_HOST: Database host (default: localhost)
     - POSTGRES_PORT: Database port (default: 5432)
     - POSTGRES_DB: Database name (default: jeseci_learning_academy)
-    - POSTGRES_USER: Database user (default: jeseci_user)
+    - POSTGRES_USER: Database user (default: jeseci_academy_user)
     - POSTGRES_PASSWORD: Database password (default: jeseci_secure_password_2024)
     
     Returns:
@@ -44,7 +44,7 @@ def get_database_url() -> str:
     host = os.getenv("POSTGRES_HOST", "localhost")
     port = os.getenv("POSTGRES_PORT", "5432")
     database = os.getenv("POSTGRES_DB", "jeseci_learning_academy")
-    user = os.getenv("POSTGRES_USER", "jeseci_user")
+    user = os.getenv("POSTGRES_USER", "jeseci_academy_user")
     password = os.getenv("POSTGRES_PASSWORD", "jeseci_secure_password_2024")
     
     # Construct URL for psycopg2 driver

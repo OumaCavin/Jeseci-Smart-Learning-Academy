@@ -69,7 +69,7 @@ else
         POSTGRES_HOST="localhost"
         POSTGRES_PORT="5432"
         POSTGRES_DB="jeseci_learning_academy"
-        POSTGRES_USER="jeseci_user"
+        POSTGRES_USER="jeseci_academy_user"
         POSTGRES_PASSWORD="jeseci_secure_password_2024"
         NEO4J_URI="bolt://localhost:7687"
         NEO4J_USER="neo4j"
