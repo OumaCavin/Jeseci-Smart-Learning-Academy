@@ -10,10 +10,14 @@ echo "🔧 Fixing PostgreSQL User Password"
 echo ""
 
 # Load environment variables
-if [ -f "../../.env" ]; then
+if [ -f "../../config/.env" ]; then
+    source "../../config/.env"
+    echo "[✓] Loaded environment variables from config/.env"
+elif [ -f "../../.env" ]; then
     source "../../.env"
+    echo "[✓] Loaded environment variables from .env"
 else
-    echo "[!] .env file not found"
+    echo "[!] .env file not found in config/ or project root"
     exit 1
 fi
 

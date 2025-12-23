@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), 'config', '.env'))
 
 # Add backend to path
 sys.path.insert(0, os.path.dirname(__file__))
