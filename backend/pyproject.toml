@@ -59,6 +59,9 @@ dependencies = [
  "sqlalchemy>=2.0.0",
  # Authentication
  "bcrypt>=4.1.0",
+ # Jaclang (Jac programming language tools)
+ "jaclang>=0.9.3",
+ "jac-client>=0.2.3",
 ]
 
 [build-system]
