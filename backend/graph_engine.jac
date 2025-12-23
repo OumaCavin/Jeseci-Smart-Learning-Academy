@@ -121,7 +121,7 @@ edge BuildsUpon {
 ## Learning path containment
 edge PathContains {
     has order_index: int = 0;
-    has is_required: bool = true;
+    has is_required: bool = True;
     has created_at: int = 0;
 }
 
@@ -206,7 +206,7 @@ walker GraphManager {
         };
         
         report {
-            "success": true,
+            "success": True,
             "graph_stats": stats
         };
     }
@@ -221,7 +221,7 @@ walker GraphManager {
         result = manager.execute_query(query, None);
         
         report {
-            "success": true,
+            "success": True,
             "constraint": constraint_type,
             "message": "Constraint created successfully"
         };
@@ -465,7 +465,7 @@ walker PathManager {
         path_id = "path_test";
         concept_id = "concept_test";
         order_index = 0;
-        is_required = true;
+        is_required = True;
         
         manager = neo4j_db.get_neo4j_manager();
         
@@ -733,7 +733,7 @@ walker ProgressTracker {
         MATCH (p:LearningPath {path_id: $path_id})
         OPTIONAL MATCH (p)-[:PathContains]->(c:Concept)
         OPTIONAL MATCH (u)-[:Completed]->(c)
-        WITH p, c, collect(DISTINCT c) AS all_concepts, collect(DISTINCT {concept: c, completed: true}) AS completed_concepts
+        WITH p, c, collect(DISTINCT c) AS all_concepts, collect(DISTINCT {concept: c, completed: True}) AS completed_concepts
         WITH p, all_concepts, [x IN completed_concepts WHERE x.completed IS NOT NULL] AS completed
         RETURN p.title AS path_title,
                size(all_concepts) AS total_concepts,
@@ -1001,7 +1001,7 @@ walker LearningAnalytics {
         };
         
         report {
-            "success": true,
+            "success": True,
             "user_id": user_id,
             "analytics": analytics
         };
@@ -1190,13 +1190,13 @@ walker GraphSeeder {
             contain_query = """
             MATCH (p:LearningPath {path_id: $path})
             MATCH (c:Concept {concept_id: $concept})
-            MERGE (p)-[:PathContains {order_index: $order, is_required: true, created_at: timestamp()}]->(c)
+            MERGE (p)-[:PathContains {order_index: $order, is_required: True, created_at: timestamp()}]->(c)
             """;
             manager.execute_query(contain_query, pc);
         }
         
         report {
-            "success": true,
+            "success": True,
             "message": "Graph seeded successfully",
             "concepts_created": len(concepts),
             "prerequisites_created": len(prereqs),
@@ -1216,7 +1216,7 @@ walker GraphSeeder {
         result = manager.execute_query(query, None);
         
         report {
-            "success": true,
+            "success": True,
             "message": "Graph cleared successfully"
         };
     }

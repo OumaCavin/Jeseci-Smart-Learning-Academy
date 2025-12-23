@@ -57,7 +57,7 @@ def generate_content():
         
         if not data:
             return jsonify({
-                "success": false,
+                "success": False,
                 "error": "No JSON payload provided"
             }), 400
         
@@ -69,7 +69,7 @@ def generate_content():
         
         if not concept_name:
             return jsonify({
-                "success": false,
+                "success": False,
                 "error": "concept_name is required"
             }), 400
         
@@ -101,7 +101,7 @@ def generate_content():
     except Exception as e:
         logger.error(f"Error generating content: {str(e)}")
         return jsonify({
-            "success": false,
+            "success": False,
             "error": str(e)
         }), 500
 
