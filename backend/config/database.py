@@ -71,7 +71,8 @@ def get_engine():
         max_overflow=10,
         pool_timeout=30,
         pool_recycle=1800,
-        echo=False  # Set to True for SQL debugging
+        echo=False,  # Set to True for SQL debugging
+        connect_args={"options": "-c search_path=public"}  # Set default schema
     )
     
     print("[INFO] SQLAlchemy engine created successfully")
