@@ -49,8 +49,8 @@ echo -e "\n${BLUE}🗄️  Database Setup for Jeseci Smart Learning Companion${N
 cd "$(dirname "$0")/../.."
 
 # Load environment variables if .env exists
-# Check config/ directory first, then fall back to project root
-ENV_FILE="config/.env"
+# Check backend/config/ directory first, then fall back to project root
+ENV_FILE="backend/config/.env"
 if [ -f "$ENV_FILE" ]; then
     print_info "Loading environment variables from $ENV_FILE..."
     set -a  # Auto-export variables
