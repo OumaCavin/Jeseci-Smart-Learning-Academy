@@ -28,7 +28,7 @@ This module provides comprehensive database connectivity for PostgreSQL and Neo4
 pip install -r backend/database/requirements.txt
 ```
 
-2. Configure database connections in `config/.env`:
+2. Configure database connections in `backend/config/.env`:
 ```bash
 # PostgreSQL Configuration
 POSTGRES_HOST=localhost

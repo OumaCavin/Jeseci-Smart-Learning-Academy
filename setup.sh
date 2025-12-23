@@ -23,17 +23,17 @@ echo "🐍 Found Python: $PYTHON_VERSION"
 echo ""
 echo "📋 Setting up environment configuration..."
 
-# Check if config/.env exists, if not copy from template
-if [ ! -f "config/.env" ]; then
-    if [ -f "config/.env.template" ]; then
-        cp config/.env.template config/.env
-        echo "✅ Created config/.env from template"
-        echo "⚠️  Please update config/.env with your API keys and database passwords"
+# Check if backend/config/.env exists, if not copy from template
+if [ ! -f "backend/config/.env" ]; then
+    if [ -f "backend/config/.env.template" ]; then
+        cp backend/config/.env.template backend/config/.env
+        echo "✅ Created backend/config/.env from template"
+        echo "⚠️  Please update backend/config/.env with your API keys and database passwords"
     else
-        echo "⚠️  config/.env.template not found - you may need to create config/.env manually"
+        echo "⚠️  backend/config/.env.template not found - you may need to create backend/config/.env manually"
     fi
 else
-    echo "✅ config/.env already exists"
+    echo "✅ backend/config/.env already exists"
 fi
 
 # Check if uv is available (preferred)
@@ -159,7 +159,7 @@ echo ""
 echo "🚀 CONFIGURE OPENAI API KEY:"
 echo ""
 echo "   1. Get your API key from: https://platform.openai.com/api-keys"
-echo "   2. Edit the config/.env file and add:"
+echo "   2. Edit the backend/config/.env file and add:"
 echo "      OPENAI_API_KEY=sk-your_actual_api_key_here"
 echo ""
 echo "🚀 START THE APPLICATION:"

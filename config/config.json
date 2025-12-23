@@ -1,1 +1,0 @@
-{"build": {"outDir": "dist", "manifest": "manifest.json", "rollupOptions": {"input": "src/client_runtime.js"}}, "plugins": ["@vitejs/plugin-react"], "server": {"port": 8000}, "resolve": {"extensions": [".js", ".jsx", ".ts", ".tsx"]}}
