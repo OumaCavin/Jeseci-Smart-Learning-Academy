@@ -1362,3 +1362,105 @@ walker graph_stats {
         };
     }
 }
+
+# ==============================================================================
+# Contact Form Endpoints
+# ==============================================================================
+
+walker contact_submit {
+    has name: str = "";
+    has email: str = "";
+    has subject: str = "";
+    has message: str = "";
+    has phone: str = "";
+    has contact_reason: str = "";
+
+    can contact_submit with entry {
+        import os;
+        import smtplib;
+        from email.mime.text import MIMEText;
+        from email.mime.multipart import MIMEMultipart;
+
+        admin_email = os.getenv("ADMIN_EMAIL", "cavin.otieno012@gmail.com");
+        from_email = os.getenv("FROM_EMAIL", "noreply@jeseci.com");
+        email_password = os.getenv("EMAIL_PASSWORD", "");
+
+        # Store in database
+        result = db_module.store_contact_message(
+            name=self.name,
+            email=self.email,
+            subject=self.subject,
+            message=self.message,
+            phone=self.phone,
+            contact_reason=self.contact_reason
+        );
+
+        # Send email notification
+        email_sent = False;
+        if email_password and email_password != "" {
+            try {
+                msg = MIMEMultipart();
+                msg['From'] = from_email;
+                msg['To'] = admin_email;
+                msg['Subject'] = "New Contact Form Submission - " + self.subject;
+
+                body = """
+                New message from contact form:
+
+                Name: """ + self.name + """
+                Email: """ + self.email + """
+                Phone: """ + self.phone + """
+                Contact Reason: """ + self.contact_reason + """
+
+                Subject: """ + self.subject + """
+
+                Message:
+                """ + self.message + """
+
+                ---
+                This message was sent from the Jeseci Smart Learning Academy contact form.
+                """;
+                msg.attach(MIMEText(body, 'plain'));
+
+                server = smtplib.SMTP('smtp.gmail.com', 587);
+                server.starttls();
+                server.login(from_email, email_password);
+                text = msg.as_string();
+                server.sendmail(from_email, admin_email, text);
+                server.quit();
+                email_sent = True;
+            } except Exception as e {
+                email_sent = False;
+            }
+        }
+
+        report {
+            "success": True,
+            "message": "Contact form submitted successfully",
+            "data": {
+                "id": result['id'] if 'id' in result else None,
+                "email_sent": email_sent
+            }
+        };
+    }
+}
+
+walker contact_messages {
+    has status: str = "all";
+    has limit: int = 50;
+    has offset: int = 0;
+
+    can contact_messages with entry {
+        messages = db_module.get_contact_messages(
+            status=self.status,
+            limit=self.limit,
+            offset=self.offset
+        );
+
+        report {
+            "success": True,
+            "messages": messages,
+            "count": len(messages)
+        };
+    }
+}

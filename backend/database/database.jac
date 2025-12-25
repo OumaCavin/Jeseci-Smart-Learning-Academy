@@ -268,3 +268,101 @@ walker test_db_connections {
         report result;
     }
 }
+
+## Contact Form Database Operations
+## Functions for storing and retrieving contact form submissions
+
+can store_contact_message(name: str, email: str, subject: str, message: str, phone: str, contact_reason: str) {
+    manager = py_db.get_postgres_manager();
+
+    insert_query = """
+    INSERT INTO contact_messages (name, email, subject, message, phone, contact_reason, status, created_at)
+    VALUES (%s, %s, %s, %s, %s, %s, 'unread', NOW())
+    RETURNING id, created_at
+    """;
+
+    result = manager.execute_query(insert_query, (name, email, subject, message, phone, contact_reason));
+
+    if result and len(result) > 0 {
+        return {
+            "success": True,
+            "id": result[0]['id'],
+            "created_at": str(result[0]['created_at'])
+        };
+    } else {
+        return {
+            "success": False,
+            "error": "Failed to insert contact message"
+        };
+    }
+}
+
+can get_contact_messages(status: str = "all", limit: int = 50, offset: int = 0) {
+    manager = py_db.get_postgres_manager();
+
+    if status == "all" {
+        query = """
+        SELECT id, name, email, subject, message, phone, contact_reason, status, created_at, read_at
+        FROM contact_messages
+        ORDER BY created_at DESC
+        LIMIT %s OFFSET %s
+        """;
+    } else {
+        query = """
+        SELECT id, name, email, subject, message, phone, contact_reason, status, created_at, read_at
+        FROM contact_messages
+        WHERE status = %s
+        ORDER BY created_at DESC
+        LIMIT %s OFFSET %s
+        """;
+    }
+
+    if status == "all" {
+        result = manager.execute_query(query, (limit, offset));
+    } else {
+        result = manager.execute_query(query, (status, limit, offset));
+    }
+
+    messages = [];
+    for row in result {
+        messages.push({
+            "id": row['id'],
+            "name": row['name'],
+            "email": row['email'],
+            "subject": row['subject'],
+            "message": row['message'],
+            "phone": row['phone'],
+            "contact_reason": row['contact_reason'],
+            "status": row['status'],
+            "created_at": str(row['created_at']),
+            "read_at": str(row['read_at']) if row['read_at'] else None
+        });
+    }
+
+    return messages;
+}
+
+can mark_contact_as_read(message_id: int) {
+    manager = py_db.get_postgres_manager();
+
+    update_query = """
+    UPDATE contact_messages
+    SET status = 'read', read_at = NOW()
+    WHERE id = %s
+    RETURNING id
+    """;
+
+    result = manager.execute_query(update_query, (message_id,));
+
+    if result and len(result) > 0 {
+        return {
+            "success": True,
+            "id": result[0]['id']
+        };
+    } else {
+        return {
+            "success": False,
+            "error": "Failed to mark message as read"
+        };
+    }
+}
