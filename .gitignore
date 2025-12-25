@@ -895,13 +895,6 @@
 # uploads/
 # downloads/
 
-# Development and experimental files
-browser/browser_extension/error_capture/
-browser/global_browser.py
-tmp
-user_input_files/pasted-text-*.txt
-workspace.json
-
 # Claude Agent SDK debug files
 **/.claude/debug/
 **/.claude/debug/**
