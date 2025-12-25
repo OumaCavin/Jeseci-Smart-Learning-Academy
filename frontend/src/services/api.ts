@@ -234,11 +234,11 @@ class ApiService {
         // Others return {success: true, courses: [...]}
         // Others return just {...}
         if (report.success === true || report.success === undefined) {
-          // Check for nested array properties
+          // Check for nested array properties and return the array value, not the wrapper
           const keys = Object.keys(report);
           for (const key of keys) {
             if (Array.isArray(report[key])) {
-              return report as T;
+              return report[key] as unknown as T;
             }
           }
           // If no array properties, return the whole report
@@ -265,7 +265,7 @@ class ApiService {
           const keys = Object.keys(response);
           for (const key of keys) {
             if (Array.isArray(response[key])) {
-              return response as T;
+              return response[key] as unknown as T;
             }
           }
         }
