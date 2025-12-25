@@ -254,6 +254,7 @@ walker user_progress {
                 "average_score": 85.5
             },
             "analytics": {
+                "modules_completed": 5,
                 "completion_rate": 60.0,
                 "total_sessions": 10,
                 "completed_sessions": 3,
