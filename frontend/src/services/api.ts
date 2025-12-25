@@ -219,18 +219,58 @@ class ApiService {
   }
 
   private extractJacData<T>(response: any): T {
-    // Jaclang API returns data in different formats
+    // Handle case where response is already the data we need
+    if (!response) {
+      return response;
+    }
+
+    // Jaclang API returns data wrapped in a "reports" array
     if (response?.reports && Array.isArray(response.reports) && response.reports.length > 0) {
-      // Extract from reports array
       const report = response.reports[0];
-      if (typeof report === 'object' && !Array.isArray(report)) {
+      
+      // If report is an object with success property, extract the inner data
+      if (typeof report === 'object' && report !== null && !Array.isArray(report)) {
+        // Some endpoints return {success: true, data: [...]}
+        // Others return {success: true, courses: [...]}
+        // Others return just {...}
+        if (report.success === true || report.success === undefined) {
+          // Check for nested array properties
+          const keys = Object.keys(report);
+          for (const key of keys) {
+            if (Array.isArray(report[key])) {
+              return report;
+            }
+          }
+          // If no array properties, return the whole report
+          return report;
+        }
+        // If success is false, return the report with error info
         return report;
       }
+      
+      // If report is an array, return it directly
+      if (Array.isArray(report)) {
+        return report;
+      }
+      
       return report;
     }
     
-    // Handle direct response data
-    if (typeof response === 'object' && !Array.isArray(response)) {
+    // Handle direct response data (already unwrapped)
+    if (typeof response === 'object' && response !== null) {
+      // If response has success property, extract inner data
+      if ('success' in response) {
+        if (response.success === true) {
+          // Find and return array properties
+          const keys = Object.keys(response);
+          for (const key of keys) {
+            if (Array.isArray(response[key])) {
+              return response;
+            }
+          }
+        }
+        return response;
+      }
       return response;
     }
     
