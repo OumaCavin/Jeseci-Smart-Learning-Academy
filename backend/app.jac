@@ -1474,17 +1474,17 @@ walker contact_submit {
                 try {
                     email_result = send_contact_notification(contact_data);
                     email_sent = email_result['success'];
-                } catch {
-                    print("Email notification failed: " + str(error));
+                } except (Exception as error) {
+                    print("Email notification failed:", error);
                 }
-                
+
                 # Send confirmation email to user
                 try {
                     confirmation_result = send_confirmation_email(contact_data);
-                } catch {
-                    print("Confirmation email failed: " + str(error));
+                } except (Exception as error) {
+                    print("Confirmation email failed:", error);
                 }
-                
+
                 report {
                     "success": True,
                     "message_id": message_id,
@@ -1500,8 +1500,8 @@ walker contact_submit {
                     "code": "DATABASE_ERROR"
                 };
             }
-        } catch (error) {
-            print("Contact form error: " + str(error));
+        } except (Exception as error) {
+            print("Contact form error:", error);
             report {
                 "success": False,
                 "error": "An internal error occurred. Please try again later.",
