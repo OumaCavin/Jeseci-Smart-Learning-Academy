@@ -99,7 +99,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(userData);
         setIsAuthenticated(true);
       } else {
-        throw new Error(response.error || 'Login failed');
+        // Provide detailed error messages based on error code
+        const errorCode = response.code || '';
+        const errorMessage = response.error || '';
+
+        if (errorCode === 'CONFLICT' || errorMessage.includes('already exists')) {
+          throw new Error('Username or email already exists. Please use different credentials or try logging in.');
+        } else if (errorCode === 'UNAUTHORIZED' || errorMessage.includes('Invalid credentials')) {
+          throw new Error('Invalid username or password. Please check your credentials and try again.');
+        } else if (errorCode === 'VALIDATION_ERROR' || errorMessage.includes('validation')) {
+          throw new Error('Please check your input. All fields are required and must be valid.');
+        } else {
+          throw new Error(errorMessage || 'Login failed. Please try again.');
+        }
       }
     } finally {
       setLoading(false);
@@ -110,12 +122,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(true);
     try {
       const response = await apiService.register(userData);
-      
+
       if (response.success) {
         // Auto-login after registration
         await login(userData.username, userData.password);
       } else {
-        throw new Error(response.error || 'Registration failed');
+        // Provide detailed error messages based on error code
+        const errorCode = response.code || '';
+        const errorMessage = response.error || '';
+
+        if (errorCode === 'CONFLICT' || errorMessage.includes('already exists')) {
+          throw new Error('Username or email already exists. Please use different credentials or try logging in.');
+        } else if (errorCode === 'VALIDATION_ERROR' || errorMessage.includes('validation') || errorMessage.includes('required')) {
+          throw new Error('Please check your input. All fields are required and must be valid.');
+        } else if (errorMessage.includes('password')) {
+          throw new Error('Password requirements not met. Please ensure your password meets the criteria.');
+        } else if (errorMessage.includes('email')) {
+          throw new Error('Invalid email format. Please enter a valid email address.');
+        } else {
+          throw new Error(errorMessage || 'Registration failed. Please try again.');
+        }
       }
     } finally {
       setLoading(false);
