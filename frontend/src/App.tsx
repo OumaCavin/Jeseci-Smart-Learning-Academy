@@ -972,12 +972,14 @@ const AppContent: React.FC = () => {
                   <button 
                     className={activeTab === 'login' ? 'active' : ''} 
                     onClick={() => setActiveTab('login')}
+                    style={{ display: activeTab === 'login' ? 'none' : 'inline-block' }}
                   >
                     Login
                   </button>
                   <button 
                     className={activeTab === 'register' ? 'active' : ''} 
                     onClick={() => setActiveTab('register')}
+                    style={{ display: activeTab === 'register' ? 'none' : 'inline-block' }}
                   >
                     Register
                   </button>
