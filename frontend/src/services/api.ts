@@ -3,7 +3,21 @@
  * Handles all HTTP requests to the Jaclang REST API
  */
 
-const API_BASE_URL = 'http://localhost:8000';
+// Dynamic API endpoint configuration
+function getApiBaseUrl(): string {
+  const hostname = window.location.hostname;
+  
+  // Use localhost for local development
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:8000';
+  }
+  
+  // For production, use the placeholder URL
+  // TODO: Replace with actual production backend URL
+  return 'https://your-production-backend-url.com';
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export interface User {
   user_id: string;
@@ -13,10 +27,10 @@ export interface User {
   last_name: string;
   learning_style: string;
   skill_level: string;
-  is_active: boolean;
-  is_verified: boolean;
-  last_login: string;
-  created_at: string;
+  is_active?: boolean;
+  is_verified?: boolean;
+  last_login?: string;
+  created_at?: string;
   progress?: Record<string, any>;
 }
 
@@ -72,12 +86,15 @@ export interface LearningPath {
 
 export interface Concept {
   id: string;
+  concept_id: string;
   name: string;
-  description: string;
-  domain: string;
-  difficulty: string;
-  icon: string;
-  related_concepts: string[];
+  display_name: string;
+  category: string;
+  difficulty_level: string;
+  difficulty: string; // Add alias for App compatibility
+  domain: string; // Add domain property
+  icon: string; // Add icon property
+  description?: string;
 }
 
 export interface Quiz {
@@ -183,9 +200,41 @@ export interface AIGeneratedContent {
 
 class ApiService {
   private baseUrl: string;
+  private authToken: string | null = null;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
+    // Load token from localStorage
+    this.authToken = localStorage.getItem('jeseci_auth_token');
+  }
+
+  private setAuthToken(token: string) {
+    this.authToken = token;
+    localStorage.setItem('jeseci_auth_token', token);
+  }
+
+  private clearAuthToken() {
+    this.authToken = null;
+    localStorage.removeItem('jeseci_auth_token');
+  }
+
+  private extractJacData<T>(response: any): T {
+    // Jaclang API returns data in different formats
+    if (response?.reports && Array.isArray(response.reports) && response.reports.length > 0) {
+      // Extract from reports array
+      const report = response.reports[0];
+      if (typeof report === 'object' && !Array.isArray(report)) {
+        return report;
+      }
+      return report;
+    }
+    
+    // Handle direct response data
+    if (typeof response === 'object' && !Array.isArray(response)) {
+      return response;
+    }
+    
+    return response;
   }
 
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -199,15 +248,33 @@ class ApiService {
       ...options,
     };
 
+    // Add authorization header if token exists
+    if (this.authToken) {
+      defaultOptions.headers = {
+        ...defaultOptions.headers,
+        'Authorization': `Bearer ${this.authToken}`,
+      };
+    }
+
     try {
       const response = await fetch(url, defaultOptions);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || errorData.error || `HTTP error! status: ${response.status}`);
+        
+        // Handle authentication errors
+        if (response.status === 401) {
+          this.clearAuthToken();
+          throw new Error('Authentication required. Please login again.');
+        }
+        
+        throw new Error(errorData.error || errorData.detail || `HTTP error! status: ${response.status}`);
       }
       
-      return await response.json();
+      const data = await response.json();
+      
+      // Extract the actual data from Jaclang response format
+      return this.extractJacData<T>(data);
     } catch (error) {
       console.error(`API request failed: ${endpoint}`, error);
       throw error;
@@ -231,13 +298,19 @@ class ApiService {
 
   // Authentication
   async login(username: string, password: string): Promise<LoginResponse> {
-    return this.makeRequest('/walker/user_login', {
+    const response = await this.makeRequest<LoginResponse>('/walker/user_login', {
       method: 'POST',
       body: JSON.stringify({
         username,
         password
       }),
     });
+
+    if (response.success && response.access_token) {
+      this.setAuthToken(response.access_token);
+    }
+
+    return response;
   }
 
   async register(userData: {
