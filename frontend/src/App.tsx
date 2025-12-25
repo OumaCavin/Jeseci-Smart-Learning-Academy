@@ -39,6 +39,44 @@ const AppContent: React.FC = () => {
     }
   }, [isAuthenticated, user]);
 
+  // Helper function to extract arrays from API response objects
+  const extractArrayFromResponse = <T,>(response: any): T[] => {
+    // If response is already an array, return it
+    if (Array.isArray(response)) {
+      return response as T[];
+    }
+    
+    // If response is an object, look for common array properties
+    if (response && typeof response === 'object') {
+      // Common property names that might contain the array data
+      const arrayProperties = [
+        'data', 'results', 'items', 'concepts', 'paths', 
+        'courses', 'quizzes', 'achievements', 'modules',
+        'concepts_list', 'paths_list', 'courses_list'
+      ];
+      
+      for (const prop of arrayProperties) {
+        if (Array.isArray(response[prop])) {
+          return response[prop] as T[];
+        }
+      }
+      
+      // If response has success property and no array found, try to find any array property
+      if ('success' in response) {
+        const keys = Object.keys(response);
+        for (const key of keys) {
+          if (key !== 'success' && Array.isArray(response[key])) {
+            return response[key] as T[];
+          }
+        }
+      }
+    }
+    
+    // Return empty array as fallback
+    console.warn('Could not extract array from response:', response);
+    return [] as T[];
+  };
+
   const checkBackendHealth = async () => {
     try {
       const health = await apiService.healthCheck();
@@ -55,61 +93,44 @@ const AppContent: React.FC = () => {
     try {
       setLoadingState(true);
       
-      // Load concepts and learning paths (we know these work)
-      const conceptsData = await apiService.getConcepts();
-      console.log('Concepts API response:', conceptsData);
-      // Ensure concepts is always an array
-      if (Array.isArray(conceptsData)) {
-        setConcepts(conceptsData);
-      } else {
-        console.warn('Concepts API did not return an array, using mock data');
-        setConcepts(getMockConcepts());
-      }
+      // Load concepts - extract array from API response object
+      const conceptsResponse = await apiService.getConcepts();
+      console.log('Concepts API response:', conceptsResponse);
+      const conceptsArray = extractArrayFromResponse<Concept>(conceptsResponse);
+      setConcepts(conceptsArray);
       
-      const paths = await apiService.getLearningPaths();
-      console.log('Learning Paths API response:', paths);
-      // Ensure learningPaths is always an array
-      if (Array.isArray(paths)) {
-        setLearningPaths(paths);
-      } else {
-        console.warn('Learning Paths API did not return an array, using mock data');
-        setLearningPaths(getMockLearningPaths());
-      }
+      // Load learning paths - extract array from API response object
+      const pathsResponse = await apiService.getLearningPaths();
+      console.log('Learning Paths API response:', pathsResponse);
+      const pathsArray = extractArrayFromResponse<LearningPath>(pathsResponse);
+      setLearningPaths(pathsArray);
       
       // Try to load additional data, but don't fail if endpoints don't exist
       try {
-        const coursesData = await apiService.getCourses();
-        console.log('Courses API response:', coursesData);
-        // Ensure courses is always an array
-        if (Array.isArray(coursesData)) {
-          setCourses(coursesData);
-        } else {
-          console.warn('Courses API did not return an array, using mock data');
-          setCourses(getMockCourses());
-        }
+        const coursesResponse = await apiService.getCourses();
+        console.log('Courses API response:', coursesResponse);
+        const coursesArray = extractArrayFromResponse(coursesResponse);
+        setCourses(coursesArray);
       } catch (error) {
         console.log('Courses endpoint not available, using mock data');
         setCourses(getMockCourses());
       }
       
       try {
-        const achievementsData = await apiService.getAchievements(user.user_id);
-        setAchievements(achievementsData);
+        const achievementsResponse = await apiService.getAchievements(user.user_id);
+        console.log('Achievements API response:', achievementsResponse);
+        const achievementsArray = extractArrayFromResponse<Achievement>(achievementsResponse);
+        setAchievements(achievementsArray);
       } catch (error) {
         console.log('Achievements endpoint not available, using mock data');
         setAchievements(getMockAchievements());
       }
       
       try {
-        const quizzesData = await apiService.getQuizzes();
-        console.log('Quizzes API response:', quizzesData);
-        // Ensure quizzes is always an array
-        if (Array.isArray(quizzesData)) {
-          setQuizzes(quizzesData);
-        } else {
-          console.warn('Quizzes API did not return an array, using mock data');
-          setQuizzes(getMockQuizzes());
-        }
+        const quizzesResponse = await apiService.getQuizzes();
+        console.log('Quizzes API response:', quizzesResponse);
+        const quizzesArray = extractArrayFromResponse<Quiz>(quizzesResponse);
+        setQuizzes(quizzesArray);
       } catch (error) {
         console.log('Quizzes endpoint not available, using mock data');
         setQuizzes(getMockQuizzes());
