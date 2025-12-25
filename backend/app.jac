@@ -1549,7 +1549,7 @@ walker contact_messages {
                 };
             }
         } catch (error) {
-            print("Contact messages error: " + str(error));
+            std.out("Contact messages error:", error);
             report {
                 "success": False,
                 "error": "Failed to retrieve contact messages",
@@ -1592,7 +1592,7 @@ walker contact_mark_read {
                 };
             }
         } catch (error) {
-            print("Mark read error: " + str(error));
+            std.out("Mark read error:", error);
             report {
                 "success": False,
                 "error": "Failed to update message status",
@@ -1608,12 +1608,12 @@ walker contact_mark_read {
 
 can send_contact_notification(contact_data: dict) -> dict {
     """Send email notification to admin about new contact form submission"""
-    
+
     import os;
     import smtplib;
     from email.mime.text import MIMEText;
     from email.mime.multipart import MIMEMultipart;
-    
+
     try {
         # Get email configuration from environment
         smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com");
@@ -1621,45 +1621,34 @@ can send_contact_notification(contact_data: dict) -> dict {
         admin_email = os.getenv("ADMIN_EMAIL", "admin@jeseci.com");
         from_email = os.getenv("FROM_EMAIL", "noreply@jeseci.com");
         email_password = os.getenv("EMAIL_PASSWORD", "");
-        
+
         if not email_password {
-            print("Email password not configured - using console output");
-            print("NEW CONTACT MESSAGE:");
-            print("Name: " + contact_data['name']);
-            print("Email: " + contact_data['email']);
-            print("Subject: " + contact_data['subject']);
-            print("Message: " + contact_data['message']);
+            std.out("Email password not configured - using console output");
+            std.out("NEW CONTACT MESSAGE:");
+            std.out("Name: ", contact_data['name']);
+            std.out("Email: ", contact_data['email']);
+            std.out("Subject: ", contact_data['subject']);
+            std.out("Message: ", contact_data['message']);
             return {"success": True, "method": "console"};
         }
-        
-        # Create email content
-        subject = f"New Contact Form Submission: {contact_data['subject']}";
-        
-        body = f"""New contact form submission received:
 
-Message ID: {contact_data['message_id']}
-Name: {contact_data['name']}
-Email: {contact_data['email']}
-Phone: {contact_data['phone']}
-Reason: {contact_data['contact_reason']}
+        # Create email content - Jaclang doesn't support f-strings, use concatenation
+        subject = "New Contact Form Submission: " + contact_data['subject'];
 
-Subject: {contact_data['subject']}
+        # Build body as simple single-line string
+        body = "New contact form submission received. Message ID: " + contact_data['message_id'] +
+               ". Name: " + contact_data['name'] + ". Email: " + contact_data['email'] +
+               ". Phone: " + contact_data['phone'] + ". Reason: " + contact_data['contact_reason'] +
+               ". Subject: " + contact_data['subject'] + ". Message: " + contact_data['message'] +
+               ". Timestamp: " + contact_data['timestamp'] + ". Please respond within 24 hours.";
 
-Message:
-{contact_data['message']}
-
-Timestamp: {contact_data['timestamp']}
-
-Please respond within 24 hours.
-""";
-        
         # Create email message
         msg = MIMEMultipart();
         msg['From'] = from_email;
         msg['To'] = admin_email;
         msg['Subject'] = subject;
         msg.attach(MIMEText(body, 'plain'));
-        
+
         # Send email
         server = smtplib.SMTP(smtp_server, smtp_port);
         server.starttls();
@@ -1667,74 +1656,64 @@ Please respond within 24 hours.
         text = msg.as_string();
         server.sendmail(from_email, admin_email, text);
         server.quit();
-        
+
         return {"success": True, "method": "email"};
-        
-    } catch (error) {
-        print("Email notification error: " + str(error));
+
+    } except (Exception as error) {
+        std.out("Email notification error:", error);
         return {"success": False, "error": str(error)};
     }
 }
 
 can send_confirmation_email(contact_data: dict) -> dict {
     """Send confirmation email to the user who submitted the contact form"""
-    
+
     import os;
     import smtplib;
     from email.mime.text import MIMEText;
     from email.mime.multipart import MIMEMultipart;
-    
+
     try {
         # Get email configuration
         smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com");
         smtp_port = int(os.getenv("SMTP_PORT", "587"));
         from_email = os.getenv("FROM_EMAIL", "noreply@jeseci.com");
         email_password = os.getenv("EMAIL_PASSWORD", "");
-        
+
         if not email_password {
-            print("Confirmation email password not configured");
+            std.out("Confirmation email password not configured");
             return {"success": False, "method": "console"};
         }
-        
-        # Create confirmation email content
+
+        # Create confirmation email content - Jaclang doesn't support f-strings
         subject = "Thank you for contacting Jeseci Smart Learning Academy";
-        
-        body = f"""Dear {contact_data['name']},
 
-Thank you for contacting Jeseci Smart Learning Academy! We have received your message regarding "{contact_data['subject']}".
+        # Build body as simple single-line string
+        body = "Dear " + contact_data['name'] + ". Thank you for contacting Jeseci Smart Learning Academy! " +
+               "We have received your message regarding: " + contact_data['subject'] + ". " +
+               "Message ID: " + contact_data['message_id'] + ". Submitted: " + contact_data['timestamp'] + ". " +
+               "Our team will review your inquiry and respond within 24 hours during business days. " +
+               "Best regards, The Jeseci Smart Learning Academy Team. " +
+               "This is an automated confirmation. Please do not reply to this email.";
 
-Message Details:
-- Message ID: {contact_data['message_id']}
-- Submitted: {contact_data['timestamp']}
-
-Our team will review your inquiry and respond within 24 hours during business days. If you have any urgent questions, please feel free to reach out to us directly.
-
-Best regards,
-The Jeseci Smart Learning Academy Team
-
----
-This is an automated confirmation. Please do not reply to this email.
-For immediate assistance, visit our Help Center or Contact Us page.
-""";
-        
         # Create and send email
         msg = MIMEMultipart();
         msg['From'] = from_email;
         msg['To'] = contact_data['email'];
         msg['Subject'] = subject;
         msg.attach(MIMEText(body, 'plain'));
-        
+
         server = smtplib.SMTP(smtp_server, smtp_port);
         server.starttls();
         server.login(from_email, email_password);
         text = msg.as_string();
         server.sendmail(from_email, contact_data['email'], text);
         server.quit();
-        
+
         return {"success": True, "method": "email"};
-        
-    } catch (error) {
-        print("Confirmation email error: " + str(error));
+
+    } except (Exception as error) {
+        std.out("Confirmation email error:", error);
         return {"success": False, "error": str(error)};
     }
 }
