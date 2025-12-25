@@ -242,15 +242,15 @@ class ApiService {
             }
           }
           
-          // If no array properties, look for a single object property to extract
-          // This handles cases like {success: true, progress: {...}, analytics: {...}}
-          for (const key of keys) {
-            if (key !== 'success' && typeof report[key] === 'object' && report[key] !== null) {
-              return report[key] as unknown as T;
-            }
+          // If no array properties, count non-success object properties
+          // Only extract if there's exactly one object property (like progress)
+          // Don't extract if there are multiple mixed properties (like login)
+          const objectKeys = keys.filter(key => key !== 'success' && typeof report[key] === 'object' && report[key] !== null);
+          if (objectKeys.length === 1) {
+            return report[objectKeys[0]] as unknown as T;
           }
           
-          // If no suitable property found, return the whole report
+          // If no suitable property found or multiple properties, return the whole report
           return report as T;
         }
         // If success is false, return the report with error info
@@ -278,11 +278,10 @@ class ApiService {
             }
           }
           
-          // If no array properties, look for a single object property
-          for (const key of keys) {
-            if (key !== 'success' && typeof response[key] === 'object' && response[key] !== null) {
-              return response[key] as unknown as T;
-            }
+          // Only extract single object property (not for login with multiple properties)
+          const objectKeys = keys.filter(key => key !== 'success' && typeof response[key] === 'object' && response[key] !== null);
+          if (objectKeys.length === 1) {
+            return response[objectKeys[0]] as unknown as T;
           }
         }
         return response as T;
