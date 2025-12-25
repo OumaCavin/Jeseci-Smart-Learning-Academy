@@ -25,6 +25,15 @@ sys.path.insert(0, os.path.dirname(__file__))
 # Import database and auth modules
 import database as db_module
 import user_auth as auth_module
+from admin_routes import admin_router
+from content_admin import content_admin_router
+from ai_content_admin import ai_content_router
+from quiz_admin import quiz_admin_router
+from analytics_admin import analytics_admin_router
+from ai_predictive import ai_predictive_router
+from realtime_admin import realtime_router
+from lms_integration import lms_router
+from system_core import system_router
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -43,6 +52,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount admin routers
+app.mount("", admin_router)
+app.mount("", content_admin_router)
+app.mount("", ai_content_router)
+app.mount("", quiz_admin_router)
+app.mount("", analytics_admin_router)
+app.mount("", ai_predictive_router)
+app.mount("", realtime_router)
+app.mount("", lms_router)
+app.mount("", system_router)
 
 # =============================================================================
 # Pydantic Models for HTTP API
@@ -173,7 +193,12 @@ async def root():
             "progress": ["/progress", "/sessions/start", "/sessions/end"],
             "ai": ["/ai/generate", "/ai/chat"],
             "gamification": ["/achievements"],
-            "graph": ["/graph/concepts", "/graph/paths", "/graph/recommendations"]
+            "graph": ["/graph/concepts", "/graph/paths", "/graph/recommendations"],
+            "admin": ["/admin/dashboard", "/admin/users", "/admin/docs"],
+            "content_admin": ["/admin/content/courses", "/admin/content/learning-paths", "/admin/content/concepts"],
+            "ai_admin": ["/admin/ai/content", "/admin/ai/generate", "/admin/ai/review", "/admin/ai/analytics"],
+            "quiz_admin": ["/admin/quiz/create", "/admin/quiz/questions", "/admin/quiz/answer-bank", "/admin/quiz/assessments"],
+            "analytics_admin": ["/admin/analytics/dashboard", "/admin/analytics/users", "/admin/analytics/content", "/admin/analytics/system"]
         }
     }
 
@@ -198,7 +223,8 @@ async def init():
             "concepts": "GET /concepts",
             "quizzes": "GET /quizzes",
             "achievements": "POST /achievements",
-            "chat": "POST /ai/chat"
+            "chat": "POST /ai/chat",
+            "admin": "GET /admin/dashboard, GET /admin/users, POST /admin/users/create"
         }
     }
 
@@ -288,46 +314,46 @@ async def login_user(request: UserLoginRequest):
 
 @app.get("/courses", response_model=CourseResponse)
 async def get_courses():
-    """Get all available courses"""
+    """Get all available courses - JAC Programming Focus"""
     courses = [
         {
-            "course_id": "course_1",
-            "title": "Introduction to Programming",
-            "description": "Learn the fundamentals of programming with Python",
-            "domain": "Computer Science",
+            "course_id": "course_jac_fundamentals",
+            "title": "JAC Programming Fundamentals",
+            "description": "Master Jaclang syntax, variables, control flow, and functions with Object-Spatial Programming introduction",
+            "domain": "Jaclang Programming",
             "difficulty": "beginner",
             "content_type": "interactive"
         },
         {
-            "course_id": "course_2",
-            "title": "Data Structures",
-            "description": "Master essential data structures and algorithms",
-            "domain": "Computer Science",
+            "course_id": "course_jac_variables",
+            "title": "JAC Variables and Data Types",
+            "description": "Understanding Jaclang's type system, has keyword declarations, and type annotations for variables",
+            "domain": "Jaclang Programming",
+            "difficulty": "beginner",
+            "content_type": "interactive"
+        },
+        {
+            "course_id": "course_jac_osp",
+            "title": "Object-Spatial Programming in Jaclang",
+            "description": "Deep dive into OSP with nodes, edges, and walkers for graph-based computation",
+            "domain": "Jaclang Programming",
             "difficulty": "intermediate",
             "content_type": "interactive"
         },
         {
-            "course_id": "course_3",
-            "title": "Object-Spatial Programming",
-            "description": "Learn about nodes, walkers, and graph-based programming",
-            "domain": "Computer Science",
+            "course_id": "course_jac_walkers",
+            "title": "Advanced Walkers and Graph Traversal",
+            "description": "Master walker abilities, spawning, context variables, and multi-walker coordination",
+            "domain": "Jaclang Programming",
             "difficulty": "advanced",
             "content_type": "interactive"
         },
         {
-            "course_id": "course_4",
-            "title": "Machine Learning Basics",
-            "description": "Introduction to ML concepts and algorithms",
-            "domain": "Computer Science",
+            "course_id": "course_jac_ai",
+            "title": "JAC AI Integration with byLLM",
+            "description": "Learn to integrate Large Language Models using Jaclang's byLLM feature",
+            "domain": "Jaclang Programming",
             "difficulty": "intermediate",
-            "content_type": "interactive"
-        },
-        {
-            "course_id": "course_5",
-            "title": "Web Development",
-            "description": "Build modern web applications",
-            "domain": "Computer Science",
-            "difficulty": "beginner",
             "content_type": "interactive"
         }
     ]
@@ -340,57 +366,57 @@ async def get_courses():
 
 @app.get("/learning-paths", response_model=LearningPathsResponse)
 async def get_learning_paths():
-    """Get all learning paths"""
+    """Get all learning paths - JAC Programming Focus"""
     paths = [
         {
-            "id": "path_python",
-            "title": "Python Mastery",
-            "description": "Master Python from fundamentals to advanced concepts",
-            "courses": ["course_1", "course_2", "course_4"],
+            "id": "path_jac_fundamentals",
+            "title": "Jaclang Fundamentals Path",
+            "description": "Start your Jaclang journey with fundamentals including syntax, variables, and control flow",
+            "courses": ["course_jac_fundamentals", "course_jac_variables"],
             "modules": [
-                {"id": "mod_python_basics", "title": "Python Basics", "type": "lesson", "duration": "2 hours", "completed": True},
-                {"id": "mod_variables", "title": "Variables and Data Types", "type": "lesson", "duration": "1.5 hours", "completed": True},
-                {"id": "mod_control_flow", "title": "Control Flow", "type": "lesson", "duration": "2 hours", "completed": False}
+                {"id": "mod_jac_intro", "title": "Introduction to Jaclang", "type": "lesson", "duration": "2 hours", "completed": True},
+                {"id": "mod_jac_variables", "title": "Variables and Types", "type": "lesson", "duration": "1.5 hours", "completed": True},
+                {"id": "mod_jac_control", "title": "Control Flow", "type": "lesson", "duration": "2 hours", "completed": False}
+            ],
+            "total_modules": 6,
+            "completed_modules": 2,
+            "duration": "6 weeks",
+            "estimated_hours": 15,
+            "difficulty": "beginner",
+            "progress": 33
+        },
+        {
+            "id": "path_jac_osp",
+            "title": "Object-Spatial Programming Mastery",
+            "description": "Master nodes, edges, walkers, and graph-based programming in Jaclang",
+            "courses": ["course_jac_osp", "course_jac_walkers"],
+            "modules": [
+                {"id": "mod_nodes", "title": "Nodes and Properties", "type": "lesson", "duration": "2 hours", "completed": True},
+                {"id": "mod_edges", "title": "Edges and Connections", "type": "lesson", "duration": "2 hours", "completed": True},
+                {"id": "mod_walkers", "title": "Walker Basics", "type": "lesson", "duration": "3 hours", "completed": False}
             ],
             "total_modules": 8,
             "completed_modules": 2,
-            "duration": "8 weeks",
-            "estimated_hours": 20,
-            "difficulty": "beginner",
+            "duration": "10 weeks",
+            "estimated_hours": 25,
+            "difficulty": "intermediate",
             "progress": 25
         },
         {
-            "id": "path_web",
-            "title": "Full-Stack Web Development",
-            "description": "Build modern, responsive web applications from scratch",
-            "courses": ["course_5", "course_1"],
+            "id": "path_jac_ai",
+            "title": "Jaclang AI Integration Path",
+            "description": "Learn to build AI-powered applications using Jaclang's byLLM integration",
+            "courses": ["course_jac_fundamentals", "course_jac_ai"],
             "modules": [
-                {"id": "mod_html_basics", "title": "HTML Fundamentals", "type": "lesson", "duration": "1.5 hours", "completed": True},
-                {"id": "mod_css_styling", "title": "CSS Styling", "type": "lesson", "duration": "2 hours", "completed": True},
-                {"id": "mod_css_layouts", "title": "CSS Layouts & Flexbox", "type": "lesson", "duration": "2 hours", "completed": True}
+                {"id": "mod_byllm", "title": "byLLM Fundamentals", "type": "lesson", "duration": "2 hours", "completed": True},
+                {"id": "mod_ai_context", "title": "Context Management", "type": "lesson", "duration": "2 hours", "completed": False}
             ],
-            "total_modules": 8,
-            "completed_modules": 3,
-            "duration": "10 weeks",
-            "estimated_hours": 25,
-            "difficulty": "beginner",
-            "progress": 37
-        },
-        {
-            "id": "path_jaclang",
-            "title": "Jaclang & Graph Programming",
-            "description": "Master the innovative Jaclang language with nodes, walkers, and graph-based programming paradigms",
-            "courses": ["course_3", "course_2"],
-            "modules": [
-                {"id": "mod_graph_intro", "title": "Introduction to Graph Theory", "type": "lesson", "duration": "2 hours", "completed": True},
-                {"id": "mod_nodes_basics", "title": "Nodes Basics", "type": "lesson", "duration": "2 hours", "completed": False}
-            ],
-            "total_modules": 8,
+            "total_modules": 4,
             "completed_modules": 1,
-            "duration": "12 weeks",
-            "estimated_hours": 30,
-            "difficulty": "advanced",
-            "progress": 12
+            "duration": "4 weeks",
+            "estimated_hours": 10,
+            "difficulty": "intermediate",
+            "progress": 25
         }
     ]
     
@@ -398,36 +424,72 @@ async def get_learning_paths():
         success=True,
         paths=paths,
         total=len(paths),
-        categories=["programming", "web-development", "programming-languages", "data-science", "devops"]
+        categories=["jaclang-programming", "object-spatial-programming", "ai-integration"]
     )
 
 @app.get("/concepts", response_model=ConceptsResponse)
 async def get_concepts():
-    """Get all educational concepts"""
+    """Get all educational concepts - JAC Programming Focus"""
     concepts = [
         {
-            "id": "concept_oop",
-            "name": "Object-Oriented Programming",
-            "description": "Learn about classes, inheritance, and polymorphism",
-            "domain": "Computer Science",
-            "difficulty": "intermediate",
-            "icon": "building",
-            "related_concepts": ["Design Patterns", "SOLID Principles", "UML"]
+            "id": "concept_jac_variables",
+            "name": "JAC Variables and Data Types",
+            "description": "Understanding Jaclang's has keyword for variable declarations and type annotations",
+            "domain": "Jaclang Programming",
+            "difficulty": "beginner",
+            "icon": "code",
+            "related_concepts": ["JAC Functions", "JAC Control Flow", "JAC Collections"]
         },
         {
-            "id": "concept_graphs",
-            "name": "Graph Theory",
-            "description": "Understanding nodes, edges, and graph algorithms",
-            "domain": "Computer Science",
+            "id": "concept_jac_nodes",
+            "name": "JAC Nodes and Edges",
+            "description": "Defining stateful entities with node keyword and creating relationships with edge operators",
+            "domain": "Jaclang Programming",
             "difficulty": "intermediate",
-            "icon": "graph",
+            "icon": "database",
+            "related_concepts": ["JAC Walkers", "Object-Spatial Programming", "Graph Theory"]
+        },
+        {
+            "id": "concept_jac_walkers",
+            "name": "JAC Walkers and Abilities",
+            "description": "Implementing mobile computational units that traverse graphs with entry, can, and exit abilities",
+            "domain": "Jaclang Programming",
+            "difficulty": "intermediate",
+            "icon": "footprints",
+            "related_concepts": ["JAC Nodes", "JAC Spawning", "Graph Traversal"]
+        },
+        {
+            "id": "concept_jac_osp",
+            "name": "Object-Spatial Programming",
+            "description": "Understanding the OSP paradigm where computation moves to data in persistent graphs",
+            "domain": "Jaclang Programming",
+            "difficulty": "intermediate",
+            "icon": "spatial",
+            "related_concepts": ["JAC Nodes", "JAC Walkers", "Scale-Agnostic Programming"]
+        },
+        {
+            "id": "concept_jac_functions",
+            "name": "JAC Functions and Abilities",
+            "description": "Creating reusable code with def keyword, parameters, and type-annotated return values",
+            "domain": "Jaclang Programming",
+            "difficulty": "beginner",
+            "icon": "function",
+            "related_concepts": ["JAC Variables", "JAC Control Flow", "JAC Walker Abilities"]
+        }
+    ]
+    
+    return ConceptsResponse(
+        success=True,
+        concepts=concepts,
+        total=len(concepts)
+    )
             "related_concepts": ["Tree Structures", "Pathfinding", "Network Analysis"]
         },
         {
             "id": "concept_recursion",
             "name": "Recursion",
             "description": "Functions that call themselves to solve problems",
-            "domain": "Computer Science",
+            "domain": "Jac Programming",
             "difficulty": "intermediate",
             "icon": "recursive",
             "related_concepts": ["Base Cases", "Stack Overflow", "Dynamic Programming"]
@@ -436,7 +498,7 @@ async def get_concepts():
             "id": "concept_ai",
             "name": "Machine Learning Basics",
             "description": "Introduction to supervised and unsupervised learning",
-            "domain": "Computer Science",
+            "domain": "Jac Programming",
             "difficulty": "intermediate",
             "icon": "brain",
             "related_concepts": ["Neural Networks", "Feature Engineering", "Model Training"]
@@ -445,7 +507,7 @@ async def get_concepts():
             "id": "concept_algo",
             "name": "Algorithm Design",
             "description": "Creating efficient solutions to computational problems",
-            "domain": "Computer Science",
+            "domain": "Jac Programming",
             "difficulty": "advanced",
             "icon": "lightning",
             "related_concepts": ["Big O Notation", "Divide and Conquer", "Greedy Algorithms"]
@@ -463,23 +525,30 @@ async def get_quizzes():
     """Get all available quizzes"""
     quizzes = [
         {
-            "id": "quiz_python_basics",
-            "title": "Python Basics Quiz",
-            "description": "Test your understanding of Python fundamentals",
+            "id": "quiz_jac_basics",
+            "title": "Jaclang Basics Quiz",
+            "description": "Test your understanding of Jaclang fundamentals and Object-Spatial Programming",
             "questions": [
                 {
                     "id": "q1",
-                    "question": "What is the output of print(type([]))?",
-                    "options": ["<class 'array'>", "<class 'list'>", "<class 'tuple'>", "<class 'dict'>"],
+                    "question": "What is the primary building block of a Jac program?",
+                    "options": ["Class", "Node", "Function", "Module"],
                     "correct_answer": 1,
-                    "explanation": "[] creates a list in Python"
+                    "explanation": "Nodes are the fundamental building blocks in Jaclang, representing entities with attributes and behaviors"
                 },
                 {
                     "id": "q2",
-                    "question": "Which keyword is used to create a function in Python?",
-                    "options": ["function", "def", "func", "define"],
+                    "question": "Which keyword is used to declare attributes in a Jac node?",
+                    "options": ["attr", "has", "property", "field"],
                     "correct_answer": 1,
-                    "explanation": "def keyword is used to define functions"
+                    "explanation": "The 'has' keyword is used to declare attributes within a node definition"
+                },
+                {
+                    "id": "q3",
+                    "question": "What is the purpose of a walker in Jaclang?",
+                    "options": ["To store data persistently", "To define user interfaces", "To traverse node graphs and perform actions", "To compile code to Python"],
+                    "correct_answer": 2,
+                    "explanation": "Walkers are autonomous agents that traverse the node graph and execute actions on nodes"
                 }
             ],
             "difficulty": "beginner",
