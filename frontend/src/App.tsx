@@ -151,8 +151,15 @@ const AppContent: React.FC = () => {
       }
       
       try {
-        const analyticsData = await apiService.getAnalytics(user.user_id);
-        setAnalytics(analyticsData);
+        const analyticsResponse = await apiService.getAnalytics(user.user_id);
+        console.log('Analytics API response:', analyticsResponse);
+        // Ensure analytics has the expected structure
+        if (analyticsResponse && analyticsResponse.learning_analytics) {
+          setAnalytics(analyticsResponse);
+        } else {
+          console.warn('Analytics API did not return expected structure, using mock data');
+          setAnalytics(getMockAnalytics(user.user_id));
+        }
       } catch (error) {
         console.log('Analytics endpoint not available, using mock data');
         setAnalytics(getMockAnalytics(user.user_id));
@@ -1033,27 +1040,27 @@ const AppContent: React.FC = () => {
             <div className="analytics-grid">
               <div className="metric-card">
                 <h4>Modules Completed</h4>
-                <p className="metric-value">{analytics.learning_analytics.modules_completed}</p>
+                <p className="metric-value">{analytics?.learning_analytics?.modules_completed || 0}</p>
               </div>
               <div className="metric-card">
                 <h4>Total Study Time</h4>
-                <p className="metric-value">{analytics.learning_analytics.total_study_time} mins</p>
+                <p className="metric-value">{analytics?.learning_analytics?.total_study_time || 0} mins</p>
               </div>
               <div className="metric-card">
                 <h4>Average Score</h4>
-                <p className="metric-value">{analytics.learning_analytics.average_score}%</p>
+                <p className="metric-value">{analytics?.learning_analytics?.average_score || 0}%</p>
               </div>
               <div className="metric-card">
                 <h4>Engagement Score</h4>
-                <p className="metric-value">{analytics.learning_analytics.engagement_score}%</p>
+                <p className="metric-value">{analytics?.learning_analytics?.engagement_score || 0}%</p>
               </div>
               <div className="metric-card">
                 <h4>Knowledge Retention</h4>
-                <p className="metric-value">{analytics.learning_analytics.knowledge_retention}%</p>
+                <p className="metric-value">{analytics?.learning_analytics?.knowledge_retention || 0}%</p>
               </div>
               <div className="metric-card">
                 <h4>Learning Velocity</h4>
-                <p className="metric-value">{analytics.learning_analytics.learning_velocity}</p>
+                <p className="metric-value">{analytics?.learning_analytics?.learning_velocity || 'N/A'}</p>
               </div>
             </div>
             
