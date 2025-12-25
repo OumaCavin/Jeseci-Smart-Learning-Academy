@@ -179,8 +179,16 @@ const AppContent: React.FC = () => {
       await login(username, password);
       setMessage('Login successful!');
       setActiveTab('dashboard');
-    } catch (error) {
-      setMessage('Login failed. Please check your credentials.');
+    } catch (error: any) {
+      // Display detailed error message from the backend
+      const errorMessage = error.message || 'Login failed';
+      if (errorMessage.includes('already exists') || errorMessage.includes('Invalid credentials')) {
+        setMessage(errorMessage);
+      } else if (errorMessage.includes('no token')) {
+        setMessage('Authentication failed. No token received from server.');
+      } else {
+        setMessage('Login failed. Please check your credentials and try again.');
+      }
       console.error('Login error:', error);
     } finally {
       setLoadingState(false);
@@ -193,8 +201,20 @@ const AppContent: React.FC = () => {
       await register(userData);
       setMessage('Registration successful! Welcome to Jeseci Academy.');
       setActiveTab('dashboard');
-    } catch (error) {
-      setMessage('Registration failed. Please try again.');
+    } catch (error: any) {
+      // Display detailed error message from the backend
+      const errorMessage = error.message || 'Registration failed';
+      if (errorMessage.includes('already exists')) {
+        setMessage('This username or email is already registered. Please try logging in or use different credentials.');
+      } else if (errorMessage.includes('password')) {
+        setMessage('Password requirement error: ' + errorMessage);
+      } else if (errorMessage.includes('email')) {
+        setMessage('Email validation error: ' + errorMessage);
+      } else if (errorMessage.includes('input') || errorMessage.includes('required')) {
+        setMessage('Please fill in all required fields correctly.');
+      } else {
+        setMessage(errorMessage || 'Registration failed. Please try again.');
+      }
       console.error('Registration error:', error);
     } finally {
       setLoadingState(false);
