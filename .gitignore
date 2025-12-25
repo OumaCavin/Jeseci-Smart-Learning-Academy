@@ -895,12 +895,6 @@
 # uploads/
 # downloads/
 
-# Browser extension and experimental files
-browser/
-tmp/
-workspace.json
-user_input_files/
-
 # Claude Agent SDK debug files
 **/.claude/debug/
 **/.claude/debug/**
