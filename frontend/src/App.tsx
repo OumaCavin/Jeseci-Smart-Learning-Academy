@@ -120,7 +120,13 @@ const AppContent: React.FC = () => {
         const achievementsResponse = await apiService.getAchievements(user.user_id);
         console.log('Achievements API response:', achievementsResponse);
         const achievementsArray = extractArrayFromResponse<Achievement>(achievementsResponse);
-        setAchievements(achievementsArray);
+        // Ensure achievements is always an array before setting state
+        if (Array.isArray(achievementsArray)) {
+          setAchievements(achievementsArray);
+        } else {
+          console.warn('Achievements API did not return valid array, using mock data');
+          setAchievements(getMockAchievements());
+        }
       } catch (error) {
         console.log('Achievements endpoint not available, using mock data');
         setAchievements(getMockAchievements());
