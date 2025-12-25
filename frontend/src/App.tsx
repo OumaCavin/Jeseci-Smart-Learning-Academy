@@ -541,7 +541,7 @@ const AppContent: React.FC = () => {
                     <span className="activity-status">{activity.status}</span>
                     <span className="activity-progress">{activity.progress}%</span>
                   </div>
-                ))}
+                )) || []}
               </div>
             )}
 
@@ -554,7 +554,7 @@ const AppContent: React.FC = () => {
                       <span className="achievement-icon">{achievement.icon}</span>
                       <span className="achievement-name">{achievement.name}</span>
                     </div>
-                  ))}
+                  )) || []}
                 </div>
               </div>
             )}
@@ -578,7 +578,7 @@ const AppContent: React.FC = () => {
                     Start Learning
                   </button>
                 </div>
-              ))}
+              )) || []}
             </div>
           </div>
         )}
@@ -599,7 +599,7 @@ const AppContent: React.FC = () => {
             </div>
             
             <div className="paths-grid">
-              {learningPaths.map((path) => (
+              {(learningPaths || []).map((path) => (
                 <div key={path.id} className="path-card">
                   <div className="path-card-header">
                     <span className="path-icon">{path.icon}</span>
@@ -651,7 +651,7 @@ const AppContent: React.FC = () => {
                     <div className="skills-preview">
                       {path.skills_covered.slice(0, 3).map((skill, index) => (
                         <span key={index} className="skill-tag">{skill}</span>
-                      ))}
+                      )) || []}
                       {path.skills_covered.length > 3 && (
                         <span className="skill-more">+{path.skills_covered.length - 3} more</span>
                       )}
@@ -689,7 +689,7 @@ const AppContent: React.FC = () => {
             <h2>Concepts Library</h2>
             <p>Explore topics across different domains</p>
             <div className="concepts-grid">
-              {concepts.map((concept) => (
+              {(concepts || []).map((concept) => (
                 <div key={concept.id} className="concept-card">
                   <span className="concept-icon">{concept.icon}</span>
                   <h3>{concept.name}</h3>
@@ -749,21 +749,21 @@ const AppContent: React.FC = () => {
               <div className="achievement-category">
                 <h3>Earned Badges</h3>
                 <div className="achievements-grid">
-                  {achievements.filter(a => a.earned).map((achievement) => (
+                  {(achievements || []).filter(a => a.earned).map((achievement) => (
                     <div key={achievement.id} className="achievement-card earned">
                       <span className="achievement-icon">{achievement.icon}</span>
                       <h4>{achievement.name}</h4>
                       <p>{achievement.description}</p>
                       <span className="achievement-date">Earned: {achievement.earned_at}</span>
                     </div>
-                  ))}
+                  )) || []}
                 </div>
               </div>
               
               <div className="achievement-category">
                 <h3>Locked Achievements</h3>
                 <div className="achievements-grid">
-                  {achievements.filter(a => !a.earned).map((achievement) => (
+                  {(achievements || []).filter(a => !a.earned).map((achievement) => (
                     <div key={achievement.id} className="achievement-card locked">
                       <span className="achievement-icon">🔒</span>
                       <h4>{achievement.name}</h4>
@@ -796,7 +796,7 @@ const AppContent: React.FC = () => {
                     {quiz.completed ? 'Retake Quiz' : 'Start Quiz'}
                   </button>
                 </div>
-              ))}
+              )) || []}
             </div>
           </div>
         )}
@@ -856,7 +856,7 @@ const AppContent: React.FC = () => {
                     <p>Ask questions, get explanations, or discuss concepts.</p>
                   </div>
                 ) : (
-                  chatMessages.map((msg) => (
+                  (chatMessages || []).map((msg) => (
                     <div key={msg.id} className={`chat-message ${msg.role}`}>
                       <span className="message-role">{msg.role === 'user' ? 'You' : 'AI'}</span>
                       <p className="message-content">{msg.content}</p>
@@ -917,7 +917,7 @@ const AppContent: React.FC = () => {
             <div className="recommendations-section">
               <h3>Personalized Recommendations</h3>
               <ul>
-                {analytics.recommendations.map((rec, index) => (
+                {(analytics?.recommendations || []).map((rec, index) => (
                   <li key={index}>{rec}</li>
                 ))}
               </ul>
