@@ -1,0 +1,89 @@
+graph TB
+    subgraph "User Interaction"
+        USER[👤 User Action]
+        BROWSER[🌐 Browser]
+    end
+    
+    subgraph "React Component Layer"
+        COMPONENT[📱 React Component]
+        RENDER[🖼️ JSX Render]
+        STATE[📊 Component State]
+    end
+    
+    subgraph "Data Validation Layer"
+        API_CALL[📡 API Service Call]
+        EXTRACT[🔧 extractArrayFromResponse]
+        VALIDATE[✅ Array.isArray Check]
+        FALLBACK[🎭 Mock Data Fallback]
+    end
+    
+    subgraph "Defensive Patterns"
+        OPTIONAL[❓ Optional Chaining obj?.prop]
+        NULLISH[🛡️ Nullish Coalescing prop || fallback]
+        ARRAY_SAFE[📋 Array Safe (arr || []).map()]
+        TYPE_CHECK[🔒 TypeScript Type Guards]
+    end
+    
+    subgraph "Error Scenarios"
+        RACE_CONDITION[⚡ Race Condition<br/>Data not loaded yet]
+        API_WRAPPER[📦 API Wrapper Object<br/>{success: true, data: [...]}]
+        NULL_DATA[❌ Null/Undefined Data]
+        NETWORK_ERROR[🌐 Network Failure]
+    end
+    
+    subgraph "Recovery Actions"
+        MOCK_DATA[🎭 Load Mock Data]
+        GRACEFUL_RENDER[✨ Graceful UI Render]
+        CONSOLE_WARN[⚠️ Console Warning]
+        RETRY_LOGIC[🔄 Retry Mechanism]
+    end
+    
+    %% Normal flow
+    USER --> BROWSER
+    BROWSER --> COMPONENT
+    COMPONENT --> API_CALL
+    API_CALL --> EXTRACT
+    EXTRACT --> VALIDATE
+    VALIDATE --> STATE
+    STATE --> RENDER
+    RENDER --> BROWSER
+    
+    %% Defensive patterns in render
+    RENDER --> OPTIONAL
+    RENDER --> NULLISH
+    RENDER --> ARRAY_SAFE
+    OPTIONAL --> GRACEFUL_RENDER
+    NULLISH --> GRACEFUL_RENDER
+    ARRAY_SAFE --> GRACEFUL_RENDER
+    
+    %% Error handling
+    RACE_CONDITION --> OPTIONAL
+    API_WRAPPER --> EXTRACT
+    NULL_DATA --> NULLISH
+    NETWORK_ERROR --> FALLBACK
+    
+    %% Recovery
+    FALLBACK --> MOCK_DATA
+    MOCK_DATA --> STATE
+    VALIDATE --> CONSOLE_WARN
+    EXTRACT --> TYPE_CHECK
+    
+    %% Error detection
+    API_CALL -.-> RACE_CONDITION
+    API_CALL -.-> API_WRAPPER
+    API_CALL -.-> NULL_DATA
+    API_CALL -.-> NETWORK_ERROR
+    
+    classDef user fill:#e3f2fd
+    classDef react fill:#61dafb
+    classDef validation fill:#4caf50
+    classDef defensive fill:#ff9800
+    classDef error fill:#f44336
+    classDef recovery fill:#9c27b0
+    
+    class USER,BROWSER user
+    class COMPONENT,RENDER,STATE react
+    class API_CALL,EXTRACT,VALIDATE,FALLBACK validation
+    class OPTIONAL,NULLISH,ARRAY_SAFE,TYPE_CHECK defensive
+    class RACE_CONDITION,API_WRAPPER,NULL_DATA,NETWORK_ERROR error
+    class MOCK_DATA,GRACEFUL_RENDER,CONSOLE_WARN,RETRY_LOGIC recovery

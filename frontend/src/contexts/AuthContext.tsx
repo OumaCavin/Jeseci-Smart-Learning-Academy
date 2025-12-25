@@ -59,8 +59,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               console.log('Session restored successfully');
             }
           } catch (error) {
-            // Token might be expired, clear storage
-            console.log('Session expired, logging out');
+            // Token expired (5-minute timeout for security), clear storage
+            console.log('Session expired after 5 minutes, logging out for security');
             localStorage.removeItem(AUTH_TOKEN_KEY);
             localStorage.removeItem(AUTH_USER_KEY);
             setToken(null);

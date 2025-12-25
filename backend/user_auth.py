@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # JWT Configuration
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "jeseci_secret_key_change_in_production")
 JWT_ALGORITHM = "HS256"
-JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 5))
 
 
 class UserAuthManager:
@@ -114,12 +114,26 @@ class UserAuthManager:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_login_at TIMESTAMP,
-                is_active BOOLEAN DEFAULT TRUE
+                is_active BOOLEAN DEFAULT TRUE,
+                is_admin BOOLEAN DEFAULT FALSE,
+                admin_role VARCHAR(50) DEFAULT 'student'
             )
             """
             cursor.execute(create_table_query)
+            
+            # Add admin columns if they don't exist (for existing installations)
+            alter_queries = [
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_role VARCHAR(50) DEFAULT 'student'"
+            ]
+            for query in alter_queries:
+                try:
+                    cursor.execute(query)
+                except Exception as e:
+                    logger.debug(f"Column might already exist: {e}")
+            
             conn.commit()
-            logger.info("Users table ensured in PostgreSQL")
+            logger.info("Users table ensured in PostgreSQL with admin support")
         except Exception as e:
             logger.error(f"Failed to create users table: {e}")
             if conn:
@@ -129,7 +143,8 @@ class UserAuthManager:
     
     def register_user(self, username: str, email: str, password: str, 
                       first_name: str = "", last_name: str = "",
-                      learning_style: str = "visual", skill_level: str = "beginner") -> dict:
+                      learning_style: str = "visual", skill_level: str = "beginner",
+                      is_admin: bool = False, admin_role: str = "student") -> dict:
         """
         Register a new user with bcrypt password hashing.
         
@@ -141,6 +156,8 @@ class UserAuthManager:
             last_name: Optional last name
             learning_style: User's preferred learning style
             skill_level: User's skill level
+            is_admin: Whether user has admin privileges (default: False)
+            admin_role: Admin role level (student, admin, super_admin)
             
         Returns:
             dict with 'success', 'user_id', and 'message' keys
@@ -167,20 +184,25 @@ class UserAuthManager:
             
             # Insert new user
             insert_query = """
-            INSERT INTO users (user_id, username, email, password_hash, first_name, last_name, learning_style, skill_level)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO users (user_id, username, email, password_hash, first_name, last_name, 
+                             learning_style, skill_level, is_admin, admin_role)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """
-            cursor.execute(insert_query, (user_id, username, email, password_hash, first_name, last_name, learning_style, skill_level))
+            cursor.execute(insert_query, (user_id, username, email, password_hash, first_name, 
+                                        last_name, learning_style, skill_level, is_admin, admin_role))
             conn.commit()
             
-            logger.info(f"User registered successfully: {user_id}")
+            role_msg = f" with {admin_role} privileges" if is_admin else ""
+            logger.info(f"User registered successfully: {user_id}{role_msg}")
             return {
                 "success": True, 
                 "user_id": user_id, 
                 "username": username,
                 "email": email,
-                "message": "User created successfully"
+                "is_admin": is_admin,
+                "admin_role": admin_role,
+                "message": f"User created successfully{role_msg}"
             }
             
         except Exception as e:
@@ -211,7 +233,7 @@ class UserAuthManager:
             
             # Find user by username or email
             cursor.execute(
-                "SELECT user_id, username, email, password_hash, first_name, last_name, learning_style, skill_level, is_active FROM users WHERE (username = %s OR email = %s) AND is_active = TRUE",
+                "SELECT user_id, username, email, password_hash, first_name, last_name, learning_style, skill_level, is_active, is_admin, admin_role FROM users WHERE (username = %s OR email = %s) AND is_active = TRUE",
                 (username, username)
             )
             user = cursor.fetchone()
@@ -229,6 +251,8 @@ class UserAuthManager:
                 "user_id": user_id,
                 "username": user['username'],
                 "email": user['email'],
+                "is_admin": user.get('is_admin', False),
+                "admin_role": user.get('admin_role', 'student'),
                 "exp": datetime.utcnow() + timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES),
                 "iat": datetime.utcnow()
             }
@@ -252,7 +276,9 @@ class UserAuthManager:
                     "first_name": user['first_name'],
                     "last_name": user['last_name'],
                     "learning_style": user['learning_style'],
-                    "skill_level": user['skill_level']
+                    "skill_level": user['skill_level'],
+                    "is_admin": user.get('is_admin', False),
+                    "admin_role": user.get('admin_role', 'student')
                 },
                 "message": "Login successful"
             }
@@ -272,7 +298,7 @@ class UserAuthManager:
         try:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
             cursor.execute(
-                "SELECT user_id, username, email, first_name, last_name, learning_style, skill_level, created_at FROM users WHERE user_id = %s AND is_active = TRUE",
+                "SELECT user_id, username, email, first_name, last_name, learning_style, skill_level, created_at, is_admin, admin_role FROM users WHERE user_id = %s AND is_active = TRUE",
                 (user_id,)
             )
             user = cursor.fetchone()
@@ -283,7 +309,230 @@ class UserAuthManager:
         finally:
             self._return_connection(conn)
     
+    def validate_jwt_token(self, token: str) -> dict:
+        """
+        Validate JWT token and return user data.
+        
+        Args:
+            token: JWT token string
+            
+        Returns:
+            dict with user data if valid, None if invalid
+        """
+        try:
+            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            return {
+                "valid": True,
+                "user_id": payload.get("user_id"),
+                "username": payload.get("username"),
+                "email": payload.get("email"),
+                "is_admin": payload.get("is_admin", False),
+                "admin_role": payload.get("admin_role", "student"),
+                "exp": payload.get("exp")
+            }
+        except jwt.ExpiredSignatureError:
+            logger.warning("JWT token expired")
+            return {"valid": False, "error": "Token expired"}
+        except jwt.InvalidTokenError as e:
+            logger.warning(f"Invalid JWT token: {e}")
+            return {"valid": False, "error": "Invalid token"}
+    
+    def get_all_users(self, limit: int = 100, offset: int = 0, 
+                      include_inactive: bool = False, admin_only: bool = False) -> dict:
+        """
+        Get all users (admin-only operation).
+        
+        Args:
+            limit: Maximum number of users to return
+            offset: Number of users to skip
+            include_inactive: Include inactive users
+            admin_only: Only return admin users
+            
+        Returns:
+            dict with 'success', 'users', 'total' keys
+        """
+        conn = self._get_connection()
+        if conn is None:
+            return {"success": False, "error": "Database connection failed", "users": []}
+        
+        try:
+            cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
+            
+            # Build WHERE clause
+            where_conditions = []
+            params = []
+            
+            if not include_inactive:
+                where_conditions.append("is_active = %s")
+                params.append(True)
+            
+            if admin_only:
+                where_conditions.append("is_admin = %s")
+                params.append(True)
+            
+            where_clause = " AND ".join(where_conditions)
+            where_clause = f"WHERE {where_clause}" if where_conditions else ""
+            
+            # Get total count
+            count_query = f"SELECT COUNT(*) as total FROM users {where_clause}"
+            cursor.execute(count_query, params)
+            total = cursor.fetchone()['total']
+            
+            # Get users with pagination
+            users_query = f"""
+            SELECT user_id, username, email, first_name, last_name, learning_style, 
+                   skill_level, created_at, last_login_at, is_active, is_admin, admin_role
+            FROM users 
+            {where_clause}
+            ORDER BY created_at DESC
+            LIMIT %s OFFSET %s
+            """
+            params.extend([limit, offset])
+            cursor.execute(users_query, params)
+            users = cursor.fetchall()
+            
+            # Convert to list of dicts
+            user_list = []
+            for user in users:
+                user_dict = dict(user)
+                # Convert datetime to ISO string
+                if user_dict.get('created_at'):
+                    user_dict['created_at'] = user_dict['created_at'].isoformat()
+                if user_dict.get('last_login_at'):
+                    user_dict['last_login_at'] = user_dict['last_login_at'].isoformat()
+                user_list.append(user_dict)
+            
+            logger.info(f"Retrieved {len(user_list)} users from database")
+            return {
+                "success": True,
+                "users": user_list,
+                "total": total,
+                "limit": limit,
+                "offset": offset
+            }
+            
+        except Exception as e:
+            logger.error(f"Get all users error: {e}")
+            return {"success": False, "error": str(e), "users": []}
+        finally:
+            self._return_connection(conn)
+    
+    def update_user_admin_status(self, user_id: str, is_admin: bool, 
+                                admin_role: str = "student") -> dict:
+        """
+        Update user admin status (super admin only operation).
+        
+        Args:
+            user_id: User ID to update
+            is_admin: Admin status
+            admin_role: Admin role (student, admin, super_admin)
+            
+        Returns:
+            dict with 'success', 'message' keys
+        """
+        conn = self._get_connection()
+        if conn is None:
+            return {"success": False, "error": "Database connection failed"}
+        
+        try:
+            cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
+            
+            # Check if user exists
+            cursor.execute("SELECT user_id FROM users WHERE user_id = %s", (user_id,))
+            existing = cursor.fetchone()
+            if not existing:
+                return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
+            
+            # Update admin status
+            update_query = """
+            UPDATE users 
+            SET is_admin = %s, admin_role = %s, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = %s
+            RETURNING user_id, username, is_admin, admin_role
+            """
+            cursor.execute(update_query, (is_admin, admin_role, user_id))
+            updated_user = cursor.fetchone()
+            conn.commit()
+            
+            action = "granted" if is_admin else "revoked"
+            logger.info(f"Admin privileges {action} for user: {user_id} (role: {admin_role})")
+            return {
+                "success": True,
+                "user_id": updated_user['user_id'],
+                "username": updated_user['username'],
+                "is_admin": updated_user['is_admin'],
+                "admin_role": updated_user['admin_role'],
+                "message": f"Admin privileges {action} successfully"
+            }
+            
+        except Exception as e:
+            logger.error(f"Update admin status error: {e}")
+            if conn:
+                conn.rollback()
+            return {"success": False, "error": str(e)}
+        finally:
+            self._return_connection(conn)
+    
+    def suspend_user(self, user_id: str, suspended: bool = True) -> dict:
+        """
+        Suspend or unsuspend a user account (admin operation).
+        
+        Args:
+            user_id: User ID to suspend/unsuspend
+            suspended: True to suspend, False to unsuspend
+            
+        Returns:
+            dict with 'success', 'message' keys
+        """
+        conn = self._get_connection()
+        if conn is None:
+            return {"success": False, "error": "Database connection failed"}
+        
+        try:
+            cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
+            
+            # Check if user exists
+            cursor.execute("SELECT user_id, username FROM users WHERE user_id = %s", (user_id,))
+            existing = cursor.fetchone()
+            if not existing:
+                return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
+            
+            # Update user status
+            is_active = not suspended
+            update_query = """
+            UPDATE users 
+            SET is_active = %s, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = %s
+            RETURNING user_id, username, is_active
+            """
+            cursor.execute(update_query, (is_active, user_id))
+            updated_user = cursor.fetchone()
+            conn.commit()
+            
+            action = "suspended" if suspended else "activated"
+            logger.info(f"User {action}: {existing['username']} ({user_id})")
+            return {
+                "success": True,
+                "user_id": updated_user['user_id'],
+                "username": updated_user['username'],
+                "is_active": updated_user['is_active'],
+                "message": f"User {action} successfully"
+            }
+            
+        except Exception as e:
+            logger.error(f"Suspend user error: {e}")
+            if conn:
+                conn.rollback()
+            return {"success": False, "error": str(e)}
+        finally:
+            self._return_connection(conn)
+    
     def close(self):
+        """Close all connections"""
+        if UserAuthManager._pool:
+            UserAuthManager._pool.closeall()
+            UserAuthManager._pool = None
+            logger.info("User auth connection pool closed")
         """Close all connections"""
         if UserAuthManager._pool:
             UserAuthManager._pool.closeall()
@@ -297,9 +546,11 @@ auth_manager = UserAuthManager()
 
 def register_user(username: str, email: str, password: str, 
                   first_name: str = "", last_name: str = "",
-                  learning_style: str = "visual", skill_level: str = "beginner") -> dict:
+                  learning_style: str = "visual", skill_level: str = "beginner",
+                  is_admin: bool = False, admin_role: str = "student") -> dict:
     """Wrapper function for Jaclang integration"""
-    return auth_manager.register_user(username, email, password, first_name, last_name, learning_style, skill_level)
+    return auth_manager.register_user(username, email, password, first_name, last_name, 
+                                    learning_style, skill_level, is_admin, admin_role)
 
 
 def authenticate_user(username: str, password: str) -> dict:
@@ -310,3 +561,28 @@ def authenticate_user(username: str, password: str) -> dict:
 def get_user_by_id(user_id: str) -> dict:
     """Wrapper function for Jaclang integration"""
     return auth_manager.get_user_by_id(user_id)
+
+
+# =============================================================================
+# Admin Functions - Wrapper functions for admin operations
+# =============================================================================
+
+def validate_jwt_token(token: str) -> dict:
+    """Wrapper function for JWT token validation"""
+    return auth_manager.validate_jwt_token(token)
+
+
+def get_all_users(limit: int = 100, offset: int = 0, 
+                  include_inactive: bool = False, admin_only: bool = False) -> dict:
+    """Wrapper function for getting all users (admin only)"""
+    return auth_manager.get_all_users(limit, offset, include_inactive, admin_only)
+
+
+def update_user_admin_status(user_id: str, is_admin: bool, admin_role: str = "student") -> dict:
+    """Wrapper function for updating user admin status (super admin only)"""
+    return auth_manager.update_user_admin_status(user_id, is_admin, admin_role)
+
+
+def suspend_user(user_id: str, suspended: bool = True) -> dict:
+    """Wrapper function for suspending/unsuspending users (admin only)"""
+    return auth_manager.suspend_user(user_id, suspended)

@@ -19,35 +19,35 @@ def is_bedrock_env() -> bool:
 
 def find_chromium_executable() -> str:
     """
-    自动检测 Chromium 可执行文件路径。
-    优先级：
-    1. 环境变量 CHROMIUM_PATH
-    2. Playwright 安装的 Chromium
-    3. 系统安装的 Chromium/Chrome
+    Automatically detect Chromium executable file path.
+    Priority order:
+    1. CHROMIUM_PATH environment variable
+    2. Playwright-installed Chromium
+    3. System-installed Chromium/Chrome
     """
-    # 1. 检查环境变量
+    # 1. Check environment variable
     chromium_path = os.environ.get("CHROMIUM_PATH")
     if chromium_path and os.path.isfile(chromium_path):
-        logger.info(f"[GlobalBrowser] 使用环境变量指定的 Chromium: {chromium_path}")
+        logger.info(f"[GlobalBrowser] Using Chromium from environment variable: {chromium_path}")
         return chromium_path
 
-    # 2. 搜索 Playwright 安装的 Chromium
-    # Playwright 默认安装路径
+    # 2. Search for Playwright-installed Chromium
+    # Playwright default installation paths
     playwright_paths = [
-        os.path.expanduser("~/.cache/ms-playwright"),  # Linux 用户目录
-        "/root/.cache/ms-playwright",  # Linux root 用户
-        "/home/minimax/.cache/ms-playwright",  # minimax 用户
-        os.environ.get("PLAYWRIGHT_BROWSERS_PATH", ""),  # 自定义路径
+        os.path.expanduser("~/.cache/ms-playwright"),  # Linux user directory
+        "/root/.cache/ms-playwright",  # Linux root user
+        "/home/minimax/.cache/ms-playwright",  # minimax user directory
+        os.environ.get("PLAYWRIGHT_BROWSERS_PATH", ""),  # Custom path
     ]
 
     for base_path in playwright_paths:
         if not base_path or not os.path.isdir(base_path):
             continue
-        # Playwright Chromium 路径模式: chromium-*/chrome-linux/chrome
+        # Playwright Chromium path pattern: chromium-*/chrome-linux/chrome
         pattern = os.path.join(base_path, "chromium-*", "chrome-linux", "chrome")
         matches = glob.glob(pattern)
         if matches:
-            # 选择最新版本（按字母排序取最后一个）
+            # Select the latest version (last alphabetically)
             chromium_path = sorted(matches)[-1]
             if os.path.isfile(chromium_path):
                 logger.info(f"[GlobalBrowser] 找到 Playwright 安装的 Chromium: {chromium_path}")

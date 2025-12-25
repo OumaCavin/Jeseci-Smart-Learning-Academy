@@ -1,39 +1,60 @@
 graph TB
     subgraph Client Layer
-        UI[React Frontend - Port 3000]
+        UI[React Frontend - TypeScript<br/>Defensive Programming Patterns]
         Browser[Web Browser]
     end
 
+    subgraph Frontend Architecture
+        API_CLIENT[API Client with Validation]
+        ERROR_HANDLER[Error Handling Layer]
+        STATE[React State Management]
+        MOCK[Mock Data Fallbacks]
+    end
+
     subgraph API Gateway Layer
-        JacAPI[Jaclang API Server - Port 8000]
+        JacAPI[Jaclang API Server - Port 8000<br/>Pure JAC Implementation]
     end
 
     subgraph Backend Services
-        Auth[User Authentication<br/>bcrypt + JWT]
-        Courses[Course Management]
-        Progress[Progress Tracking]
-        AI[AI Content Generator]
-        Graph[Graph Engine]
+        Auth[User Authentication<br/>JAC Walkers]
+        Courses[Course Management<br/>OSP Nodes]
+        Progress[Progress Tracking<br/>Graph Edges]
+        AI[AI Content Generator<br/>byLLM Integration]
+        Graph[JAC Graph Engine<br/>Native Persistence]
     end
 
     subgraph Data Layer
-        PostgreSQL[(PostgreSQL<br/>Users, Courses, Progress)]
-        Neo4j[(Neo4j<br/>Knowledge Graph)]
+        JAC_GRAPH[(JAC Native Graph DB<br/>No External Database)]
+    end
+
+    subgraph External Services
+        OpenAI[OpenAI API<br/>byLLM Integration]
     end
 
     Browser --> UI
-    UI --> JacAPI
+    UI --> API_CLIENT
+    API_CLIENT --> ERROR_HANDLER
+    ERROR_HANDLER --> STATE
+    ERROR_HANDLER --> MOCK
+    STATE --> UI
+    MOCK --> UI
+    
+    API_CLIENT --> JacAPI
     JacAPI --> Auth
     JacAPI --> Courses
     JacAPI --> Progress
     JacAPI --> AI
     JacAPI --> Graph
-    Auth --> PostgreSQL
-    Courses --> PostgreSQL
-    Progress --> PostgreSQL
-    Graph --> Neo4j
+    
+    Auth --> JAC_GRAPH
+    Courses --> JAC_GRAPH
+    Progress --> JAC_GRAPH
+    Graph --> JAC_GRAPH
+    
+    AI --> OpenAI
 
     style JacAPI fill:#6f42c1,stroke:#333,stroke-width:2px
-    style PostgreSQL fill:#0064cc,stroke:#333,stroke-width:2px
-    style Neo4j fill:#008a00,stroke:#333,stroke-width:2px
+    style JAC_GRAPH fill:#0064cc,stroke:#333,stroke-width:2px
     style UI fill:#61dafb,stroke:#333,stroke-width:2px
+    style ERROR_HANDLER fill:#f44336,stroke:#333,stroke-width:2px
+    style OpenAI fill:#00a67e,stroke:#333,stroke-width:2px
