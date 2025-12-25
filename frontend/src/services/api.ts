@@ -221,7 +221,7 @@ class ApiService {
   private extractJacData<T>(response: any): T {
     // Handle case where response is already the data we need
     if (!response) {
-      return response;
+      return response as T;
     }
 
     // Jaclang API returns data wrapped in a "reports" array
@@ -238,22 +238,22 @@ class ApiService {
           const keys = Object.keys(report);
           for (const key of keys) {
             if (Array.isArray(report[key])) {
-              return report;
+              return report as T;
             }
           }
           // If no array properties, return the whole report
-          return report;
+          return report as T;
         }
         // If success is false, return the report with error info
-        return report;
+        return report as T;
       }
       
       // If report is an array, return it directly
       if (Array.isArray(report)) {
-        return report;
+        return report as T;
       }
       
-      return report;
+      return report as T;
     }
     
     // Handle direct response data (already unwrapped)
@@ -265,16 +265,16 @@ class ApiService {
           const keys = Object.keys(response);
           for (const key of keys) {
             if (Array.isArray(response[key])) {
-              return response;
+              return response as T;
             }
           }
         }
-        return response;
+        return response as T;
       }
-      return response;
+      return response as T;
     }
     
-    return response;
+    return response as T;
   }
 
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
