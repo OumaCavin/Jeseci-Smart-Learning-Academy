@@ -502,26 +502,26 @@ const AppContent: React.FC = () => {
             <div className="stats-grid">
               <div className="stat-card">
                 <h3>Courses Completed</h3>
-                <p className="stat-number">{userProgress.progress.courses_completed}</p>
+                <p className="stat-number">{userProgress?.progress?.courses_completed || 0}</p>
               </div>
               <div className="stat-card">
                 <h3>Lessons Completed</h3>
-                <p className="stat-number">{userProgress.progress.lessons_completed}</p>
+                <p className="stat-number">{userProgress?.progress?.lessons_completed || 0}</p>
               </div>
               <div className="stat-card">
                 <h3>Study Time</h3>
-                <p className="stat-number">{userProgress.progress.total_study_time} mins</p>
+                <p className="stat-number">{userProgress?.progress?.total_study_time || 0} mins</p>
               </div>
               <div className="stat-card">
                 <h3>Current Streak</h3>
-                <p className="stat-number">{userProgress.progress.current_streak} days</p>
+                <p className="stat-number">{userProgress?.progress?.current_streak || 0} days</p>
               </div>
             </div>
 
-            {userProgress.recent_activity && userProgress.recent_activity.length > 0 && (
+            {userProgress?.recent_activity && userProgress?.recent_activity.length > 0 && (
               <div className="recent-activity-section">
                 <h3>Recent Activity</h3>
-                {userProgress.recent_activity.slice(0, 5).map((activity) => (
+                {userProgress?.recent_activity.slice(0, 5).map((activity) => (
                   <div key={activity.session_id} className="activity-item">
                     <span className="activity-course">{activity.course_title}</span>
                     <span className="activity-status">{activity.status}</span>
@@ -700,27 +700,27 @@ const AppContent: React.FC = () => {
             <div className="progress-stats">
               <div className="stat-card">
                 <h3>Courses Completed</h3>
-                <p className="stat-number">{userProgress.progress.courses_completed}</p>
+                <p className="stat-number">{userProgress?.progress?.courses_completed || 0}</p>
               </div>
               <div className="stat-card">
                 <h3>Lessons Completed</h3>
-                <p className="stat-number">{userProgress.progress.lessons_completed}</p>
+                <p className="stat-number">{userProgress?.progress?.lessons_completed || 0}</p>
               </div>
               <div className="stat-card">
                 <h3>Study Time</h3>
-                <p className="stat-number">{userProgress.progress.total_study_time} mins</p>
+                <p className="stat-number">{userProgress?.progress?.total_study_time || 0} mins</p>
               </div>
               <div className="stat-card">
                 <h3>Current Streak</h3>
-                <p className="stat-number">{userProgress.progress.current_streak} days</p>
+                <p className="stat-number">{userProgress?.progress?.current_streak || 0} days</p>
               </div>
             </div>
             
             <div className="analytics-overview">
               <h3>Analytics Overview</h3>
-              <p><strong>Completion Rate:</strong> {userProgress.analytics.completion_rate.toFixed(1)}%</p>
-              <p><strong>Total Sessions:</strong> {userProgress.analytics.total_sessions}</p>
-              <p><strong>Average Score:</strong> {userProgress.analytics.average_progress.toFixed(1)}%</p>
+              <p><strong>Completion Rate:</strong> {userProgress?.analytics?.completion_rate?.toFixed(1) || '0.0'}%</p>
+              <p><strong>Total Sessions:</strong> {userProgress?.analytics?.total_sessions || 0}</p>
+              <p><strong>Average Score:</strong> {userProgress?.analytics?.average_progress?.toFixed(1) || '0.0'}%</p>
             </div>
           </div>
         )}
