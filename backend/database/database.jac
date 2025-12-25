@@ -69,8 +69,8 @@ walker DatabaseManager {
         
         pg_status = "Connected" if result['postgresql'] else "Disconnected";
         neo4j_status = "Connected" if result['neo4j'] else "Disconnected";
-        print("PostgreSQL: " + pg_status);
-        print("Neo4j: " + neo4j_status);
+        std.out("PostgreSQL:", pg_status);
+        std.out("Neo4j:", neo4j_status);
         
         report {
             "postgresql": result['postgresql'],
@@ -282,8 +282,8 @@ walker DatabaseManager {
                     "error": "Failed to store contact message"
                 };
             }
-        } catch (error) {
-            print("Contact storage error: " + str(error));
+        } except (Exception as error) {
+            std.out("Contact storage error:", error);
             return {
                 "success": False,
                 "error": "Database error: " + str(error)
@@ -338,8 +338,8 @@ walker DatabaseManager {
                 "unread_count": unread_result[0]['unread'] if unread_result else 0
             };
             
-        } catch (error) {
-            print("Contact retrieval error: " + str(error));
+        } except (Exception as error) {
+            std.out("Contact retrieval error:", error);
             return {
                 "success": False,
                 "error": "Database error: " + str(error)
@@ -368,8 +368,8 @@ walker DatabaseManager {
                     "error": "Message not found"
                 };
             }
-        } catch (error) {
-            print("Mark read error: " + str(error));
+        } except (Exception as error) {
+            std.out("Mark read error:", error);
             return {
                 "success": False,
                 "error": "Database error: " + str(error)
