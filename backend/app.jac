@@ -269,6 +269,7 @@ walker user_progress {
         };
         
         report {
+            "success": True,
             "user_id": self.user_id,
             "progress": progress_data["progress"],
             "analytics": progress_data["analytics"],
