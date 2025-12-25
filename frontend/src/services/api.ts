@@ -324,7 +324,7 @@ class ApiService {
   }): Promise<any> {
     console.log('Sending registration request to:', `${this.baseUrl}/walker/user_create`);
     console.log('Registration data:', userData);
-    const result = this.makeRequest('/walker/user_create', {
+    const result = await this.makeRequest('/walker/user_create', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
