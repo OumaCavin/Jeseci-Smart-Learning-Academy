@@ -237,6 +237,146 @@ walker DatabaseManager {
         };
     }
     
+    ## Store contact form submission in database
+    can store_contact_message(contact_data: dict) -> dict {
+        """Store contact form submission in PostgreSQL database"""
+        
+        try {
+            manager = py_db.get_postgres_manager();
+            
+            # Insert contact message into database
+            query = """
+            INSERT INTO contact_messages (
+                message_id, name, email, subject, message, phone, 
+                contact_reason, timestamp, status, ip_address, user_agent
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+            ) RETURNING message_id
+            """;
+            
+            params = (
+                contact_data['message_id'],
+                contact_data['name'],
+                contact_data['email'],
+                contact_data['subject'],
+                contact_data['message'],
+                contact_data['phone'],
+                contact_data['contact_reason'],
+                contact_data['timestamp'],
+                contact_data['status'],
+                contact_data['ip_address'],
+                contact_data['user_agent']
+            );
+            
+            result = manager.execute_query(query, params);
+            
+            if result and len(result) > 0 {
+                return {
+                    "success": True,
+                    "message_id": result[0]['message_id'],
+                    "message": "Contact message stored successfully"
+                };
+            } else {
+                return {
+                    "success": False,
+                    "error": "Failed to store contact message"
+                };
+            }
+        } catch (error) {
+            print("Contact storage error: " + str(error));
+            return {
+                "success": False,
+                "error": "Database error: " + str(error)
+            };
+        }
+    }
+    
+    ## Get contact messages from database
+    can get_contact_messages(params: dict) -> dict {
+        """Retrieve contact messages from database with filtering"""
+        
+        try {
+            manager = py_db.get_postgres_manager();
+            
+            limit = params.get('limit', 50);
+            status_filter = params.get('status', 'all');
+            
+            # Build query based on status filter
+            where_clause = "";
+            query_params = [];
+            
+            if status_filter != 'all' {
+                where_clause = "WHERE status = $1";
+                query_params.append(status_filter);
+            }
+            
+            query = f"""
+            SELECT 
+                message_id, name, email, subject, message, phone, 
+                contact_reason, timestamp, status, ip_address, user_agent
+            FROM contact_messages 
+            {where_clause}
+            ORDER BY timestamp DESC
+            LIMIT ${{len(query_params) + 1}}
+            """;
+            
+            query_params.append(limit);
+            
+            result = manager.execute_query(query, tuple(query_params));
+            
+            # Get total count and unread count
+            count_query = "SELECT COUNT(*) as total FROM contact_messages";
+            unread_query = "SELECT COUNT(*) as unread FROM contact_messages WHERE status = 'pending'";
+            
+            total_result = manager.execute_query(count_query, None);
+            unread_result = manager.execute_query(unread_query, None);
+            
+            return {
+                "success": True,
+                "messages": result or [],
+                "total": total_result[0]['total'] if total_result else 0,
+                "unread_count": unread_result[0]['unread'] if unread_result else 0
+            };
+            
+        } catch (error) {
+            print("Contact retrieval error: " + str(error));
+            return {
+                "success": False,
+                "error": "Database error: " + str(error)
+            };
+        }
+    }
+    
+    ## Mark contact message as read
+    can mark_contact_as_read(message_id: str) -> dict {
+        """Mark a contact message as read"""
+        
+        try {
+            manager = py_db.get_postgres_manager();
+            
+            query = "UPDATE contact_messages SET status = 'read' WHERE message_id = $1 RETURNING message_id";
+            result = manager.execute_query(query, (message_id,));
+            
+            if result and len(result) > 0 {
+                return {
+                    "success": True,
+                    "message": "Message marked as read"
+                };
+            } else {
+                return {
+                    "success": False,
+                    "error": "Message not found"
+                };
+            }
+        } catch (error) {
+            print("Mark read error: " + str(error));
+            return {
+                "success": False,
+                "error": "Database error: " + str(error)
+            };
+        }
+    }
+    
     ## Close all database connections
     can close_connections with entry {
         py_db.close_all_connections();
@@ -266,103 +406,5 @@ walker test_db_connections {
     can run with entry {
         result = py_db.test_all_connections();
         report result;
-    }
-}
-
-## Contact Form Database Operations
-## Functions for storing and retrieving contact form submissions
-
-can store_contact_message(name: str, email: str, subject: str, message: str, phone: str, contact_reason: str) {
-    manager = py_db.get_postgres_manager();
-
-    insert_query = """
-    INSERT INTO contact_messages (name, email, subject, message, phone, contact_reason, status, created_at)
-    VALUES (%s, %s, %s, %s, %s, %s, 'unread', NOW())
-    RETURNING id, created_at
-    """;
-
-    result = manager.execute_query(insert_query, (name, email, subject, message, phone, contact_reason));
-
-    if result and len(result) > 0 {
-        return {
-            "success": True,
-            "id": result[0]['id'],
-            "created_at": str(result[0]['created_at'])
-        };
-    } else {
-        return {
-            "success": False,
-            "error": "Failed to insert contact message"
-        };
-    }
-}
-
-can get_contact_messages(status: str = "all", limit: int = 50, offset: int = 0) {
-    manager = py_db.get_postgres_manager();
-
-    if status == "all" {
-        query = """
-        SELECT id, name, email, subject, message, phone, contact_reason, status, created_at, read_at
-        FROM contact_messages
-        ORDER BY created_at DESC
-        LIMIT %s OFFSET %s
-        """;
-    } else {
-        query = """
-        SELECT id, name, email, subject, message, phone, contact_reason, status, created_at, read_at
-        FROM contact_messages
-        WHERE status = %s
-        ORDER BY created_at DESC
-        LIMIT %s OFFSET %s
-        """;
-    }
-
-    if status == "all" {
-        result = manager.execute_query(query, (limit, offset));
-    } else {
-        result = manager.execute_query(query, (status, limit, offset));
-    }
-
-    messages = [];
-    for row in result {
-        messages.push({
-            "id": row['id'],
-            "name": row['name'],
-            "email": row['email'],
-            "subject": row['subject'],
-            "message": row['message'],
-            "phone": row['phone'],
-            "contact_reason": row['contact_reason'],
-            "status": row['status'],
-            "created_at": str(row['created_at']),
-            "read_at": str(row['read_at']) if row['read_at'] else None
-        });
-    }
-
-    return messages;
-}
-
-can mark_contact_as_read(message_id: int) {
-    manager = py_db.get_postgres_manager();
-
-    update_query = """
-    UPDATE contact_messages
-    SET status = 'read', read_at = NOW()
-    WHERE id = %s
-    RETURNING id
-    """;
-
-    result = manager.execute_query(update_query, (message_id,));
-
-    if result and len(result) > 0 {
-        return {
-            "success": True,
-            "id": result[0]['id']
-        };
-    } else {
-        return {
-            "success": False,
-            "error": "Failed to mark message as read"
-        };
     }
 }

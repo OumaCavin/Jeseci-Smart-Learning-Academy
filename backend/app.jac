@@ -41,7 +41,9 @@ walker init {
                 "concepts": "GET /walker/concepts",
                 "quizzes": "GET /walker/quizzes",
                 "achievements": "POST /walker/achievements",
-                "chat": "POST /walker/chat"
+                "chat": "POST /walker/chat",
+                "contact": "POST /walker/contact_submit",
+                "contact_messages": "GET /walker/contact_messages"
             }
         };
     }
@@ -84,46 +86,54 @@ walker health_check {
 
 walker courses {
     can courses with entry {
-        # Sample courses data
+        # Jac Language Programming Courses
         courses = [
             {
-                "course_id": "course_1",
-                "title": "Introduction to Programming",
-                "description": "Learn the fundamentals of programming with Python",
-                "domain": "Computer Science",
+                "course_id": "jac_fundamentals",
+                "title": "Jac Programming Fundamentals",
+                "description": "Learn the basics of Jac programming language - variables, functions, and control flow",
+                "domain": "Jac Language",
                 "difficulty": "beginner",
                 "content_type": "interactive"
             },
             {
-                "course_id": "course_2",
-                "title": "Data Structures",
-                "description": "Master essential data structures and algorithms",
-                "domain": "Computer Science",
+                "course_id": "jac_osp_basics",
+                "title": "Object-Spatial Programming Basics",
+                "description": "Master the fundamentals of OSP with nodes, edges, and walkers",
+                "domain": "Jac Language",
                 "difficulty": "intermediate",
                 "content_type": "interactive"
             },
             {
-                "course_id": "course_3",
-                "title": "Object-Spatial Programming",
-                "description": "Learn about nodes, walkers, and graph-based programming",
-                "domain": "Computer Science",
+                "course_id": "jac_collections",
+                "title": "Collections and Data Structures in Jac",
+                "description": "Work with lists, dictionaries, sets, and comprehensions in Jac",
+                "domain": "Jac Language",
+                "difficulty": "beginner",
+                "content_type": "interactive"
+            },
+            {
+                "course_id": "jac_advanced_osp",
+                "title": "Advanced Object-Spatial Programming",
+                "description": "Deep dive into graph traversal, mobile computation, and distributed patterns",
+                "domain": "Jac Language",
                 "difficulty": "advanced",
                 "content_type": "interactive"
             },
             {
-                "course_id": "course_4",
-                "title": "Machine Learning Basics",
-                "description": "Introduction to ML concepts and algorithms",
-                "domain": "Computer Science",
-                "difficulty": "intermediate",
+                "course_id": "jac_semstrings_ai",
+                "title": "Semstrings and AI Integration",
+                "description": "Learn semantic strings and AI-powered programming with Jac",
+                "domain": "Jac Language",
+                "difficulty": "advanced",
                 "content_type": "interactive"
             },
             {
-                "course_id": "course_5",
-                "title": "Web Development",
-                "description": "Build modern web applications",
-                "domain": "Computer Science",
-                "difficulty": "beginner",
+                "course_id": "jac_pattern_matching",
+                "title": "Pattern Matching and Advanced Syntax",
+                "description": "Master match statements, type handling, and advanced Jac syntax",
+                "domain": "Jac Language",
+                "difficulty": "intermediate",
                 "content_type": "interactive"
             }
         ];
@@ -521,79 +531,115 @@ walker learning_paths {
 
 walker concepts {
     can concepts with entry {
-        # Educational concepts across domains
+        # Jac Language Programming Concepts
         concepts = [
             {
-                "id": "concept_oop",
-                "name": "Object-Oriented Programming",
-                "description": "Learn about classes, inheritance, and polymorphism",
-                "domain": "Computer Science",
+                "id": "jac_variables",
+                "name": "Variables and Data Types",
+                "description": "Learn about variables, type annotations, and basic data types in Jac",
+                "domain": "Jac Language",
+                "difficulty": "beginner",
+                "icon": "variable",
+                "related_concepts": ["Type Annotations", "Strings", "Numbers", "Booleans"]
+            },
+            {
+                "id": "jac_control_flow",
+                "name": "Control Flow and Loops",
+                "description": "Master if statements, loops, and decision-making in Jac",
+                "domain": "Jac Language",
+                "difficulty": "beginner",
+                "icon": "control-flow",
+                "related_concepts": ["If Statements", "For Loops", "While Loops", "Comparison Operators"]
+            },
+            {
+                "id": "jac_functions",
+                "name": "Functions and Parameters",
+                "description": "Create reusable code blocks with functions and parameter handling",
+                "domain": "Jac Language",
+                "difficulty": "beginner",
+                "icon": "function",
+                "related_concepts": ["Default Parameters", "Return Values", "Function Calls"]
+            },
+            {
+                "id": "jac_collections",
+                "name": "Collections and Data Structures",
+                "description": "Work with lists, dictionaries, tuples, and sets in Jac",
+                "domain": "Jac Language",
+                "difficulty": "beginner",
+                "icon": "collection",
+                "related_concepts": ["Lists", "Dictionaries", "Tuples", "Sets", "Comprehensions"]
+            },
+            {
+                "id": "jac_oop",
+                "name": "Traditional Object-Oriented Programming",
+                "description": "Learn classes, objects, and inheritance in Jac",
+                "domain": "Jac Language",
                 "difficulty": "intermediate",
                 "icon": "building",
-                "related_concepts": ["Design Patterns", "SOLID Principles", "UML"]
+                "related_concepts": ["Classes", "Objects", "Inheritance", "Methods", "Attributes"]
             },
             {
-                "id": "concept_graphs",
-                "name": "Graph Theory",
-                "description": "Understanding nodes, edges, and graph algorithms",
-                "domain": "Computer Science",
+                "id": "jac_osp",
+                "name": "Object-Spatial Programming (OSP)",
+                "description": "Master Jac's unique paradigm for graph-based programming",
+                "domain": "Jac Language",
                 "difficulty": "intermediate",
                 "icon": "graph",
-                "related_concepts": ["Tree Structures", "Pathfinding", "Network Analysis"]
+                "related_concepts": ["Nodes", "Edges", "Walkers", "Graph Traversal"]
             },
             {
-                "id": "concept_recursion",
-                "name": "Recursion",
-                "description": "Functions that call themselves to solve problems",
-                "domain": "Computer Science",
+                "id": "jac_nodes",
+                "name": "Nodes and State Management",
+                "description": "Create and manage stateful entities in Jac graphs",
+                "domain": "Jac Language",
                 "difficulty": "intermediate",
-                "icon": "recursive",
-                "related_concepts": ["Base Cases", "Stack Overflow", "Dynamic Programming"]
+                "icon": "node",
+                "related_concepts": ["Node Creation", "Node Attributes", "State Persistence"]
             },
             {
-                "id": "concept_ai",
-                "name": "Machine Learning Basics",
-                "description": "Introduction to supervised and unsupervised learning",
-                "domain": "Computer Science",
+                "id": "jac_edges",
+                "name": "Typed Relationships",
+                "description": "Define and work with typed edges between nodes",
+                "domain": "Jac Language",
                 "difficulty": "intermediate",
-                "icon": "brain",
-                "related_concepts": ["Neural Networks", "Feature Engineering", "Model Training"]
+                "icon": "connection",
+                "related_concepts": ["Edge Types", "Edge Properties", "Relationship Modeling"]
             },
             {
-                "id": "concept_algo",
-                "name": "Algorithm Design",
-                "description": "Creating efficient solutions to computational problems",
-                "domain": "Computer Science",
+                "id": "jac_walkers",
+                "name": "Mobile Computation",
+                "description": "Create programs that traverse and operate on graphs",
+                "domain": "Jac Language",
+                "difficulty": "intermediate",
+                "icon": "walker",
+                "related_concepts": ["Walker Creation", "Graph Traversal", "Mobile Code"]
+            },
+            {
+                "id": "jac_semstrings",
+                "name": "Semantic Strings",
+                "description": "Use semstrings for explicit semantic context in AI models",
+                "domain": "Jac Language",
                 "difficulty": "advanced",
-                "icon": "lightning",
-                "related_concepts": ["Big O Notation", "Divide and Conquer", "Greedy Algorithms"]
+                "icon": "semantic",
+                "related_concepts": ["sem keyword", "Meaning-typed Programming", "AI Context"]
             },
             {
-                "id": "concept_database",
-                "name": "Database Design",
-                "description": "Designing efficient data storage and retrieval systems",
-                "domain": "Computer Science",
+                "id": "jac_scale_agnostic",
+                "name": "Scale-Agnostic Programming",
+                "description": "Write code that works from single-user to millions of users",
+                "domain": "Jac Language",
+                "difficulty": "advanced",
+                "icon": "scale",
+                "related_concepts": ["Automatic Persistence", "Multi-User Isolation", "Distribution"]
+            },
+            {
+                "id": "jac_pattern_matching",
+                "name": "Pattern Matching",
+                "description": "Handle complex logic with match statements and case analysis",
+                "domain": "Jac Language",
                 "difficulty": "intermediate",
-                "icon": "database",
-                "related_concepts": ["Normalization", "SQL", "Indexing"]
-            },
-            {
-                "id": "concept_web",
-                "name": "RESTful APIs",
-                "description": "Building and consuming web services",
-                "domain": "Computer Science",
-                "difficulty": "intermediate",
-                "icon": "api",
-                "related_concepts": ["HTTP Methods", "JSON", "Authentication"]
-            },
-            {
-                "id": "concept_testing",
-                "name": "Test-Driven Development",
-                "description": "Writing tests before writing code",
-                "domain": "Computer Science",
-                "difficulty": "beginner",
-                "icon": "test",
-                "related_concepts": ["Unit Tests", "Mocking", "CI/CD"]
+                "icon": "pattern",
+                "related_concepts": ["Match Statements", "Case Analysis", "Type Handling"]
             }
         ];
         
@@ -1364,103 +1410,331 @@ walker graph_stats {
 }
 
 # ==============================================================================
-# Contact Form Endpoints
+# Contact Form Management
 # ==============================================================================
 
 walker contact_submit {
-    has name: str = "";
-    has email: str = "";
-    has subject: str = "";
-    has message: str = "";
+    has name: str;
+    has email: str;
+    has subject: str;
+    has message: str;
     has phone: str = "";
-    has contact_reason: str = "";
-
+    has contact_reason: str = "general";
+    
     can contact_submit with entry {
+        import datetime;
         import os;
-        import smtplib;
-        from email.mime.text import MIMEText;
-        from email.mime.multipart import MIMEMultipart;
-
-        admin_email = os.getenv("ADMIN_EMAIL", "cavin.otieno012@gmail.com");
-        from_email = os.getenv("FROM_EMAIL", "noreply@jeseci.com");
-        email_password = os.getenv("EMAIL_PASSWORD", "");
-
-        # Store in database
-        result = db_module.store_contact_message(
-            name=self.name,
-            email=self.email,
-            subject=self.subject,
-            message=self.message,
-            phone=self.phone,
-            contact_reason=self.contact_reason
-        );
-
-        # Send email notification
-        email_sent = False;
-        if email_password and email_password != "" {
-            try {
-                msg = MIMEMultipart();
-                msg['From'] = from_email;
-                msg['To'] = admin_email;
-                msg['Subject'] = "New Contact Form Submission - " + self.subject;
-
-                body = """
-                New message from contact form:
-
-                Name: """ + self.name + """
-                Email: """ + self.email + """
-                Phone: """ + self.phone + """
-                Contact Reason: """ + self.contact_reason + """
-
-                Subject: """ + self.subject + """
-
-                Message:
-                """ + self.message + """
-
-                ---
-                This message was sent from the Jeseci Smart Learning Academy contact form.
-                """;
-                msg.attach(MIMEText(body, 'plain'));
-
-                server = smtplib.SMTP('smtp.gmail.com', 587);
-                server.starttls();
-                server.login(from_email, email_password);
-                text = msg.as_string();
-                server.sendmail(from_email, admin_email, text);
-                server.quit();
-                email_sent = True;
-            } except Exception as e {
-                email_sent = False;
-            }
+        
+        # Generate unique message ID
+        message_id = "contact_" + str(int(datetime.datetime.now().timestamp()));
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ");
+        
+        # Validate input data
+        if not self.name or not self.email or not self.message {
+            report {
+                "success": False,
+                "error": "Name, email, and message are required fields",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
         }
-
-        report {
-            "success": True,
-            "message": "Contact form submitted successfully",
-            "data": {
-                "id": result['id'] if 'id' in result else None,
-                "email_sent": email_sent
+        
+        # Basic email validation
+        if "@" not in self.email or "." not in self.email {
+            report {
+                "success": False,
+                "error": "Please provide a valid email address",
+                "code": "INVALID_EMAIL"
+            };
+            return;
+        }
+        
+        # Store in database using PostgreSQL
+        try {
+            contact_data = {
+                "message_id": message_id,
+                "name": self.name.strip(),
+                "email": self.email.strip().lower(),
+                "subject": self.subject.strip(),
+                "message": self.message.strip(),
+                "phone": self.phone.strip(),
+                "contact_reason": self.contact_reason,
+                "timestamp": timestamp,
+                "status": "pending",
+                "ip_address": "127.0.0.1",  # In production, get from request
+                "user_agent": "Jeseci Web Application"
+            };
+            
+            # Use database module to store contact
+            result = db_module.store_contact_message(contact_data);
+            
+            if result['success'] {
+                # Send email notification
+                email_sent = False;
+                try {
+                    email_result = send_contact_notification(contact_data);
+                    email_sent = email_result['success'];
+                } catch {
+                    print("Email notification failed: " + str(error));
+                }
+                
+                # Send confirmation email to user
+                try {
+                    confirmation_result = send_confirmation_email(contact_data);
+                } catch {
+                    print("Confirmation email failed: " + str(error));
+                }
+                
+                report {
+                    "success": True,
+                    "message_id": message_id,
+                    "timestamp": timestamp,
+                    "status": "received",
+                    "message": "Thank you for contacting us! We have received your message and will respond within 24 hours.",
+                    "email_sent": email_sent
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to store contact message'),
+                    "code": "DATABASE_ERROR"
+                };
             }
-        };
+        } catch (error) {
+            print("Contact form error: " + str(error));
+            report {
+                "success": False,
+                "error": "An internal error occurred. Please try again later.",
+                "code": "INTERNAL_ERROR"
+            };
+        }
     }
 }
 
 walker contact_messages {
-    has status: str = "all";
     has limit: int = 50;
-    has offset: int = 0;
-
+    has status: str = "all";
+    has admin_key: str = "";
+    
     can contact_messages with entry {
-        messages = db_module.get_contact_messages(
-            status=self.status,
-            limit=self.limit,
-            offset=self.offset
-        );
+        # Simple authentication check
+        if self.admin_key != os.getenv("ADMIN_KEY", "admin123") {
+            report {
+                "success": False,
+                "error": "Unauthorized access",
+                "code": "UNAUTHORIZED"
+            };
+            return;
+        }
+        
+        try {
+            # Retrieve contact messages from database
+            result = db_module.get_contact_messages({
+                "limit": self.limit,
+                "status": self.status
+            });
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "messages": result['messages'],
+                    "total": result['total'],
+                    "unread_count": result['unread_count']
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to retrieve messages'),
+                    "code": "DATABASE_ERROR"
+                };
+            }
+        } catch (error) {
+            print("Contact messages error: " + str(error));
+            report {
+                "success": False,
+                "error": "Failed to retrieve contact messages",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
 
-        report {
-            "success": True,
-            "messages": messages,
-            "count": len(messages)
-        };
+walker contact_mark_read {
+    has message_id: str;
+    has admin_key: str = "";
+    
+    can contact_mark_read with entry {
+        # Simple authentication check
+        if self.admin_key != os.getenv("ADMIN_KEY", "admin123") {
+            report {
+                "success": False,
+                "error": "Unauthorized access",
+                "code": "UNAUTHORIZED"
+            };
+            return;
+        }
+        
+        try {
+            result = db_module.mark_contact_as_read(self.message_id);
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "message_id": self.message_id,
+                    "status": "read",
+                    "message": "Message marked as read"
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to update message'),
+                    "code": "DATABASE_ERROR"
+                };
+            }
+        } catch (error) {
+            print("Mark read error: " + str(error));
+            report {
+                "success": False,
+                "error": "Failed to update message status",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+# ==============================================================================
+# Email Notification Functions
+# ==============================================================================
+
+can send_contact_notification(contact_data: dict) -> dict {
+    """Send email notification to admin about new contact form submission"""
+    
+    import os;
+    import smtplib;
+    from email.mime.text import MIMEText;
+    from email.mime.multipart import MIMEMultipart;
+    
+    try {
+        # Get email configuration from environment
+        smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com");
+        smtp_port = int(os.getenv("SMTP_PORT", "587"));
+        admin_email = os.getenv("ADMIN_EMAIL", "admin@jeseci.com");
+        from_email = os.getenv("FROM_EMAIL", "noreply@jeseci.com");
+        email_password = os.getenv("EMAIL_PASSWORD", "");
+        
+        if not email_password {
+            print("Email password not configured - using console output");
+            print("NEW CONTACT MESSAGE:");
+            print("Name: " + contact_data['name']);
+            print("Email: " + contact_data['email']);
+            print("Subject: " + contact_data['subject']);
+            print("Message: " + contact_data['message']);
+            return {"success": True, "method": "console"};
+        }
+        
+        # Create email content
+        subject = f"New Contact Form Submission: {contact_data['subject']}";
+        
+        body = f"""New contact form submission received:
+
+Message ID: {contact_data['message_id']}
+Name: {contact_data['name']}
+Email: {contact_data['email']}
+Phone: {contact_data['phone']}
+Reason: {contact_data['contact_reason']}
+
+Subject: {contact_data['subject']}
+
+Message:
+{contact_data['message']}
+
+Timestamp: {contact_data['timestamp']}
+
+Please respond within 24 hours.
+""";
+        
+        # Create email message
+        msg = MIMEMultipart();
+        msg['From'] = from_email;
+        msg['To'] = admin_email;
+        msg['Subject'] = subject;
+        msg.attach(MIMEText(body, 'plain'));
+        
+        # Send email
+        server = smtplib.SMTP(smtp_server, smtp_port);
+        server.starttls();
+        server.login(from_email, email_password);
+        text = msg.as_string();
+        server.sendmail(from_email, admin_email, text);
+        server.quit();
+        
+        return {"success": True, "method": "email"};
+        
+    } catch (error) {
+        print("Email notification error: " + str(error));
+        return {"success": False, "error": str(error)};
+    }
+}
+
+can send_confirmation_email(contact_data: dict) -> dict {
+    """Send confirmation email to the user who submitted the contact form"""
+    
+    import os;
+    import smtplib;
+    from email.mime.text import MIMEText;
+    from email.mime.multipart import MIMEMultipart;
+    
+    try {
+        # Get email configuration
+        smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com");
+        smtp_port = int(os.getenv("SMTP_PORT", "587"));
+        from_email = os.getenv("FROM_EMAIL", "noreply@jeseci.com");
+        email_password = os.getenv("EMAIL_PASSWORD", "");
+        
+        if not email_password {
+            print("Confirmation email password not configured");
+            return {"success": False, "method": "console"};
+        }
+        
+        # Create confirmation email content
+        subject = "Thank you for contacting Jeseci Smart Learning Academy";
+        
+        body = f"""Dear {contact_data['name']},
+
+Thank you for contacting Jeseci Smart Learning Academy! We have received your message regarding "{contact_data['subject']}".
+
+Message Details:
+- Message ID: {contact_data['message_id']}
+- Submitted: {contact_data['timestamp']}
+
+Our team will review your inquiry and respond within 24 hours during business days. If you have any urgent questions, please feel free to reach out to us directly.
+
+Best regards,
+The Jeseci Smart Learning Academy Team
+
+---
+This is an automated confirmation. Please do not reply to this email.
+For immediate assistance, visit our Help Center or Contact Us page.
+""";
+        
+        # Create and send email
+        msg = MIMEMultipart();
+        msg['From'] = from_email;
+        msg['To'] = contact_data['email'];
+        msg['Subject'] = subject;
+        msg.attach(MIMEText(body, 'plain'));
+        
+        server = smtplib.SMTP(smtp_server, smtp_port);
+        server.starttls();
+        server.login(from_email, email_password);
+        text = msg.as_string();
+        server.sendmail(from_email, contact_data['email'], text);
+        server.quit();
+        
+        return {"success": True, "method": "email"};
+        
+    } catch (error) {
+        print("Confirmation email error: " + str(error));
+        return {"success": False, "error": str(error)};
     }
 }
