@@ -65,7 +65,14 @@ const AppContent: React.FC = () => {
       // Try to load additional data, but don't fail if endpoints don't exist
       try {
         const coursesData = await apiService.getCourses();
-        setCourses(coursesData);
+        console.log('Courses API response:', coursesData);
+        // Ensure courses is always an array
+        if (Array.isArray(coursesData)) {
+          setCourses(coursesData);
+        } else {
+          console.warn('Courses API did not return an array, using mock data');
+          setCourses(getMockCourses());
+        }
       } catch (error) {
         console.log('Courses endpoint not available, using mock data');
         setCourses(getMockCourses());
@@ -81,7 +88,14 @@ const AppContent: React.FC = () => {
       
       try {
         const quizzesData = await apiService.getQuizzes();
-        setQuizzes(quizzesData);
+        console.log('Quizzes API response:', quizzesData);
+        // Ensure quizzes is always an array
+        if (Array.isArray(quizzesData)) {
+          setQuizzes(quizzesData);
+        } else {
+          console.warn('Quizzes API did not return an array, using mock data');
+          setQuizzes(getMockQuizzes());
+        }
       } catch (error) {
         console.log('Quizzes endpoint not available, using mock data');
         setQuizzes(getMockQuizzes());
@@ -552,7 +566,7 @@ const AppContent: React.FC = () => {
           <div className="courses-section">
             <h2>Available Courses</h2>
             <div className="courses-grid">
-              {courses.map((course) => (
+              {Array.isArray(courses) && courses.map((course) => (
                 <div key={course.course_id} className="course-card">
                   <h3>{course.title}</h3>
                   <p>{course.description}</p>
@@ -769,7 +783,7 @@ const AppContent: React.FC = () => {
             <h2>Knowledge Checks</h2>
             <p>Test your understanding with interactive quizzes</p>
             <div className="quizzes-grid">
-              {quizzes.map((quiz) => (
+              {Array.isArray(quizzes) && quizzes.map((quiz) => (
                 <div key={quiz.id} className="quiz-card">
                   <h3>{quiz.title}</h3>
                   <p>{quiz.description}</p>
