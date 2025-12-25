@@ -36,6 +36,18 @@ else
     echo "✅ backend/config/.env already exists"
 fi
 
+# Check if frontend/.env exists, if not copy from template
+if [ ! -f "frontend/.env" ]; then
+    if [ -f "frontend/.env.example" ]; then
+        cp frontend/.env.example frontend/.env
+        echo "✅ Created frontend/.env from template"
+    else
+        echo "⚠️  frontend/.env.example not found"
+    fi
+else
+    echo "✅ frontend/.env already exists"
+fi
+
 # Check if uv is available (preferred)
 if command -v uv &> /dev/null; then
     echo "✅ Using uv package manager"
