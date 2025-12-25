@@ -234,14 +234,23 @@ class ApiService {
         // Others return {success: true, courses: [...]}
         // Others return just {...}
         if (report.success === true || report.success === undefined) {
-          // Check for nested array properties and return the array value, not the wrapper
+          // Check for nested array properties and return the array value
           const keys = Object.keys(report);
           for (const key of keys) {
             if (Array.isArray(report[key])) {
               return report[key] as unknown as T;
             }
           }
-          // If no array properties, return the whole report
+          
+          // If no array properties, look for a single object property to extract
+          // This handles cases like {success: true, progress: {...}, analytics: {...}}
+          for (const key of keys) {
+            if (key !== 'success' && typeof report[key] === 'object' && report[key] !== null) {
+              return report[key] as unknown as T;
+            }
+          }
+          
+          // If no suitable property found, return the whole report
           return report as T;
         }
         // If success is false, return the report with error info
@@ -261,10 +270,17 @@ class ApiService {
       // If response has success property, extract inner data
       if ('success' in response) {
         if (response.success === true) {
-          // Find and return array properties
+          // Check for array properties first
           const keys = Object.keys(response);
           for (const key of keys) {
             if (Array.isArray(response[key])) {
+              return response[key] as unknown as T;
+            }
+          }
+          
+          // If no array properties, look for a single object property
+          for (const key of keys) {
+            if (key !== 'success' && typeof response[key] === 'object' && response[key] !== null) {
               return response[key] as unknown as T;
             }
           }
