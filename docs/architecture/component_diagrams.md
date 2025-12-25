@@ -1,12 +1,12 @@
-# 🏗️ Component Diagrams - Pure JAC Architecture
+# 🏗️ Component Diagrams - React + JAC Hybrid Architecture
 
 **Author:** Cavin Otieno  
-**Date:** December 20, 2025  
-**Version:** 2.0 (Pure JAC Architecture)  
+**Date:** December 26, 2025  
+**Version:** 2.1 (React Frontend + JAC Backend Architecture)  
 
 ## 🎯 Overview
 
-This document provides comprehensive component diagrams for the Jeseci Smart Learning Academy's pure JAC architecture, showing how all components interact within the unified JAC ecosystem.
+This document provides comprehensive component diagrams for the Jeseci Smart Learning Academy's hybrid architecture, showing how the React frontend with defensive programming patterns interacts with the JAC backend services.
 
 ---
 
@@ -15,10 +15,10 @@ This document provides comprehensive component diagrams for the Jeseci Smart Lea
 ```mermaid
 graph TB
     subgraph "Frontend Layer"
-        UI[🖥️ Jac Client UI]
-        DASH[📊 Dashboard]
-        EDIT[💻 Code Editor]
-        PROG[📈 Progress Charts]
+        UI[🖥️ React App (TypeScript)]
+        DASH[📊 Dashboard Components]
+        ERROR[🛡️ Error Handling Layer]
+        API[📡 API Client with Validation]
     end
     
     subgraph "JAC Runtime Layer"
@@ -46,10 +46,10 @@ graph TB
     end
     
     %% Frontend connections
-    UI --> SERVE
-    DASH --> SERVE
-    EDIT --> SERVE
-    PROG --> SERVE
+    UI --> API
+    DASH --> API
+    ERROR --> API
+    API --> SERVE
     
     %% JAC Runtime connections
     SERVE --> ROUTER
@@ -78,11 +78,134 @@ graph TB
     classDef data fill:#fff3e0
     classDef external fill:#fce4ec
     
-    class UI,DASH,EDIT,PROG frontend
+    class UI,DASH,ERROR,API frontend
     class SERVE,ROUTER,MIDDLEWARE runtime
     class WALKERS,NODES,EDGES,BYLLM application
     class GRAPH,PERSIST,CACHE data
     class OPENAI,CLOUD external
+```
+
+---
+
+## 🛡️ Frontend Defensive Architecture
+
+```mermaid
+graph TB
+    subgraph "React Frontend Layer"
+        APP[📱 App.tsx Main Component]
+        AUTH[🔐 Authentication Context]
+        ROUTER[🔀 Tab Router]
+    end
+    
+    subgraph "Data Handling Layer"
+        EXTRACT[🔧 extractArrayFromResponse Helper]
+        VALIDATE[✅ Array Validation Layer]
+        FALLBACK[🔄 Mock Data Fallbacks]
+        STATE[📊 React State Management]
+    end
+    
+    subgraph "API Communication"
+        API_CLIENT[📡 API Service Client]
+        ERROR_HANDLER[⚠️ Error Handler]
+        RETRY[🔄 Retry Logic]
+    end
+    
+    subgraph "UI Components"
+        DASHBOARD[📊 Dashboard Tab]
+        COURSES[📚 Courses Tab]
+        PATHS[🎯 Learning Paths Tab]
+        CONCEPTS[💡 Concepts Tab]
+        ANALYTICS[📈 Analytics Tab]
+    end
+    
+    subgraph "Defensive Patterns"
+        OPTIONAL[❓ Optional Chaining (?.)]
+        NULLISH[🛡️ Nullish Coalescing (||)]
+        ARRAY_CHECK[📋 Array.isArray() Checks]
+        TYPE_GUARD[🔒 TypeScript Guards]
+    end
+    
+    %% App flow
+    APP --> AUTH
+    APP --> ROUTER
+    ROUTER --> DASHBOARD
+    ROUTER --> COURSES
+    ROUTER --> PATHS
+    ROUTER --> CONCEPTS
+    ROUTER --> ANALYTICS
+    
+    %% Data handling
+    API_CLIENT --> ERROR_HANDLER
+    ERROR_HANDLER --> EXTRACT
+    EXTRACT --> VALIDATE
+    VALIDATE --> STATE
+    VALIDATE --> FALLBACK
+    STATE --> DASHBOARD
+    STATE --> COURSES
+    STATE --> PATHS
+    STATE --> CONCEPTS
+    STATE --> ANALYTICS
+    
+    %% Defensive patterns
+    OPTIONAL --> DASHBOARD
+    OPTIONAL --> ANALYTICS
+    NULLISH --> COURSES
+    NULLISH --> PATHS
+    ARRAY_CHECK --> VALIDATE
+    TYPE_GUARD --> EXTRACT
+    
+    %% Error handling
+    ERROR_HANDLER --> RETRY
+    RETRY --> FALLBACK
+    
+    classDef react fill:#61dafb
+    classDef data fill:#4caf50
+    classDef api fill:#ff9800
+    classDef ui fill:#2196f3
+    classDef defensive fill:#f44336
+    
+    class APP,AUTH,ROUTER react
+    class EXTRACT,VALIDATE,FALLBACK,STATE data
+    class API_CLIENT,ERROR_HANDLER,RETRY api
+    class DASHBOARD,COURSES,PATHS,CONCEPTS,ANALYTICS ui
+    class OPTIONAL,NULLISH,ARRAY_CHECK,TYPE_GUARD defensive
+```
+
+---
+
+## 🔄 Data Flow with Error Handling
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant C as 📱 React Component
+    participant H as 🔧 Helper Functions
+    participant A as 📡 API Client
+    participant J as 🌐 JAC Backend
+    participant M as 🎭 Mock Data
+    
+    U->>C: Request Data (e.g., courses)
+    C->>A: API Call
+    
+    alt API Success
+        A->>J: HTTP Request
+        J-->>A: Response (may be wrapped object)
+        A-->>H: Pass raw response
+        H->>H: extractArrayFromResponse<T>()
+        H->>H: Array.isArray() validation
+        H-->>C: Valid array data
+        C->>C: setState(validData)
+        C-->>U: Render with data
+    else API Failure
+        A-->>H: Error/Invalid response
+        H->>M: Request fallback data
+        M-->>H: Mock data array
+        H-->>C: Fallback data
+        C->>C: setState(mockData)
+        C-->>U: Render with mock data
+    end
+    
+    Note over C,U: All rendering uses defensive patterns:<br/>(data || []).map() & obj?.prop || fallback
 ```
 
 ---
@@ -574,11 +697,11 @@ graph TB
 
 ## 📋 Component Summary
 
-### Frontend Components
-- **Jac Client UI**: React-style components in JAC
-- **Dashboard**: Real-time progress visualization
-- **Code Editor**: Interactive Monaco/CodeMirror integration
-- **Progress Charts**: Learning analytics visualization
+### Frontend Components (React + TypeScript)
+- **React Application**: Modern React with TypeScript and defensive patterns
+- **Error Handling Layer**: Comprehensive validation and fallback systems
+- **API Client**: Robust communication with backend services
+- **Mock Data System**: Realistic fallback data for offline/error scenarios
 
 ### Backend Components (JAC)
 - **Walkers**: API endpoints and business logic
@@ -610,5 +733,9 @@ graph TB
 
 - **Architecture Overview**: `docs/architecture/architecture_overview.md`
 - **API Reference**: `docs/architecture/api_reference.md`
+- **Frontend Defensive Patterns**: `docs/architecture/FRONTEND_DEFENSIVE_PATTERNS_GUIDE.md`
+- **Frontend Architecture Update**: `docs/FRONTEND_ARCHITECTURE_UPDATE.md`
 - **Deployment Guide**: `docs/architecture/deployment_architecture.md`
 - **Developer Guide**: `docs/architecture/developer_guide.md`
+- **System Architecture Diagram**: `docs/mermaid/system_arch.mmd`
+- **Frontend Defensive Patterns Diagram**: `docs/mermaid/frontend_defensive_patterns.mmd`
