@@ -57,10 +57,24 @@ const AppContent: React.FC = () => {
       
       // Load concepts and learning paths (we know these work)
       const conceptsData = await apiService.getConcepts();
-      setConcepts(conceptsData);
+      console.log('Concepts API response:', conceptsData);
+      // Ensure concepts is always an array
+      if (Array.isArray(conceptsData)) {
+        setConcepts(conceptsData);
+      } else {
+        console.warn('Concepts API did not return an array, using mock data');
+        setConcepts(getMockConcepts());
+      }
       
       const paths = await apiService.getLearningPaths();
-      setLearningPaths(paths);
+      console.log('Learning Paths API response:', paths);
+      // Ensure learningPaths is always an array
+      if (Array.isArray(paths)) {
+        setLearningPaths(paths);
+      } else {
+        console.warn('Learning Paths API did not return an array, using mock data');
+        setLearningPaths(getMockLearningPaths());
+      }
       
       // Try to load additional data, but don't fail if endpoints don't exist
       try {
@@ -326,6 +340,108 @@ const AppContent: React.FC = () => {
       difficulty: 'intermediate',
       estimated_time: 15,
       completed: false
+    }
+  ];
+
+  const getMockConcepts = () => [
+    {
+      id: 'osp_basics',
+      concept_id: 'osp_basics',
+      name: 'Object-Spatial Programming Basics',
+      display_name: 'OSP Basics',
+      category: 'Programming Paradigm',
+      difficulty_level: 'beginner',
+      difficulty: 'beginner',
+      domain: 'Jac Language',
+      icon: '🗺️',
+      description: 'Learn the fundamentals of Object-Spatial Programming in Jac'
+    },
+    {
+      id: 'nodes',
+      concept_id: 'nodes',
+      name: 'Nodes in Jac',
+      display_name: 'Nodes',
+      category: 'Graph Structures',
+      difficulty_level: 'intermediate',
+      difficulty: 'intermediate',
+      domain: 'Jac Language',
+      icon: '🔷',
+      description: 'Understanding node structures and state management'
+    },
+    {
+      id: 'edges',
+      concept_id: 'edges',
+      name: 'Edges and Connections',
+      display_name: 'Edges',
+      category: 'Graph Structures',
+      difficulty_level: 'intermediate',
+      difficulty: 'intermediate',
+      domain: 'Jac Language',
+      icon: '🔗',
+      description: 'Creating relationships between nodes with edges'
+    },
+    {
+      id: 'walkers',
+      concept_id: 'walkers',
+      name: 'Walker Functions',
+      display_name: 'Walkers',
+      category: 'Computation',
+      difficulty_level: 'advanced',
+      difficulty: 'advanced',
+      domain: 'Jac Language',
+      icon: '🚶',
+      description: 'Mobile computation with walker functions'
+    }
+  ];
+
+  const getMockLearningPaths = (): LearningPath[] => [
+    {
+      id: 'jac_fundamentals_path',
+      title: 'Jac Programming Fundamentals',
+      description: 'Master the basics of Jac programming language',
+      courses: ['jac_fundamentals'],
+      modules: [
+        { id: 'mod1', title: 'Variables & Types', type: 'lesson', duration: '30 min', completed: true },
+        { id: 'mod2', title: 'Functions', type: 'lesson', duration: '45 min', completed: false },
+        { id: 'mod3', title: 'Quiz', type: 'quiz', duration: '15 min', completed: false }
+      ],
+      concepts: ['osp_basics'],
+      skills_covered: ['Variables', 'Functions', 'Type Annotations'],
+      prerequisites: [],
+      total_modules: 3,
+      completed_modules: 1,
+      duration: '2 hours',
+      estimated_hours: 2,
+      difficulty: 'beginner',
+      progress: 33,
+      icon: '📚',
+      category: 'Foundations',
+      next_step: 'Functions',
+      last_activity: '2025-12-25'
+    },
+    {
+      id: 'osp_path',
+      title: 'Object-Spatial Programming Mastery',
+      description: 'Deep dive into OSP with nodes, edges, and walkers',
+      courses: ['jac_osp_basics', 'jac_advanced_osp'],
+      modules: [
+        { id: 'mod1', title: 'Introduction to Nodes', type: 'lesson', duration: '45 min', completed: false },
+        { id: 'mod2', title: 'Creating Edges', type: 'lesson', duration: '45 min', completed: false },
+        { id: 'mod3', title: 'Walker Basics', type: 'lesson', duration: '60 min', completed: false },
+        { id: 'mod4', title: 'Project', type: 'project', duration: '2 hours', completed: false }
+      ],
+      concepts: ['nodes', 'edges', 'walkers'],
+      skills_covered: ['Node Creation', 'Edge Management', 'Walker Functions'],
+      prerequisites: ['jac_fundamentals_path'],
+      total_modules: 4,
+      completed_modules: 0,
+      duration: '5 hours',
+      estimated_hours: 5,
+      difficulty: 'intermediate',
+      progress: 0,
+      icon: '🎯',
+      category: 'Core Concepts',
+      next_step: 'Introduction to Nodes'
     }
   ];
 
