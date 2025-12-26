@@ -84,8 +84,16 @@ echo -e "${YELLOW}[i] Dropping schema '${DB_SCHEMA}' from database '${PG_DATABAS
 # Method: Drop schema and recreate (fastest)
 if sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "SELECT 1" 2>/dev/null; then
     echo -e "${YELLOW}[i] Using DROP SCHEMA method...${NC}"
-    sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "DROP SCHEMA IF EXISTS ${DB_SCHEMA} CASCADE; CREATE SCHEMA ${DB_SCHEMA};" 2>/dev/null
-    echo -e "${GREEN}[✓] PostgreSQL schema '${DB_SCHEMA}' cleaned successfully${NC}"
+    sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "DROP SCHEMA IF EXISTS ${DB_SCHEMA} CASCADE; CREATE SCHEMA ${DB_SCHEMA} AUTHORIZATION ${POSTGRES_USER};" 2>/dev/null
+    
+    # Grant full permissions and set ownership for the application user
+    sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "GRANT ALL ON SCHEMA ${DB_SCHEMA} TO ${POSTGRES_USER};" 2>/dev/null
+    sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "ALTER SCHEMA ${DB_SCHEMA} OWNER TO ${POSTGRES_USER};" 2>/dev/null
+    sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA ${DB_SCHEMA} GRANT ALL ON TABLES TO ${POSTGRES_USER};" 2>/dev/null
+    sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA ${DB_SCHEMA} GRANT ALL ON SEQUENCES TO ${POSTGRES_USER};" 2>/dev/null
+    sudo -u "$PG_SUPERUSER" psql -d "$PG_DATABASE" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA ${DB_SCHEMA} GRANT ALL ON FUNCTIONS TO ${POSTGRES_USER};" 2>/dev/null
+    
+    echo -e "${GREEN}[✓] PostgreSQL schema '${DB_SCHEMA}' cleaned successfully with proper ownership${NC}"
 else
     echo -e "${RED}[✗] Could not connect to database${NC}"
 fi
