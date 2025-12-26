@@ -436,7 +436,7 @@ Add to `backend/config/.env`:
 # Redis (Message Queue)
 REDIS_HOST=localhost
 REDIS_PORT=6379
-REDIS_DB=0
+REDIS_DB=1
 REDIS_PASSWORD=
 
 # PostgreSQL
