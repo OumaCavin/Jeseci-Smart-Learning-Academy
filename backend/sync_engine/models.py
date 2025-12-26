@@ -24,7 +24,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 import enum
 
-from backend.config.database import Base
+from ..config.database import Base
 
 
 class SyncEventStatus(str, enum.Enum):
@@ -430,7 +430,7 @@ class ReconciliationRun(Base):
 def create_sync_tables(engine):
     """Create all sync-related tables in the database"""
     from sqlalchemy import text
-    from backend.config.database import get_postgres_engine
+    from ..config.database import get_postgres_engine
     
     # Create enum types if they don't exist
     with engine.connect() as conn:

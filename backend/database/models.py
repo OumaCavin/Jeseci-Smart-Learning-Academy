@@ -21,7 +21,7 @@ from sqlalchemy import (
     UniqueConstraint, Index, Float, JSON, Table, Column
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from backend.config.database import Base
+from ..config.database import Base
 
 # =============================================================================
 # Association Tables for Many-to-Many Relationships
