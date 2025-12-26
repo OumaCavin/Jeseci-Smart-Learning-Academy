@@ -194,6 +194,60 @@ See `docs/sync-engine.md` for complete sync engine documentation.
 
 ---
 
+## Creating Admin Users
+
+### Super Admin Creation
+
+After setting up the database, you need to create an initial super admin user to access the administrative features of the platform. Use the `create_super_admin.py` script to generate the first admin account.
+
+**Basic Usage:**
+```bash
+cd backend
+python create_super_admin.py --username admin --email admin@example.com --password your_secure_password
+```
+
+**Full Command with All Options:**
+```bash
+python create_super_admin.py \
+    --username admin \
+    --email admin@example.com \
+    --password your_secure_password \
+    --first-name System \
+    --last-name Administrator \
+    --force
+```
+
+### Command Arguments
+
+| Argument | Required | Description | Default |
+|----------|----------|-------------|---------|
+| `--username` | Yes | Unique admin username | - |
+| `--email` | Yes | Admin email address | - |
+| `--password` | No | Admin password (generated if not provided) | Auto-generated |
+| `--first-name` | No | First name | Empty |
+| `--last-name` | No | Last name | Empty |
+| `--force` | No | Overwrite existing admin with same credentials | False |
+
+### Important Notes
+
+- The `--username` and `--email` arguments are required. The script will fail if either is missing.
+- If `--password` is not provided, a secure password will be automatically generated and displayed in the terminal.
+- Use the `--force` flag if you need to update an existing admin account with the same username or email.
+- The admin user will be created in the `jeseci_academy` schema of the PostgreSQL database.
+
+### Security Recommendations
+
+1. **Use a strong password** with at least 12 characters, including uppercase, lowercase, numbers, and special characters.
+2. **Change the default email** from `admin@example.com` to a real email address you can access.
+3. **Store the password securely** and never share it publicly.
+4. **Consider using environment variables** for automation in CI/CD pipelines.
+
+### Creating Additional Admins
+
+To create additional admin users with different roles, run the script again with different credentials. Each admin user can have different privilege levels assigned through the admin panel once logged in.
+
+---
+
 ## Project Structure
 
 ```
