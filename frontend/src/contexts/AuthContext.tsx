@@ -123,9 +123,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const response = await apiService.register(userData);
 
-      if (response.success) {
-        // Auto-login after registration
-        await login(userData.username, userData.password);
+      if (response.success && response.user) {
+        const userData = response.user;
+        const authToken = response.access_token || response.token;
+
+        if (!authToken) {
+          throw new Error('No token received from server');
+        }
+
+        // Store in localStorage for session persistence
+        localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(userData));
+
+        setToken(authToken);
+        setUser(userData);
+        setIsAuthenticated(true);
       } else {
         // Provide detailed error messages based on error code
         const errorCode = response.code || '';

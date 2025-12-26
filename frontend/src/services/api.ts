@@ -236,9 +236,9 @@ class ApiService {
         // Others return {success: true, courses: [...]}
         // Others return just {...}
         if (report.success === true || report.success === undefined) {
-          // Check for login/authentication responses with multiple properties
-          // Don't extract these - they have access_token, user, etc.
-          if ('access_token' in report || 'token' in report || 'message' in report) {
+          // Check for authentication responses with user and token properties
+          // These responses have multiple important properties we must preserve
+          if ('access_token' in report || 'token' in report || 'user' in report || 'message' in report) {
             return report as T;
           }
           
@@ -278,9 +278,9 @@ class ApiService {
       // If response has success property, extract inner data
       if ('success' in response) {
         if (response.success === true) {
-          // Check for login/authentication responses with multiple properties
-          // Don't extract these - they have access_token, user, etc.
-          if ('access_token' in response || 'token' in response || 'message' in response) {
+          // Check for authentication responses with user and token properties
+          // These responses have multiple important properties we must preserve
+          if ('access_token' in response || 'token' in response || 'user' in response || 'message' in response) {
             return response as T;
           }
           
@@ -390,14 +390,24 @@ class ApiService {
     last_name?: string;
     learning_style?: string;
     skill_level?: string;
-  }): Promise<any> {
+  }): Promise<LoginResponse> {
     console.log('Sending registration request to:', `${this.baseUrl}/walker/user_create`);
     console.log('Registration data:', userData);
-    const result = await this.makeRequest('/walker/user_create', {
+    
+    const result = await this.makeRequest<LoginResponse>('/walker/user_create', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
     console.log('Registration response:', result);
+    
+    // If registration was successful, perform auto-login to get access_token
+    if (result.success) {
+      console.log('Registration successful, performing auto-login...');
+      const loginResult = await this.login(userData.username, userData.password);
+      console.log('Auto-login result:', loginResult);
+      return loginResult;
+    }
+    
     return result;
   }
 
