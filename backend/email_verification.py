@@ -227,7 +227,7 @@ def resend_verification_email(email: str) -> dict:
             port=int(os.getenv("POSTGRES_PORT", 5432)),
             database=os.getenv("POSTGRES_DB", "jeseci_learning_academy"),
             user=os.getenv("POSTGRES_USER", "jeseci_academy_user"),
-            password=os.getenv("POSTGRES_PASSWORD", "secure_password_123")
+            password=os.getenv("POSTGRES_PASSWORD", "jeseci_secure_password_2024")
         )
         cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
         
