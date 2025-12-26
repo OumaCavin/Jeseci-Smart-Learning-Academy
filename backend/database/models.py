@@ -126,10 +126,13 @@ class UserProfile(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.id", ondelete="CASCADE"), unique=True)
     first_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     last_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    display_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     bio: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)  # External URL
+    profile_image_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)  # Local file path
     timezone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     language: Mapped[Optional[str]] = mapped_column(String(10), default="en")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationship

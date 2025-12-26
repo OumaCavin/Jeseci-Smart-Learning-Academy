@@ -28,6 +28,7 @@ from email_verification import (
     send_verification_email,
     send_welcome_email
 )
+from backend.database.neo4j_manager import Neo4jManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -153,7 +154,7 @@ class UserAuthManager:
             create_preferences_query = f"""
             CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.user_learning_preferences (
                 id SERIAL PRIMARY KEY,
-                user_id VARCHAR(64) UNIQUE NOT NULL,
+                user_id INTEGER UNIQUE NOT NULL,
                 daily_goal_minutes INTEGER DEFAULT 30,
                 preferred_difficulty VARCHAR(20) DEFAULT 'intermediate',
                 preferred_content_type VARCHAR(50) DEFAULT 'text',
@@ -169,6 +170,7 @@ class UserAuthManager:
             
             # Add missing columns for existing installations
             alter_queries = [
+                # Users table columns
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS user_id VARCHAR(64) UNIQUE NOT NULL",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS email VARCHAR(255) UNIQUE",
@@ -182,17 +184,20 @@ class UserAuthManager:
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP",
-                # Profile columns
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS user_id VARCHAR(64) UNIQUE NOT NULL",
+                # UserProfile columns
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS user_id INTEGER UNIQUE NOT NULL",
                 f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)",
                 f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)",
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS display_name VARCHAR(100)",
                 f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS bio TEXT",
                 f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500)",
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS profile_image_path VARCHAR(500)",
                 f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS timezone VARCHAR(50)",
                 f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'en'",
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
                 f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
-                # Preferences columns
-                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS user_id VARCHAR(64) UNIQUE NOT NULL",
+                # UserLearningPreferences columns
+                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS user_id INTEGER UNIQUE NOT NULL",
                 f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS daily_goal_minutes INTEGER DEFAULT 30",
                 f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS preferred_difficulty VARCHAR(20) DEFAULT 'intermediate'",
                 f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS preferred_content_type VARCHAR(50) DEFAULT 'text'",
@@ -321,6 +326,26 @@ class UserAuthManager:
             cursor.execute(insert_preferences_query, (user_db_id, learning_style, skill_level))
             
             conn.commit()
+            
+            # Sync user to Neo4j graph for relationship queries
+            try:
+                neo4j_manager = Neo4jManager()
+                if neo4j_manager.connect():
+                    neo4j_manager.sync_user_to_graph(
+                        user_id=user_db_id,
+                        username=username,
+                        email=email,
+                        first_name=first_name,
+                        last_name=last_name,
+                        skill_level=skill_level,
+                        learning_style=learning_style,
+                        is_admin=is_admin,
+                        admin_role=admin_role
+                    )
+                    logger.info(f"User synced to Neo4j graph: {user_id}")
+                    neo4j_manager.disconnect()
+            except Exception as neo4j_error:
+                logger.warning(f"Failed to sync user to Neo4j: {neo4j_error}")
             
             # Send verification email if not skipped
             requires_verification = False
