@@ -1,16 +1,127 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { apiService, User, ProgressData, AnalyticsData, AIGeneratedContent, LearningPath, Concept, Quiz, Achievement, ChatMessage } from './services/api';
+import { AdminProvider, useAdmin } from './contexts/AdminContext';
+import { AdminLayout, DashboardOverview, UserManagement, ContentManager, QuizManager, AILab, AnalyticsReports } from './admin';
 import LandingPage from './components/LandingPage';
 import './App.css';
 
 // =============================================================================
-// MAIN APP COMPONENT
+// ADMIN PAGE COMPONENT
 // =============================================================================
 
+const AdminPage: React.FC = () => {
+  const { isAdminAuthenticated, adminUser, loading, login, logout } = useAdmin();
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+  const [loginError, setLoginError] = useState('');
+  const [adminLoading, setAdminLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminLoading(true);
+    setLoginError('');
+    try {
+      await login(loginForm.username, loginForm.password);
+    } catch (err: any) {
+      setLoginError(err.message || 'Login failed');
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="App loading">
+        <div className="loading-spinner">
+          <h1>🎓 Jeseci Academy</h1>
+          <p>Loading admin session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdminAuthenticated) {
+    return (
+      <div className="App">
+        <div className="auth-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="auth-card" style={{ maxWidth: '400px' }}>
+            <h2 style={{ marginBottom: '8px' }}>🔐 Admin Login</h2>
+            <p style={{ color: '#6b7280', marginBottom: '24px' }}>
+              Enter your admin credentials to access the admin panel
+            </p>
+            
+            {loginError && (
+              <div style={{ padding: '12px', background: '#fee2e2', color: '#dc2626', borderRadius: '8px', marginBottom: '16px' }}>
+                {loginError}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin}>
+              <div className="form-group">
+                <label className="form-label">Username</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={loginForm.username}
+                  onChange={(e) => setLoginForm(f => ({ ...f, username: e.target.value }))}
+                  placeholder="Enter username"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm(f => ({ ...f, password: e.target.value }))}
+                  placeholder="Enter password"
+                  required
+                />
+              </div>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={adminLoading}>
+                {adminLoading ? 'Logging in...' : 'Login to Admin Panel'}
+              </button>
+            </form>
+
+            <div style={{ marginTop: '24px', textAlign: 'center' }}>
+              <a href="/" style={{ color: '#2563eb', textDecoration: 'none' }}>← Back to Student Portal</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <AdminLayout>
+      {({ activeSection }: { activeSection: string }) => {
+        switch (activeSection) {
+          case 'dashboard':
+            return <DashboardOverview activeSection={activeSection} />;
+          case 'users':
+            return <UserManagement activeSection={activeSection} />;
+          case 'content':
+            return <ContentManager activeSection={activeSection} />;
+          case 'quizzes':
+            return <QuizManager activeSection={activeSection} />;
+          case 'ai':
+            return <AILab activeSection={activeSection} />;
+          case 'analytics':
+            return <AnalyticsReports activeSection={activeSection} />;
+          default:
+            return <DashboardOverview activeSection="dashboard" />;
+        }
+      }}
+    </AdminLayout>
+  );
+};
+
+// Main app content with routing
 const AppContent: React.FC = () => {
   const { isAuthenticated, user, loading, login, register, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [viewMode, setViewMode] = useState<'student' | 'admin'>('student');
   const [userProgress, setUserProgress] = useState<ProgressData | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [courses, setCourses] = useState<any[]>([]);
@@ -1135,6 +1246,23 @@ const AppContent: React.FC = () => {
               <p>AI-Powered Personalized Learning</p>
               {isAuthenticated && (
                 <div className="header-actions">
+                  {user?.is_admin && (
+                    <button 
+                      onClick={() => setViewMode('admin')}
+                      style={{ 
+                        marginRight: '12px',
+                        background: '#dbeafe', 
+                        color: '#1d4ed8',
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: '500'
+                      }}
+                    >
+                      ⚙️ Admin Panel
+                    </button>
+                  )}
                   <span className="user-greeting">Hello, {user?.first_name || user?.username}</span>
                   <button onClick={logout}>Logout</button>
                 </div>
@@ -1150,7 +1278,9 @@ const AppContent: React.FC = () => {
           )}
 
           <main className="app-main">
-            {!isAuthenticated ? (
+            {viewMode === 'admin' ? (
+              <AdminPage />
+            ) : !isAuthenticated ? (
               <div className="auth-section">
                 <div className="auth-tabs">
                   <button 
@@ -1187,12 +1317,14 @@ const AppContent: React.FC = () => {
   );
 };
 
-// Wrap App with AuthProvider
+// Wrap App with AuthProvider and AdminProvider
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <AdminProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </AdminProvider>
   );
 };
 
