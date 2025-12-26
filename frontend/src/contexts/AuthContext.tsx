@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         // Provide detailed error messages based on error code
         const errorCode = response.code || '';
-        const errorMessage = response.error || '';
+        const errorMessage = response.message || response.error || '';
 
         if (errorCode === 'CONFLICT' || errorMessage.includes('already exists')) {
           throw new Error('Username or email already exists. Please use different credentials or try logging in.');
@@ -110,7 +110,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else if (errorCode === 'VALIDATION_ERROR' || errorMessage.includes('validation')) {
           throw new Error('Please check your input. All fields are required and must be valid.');
         } else {
-          throw new Error(errorMessage || 'Login failed. Please try again.');
+          throw new Error(errorMessage || 'Login failed due to an unknown server error.');
         }
       }
     } finally {
@@ -129,7 +129,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         // Provide detailed error messages based on error code
         const errorCode = response.code || '';
-        const errorMessage = response.error || '';
+        const errorMessage = response.message || response.error || '';
 
         if (errorCode === 'CONFLICT' || errorMessage.includes('already exists')) {
           throw new Error('Username or email already exists. Please use different credentials or try logging in.');
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else if (errorMessage.includes('email')) {
           throw new Error('Invalid email format. Please enter a valid email address.');
         } else {
-          throw new Error(errorMessage || 'Registration failed. Please try again.');
+          throw new Error(errorMessage || 'Registration failed due to an unknown server error.');
         }
       }
     } finally {
