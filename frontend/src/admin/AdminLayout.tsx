@@ -3,11 +3,11 @@
  */
 
 import React, { useState } from 'react';
-import { useAdmin } from '../../contexts/AdminContext';
+import { useAdmin } from '../contexts/AdminContext';
 import './Admin.css';
 
 interface AdminLayoutProps {
-  children: React.ReactNode;
+  children: (props: { activeSection: string }) => React.ReactNode;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
@@ -90,12 +90,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </header>
 
         <div className="admin-content">
-          {React.Children.map(children, (child) => {
-            if (React.isValidElement(child)) {
-              return React.cloneElement(child as React.ReactElement<any>, { activeSection });
-            }
-            return child;
-          })}
+          {children({ activeSection })}
         </div>
       </main>
     </div>
