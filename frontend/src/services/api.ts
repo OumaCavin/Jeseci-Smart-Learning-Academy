@@ -236,6 +236,12 @@ class ApiService {
         // Others return {success: true, courses: [...]}
         // Others return just {...}
         if (report.success === true || report.success === undefined) {
+          // Check for login/authentication responses with multiple properties
+          // Don't extract these - they have access_token, user, etc.
+          if ('access_token' in report || 'token' in report || 'message' in report) {
+            return report as T;
+          }
+          
           // Check for nested array properties and return the array value
           const keys = Object.keys(report);
           for (const key of keys) {
@@ -272,6 +278,12 @@ class ApiService {
       // If response has success property, extract inner data
       if ('success' in response) {
         if (response.success === true) {
+          // Check for login/authentication responses with multiple properties
+          // Don't extract these - they have access_token, user, etc.
+          if ('access_token' in response || 'token' in response || 'message' in response) {
+            return response as T;
+          }
+          
           // Check for array properties first
           const keys = Object.keys(response);
           for (const key of keys) {
