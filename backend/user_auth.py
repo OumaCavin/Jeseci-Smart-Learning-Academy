@@ -111,8 +111,8 @@ class UserAuthManager:
         
         try:
             cursor = conn.cursor()
-            create_table_query = """
-            CREATE TABLE IF NOT EXISTS users (
+            create_table_query = f"""
+            CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.users (
                 id SERIAL PRIMARY KEY,
                 user_id VARCHAR(64) UNIQUE NOT NULL,
                 username VARCHAR(50) UNIQUE NOT NULL,
@@ -134,12 +134,12 @@ class UserAuthManager:
             
             # Add email verification columns if they don't exist (for existing installations)
             alter_queries = [
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE",
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255)",
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS token_expires_at TIMESTAMP",
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE",
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_role VARCHAR(50) DEFAULT 'student'",
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE"
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255)",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS token_expires_at TIMESTAMP",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS admin_role VARCHAR(50) DEFAULT 'student'",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE"
             ]
             for query in alter_queries:
                 try:
