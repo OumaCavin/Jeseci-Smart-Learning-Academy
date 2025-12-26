@@ -270,6 +270,8 @@ async def register_user(request: UserCreateRequest):
             "user_id": result['user_id'],
             "username": result['username'],
             "email": result['email'],
+            "requires_verification": result.get('requires_verification', True),
+            "is_email_verified": result.get('is_email_verified', False),
             "message": result['message']
         }
     else:
@@ -282,6 +284,107 @@ async def register_user(request: UserCreateRequest):
                 "message": "User registration failed"
             }
         )
+
+@app.post("/auth/verify-email", response_model=Dict[str, Any])
+async def verify_email(token: str = Query(..., description="Verification token from email")):
+    """
+    Verify user's email address using the verification token sent to their email.
+    
+    The token is typically passed as a query parameter: /auth/verify-email?token=xxx
+    """
+    if not token:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "success": False,
+                "error": "Verification token is required",
+                "code": "MISSING_TOKEN"
+            }
+        )
+    
+    result = auth_module.verify_email(token)
+    
+    if result['success']:
+        return {
+            "success": True,
+            "message": result['message'],
+            "user_id": result.get('user_id'),
+            "username": result.get('username')
+        }
+    else:
+        status_code = 400
+        if result.get('code') == 'TOKEN_EXPIRED':
+            status_code = 400
+        elif result.get('code') == 'INVALID_TOKEN':
+            status_code = 400
+        
+        raise HTTPException(
+            status_code=status_code,
+            detail={
+                "success": False,
+                "error": result['error'],
+                "code": result.get('code', 'ERROR'),
+                "email": result.get('email'),
+                "message": result.get('message', 'Email verification failed')
+            }
+        )
+
+@app.post("/auth/resend-verification", response_model=Dict[str, Any])
+async def resend_verification_email(request: Dict[str, str]):
+    """
+    Resend verification email to user's email address.
+    
+    Request body: {"email": "user@example.com"}
+    """
+    email = request.get('email')
+    
+    if not email:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "success": False,
+                "error": "Email address is required",
+                "code": "MISSING_EMAIL"
+            }
+        )
+    
+    result = auth_module.resend_verification_email(email)
+    
+    if result['success']:
+        return {
+            "success": True,
+            "message": result['message'],
+            "method": result.get('method', 'unknown')
+        }
+    else:
+        status_code = 404 if result.get('code') == 'NOT_FOUND' else 400
+        
+        raise HTTPException(
+            status_code=status_code,
+            detail={
+                "success": False,
+                "error": result['error'],
+                "code": result.get('code', 'ERROR'),
+                "message": result.get('message', 'Failed to resend verification email')
+            }
+        )
+
+@app.get("/auth/verification-status/{user_id}", response_model=Dict[str, Any])
+async def get_verification_status(user_id: str):
+    """
+    Get user's email verification status.
+    
+    Useful for frontend to check if user needs to verify their email.
+    """
+    result = auth_module.get_user_verification_status(user_id)
+    
+    return {
+        "success": True,
+        "user_id": user_id,
+        "is_verified": result.get('is_verified', False),
+        "has_pending_token": result.get('has_pending_token', False),
+        "token_expires_at": result.get('token_expires_at')
+    }
 
 @app.post("/auth/login", response_model=TokenResponse)
 async def login_user(request: UserLoginRequest):
