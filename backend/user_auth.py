@@ -103,7 +103,7 @@ class UserAuthManager:
             UserAuthManager._pool.putconn(conn)
     
     def _ensure_tables(self):
-        """Create users table if it doesn't exist"""
+        """Create users, user_profile, and user_learning_preferences tables if they don't exist"""
         conn = self._get_connection()
         if conn is None:
             logger.error("Cannot create users table: no database connection")
@@ -111,48 +111,97 @@ class UserAuthManager:
         
         try:
             cursor = conn.cursor()
-            create_table_query = f"""
+            
+            # Create users table (only auth-related fields)
+            create_users_query = f"""
             CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.users (
                 id SERIAL PRIMARY KEY,
                 user_id VARCHAR(64) UNIQUE NOT NULL,
                 username VARCHAR(50) UNIQUE NOT NULL,
                 email VARCHAR(255) UNIQUE NOT NULL,
                 password_hash VARCHAR(255) NOT NULL,
-                first_name VARCHAR(100),
-                last_name VARCHAR(100),
-                learning_style VARCHAR(50) DEFAULT 'visual',
-                skill_level VARCHAR(50) DEFAULT 'beginner',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_login_at TIMESTAMP,
                 is_active BOOLEAN DEFAULT TRUE,
                 is_admin BOOLEAN DEFAULT FALSE,
-                admin_role VARCHAR(50) DEFAULT 'student'
+                admin_role VARCHAR(50) DEFAULT 'student',
+                is_email_verified BOOLEAN DEFAULT FALSE,
+                verification_token VARCHAR(255),
+                token_expires_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_login_at TIMESTAMP
             )
             """
-            cursor.execute(create_table_query)
+            cursor.execute(create_users_query)
             
-            # Add missing columns for existing installations (handles tables created by older code or SQLAlchemy)
+            # Create user_profile table (extended user information)
+            create_profile_query = f"""
+            CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.user_profile (
+                id SERIAL PRIMARY KEY,
+                user_id VARCHAR(64) UNIQUE NOT NULL,
+                first_name VARCHAR(100),
+                last_name VARCHAR(100),
+                bio TEXT,
+                avatar_url VARCHAR(500),
+                timezone VARCHAR(50),
+                language VARCHAR(10) DEFAULT 'en',
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+            cursor.execute(create_profile_query)
+            
+            # Create user_learning_preferences table
+            create_preferences_query = f"""
+            CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.user_learning_preferences (
+                id SERIAL PRIMARY KEY,
+                user_id VARCHAR(64) UNIQUE NOT NULL,
+                daily_goal_minutes INTEGER DEFAULT 30,
+                preferred_difficulty VARCHAR(20) DEFAULT 'intermediate',
+                preferred_content_type VARCHAR(50) DEFAULT 'text',
+                notifications_enabled BOOLEAN DEFAULT TRUE,
+                email_reminders BOOLEAN DEFAULT TRUE,
+                dark_mode BOOLEAN DEFAULT FALSE,
+                auto_play_videos BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+            cursor.execute(create_preferences_query)
+            
+            # Add missing columns for existing installations
             alter_queries = [
-                # Core columns that might be missing
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS user_id VARCHAR(64) UNIQUE NOT NULL",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS email VARCHAR(255) UNIQUE",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255) NOT NULL DEFAULT 'dummy'",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS learning_style VARCHAR(50) DEFAULT 'visual'",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS skill_level VARCHAR(50) DEFAULT 'beginner'",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS admin_role VARCHAR(50) DEFAULT 'student'",
-                # Email verification columns
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255)",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS token_expires_at TIMESTAMP"
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS token_expires_at TIMESTAMP",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP",
+                # Profile columns
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS user_id VARCHAR(64) UNIQUE NOT NULL",
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)",
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)",
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS bio TEXT",
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500)",
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS timezone VARCHAR(50)",
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'en'",
+                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+                # Preferences columns
+                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS user_id VARCHAR(64) UNIQUE NOT NULL",
+                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS daily_goal_minutes INTEGER DEFAULT 30",
+                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS preferred_difficulty VARCHAR(20) DEFAULT 'intermediate'",
+                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS preferred_content_type VARCHAR(50) DEFAULT 'text'",
+                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE",
+                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS email_reminders BOOLEAN DEFAULT TRUE",
+                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS dark_mode BOOLEAN DEFAULT FALSE",
+                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS auto_play_videos BOOLEAN DEFAULT TRUE",
+                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
             ]
             for query in alter_queries:
                 try:
@@ -160,7 +209,14 @@ class UserAuthManager:
                 except Exception as e:
                     logger.debug(f"Column might already exist: {e}")
             
-            # Create index on verification_token for faster lookups
+            # Create sequences for profile and preferences tables
+            try:
+                cursor.execute(f"CREATE SEQUENCE IF NOT EXISTS {DB_SCHEMA}.user_profile_id_seq")
+                cursor.execute(f"CREATE SEQUENCE IF NOT EXISTS {DB_SCHEMA}.user_learning_preferences_id_seq")
+            except Exception as e:
+                logger.debug(f"Sequences might already exist: {e}")
+            
+            # Create indexes
             try:
                 cursor.execute(f"""
                     CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_verification_token 
@@ -170,9 +226,9 @@ class UserAuthManager:
                 logger.debug(f"Index might already exist: {e}")
             
             conn.commit()
-            logger.info("Users table ensured in PostgreSQL with admin support")
+            logger.info("User tables ensured: users, user_profile, user_learning_preferences")
         except Exception as e:
-            logger.error(f"Failed to create users table: {e}")
+            logger.error(f"Failed to create user tables: {e}")
             if conn:
                 conn.rollback()
         finally:
@@ -185,6 +241,11 @@ class UserAuthManager:
                       skip_verification: bool = False) -> dict:
         """
         Register a new user with bcrypt password hashing and email verification.
+        
+        Creates records in:
+        - users table (authentication fields)
+        - user_profile table (extended user information)
+        - user_learning_preferences table (learning preferences)
         
         Args:
             username: Unique username
@@ -230,19 +291,33 @@ class UserAuthManager:
                 verification_token = generate_verification_token()
                 token_expires_at = get_token_expiration()
             
-            # Insert new user (id is auto-generated by SERIAL, user_id is the business identifier)
-            insert_query = f"""
-            INSERT INTO {self.schema}.users (id, user_id, username, email, password_hash, first_name, last_name, 
-                             learning_style, skill_level, is_admin, admin_role, 
-                             is_email_verified, verification_token, token_expires_at)
-            VALUES (nextval('users_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            # Insert into users table (only auth fields)
+            insert_user_query = f"""
+            INSERT INTO {self.schema}.users (id, user_id, username, email, password_hash, 
+                             is_admin, admin_role, is_email_verified, verification_token, token_expires_at)
+            VALUES (nextval('users_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, user_id
             """
-            cursor.execute(insert_query, (user_id, username, email, password_hash, first_name, 
-                                        last_name, learning_style, skill_level, is_admin, admin_role,
-                                        is_email_verified, verification_token, token_expires_at))
+            cursor.execute(insert_user_query, (user_id, username, email, password_hash, 
+                                               is_admin, admin_role,
+                                               is_email_verified, verification_token, token_expires_at))
             result = cursor.fetchone()
-            user_db_id = result['id']
+            conn.commit()
+            
+            # Insert into user_profile table (extended information)
+            insert_profile_query = f"""
+            INSERT INTO {self.schema}.user_profile (id, user_id, first_name, last_name)
+            VALUES (nextval('user_profile_id_seq'), %s, %s, %s)
+            """
+            cursor.execute(insert_profile_query, (user_id, first_name, last_name))
+            
+            # Insert into user_learning_preferences table
+            insert_preferences_query = f"""
+            INSERT INTO {self.schema}.user_learning_preferences (id, user_id, learning_style, skill_level)
+            VALUES (nextval('user_learning_preferences_id_seq'), %s, %s, %s)
+            """
+            cursor.execute(insert_preferences_query, (user_id, learning_style, skill_level))
+            
             conn.commit()
             
             # Send verification email if not skipped
@@ -298,9 +373,9 @@ class UserAuthManager:
         try:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
             
-            # Find user by username or email
+            # Find user by username or email (only auth fields from users table)
             cursor.execute(
-                f"SELECT id, user_id, username, email, password_hash, first_name, last_name, learning_style, skill_level, is_active, is_admin, admin_role, is_email_verified FROM {self.schema}.users WHERE (username = %s OR email = %s) AND is_active = TRUE",
+                f"SELECT id, user_id, username, email, password_hash, is_active, is_admin, admin_role, is_email_verified FROM {self.schema}.users WHERE (username = %s OR email = %s) AND is_active = TRUE",
                 (username, username)
             )
             user = cursor.fetchone()
@@ -321,6 +396,20 @@ class UserAuthManager:
             # Verify password
             if not bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
                 return {"success": False, "error": "Invalid credentials", "code": "UNAUTHORIZED", "token": None}
+            
+            # Fetch profile from user_profile table
+            cursor.execute(
+                f"SELECT first_name, last_name, bio, avatar_url, timezone, language FROM {self.schema}.user_profile WHERE user_id = %s",
+                (user['user_id'],)
+            )
+            profile = cursor.fetchone()
+            
+            # Fetch preferences from user_learning_preferences table
+            cursor.execute(
+                f"SELECT daily_goal_minutes, preferred_difficulty, preferred_content_type, notifications_enabled, email_reminders, dark_mode, auto_play_videos FROM {self.schema}.user_learning_preferences WHERE user_id = %s",
+                (user['user_id'],)
+            )
+            preferences = cursor.fetchone()
             
             # Generate JWT token
             user_id = user['user_id']
@@ -350,13 +439,11 @@ class UserAuthManager:
                     "user_id": user_id,
                     "username": user['username'],
                     "email": user['email'],
-                    "first_name": user['first_name'],
-                    "last_name": user['last_name'],
-                    "learning_style": user['learning_style'],
-                    "skill_level": user['skill_level'],
                     "is_admin": user.get('is_admin', False),
                     "admin_role": user.get('admin_role', 'student'),
-                    "is_email_verified": user.get('is_email_verified', False)
+                    "is_email_verified": user.get('is_email_verified', False),
+                    "profile": dict(profile) if profile else {},
+                    "preferences": dict(preferences) if preferences else {}
                 },
                 "message": "Login successful"
             }
