@@ -144,7 +144,7 @@ def init_db():
         conn.commit()
     
     # Import all models to ensure they are registered with Base.metadata
-    from backend.database.models import (
+    from ..database.models import (
         # User Domain
         User, UserProfile, UserLearningPreference,
         # Content Domain

@@ -28,7 +28,7 @@ from email_verification import (
     send_verification_email,
     send_welcome_email
 )
-from backend.database.neo4j_manager import Neo4jManager
+from .database.neo4j_manager import Neo4jManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

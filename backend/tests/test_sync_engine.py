@@ -24,7 +24,7 @@ from typing import Dict, Any
 # Add backend directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.sync_engine.events import (
+from ..sync_engine.events import (
     EventType, 
     SyncEvent, 
     EventBatch,
@@ -32,7 +32,7 @@ from backend.sync_engine.events import (
     create_learning_path_event,
     create_relationship_event
 )
-from backend.sync_engine.config import (
+from ..sync_engine.config import (
     RedisConfig, 
     SyncConfig, 
     DatabaseConfig,
@@ -40,14 +40,14 @@ from backend.sync_engine.config import (
     get_sync_config,
     validate_config
 )
-from backend.sync_engine.models import (
+from ..sync_engine.models import (
     SyncEventStatus,
     ConflictResolutionStatus,
     SyncEventLog,
     SyncStatus,
     SyncConflict
 )
-from backend.sync_engine.conflict_resolution import (
+from ..sync_engine.conflict_resolution import (
     ConflictType,
     ResolutionStrategy,
     ConflictInfo,
