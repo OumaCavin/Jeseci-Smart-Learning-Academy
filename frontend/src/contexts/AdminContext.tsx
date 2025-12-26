@@ -3,21 +3,11 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { apiService } from '../services/api';
-
-interface AdminUser {
-  user_id: string;
-  username: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  is_admin: boolean;
-  admin_role: string;
-}
+import { apiService, User } from '../services/api';
 
 interface AdminContextType {
   isAdminAuthenticated: boolean;
-  adminUser: AdminUser | null;
+  adminUser: User | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
@@ -31,7 +21,7 @@ const ADMIN_USER_KEY = 'jeseci_admin_user';
 
 export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
+  const [adminUser, setAdminUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -41,7 +31,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         const storedUser = localStorage.getItem(ADMIN_USER_KEY);
 
         if (storedToken && storedUser) {
-          const userData = JSON.parse(storedUser);
+          const userData = JSON.parse(storedUser) as User;
           
           // Verify admin status
           if (userData.is_admin) {
