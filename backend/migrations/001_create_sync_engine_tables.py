@@ -10,7 +10,7 @@ Tables Created:
 - sync_conflicts: Records detected conflicts between PostgreSQL and Neo4j
 - reconciliation_runs: Records reconciliation job runs for auditing
 
-Author: Jeseci Development Team
+Author: Cavin Otieno
 Date: 2025-12-26
 """
 
