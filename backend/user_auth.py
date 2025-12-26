@@ -302,21 +302,23 @@ class UserAuthManager:
                                                is_admin, admin_role,
                                                is_email_verified, verification_token, token_expires_at))
             result = cursor.fetchone()
+            user_db_id = result['id']  # INTEGER primary key
+            
             conn.commit()
             
-            # Insert into user_profile table (extended information)
+            # Insert into user_profile table (links via users.id)
             insert_profile_query = f"""
             INSERT INTO {self.schema}.user_profile (id, user_id, first_name, last_name)
             VALUES (nextval('user_profile_id_seq'), %s, %s, %s)
             """
-            cursor.execute(insert_profile_query, (user_id, first_name, last_name))
+            cursor.execute(insert_profile_query, (user_db_id, first_name, last_name))
             
-            # Insert into user_learning_preferences table
+            # Insert into user_learning_preferences table (links via users.id)
             insert_preferences_query = f"""
-            INSERT INTO {self.schema}.user_learning_preferences (id, user_id, learning_style, skill_level)
+            INSERT INTO {self.schema}.user_learning_preferences (id, user_id, preferred_difficulty, preferred_content_type)
             VALUES (nextval('user_learning_preferences_id_seq'), %s, %s, %s)
             """
-            cursor.execute(insert_preferences_query, (user_id, learning_style, skill_level))
+            cursor.execute(insert_preferences_query, (user_db_id, learning_style, skill_level))
             
             conn.commit()
             
@@ -397,17 +399,17 @@ class UserAuthManager:
             if not bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
                 return {"success": False, "error": "Invalid credentials", "code": "UNAUTHORIZED", "token": None}
             
-            # Fetch profile from user_profile table
+            # Fetch profile from user_profile table (links via users.id)
             cursor.execute(
                 f"SELECT first_name, last_name, bio, avatar_url, timezone, language FROM {self.schema}.user_profile WHERE user_id = %s",
-                (user['user_id'],)
+                (user['id'],)
             )
             profile = cursor.fetchone()
             
-            # Fetch preferences from user_learning_preferences table
+            # Fetch preferences from user_learning_preferences table (links via users.id)
             cursor.execute(
                 f"SELECT daily_goal_minutes, preferred_difficulty, preferred_content_type, notifications_enabled, email_reminders, dark_mode, auto_play_videos FROM {self.schema}.user_learning_preferences WHERE user_id = %s",
-                (user['user_id'],)
+                (user['id'],)
             )
             preferences = cursor.fetchone()
             
