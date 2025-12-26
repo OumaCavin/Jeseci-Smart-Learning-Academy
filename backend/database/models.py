@@ -45,7 +45,12 @@ concept_relations = Table(
 # =============================================================================
 
 class User(Base):
-    """Core User model for authentication and tracking"""
+    """Core User model for authentication and tracking
+    
+    This model only contains authentication and core tracking fields.
+    Extended user information is stored in UserProfile.
+    Learning preferences are stored in UserLearningPreference.
+    """
     __tablename__ = "users"
     __table_args__ = {"schema": "jeseci_academy"}
     
@@ -55,19 +60,10 @@ class User(Base):
     # External business identifier (VARCHAR - e.g., "user_admin_abc123")
     user_id: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     
-    # Core authentication
+    # Core authentication fields
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    
-    # User profile fields
-    first_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    last_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    display_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    
-    # Learning preferences
-    learning_style: Mapped[str] = mapped_column(String(50), default='visual')
-    skill_level: Mapped[str] = mapped_column(String(50), default='beginner')
     
     # Status and roles
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -84,7 +80,7 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     
-    # Relationships - One-to-One
+    # Relationships - One-to-One (extended data)
     profile: Mapped[Optional["UserProfile"]] = relationship(
         "UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
