@@ -44,6 +44,8 @@ export interface LoginResponse {
   username?: string;
   root_id?: string;
   error?: string;
+  code?: string;
+  message?: string;
 }
 
 export interface Course {
