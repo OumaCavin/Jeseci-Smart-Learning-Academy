@@ -30,7 +30,7 @@ class DatabaseConfig:
         self.postgres_port = int(os.getenv("POSTGRES_PORT", 5432))
         self.postgres_db = os.getenv("POSTGRES_DB", "jeseci_learning_academy")
         self.postgres_user = os.getenv("POSTGRES_USER", "jeseci_academy_user")
-        self.postgres_password = os.getenv("POSTGRES_PASSWORD", "secure_password_123")
+        self.postgres_password = os.getenv("POSTGRES_PASSWORD", "jeseci_secure_password_2024")
         self.postgres_pool_size = int(os.getenv("POSTGRES_POOL_SIZE", 5))
         self.postgres_max_overflow = int(os.getenv("POSTGRES_MAX_OVERFLOW", 10))
         
