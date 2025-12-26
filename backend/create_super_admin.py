@@ -22,7 +22,15 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import user_auth as auth_module
-from admin_auth import AdminRole
+
+# Define AdminRole locally to avoid FastAPI dependency
+class AdminRole:
+    """Admin role constants"""
+    STUDENT = "student"
+    ADMIN = "admin"
+    CONTENT_ADMIN = "content_admin"
+    USER_ADMIN = "user_admin"
+    SUPER_ADMIN = "super_admin"
 
 def create_super_admin(username: str, email: str, password: str, 
                       first_name: str = "", last_name: str = "") -> bool:
