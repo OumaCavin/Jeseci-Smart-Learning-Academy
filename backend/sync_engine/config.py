@@ -93,7 +93,7 @@ class DatabaseConfig:
     postgres_port: int = int(os.getenv("POSTGRES_PORT", 5432))
     postgres_db: str = os.getenv("POSTGRES_DB", "jeseci_learning_academy")
     postgres_user: str = os.getenv("POSTGRES_USER", "jeseci_academy_user")
-    postgres_password: str = os.getenv("POSTGRES_PASSWORD", "secure_password_123")
+    postgres_password: str = os.getenv("POSTGRES_PASSWORD", "jeseci_secure_password_2024")
     postgres_schema: str = os.getenv("POSTGRES_SCHEMA", "jeseci_academy")
     
     # Neo4j (Target)
