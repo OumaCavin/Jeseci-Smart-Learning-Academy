@@ -17,8 +17,8 @@ Date: 2025-12-26
 import os
 import sys
 
-# Add backend to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add project root to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from backend.config.database import get_engine
 from sqlalchemy import text
