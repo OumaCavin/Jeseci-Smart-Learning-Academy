@@ -28,7 +28,7 @@ class RedisConfig:
     """Redis connection configuration"""
     host: str = os.getenv("REDIS_HOST", "localhost")
     port: int = int(os.getenv("REDIS_PORT", 6379))
-    db: int = int(os.getenv("REDIS_DB", 0))
+    db: int = int(os.getenv("REDIS_DB", 1))
     password: Optional[str] = os.getenv("REDIS_PASSWORD", None)
     ssl: bool = os.getenv("REDIS_SSL", "false").lower() == "true"
     
