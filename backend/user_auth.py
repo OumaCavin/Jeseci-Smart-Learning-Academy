@@ -218,7 +218,7 @@ class UserAuthManager:
                 token_expires_at = get_token_expiration()
             
             # Insert new user
-            insert_query = """
+            insert_query = f"""
             INSERT INTO {self.schema}.users (user_id, username, email, password_hash, first_name, last_name, 
                              learning_style, skill_level, is_admin, admin_role, 
                              is_email_verified, verification_token, token_expires_at)
