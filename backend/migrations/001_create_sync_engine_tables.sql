@@ -305,8 +305,7 @@ CREATE INDEX IF NOT EXISTS ix_jeseci_academy_reconciliation_runs_started
 
 -- Index for finding recent runs
 CREATE INDEX IF NOT EXISTS ix_jeseci_academy_reconciliation_runs_recent 
-    ON jeseci_academy.reconciliation_runs(started_at DESC) 
-    LIMIT 100;
+    ON jeseci_academy.reconciliation_runs(started_at DESC);
 
 -- =============================================================================
 -- Step 6: Add foreign key constraints
