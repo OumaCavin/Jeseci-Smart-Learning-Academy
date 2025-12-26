@@ -52,55 +52,149 @@ An intelligent learning platform featuring a robust React frontend with defensiv
 - **Python 3.12+** - For JAC runtime and backend services
 - **Node.js 18+** - For React frontend development
 - **pnpm** - Package manager for frontend dependencies
+- **PostgreSQL** - Database for sync engine (see Database Setup below)
+- **Redis** - Message queue for sync engine (uses DB=1 for isolation)
+- **Neo4j** - Graph database (optional, for enhanced features)
 
-### Installation
+### Installation (Alternative Manual Setup)
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/YourUsername/Jeseci-Smart-Learning-Academy.git
 cd Jeseci-Smart-Learning-Academy
 
-# 2. Backend Setup
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\\Scripts\\activate
+# 2. Run main setup script
+bash ./setup.sh
 
-# Install JAC and dependencies
-pip install jaclang
-pip install -r backend/requirements.txt
+# 3. Set up databases
+bash backend/database/cleanup_databases.sh
+bash backend/database/setup_databases.sh
 
-# 3. Frontend Setup
-cd frontend
-pnpm install  # or npm install
+# 4. Run sync engine migration
+cd backend
+python migrations/001_create_sync_engine_tables.py
+cd ..
 
-# 4. Environment Configuration
-cp .env.example .env
-# Edit .env with your OpenAI API key:
-# OPENAI_API_KEY=your_openai_api_key_here
+# 5. Seed initial content
+jac run backend/seed.py
 ```
 
-### Running the Application
+### Starting the Application
 
+**Terminal 1 - Backend (Jaclang API):**
 ```bash
-# Terminal 1: Start JAC Backend
-jac serve backend/app.jac
-# Backend runs on http://localhost:8000
+# Activate virtual environment
+source .venv/bin/activate
 
-# Terminal 2: Start React Frontend
+# Start the API server
+jac serve backend/app.jac --port 8000
+```
+
+**Terminal 2 - Frontend (React Production Build):**
+```bash
 cd frontend
-pnpm run dev  # or npm run dev
-# Frontend runs on http://localhost:5173
+
+# Install dependencies (if not already done by setup.sh)
+pnpm install
+
+# Clean and build frontend
+pnpm clean
+pnpm run build
+
+# Serve production build
+serve -s dist
 ```
 
 ### Access Points
 
-- **🌐 Application**: http://localhost:5173
-- **📡 Backend API**: http://localhost:8000
-- **🔍 Health Check**: http://localhost:8000/health
-- **📚 API Docs**: http://localhost:8000/docs
+- **Frontend Application**: http://localhost:3000 (or 5173 if using dev server)
+- **Backend API**: http://localhost:8000
+- **Health Check**: http://localhost:8000/health
+- **API Docs**: http://localhost:8000/docs
+
+### Development Mode (Alternative)
+
+For development with hot reload:
+
+```bash
+# Terminal 1: Backend
+source .venv/bin/activate
+jac serve backend/app.jac --port 8000 --debug
+
+# Terminal 2: Frontend Development
+cd frontend
+pnpm run dev
+```
 
 ---
 
-## 📁 Project Structure
+## Database Setup
+
+### Prerequisites
+
+Ensure the following databases are running:
+
+| Database   | Default Port     | Purpose                                |
+|------------|------------------|----------------------------------------|
+| PostgreSQL | 5432             | Sync engine event storage              |
+| Redis      | 6379 (DB 1)      | Message queue for sync events          |
+| Neo4j      | 7687             | Graph database for relationships       |
+
+### Database Configuration
+
+The project uses environment variables for database connections:
+
+```bash
+# PostgreSQL (configured in backend/config/.env)
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=jeseci_learning_academy
+POSTGRES_USER=jeseci_academy_user
+POSTGRES_PASSWORD=jeseci_secure_password_2024
+DB_SCHEMA=jeseci_academy
+
+# Redis (uses DB=1 for isolation from other projects)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=1
+
+# Neo4j
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=neo4j_secure_password_2024
+```
+
+### Database Scripts
+
+```bash
+# Clean and reset all databases
+bash backend/database/cleanup_databases.sh
+
+# Set up databases with users and permissions
+bash backend/database/setup_databases.sh
+
+# Run sync engine migration
+cd backend
+python migrations/001_create_sync_engine_tables.py
+cd ..
+```
+
+### Sync Engine Tables Created
+
+The sync engine migration creates these tables in the `jeseci_academy` schema:
+
+| Table              | Purpose                                                |
+|--------------------|--------------------------------------------------------|
+| sync_event_log     | Tracks synchronization events (outbox pattern)         |
+| sync_status        | Current sync status for each entity                    |
+| sync_conflicts     | Records detected conflicts between databases           |
+| reconciliation_runs| Records reconciliation job runs for auditing           |
+
+See `docs/sync-engine.md` for complete sync engine documentation.
+
+---
+
+## Project Structure
 
 ```
 Jeseci-Smart-Learning-Academy/
