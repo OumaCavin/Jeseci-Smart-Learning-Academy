@@ -4,6 +4,7 @@ import { apiService, User, ProgressData, AnalyticsData, AIGeneratedContent, Lear
 import { AdminProvider, useAdmin } from './contexts/AdminContext';
 import { AdminLayout, DashboardOverview, UserManagement, ContentManager, QuizManager, AILab, AnalyticsReports } from './admin';
 import LandingPage from './components/LandingPage';
+import VerifyEmail from './pages/VerifyEmail';
 import './App.css';
 
 // =============================================================================
@@ -129,6 +130,8 @@ const AppContent: React.FC = () => {
   const [loadingState, setLoadingState] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
   const [showLandingPage, setShowLandingPage] = useState<boolean>(true);
+  const [verificationRequired, setVerificationRequired] = useState<boolean>(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string>('');
 
   // Additional state for new features
   const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
@@ -286,14 +289,28 @@ const AppContent: React.FC = () => {
 
   const handleLogin = async (username: string, password: string) => {
     setLoadingState(true);
+    setVerificationRequired(false);
     try {
-      await login(username, password);
+      const result = await login(username, password);
+      // Check if email verification is required
+      if (result.code === 'EMAIL_NOT_VERIFIED') {
+        setVerificationRequired(true);
+        setUnverifiedEmail(result.email || username);
+        setMessage('Please verify your email before logging in.');
+        return;
+      }
       setMessage('Login successful!');
       setActiveTab('dashboard');
     } catch (error: any) {
-      // Display detailed error message from the backend
+      // Check for email verification requirement in error
       const errorMessage = error.message || 'Login failed';
-      if (errorMessage.includes('already exists') || errorMessage.includes('Invalid credentials')) {
+      const errorCode = error.code || '';
+      
+      if (errorCode === 'EMAIL_NOT_VERIFIED') {
+        setVerificationRequired(true);
+        setUnverifiedEmail(error.email || username);
+        setMessage('Please verify your email before logging in.');
+      } else if (errorMessage.includes('already exists') || errorMessage.includes('Invalid credentials')) {
         setMessage(errorMessage);
       } else if (errorMessage.includes('no token')) {
         setMessage('Authentication failed. No token received from server.');
@@ -310,8 +327,9 @@ const AppContent: React.FC = () => {
     setLoadingState(true);
     try {
       await register(userData);
-      setMessage('Registration successful! Welcome to Jeseci Academy.');
-      setActiveTab('dashboard');
+      setMessage('Registration successful! Please check your email to verify your account.');
+      // Redirect to verify email page with email pre-filled
+      window.location.href = `/verify-email?email=${encodeURIComponent(userData.email)}`;
     } catch (error: any) {
       // Display detailed error message from the backend
       const errorMessage = error.message || 'Registration failed';
@@ -667,21 +685,42 @@ const AppContent: React.FC = () => {
     <div className="auth-container">
       <div className="auth-card">
         <h2>Login to Jeseci Academy</h2>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          const formData = new FormData(e.target as HTMLFormElement);
-          handleLogin(formData.get('username') as string, formData.get('password') as string);
-        }}>
-          <input name="username" type="text" placeholder="Username or Email" required />
-          <input name="password" type="password" placeholder="Password" required />
-          <button type="submit" disabled={loadingState}>
-            {loadingState ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
+        
+        {verificationRequired && (
+          <div className="verification-notice">
+            <div className="verification-icon">📧</div>
+            <h3>Email Verification Required</h3>
+            <p>Your email address ({unverifiedEmail || 'your account'}) has not been verified yet.</p>
+            <p>Please check your inbox for the verification email or request a new one.</p>
+            <button 
+              className="btn btn-primary" 
+              onClick={() => window.location.href = `/verify-email?email=${encodeURIComponent(unverifiedEmail)}`}
+            >
+              Go to Verification Page
+            </button>
+          </div>
+        )}
+        
+        {!verificationRequired && (
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target as HTMLFormElement);
+            handleLogin(formData.get('username') as string, formData.get('password') as string);
+          }}>
+            <input name="username" type="text" placeholder="Username or Email" required />
+            <input name="password" type="password" placeholder="Password" required />
+            <button type="submit" disabled={loadingState}>
+              {loadingState ? 'Logging in...' : 'Login'}
+            </button>
+          </form>
+        )}
         
         <div className="auth-switch">
           <p>Don't have an account?</p>
-          <button onClick={() => setActiveTab('register')}>Register</button>
+          <button onClick={() => {
+            setActiveTab('register');
+            setVerificationRequired(false);
+          }}>Register</button>
         </div>
         
         <div className="auth-back">
