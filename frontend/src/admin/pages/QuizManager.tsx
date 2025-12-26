@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import adminApi from '../../services/adminApi';
 import { AdminQuiz } from '../../services/adminApi';
-import './Admin.css';
+import '../Admin.css';
 
 interface QuizManagerProps {
   activeSection: string;
