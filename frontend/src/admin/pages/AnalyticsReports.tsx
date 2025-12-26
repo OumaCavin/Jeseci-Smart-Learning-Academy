@@ -29,14 +29,14 @@ const AnalyticsReports: React.FC<AnalyticsReportsProps> = ({ activeSection }) =>
     setError(null);
     try {
       const [userRes, learningRes, contentRes] = await Promise.all([
-        adminApi.getUserAnalytics().catch(() => ({ success: false })),
-        adminApi.getLearningAnalytics().catch(() => ({ success: false })),
-        adminApi.getContentAnalytics().catch(() => ({ success: false })),
+        adminApi.getUserAnalytics().catch(() => ({ success: false } as const)),
+        adminApi.getLearningAnalytics().catch(() => ({ success: false } as const)),
+        adminApi.getContentAnalytics().catch(() => ({ success: false } as const)),
       ]);
 
-      if (userRes.success) setUserAnalytics(userRes.analytics);
-      if (learningRes.success) setLearningAnalytics(learningRes.analytics);
-      if (contentRes.success) setContentAnalytics(contentRes.analytics);
+      if (userRes.success && 'analytics' in userRes) setUserAnalytics(userRes.analytics);
+      if (learningRes.success && 'analytics' in learningRes) setLearningAnalytics(learningRes.analytics);
+      if (contentRes.success && 'analytics' in contentRes) setContentAnalytics(contentRes.analytics);
     } catch (err: any) {
       setError(err.message || 'Failed to load analytics');
     } finally {

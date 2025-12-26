@@ -95,20 +95,20 @@ const AdminPage: React.FC = () => {
 
   return (
     <AdminLayout>
-      {({ activeSection }: { activeSection: string }) => {
-        switch (activeSection) {
+      {(props: { activeSection: string }) => {
+        switch (props.activeSection) {
           case 'dashboard':
-            return <DashboardOverview activeSection={activeSection} />;
+            return <DashboardOverview activeSection={props.activeSection} />;
           case 'users':
-            return <UserManagement activeSection={activeSection} />;
+            return <UserManagement activeSection={props.activeSection} />;
           case 'content':
-            return <ContentManager activeSection={activeSection} />;
+            return <ContentManager activeSection={props.activeSection} />;
           case 'quizzes':
-            return <QuizManager activeSection={activeSection} />;
+            return <QuizManager activeSection={props.activeSection} />;
           case 'ai':
-            return <AILab activeSection={activeSection} />;
+            return <AILab activeSection={props.activeSection} />;
           case 'analytics':
-            return <AnalyticsReports activeSection={activeSection} />;
+            return <AnalyticsReports activeSection={props.activeSection} />;
           default:
             return <DashboardOverview activeSection="dashboard" />;
         }

@@ -29,6 +29,8 @@ export interface User {
   skill_level: string;
   is_active?: boolean;
   is_verified?: boolean;
+  is_admin?: boolean;
+  admin_role?: string;
   last_login?: string;
   created_at?: string;
   progress?: Record<string, any>;
