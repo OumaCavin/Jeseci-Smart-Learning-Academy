@@ -1,47 +1,49 @@
-"""
-Database Migration Script: Create Sync Engine Tables
-
-This SQL script creates the tables required for the event-driven synchronization
-system that maintains eventual consistency between PostgreSQL and Neo4j databases.
-
-Usage:
-    psql -h <host> -p <port> -U <user> -d <database> -f this_file.sql
-
-Or from the backend directory:
-    python -c "
-    import os
-    os.environ['POSTGRES_HOST'] = 'localhost'
-    os.environ['POSTGRES_PORT'] = '5432'
-    os.environ['POSTGRES_DB'] = 'jeseci_learning_academy'
-    os.environ['POSTGRES_USER'] = 'jeseci_academy_user'
-    os.environ['POSTGRES_PASSWORD'] = 'jeseci_secure_password_2024'
-    
-    from sqlalchemy import create_engine, text
-    
-    engine = create_engine(
-        f\"postgresql+psycopg2://{os.environ['POSTGRES_USER']}:{os.environ['POSTGRES_PASSWORD']}\"
-        f\"@{os.environ['POSTGRES_HOST']}:{os.environ['POSTGRES_PORT']}/{os.environ['POSTGRES_DB']}\"
-    )
-    
-    with open('migrations/001_create_sync_engine_tables.sql', 'r') as f:
-        sql = f.read()
-    
-    with engine.connect() as conn:
-        conn.execute(text(sql))
-        conn.commit()
-    
-    print('Migration applied successfully!')
-    "
-
-Tables Created:
-- sync_event_log: Main table for tracking synchronization events (outbox pattern)
-- sync_status: Tracks current synchronization status for each entity
-- sync_conflicts: Records detected conflicts between PostgreSQL and Neo4j
-- reconciliation_runs: Records reconciliation job runs for auditing
-
-Author: Cavin Otieno
-Date: 2025-12-26
-"""
+-- =============================================================================
+-- Database Migration Script: Create Sync Engine Tables
+-- =============================================================================
+--
+-- This SQL script creates the tables required for the event-driven synchronization
+-- system that maintains eventual consistency between PostgreSQL and Neo4j databases.
+--
+-- Usage:
+--     psql -h <host> -p <port> -U <user> -d <database> -f this_file.sql
+--
+-- Or from the backend directory:
+--     python -c "
+--     import os
+--     os.environ['POSTGRES_HOST'] = 'localhost'
+--     os.environ['POSTGRES_PORT'] = '5432'
+--     os.environ['POSTGRES_DB'] = 'jeseci_learning_academy'
+--     os.environ['POSTGRES_USER'] = 'jeseci_academy_user'
+--     os.environ['POSTGRES_PASSWORD'] = 'jeseci_secure_password_2024'
+--     
+--     from sqlalchemy import create_engine, text
+--     
+--     engine = create_engine(
+--         f\"postgresql+psycopg2://{os.environ['POSTGRES_USER']}:{os.environ['POSTGRES_PASSWORD']}\"
+--         f\"@{os.environ['POSTGRES_HOST']}:{os.environ['POSTGRES_PORT']}/{os.environ['POSTGRES_DB']}\"
+--     )
+--     
+--     with open('migrations/001_create_sync_engine_tables.sql', 'r') as f:
+--         sql = f.read()
+--     
+--     with engine.connect() as conn:
+--         conn.execute(text(sql))
+--         conn.commit()
+--     
+--     print('Migration applied successfully!')
+--     "
+--
+-- Tables Created:
+-- - sync_event_log: Main table for tracking synchronization events (outbox pattern)
+-- - sync_status: Tracks current synchronization status for each entity
+-- - sync_conflicts: Records detected conflicts between PostgreSQL and Neo4j
+-- - reconciliation_runs: Records reconciliation job runs for auditing
+--
+-- Author: Cavin Otieno
+-- Date: 2025-12-26
+--
+-- =============================================================================
 
 -- =============================================================================
 -- Step 1: Create custom enum types
