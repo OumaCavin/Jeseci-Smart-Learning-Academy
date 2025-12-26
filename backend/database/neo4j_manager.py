@@ -270,6 +270,292 @@ class Neo4jManager:
             "user_count": self.get_node_count("User"),
             "relationship_count": self.get_relationship_count(),
         }
+    
+    # =============================================================================
+    # User Sync Methods
+    # =============================================================================
+    
+    def sync_user_to_graph(self, user_id: int, username: str, email: str, 
+                           first_name: str = "", last_name: str = "",
+                           skill_level: str = "beginner", 
+                           learning_style: str = "visual",
+                           is_admin: bool = False, admin_role: str = "student") -> bool:
+        """
+        Create or update a User node in Neo4j graph.
+        
+        Args:
+            user_id: PostgreSQL user.id (INTEGER)
+            username: Unique username
+            email: User email
+            first_name: First name
+            last_name: Last name
+            skill_level: User's skill level
+            learning_style: User's learning style
+            is_admin: Whether user is admin
+            admin_role: Admin role level
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        query = """
+        MERGE (u:User {user_id: $user_id})
+        SET u.username = $username,
+            u.email = $email,
+            u.first_name = $first_name,
+            u.last_name = $last_name,
+            u.skill_level = $skill_level,
+            u.learning_style = $learning_style,
+            u.is_admin = $is_admin,
+            u.admin_role = $admin_role,
+            u.updated_at = datetime()
+        RETURN u
+        """
+        parameters = {
+            "user_id": user_id,
+            "username": username,
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "skill_level": skill_level,
+            "learning_style": learning_style,
+            "is_admin": is_admin,
+            "admin_role": admin_role
+        }
+        
+        result = self.execute_query(query, parameters)
+        return result is not None
+    
+    def sync_user_concept_progress(self, user_id: int, concept_id: str, 
+                                    progress_percent: int, mastery_level: int,
+                                    completed: bool = False) -> bool:
+        """
+        Create or update relationship between User and Concept showing progress.
+        
+        Args:
+            user_id: PostgreSQL user.id
+            concept_id: Concept identifier
+            progress_percent: Progress percentage (0-100)
+            mastery_level: Mastery level (0-5)
+            completed: Whether concept is completed
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        query = """
+        MATCH (u:User {user_id: $user_id})
+        MERGE (c:Concept {concept_id: $concept_id})
+        MERGE (u)-[r:COMPLETED_CONCEPT]->(c)
+        SET r.progress_percent = $progress_percent,
+            r.mastery_level = $mastery_level,
+            r.completed = $completed,
+            r.last_accessed = datetime(),
+            r.updated_at = datetime()
+        RETURN r
+        """
+        parameters = {
+            "user_id": user_id,
+            "concept_id": concept_id,
+            "progress_percent": progress_percent,
+            "mastery_level": mastery_level,
+            "completed": completed
+        }
+        
+        result = self.execute_query(query, parameters)
+        return result is not None
+    
+    def sync_user_learning_path(self, user_id: int, path_id: str, 
+                                 progress_percent: float = 0.0) -> bool:
+        """
+        Create relationship between User and LearningPath.
+        
+        Args:
+            user_id: PostgreSQL user.id
+            path_id: Learning path identifier
+            progress_percent: Progress percentage
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        query = """
+        MATCH (u:User {user_id: $user_id})
+        MERGE (p:LearningPath {path_id: $path_id})
+        MERGE (u)-[r:ENROLLED_IN]->(p)
+        SET r.progress_percent = $progress_percent,
+            r.enrolled_at = datetime(),
+            r.updated_at = datetime()
+        RETURN r
+        """
+        parameters = {
+            "user_id": user_id,
+            "path_id": path_id,
+            "progress_percent": progress_percent
+        }
+        
+        result = self.execute_query(query, parameters)
+        return result is not None
+    
+    def sync_user_quiz_attempt(self, user_id: int, quiz_id: str, 
+                               score: int, passed: bool) -> bool:
+        """
+        Create relationship for quiz attempt.
+        
+        Args:
+            user_id: PostgreSQL user.id
+            quiz_id: Quiz identifier
+            score: Quiz score
+            passed: Whether quiz was passed
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        query = """
+        MATCH (u:User {user_id: $user_id})
+        MERGE (q:Quiz {quiz_id: $quiz_id})
+        MERGE (u)-[r:ATTEMPTED_QUIZ]->(q)
+        SET r.score = $score,
+            r.passed = $passed,
+            r.attempted_at = datetime()
+        RETURN r
+        """
+        parameters = {
+            "user_id": user_id,
+            "quiz_id": quiz_id,
+            "score": score,
+            "passed": passed
+        }
+        
+        result = self.execute_query(query, parameters)
+        return result is not None
+    
+    def sync_user_achievement(self, user_id: int, achievement_id: str) -> bool:
+        """
+        Create EARNED relationship when user earns an achievement.
+        
+        Args:
+            user_id: PostgreSQL user.id
+            achievement_id: Achievement identifier
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        query = """
+        MATCH (u:User {user_id: $user_id})
+        MERGE (a:Achievement {achievement_id: $achievement_id})
+        MERGE (u)-[r:EARNED]->(a)
+        SET r.earned_at = datetime()
+        RETURN r
+        """
+        parameters = {
+            "user_id": user_id,
+            "achievement_id": achievement_id
+        }
+        
+        result = self.execute_query(query, parameters)
+        return result is not None
+    
+    def find_similar_users(self, user_id: int, limit: int = 10) -> List[Dict]:
+        """
+        Find users with similar learning patterns using Neo4j graph traversal.
+        
+        Args:
+            user_id: The user to find similar users for
+            limit: Maximum number of similar users to return
+            
+        Returns:
+            List of similar users with similarity score
+        """
+        query = """
+        MATCH (target:User {user_id: $user_id})-[:COMPLETED_CONCEPT]->(c:Concept)
+        WITH target, collect(c.concept_id) AS target_concepts
+        MATCH (other:User)-[:COMPLETED_CONCEPT]->(c:Concept)
+        WHERE other.user_id <> target.user_id
+        WITH target, other, target_concepts, collect(c.concept_id) AS other_concepts
+        WITH target, other, 
+             size([x IN target_concepts WHERE x IN other_concepts]) AS intersection,
+             size(target_concepts) + size(other_concepts) - size([x IN target_concepts WHERE x IN other_concepts]) AS union_size
+        WITH other, 
+             toFloat(intersection) / toFloat(union_size) AS similarity
+        WHERE similarity > 0
+        RETURN other.user_id AS user_id,
+               other.username AS username,
+               other.skill_level AS skill_level,
+               other.learning_style AS learning_style,
+               similarity
+        ORDER BY similarity DESC
+        LIMIT $limit
+        """
+        parameters = {"user_id": user_id, "limit": limit}
+        
+        if not self.driver:
+            if not self.connect():
+                return []
+        
+        try:
+            with self.driver.session(database=self.database) as session:
+                result = session.run(query, parameters)
+                return [{"user_id": record["user_id"], 
+                         "username": record["username"],
+                         "skill_level": record["skill_level"],
+                         "learning_style": record["learning_style"],
+                         "similarity": record["similarity"]} 
+                        for record in result]
+        except Exception as e:
+            print(f"[!] Neo4j similarity query error: {e}")
+            return []
+    
+    def find_users_same_learning_path(self, user_id: int, path_id: str) -> List[Dict]:
+        """
+        Find other users enrolled in the same learning path.
+        
+        Args:
+            user_id: The user to find peers for
+            path_id: Learning path identifier
+            
+        Returns:
+            List of users in the same learning path
+        """
+        query = """
+        MATCH (target:User {user_id: $user_id})-[:ENROLLED_IN]->(p:LearningPath {path_id: $path_id})
+        MATCH (other:User)-[:ENROLLED_IN]->(p)
+        WHERE other.user_id <> target.user_id
+        RETURN other.user_id AS user_id,
+               other.username AS username,
+               other.skill_level AS skill_level
+        ORDER BY other.username
+        """
+        parameters = {"user_id": user_id, "path_id": path_id}
+        
+        if not self.driver:
+            if not self.connect():
+                return []
+        
+        try:
+            with self.driver.session(database=self.database) as session:
+                result = session.run(query, parameters)
+                return [{"user_id": record["user_id"], 
+                         "username": record["username"],
+                         "skill_level": record["skill_level"]} 
+                        for record in result]
+        except Exception as e:
+            print(f"[!] Neo4j peer query error: {e}")
+            return []
+    
+    def delete_user_from_graph(self, user_id: int) -> bool:
+        """
+        Remove a User node and all their relationships from Neo4j.
+        
+        Args:
+            user_id: PostgreSQL user.id to remove
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        query = """
+        MATCH (u:User {user_id: $user_id})
+        DETACH DELETE u
+        """
+        result = self.execute_query(query, {"user_id": user_id})
+        return result is not None
 
 
 # Global Neo4j manager instance
