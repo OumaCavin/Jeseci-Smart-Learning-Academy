@@ -32,12 +32,13 @@ class AdminRole:
     USER_ADMIN = "user_admin"
     SUPER_ADMIN = "super_admin"
 
-def create_super_admin(username: str, email: str, password: str, 
+def create_super_admin(user_id: str, username: str, email: str, password: str, 
                       first_name: str = "", last_name: str = "") -> bool:
     """
     Create a super administrator user.
     
     Args:
+        user_id: Business identifier (e.g., National ID, Staff Number)
         username: Admin username
         email: Admin email
         password: Admin password
@@ -51,6 +52,7 @@ def create_super_admin(username: str, email: str, password: str,
         print("Creating super administrator user...")
         
         result = auth_module.register_user(
+            user_id=user_id,
             username=username,
             email=email,
             password=password,
@@ -79,6 +81,7 @@ def create_super_admin(username: str, email: str, password: str,
 def main():
     """Main function"""
     parser = argparse.ArgumentParser(description='Create super administrator user')
+    parser.add_argument('--user-id', required=True, help='Business identifier (e.g., National ID, Staff Number)')
     parser.add_argument('--username', required=True, help='Admin username')
     parser.add_argument('--email', required=True, help='Admin email address')
     parser.add_argument('--password', help='Admin password (will prompt if not provided)')
@@ -105,6 +108,7 @@ def main():
     print("\n" + "="*50)
     print("SUPER ADMIN USER CREATION")
     print("="*50)
+    print(f"User ID: {args.user_id}")
     print(f"Username: {args.username}")
     print(f"Email: {args.email}")
     print(f"First Name: {args.first_name or '(not set)'}")
@@ -121,6 +125,7 @@ def main():
     
     # Create the user
     success = create_super_admin(
+        user_id=args.user_id,
         username=args.username,
         email=args.email,
         password=args.password,
