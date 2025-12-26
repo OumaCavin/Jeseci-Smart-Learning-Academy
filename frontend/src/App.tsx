@@ -291,14 +291,21 @@ const AppContent: React.FC = () => {
     setLoadingState(true);
     setVerificationRequired(false);
     try {
-      const result = await login(username, password);
+      // Use apiService directly to get the full response
+      const result = await apiService.login(username, password);
+      
       // Check if email verification is required
       if (result.code === 'EMAIL_NOT_VERIFIED') {
         setVerificationRequired(true);
         setUnverifiedEmail(result.email || username);
         setMessage('Please verify your email before logging in.');
+        // Still call the auth login to store the user data
+        await login(username, password);
         return;
       }
+      
+      // Proceed with normal login
+      await login(username, password);
       setMessage('Login successful!');
       setActiveTab('dashboard');
     } catch (error: any) {
