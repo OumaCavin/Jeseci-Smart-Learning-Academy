@@ -134,6 +134,8 @@ class UserAuthManager:
             
             # Add email verification columns if they don't exist (for existing installations)
             alter_queries = [
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255)",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS token_expires_at TIMESTAMP",
