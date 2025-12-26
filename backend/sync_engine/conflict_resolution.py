@@ -10,7 +10,7 @@ Conflict Resolution Strategies:
 - MANUAL_REVIEW: Flag for manual intervention
 - MERGE: Attempt to merge conflicting changes
 
-Author: Jeseci Development Team
+Author: Cavin Otieno
 """
 
 import hashlib
@@ -142,7 +142,10 @@ class ConflictDetector:
         if not table:
             return None
         
-        schema = "jeseci_academy"
+        # Get schema from configuration
+        from .config import get_sync_config
+        config = get_sync_config()
+        schema = config.postgres_schema
         id_field = "concept_id" if entity_type == "concept" else "path_id"
         
         query = f"""
