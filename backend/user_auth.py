@@ -21,6 +21,7 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta
 import logging
+import uuid
 from email_verification import (
     generate_verification_token,
     get_token_expiration,
@@ -177,7 +178,7 @@ class UserAuthManager:
         finally:
             self._return_connection(conn)
     
-    def register_user(self, user_id: str, username: str, email: str, password: str, 
+    def register_user(self, username: str, email: str, password: str, 
                       first_name: str = "", last_name: str = "",
                       learning_style: str = "visual", skill_level: str = "beginner",
                       is_admin: bool = False, admin_role: str = "student",
@@ -186,7 +187,6 @@ class UserAuthManager:
         Register a new user with bcrypt password hashing and email verification.
         
         Args:
-            user_id: External business identifier (e.g., National ID, Staff Number)
             username: Unique username
             email: Unique email address
             password: Plain text password (will be hashed)
@@ -213,6 +213,9 @@ class UserAuthManager:
             existing = cursor.fetchone()
             if existing:
                 return {"success": False, "error": "Username or email already exists", "user_id": None, "code": "CONFLICT"}
+            
+            # Generate unique user_id (auto-generated string identifier)
+            user_id = f"user_{username}_{uuid.uuid4().hex[:8]}"
             
             # Hash password with bcrypt
             salt = bcrypt.gensalt(rounds=12)
