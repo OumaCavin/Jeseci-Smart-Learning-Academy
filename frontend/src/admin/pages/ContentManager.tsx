@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import adminApi from '../../services/adminApi';
 import { AdminCourse, AdminConcept, AdminLearningPath } from '../../services/adminApi';
-import './Admin.css';
+import '../Admin.css';
 
 interface ContentManagerProps {
   activeSection: string;
