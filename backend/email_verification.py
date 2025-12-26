@@ -216,6 +216,9 @@ def resend_verification_email(email: str) -> dict:
     
     load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', 'config', '.env'))
     
+    # Database Schema Configuration
+    DB_SCHEMA = os.getenv("DB_SCHEMA", "jeseci_academy")
+    
     conn = None
     try:
         # Get database connection
@@ -229,9 +232,9 @@ def resend_verification_email(email: str) -> dict:
         cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
         
         # Check if user exists and email is not verified
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT user_id, username, is_email_verified 
-            FROM users 
+            FROM {DB_SCHEMA}.users 
             WHERE email = %s
         """, (email,))
         user = cursor.fetchone()
@@ -247,8 +250,8 @@ def resend_verification_email(email: str) -> dict:
         expires_at = get_token_expiration()
         
         # Update user's verification token
-        cursor.execute("""
-            UPDATE users 
+        cursor.execute(f"""
+            UPDATE {DB_SCHEMA}.users 
             SET verification_token = %s, token_expires_at = %s
             WHERE email = %s
             RETURNING user_id, username
