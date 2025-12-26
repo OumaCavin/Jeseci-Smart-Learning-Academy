@@ -132,16 +132,27 @@ class UserAuthManager:
             """
             cursor.execute(create_table_query)
             
-            # Add email verification columns if they don't exist (for existing installations)
+            # Add missing columns for existing installations (handles tables created by older code or SQLAlchemy)
             alter_queries = [
+                # Core columns that might be missing
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS user_id VARCHAR(64) UNIQUE NOT NULL DEFAULT 'user_' || nextval('users_id_seq'::regclass)",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS email VARCHAR(255) UNIQUE",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255) NOT NULL DEFAULT 'dummy'",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255)",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS token_expires_at TIMESTAMP",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS learning_style VARCHAR(50) DEFAULT 'visual'",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS skill_level VARCHAR(50) DEFAULT 'beginner'",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE",
                 f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS admin_role VARCHAR(50) DEFAULT 'student'",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE"
+                # Email verification columns
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255)",
+                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS token_expires_at TIMESTAMP"
             ]
             for query in alter_queries:
                 try:
