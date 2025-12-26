@@ -28,6 +28,7 @@ export interface User {
   learning_style: string;
   skill_level: string;
   is_active?: boolean;
+  is_email_verified?: boolean;
   is_verified?: boolean;
   is_admin?: boolean;
   admin_role?: string;
@@ -48,6 +49,9 @@ export interface LoginResponse {
   error?: string;
   code?: string;
   message?: string;
+  requires_verification?: boolean;
+  is_email_verified?: boolean;
+  email?: string;
 }
 
 export interface Course {
@@ -411,6 +415,36 @@ class ApiService {
     }
     
     return result;
+  }
+
+  // Email Verification
+  async verifyEmail(token: string): Promise<any> {
+    const response = await this.makeRequest('/auth/verify-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token }),
+    });
+    return response;
+  }
+
+  async resendVerificationEmail(email: string): Promise<any> {
+    const response = await this.makeRequest('/auth/resend-verification', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+    return response;
+  }
+
+  async getVerificationStatus(userId: string): Promise<any> {
+    const response = await this.makeRequest(`/auth/verification-status/${userId}`, {
+      method: 'GET',
+    });
+    return response;
   }
 
   // Course Management

@@ -9,6 +9,7 @@ License: MIT License
 """
 
 import os
+import secrets
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -21,6 +22,12 @@ import jwt
 from datetime import datetime, timedelta
 import logging
 import uuid
+from email_verification import (
+    generate_verification_token,
+    get_token_expiration,
+    send_verification_email,
+    send_welcome_email
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -121,16 +128,29 @@ class UserAuthManager:
             """
             cursor.execute(create_table_query)
             
-            # Add admin columns if they don't exist (for existing installations)
+            # Add email verification columns if they don't exist (for existing installations)
             alter_queries = [
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255)",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS token_expires_at TIMESTAMP",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE",
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_role VARCHAR(50) DEFAULT 'student'"
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_role VARCHAR(50) DEFAULT 'student'",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE"
             ]
             for query in alter_queries:
                 try:
                     cursor.execute(query)
                 except Exception as e:
                     logger.debug(f"Column might already exist: {e}")
+            
+            # Create index on verification_token for faster lookups
+            try:
+                cursor.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_verification_token 
+                    ON users(verification_token)
+                """)
+            except Exception as e:
+                logger.debug(f"Index might already exist: {e}")
             
             conn.commit()
             logger.info("Users table ensured in PostgreSQL with admin support")
@@ -144,9 +164,10 @@ class UserAuthManager:
     def register_user(self, username: str, email: str, password: str, 
                       first_name: str = "", last_name: str = "",
                       learning_style: str = "visual", skill_level: str = "beginner",
-                      is_admin: bool = False, admin_role: str = "student") -> dict:
+                      is_admin: bool = False, admin_role: str = "student",
+                      skip_verification: bool = False) -> dict:
         """
-        Register a new user with bcrypt password hashing.
+        Register a new user with bcrypt password hashing and email verification.
         
         Args:
             username: Unique username
@@ -158,9 +179,10 @@ class UserAuthManager:
             skill_level: User's skill level
             is_admin: Whether user has admin privileges (default: False)
             admin_role: Admin role level (student, admin, super_admin)
+            skip_verification: Skip email verification (for admin-created users)
             
         Returns:
-            dict with 'success', 'user_id', and 'message' keys
+            dict with 'success', 'user_id', 'requires_verification', and 'message' keys
         """
         conn = self._get_connection()
         if conn is None:
@@ -182,19 +204,43 @@ class UserAuthManager:
             salt = bcrypt.gensalt(rounds=12)
             password_hash = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
             
+            # Generate verification token if not skipped
+            verification_token = None
+            token_expires_at = None
+            is_email_verified = skip_verification  # Skip verification for admin-created users
+            
+            if not skip_verification:
+                verification_token = generate_verification_token()
+                token_expires_at = get_token_expiration()
+            
             # Insert new user
             insert_query = """
             INSERT INTO users (user_id, username, email, password_hash, first_name, last_name, 
-                             learning_style, skill_level, is_admin, admin_role)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                             learning_style, skill_level, is_admin, admin_role, 
+                             is_email_verified, verification_token, token_expires_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """
             cursor.execute(insert_query, (user_id, username, email, password_hash, first_name, 
-                                        last_name, learning_style, skill_level, is_admin, admin_role))
+                                        last_name, learning_style, skill_level, is_admin, admin_role,
+                                        is_email_verified, verification_token, token_expires_at))
             conn.commit()
             
+            # Send verification email if not skipped
+            requires_verification = False
+            if not skip_verification:
+                email_result = send_verification_email(
+                    email=email,
+                    username=username,
+                    verification_token=verification_token
+                )
+                requires_verification = True
+                logger.info(f"Verification email sent to {email}: {email_result.get('method', 'unknown')}")
+            
             role_msg = f" with {admin_role} privileges" if is_admin else ""
-            logger.info(f"User registered successfully: {user_id}{role_msg}")
+            action_msg = "verification required" if requires_verification else "created and ready to use"
+            logger.info(f"User registered successfully: {user_id}{role_msg} - {action_msg}")
+            
             return {
                 "success": True, 
                 "user_id": user_id, 
@@ -202,7 +248,9 @@ class UserAuthManager:
                 "email": email,
                 "is_admin": is_admin,
                 "admin_role": admin_role,
-                "message": f"User created successfully{role_msg}"
+                "requires_verification": requires_verification,
+                "is_email_verified": is_email_verified,
+                "message": f"User created successfully{role_msg}. {'Please check your email to verify your account.' if requires_verification else 'Account is ready to use.'}"
             }
             
         except Exception as e:
@@ -233,13 +281,23 @@ class UserAuthManager:
             
             # Find user by username or email
             cursor.execute(
-                "SELECT user_id, username, email, password_hash, first_name, last_name, learning_style, skill_level, is_active, is_admin, admin_role FROM users WHERE (username = %s OR email = %s) AND is_active = TRUE",
+                "SELECT user_id, username, email, password_hash, first_name, last_name, learning_style, skill_level, is_active, is_admin, admin_role, is_email_verified FROM users WHERE (username = %s OR email = %s) AND is_active = TRUE",
                 (username, username)
             )
             user = cursor.fetchone()
             
             if not user:
                 return {"success": False, "error": "Invalid credentials", "code": "UNAUTHORIZED", "token": None}
+            
+            # Check if email is verified
+            if not user.get('is_email_verified', False):
+                return {
+                    "success": False, 
+                    "error": "Please verify your email before logging in", 
+                    "code": "EMAIL_NOT_VERIFIED", 
+                    "token": None,
+                    "email": user['email']
+                }
             
             # Verify password
             if not bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
@@ -278,7 +336,8 @@ class UserAuthManager:
                     "learning_style": user['learning_style'],
                     "skill_level": user['skill_level'],
                     "is_admin": user.get('is_admin', False),
-                    "admin_role": user.get('admin_role', 'student')
+                    "admin_role": user.get('admin_role', 'student'),
+                    "is_email_verified": user.get('is_email_verified', False)
                 },
                 "message": "Login successful"
             }
@@ -527,12 +586,187 @@ class UserAuthManager:
         finally:
             self._return_connection(conn)
     
+    def verify_email(self, verification_token: str) -> dict:
+        """
+        Verify a user's email using the verification token.
+        
+        Args:
+            verification_token: The verification token from the email link
+            
+        Returns:
+            dict with 'success', 'message' keys
+        """
+        conn = self._get_connection()
+        if conn is None:
+            return {"success": False, "error": "Database connection failed"}
+        
+        try:
+            cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
+            
+            # Find user with this verification token
+            cursor.execute("""
+                SELECT user_id, username, email, token_expires_at, is_email_verified 
+                FROM users 
+                WHERE verification_token = %s
+            """, (verification_token,))
+            user = cursor.fetchone()
+            
+            if not user:
+                return {"success": False, "error": "Invalid verification token", "code": "INVALID_TOKEN"}
+            
+            # Check if already verified
+            if user.get('is_email_verified', False):
+                return {"success": True, "message": "Email is already verified", "code": "ALREADY_VERIFIED"}
+            
+            # Check if token has expired
+            if user.get('token_expires_at') and user['token_expires_at'] < datetime.utcnow():
+                return {
+                    "success": False, 
+                    "error": "Verification token has expired. Please request a new verification email.",
+                    "code": "TOKEN_EXPIRED",
+                    "email": user['email']
+                }
+            
+            # Update user to verified
+            cursor.execute("""
+                UPDATE users 
+                SET is_email_verified = TRUE, 
+                    verification_token = NULL, 
+                    token_expires_at = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = %s
+                RETURNING user_id, username, email
+            """, (user['user_id'],))
+            updated_user = cursor.fetchone()
+            conn.commit()
+            
+            logger.info(f"Email verified successfully for user: {updated_user['username']}")
+            
+            # Send welcome email
+            send_welcome_email(email=updated_user['email'], username=updated_user['username'])
+            
+            return {
+                "success": True,
+                "message": "Email verified successfully! Welcome to Jeseci Smart Learning Academy.",
+                "user_id": updated_user['user_id'],
+                "username": updated_user['username']
+            }
+            
+        except Exception as e:
+            logger.error(f"Email verification error: {e}")
+            if conn:
+                conn.rollback()
+            return {"success": False, "error": str(e)}
+        finally:
+            self._return_connection(conn)
+    
+    def resend_verification_email(self, email: str) -> dict:
+        """
+        Resend verification email to a user.
+        
+        Args:
+            email: User's email address
+            
+        Returns:
+            dict with 'success', 'message' keys
+        """
+        conn = self._get_connection()
+        if conn is None:
+            return {"success": False, "error": "Database connection failed"}
+        
+        try:
+            cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
+            
+            # Check if user exists and email is not verified
+            cursor.execute("""
+                SELECT user_id, username, is_email_verified 
+                FROM users 
+                WHERE email = %s
+            """, (email,))
+            user = cursor.fetchone()
+            
+            if not user:
+                return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
+            
+            if user.get('is_email_verified', False):
+                return {"success": False, "error": "Email is already verified", "code": "ALREADY_VERIFIED"}
+            
+            # Generate new verification token
+            new_token = generate_verification_token()
+            expires_at = get_token_expiration()
+            
+            # Update user's verification token
+            cursor.execute("""
+                UPDATE users 
+                SET verification_token = %s, token_expires_at = %s, updated_at = CURRENT_TIMESTAMP
+                WHERE email = %s
+                RETURNING user_id, username
+            """, (new_token, expires_at, email))
+            updated_user = cursor.fetchone()
+            conn.commit()
+            
+            # Send verification email
+            email_result = send_verification_email(
+                email=email,
+                username=updated_user['username'],
+                verification_token=new_token
+            )
+            
+            logger.info(f"Verification email resent to {email}")
+            
+            return {
+                "success": True,
+                "message": "Verification email sent successfully",
+                "method": email_result.get("method", "unknown")
+            }
+            
+        except Exception as e:
+            logger.error(f"Resend verification email error: {e}")
+            if conn:
+                conn.rollback()
+            return {"success": False, "error": str(e)}
+        finally:
+            self._return_connection(conn)
+    
+    def get_user_verification_status(self, user_id: str) -> dict:
+        """
+        Get user's email verification status.
+        
+        Args:
+            user_id: User ID
+            
+        Returns:
+            dict with verification status
+        """
+        conn = self._get_connection()
+        if conn is None:
+            return {"is_verified": False}
+        
+        try:
+            cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
+            cursor.execute("""
+                SELECT is_email_verified, verification_token, token_expires_at
+                FROM users 
+                WHERE user_id = %s
+            """, (user_id,))
+            user = cursor.fetchone()
+            
+            if not user:
+                return {"is_verified": False}
+            
+            return {
+                "is_verified": user.get('is_email_verified', False),
+                "has_pending_token": user.get('verification_token') is not None,
+                "token_expires_at": user.get('token_expires_at').isoformat() if user.get('token_expires_at') else None
+            }
+            
+        except Exception as e:
+            logger.error(f"Get verification status error: {e}")
+            return {"is_verified": False}
+        finally:
+            self._return_connection(conn)
+    
     def close(self):
-        """Close all connections"""
-        if UserAuthManager._pool:
-            UserAuthManager._pool.closeall()
-            UserAuthManager._pool = None
-            logger.info("User auth connection pool closed")
         """Close all connections"""
         if UserAuthManager._pool:
             UserAuthManager._pool.closeall()
@@ -547,15 +781,32 @@ auth_manager = UserAuthManager()
 def register_user(username: str, email: str, password: str, 
                   first_name: str = "", last_name: str = "",
                   learning_style: str = "visual", skill_level: str = "beginner",
-                  is_admin: bool = False, admin_role: str = "student") -> dict:
+                  is_admin: bool = False, admin_role: str = "student",
+                  skip_verification: bool = False) -> dict:
     """Wrapper function for Jaclang integration"""
     return auth_manager.register_user(username, email, password, first_name, last_name, 
-                                    learning_style, skill_level, is_admin, admin_role)
+                                    learning_style, skill_level, is_admin, admin_role,
+                                    skip_verification)
 
 
 def authenticate_user(username: str, password: str) -> dict:
     """Wrapper function for Jaclang integration"""
     return auth_manager.authenticate_user(username, password)
+
+
+def verify_email(verification_token: str) -> dict:
+    """Wrapper function for email verification"""
+    return auth_manager.verify_email(verification_token)
+
+
+def resend_verification_email(email: str) -> dict:
+    """Wrapper function for resending verification email"""
+    return auth_manager.resend_verification_email(email)
+
+
+def get_user_verification_status(user_id: str) -> dict:
+    """Wrapper function for getting user verification status"""
+    return auth_manager.get_user_verification_status(user_id)
 
 
 def get_user_by_id(user_id: str) -> dict:
