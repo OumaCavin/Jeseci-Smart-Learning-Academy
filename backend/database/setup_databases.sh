@@ -76,6 +76,8 @@ else
         POSTGRES_DB="jeseci_learning_academy"
         POSTGRES_USER="jeseci_academy_user"
         POSTGRES_PASSWORD="jeseci_secure_password_2024"
+        DB_SCHEMA="jeseci_academy"
+        PG_SUPERUSER="postgres"
         NEO4J_URI="bolt://localhost:7687"
         NEO4J_USER="neo4j"
         NEO4J_PASSWORD="neo4j_secure_password_2024"
@@ -169,9 +171,16 @@ if command -v psql &> /dev/null; then
                 fi
             fi
             
-            # Step 3: Grant privileges
+            # Step 3: Grant privileges on database and schema
             sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB TO $POSTGRES_USER;" 2>/dev/null || true
             sudo -u postgres psql -c "GRANT ALL ON SCHEMA public TO $POSTGRES_USER;" 2>/dev/null || true
+            
+            # Create and grant permissions on the custom schema
+            sudo -u postgres psql -d "$POSTGRES_DB" -c "CREATE SCHEMA IF NOT EXISTS $DB_SCHEMA AUTHORIZATION $POSTGRES_USER;" 2>/dev/null || true
+            sudo -u postgres psql -d "$POSTGRES_DB" -c "GRANT ALL ON SCHEMA $DB_SCHEMA TO $POSTGRES_USER;" 2>/dev/null || true
+            sudo -u postgres psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON TABLES TO $POSTGRES_USER;" 2>/dev/null || true
+            sudo -u postgres psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON SEQUENCES TO $POSTGRES_USER;" 2>/dev/null || true
+            sudo -u postgres psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON FUNCTIONS TO $POSTGRES_USER;" 2>/dev/null || true
             
             printf "\n"
             
