@@ -53,6 +53,7 @@ class UserAuthManager:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+            cls._instance.schema = DB_SCHEMA
             cls._instance._initialize_pool()
         return cls._instance
     
@@ -145,9 +146,9 @@ class UserAuthManager:
             
             # Create index on verification_token for faster lookups
             try:
-                cursor.execute("""
-                    CREATE INDEX IF NOT EXISTS idx_verification_token 
-                    ON users(verification_token)
+                cursor.execute(f"""
+                    CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_verification_token 
+                    ON {DB_SCHEMA}.users(verification_token)
                 """)
             except Exception as e:
                 logger.debug(f"Index might already exist: {e}")
@@ -192,7 +193,7 @@ class UserAuthManager:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
             
             # Check if user already exists
-            cursor.execute("SELECT user_id FROM users WHERE username = %s OR email = %s", (username, email))
+            cursor.execute(f"SELECT user_id FROM {self.schema}.users WHERE username = %s OR email = %s", (username, email))
             existing = cursor.fetchone()
             if existing:
                 return {"success": False, "error": "Username or email already exists", "user_id": None, "code": "CONFLICT"}
@@ -215,7 +216,7 @@ class UserAuthManager:
             
             # Insert new user
             insert_query = """
-            INSERT INTO users (user_id, username, email, password_hash, first_name, last_name, 
+            INSERT INTO {self.schema}.users (user_id, username, email, password_hash, first_name, last_name, 
                              learning_style, skill_level, is_admin, admin_role, 
                              is_email_verified, verification_token, token_expires_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -281,7 +282,7 @@ class UserAuthManager:
             
             # Find user by username or email
             cursor.execute(
-                "SELECT user_id, username, email, password_hash, first_name, last_name, learning_style, skill_level, is_active, is_admin, admin_role, is_email_verified FROM users WHERE (username = %s OR email = %s) AND is_active = TRUE",
+                f"SELECT user_id, username, email, password_hash, first_name, last_name, learning_style, skill_level, is_active, is_admin, admin_role, is_email_verified FROM {self.schema}.users WHERE (username = %s OR email = %s) AND is_active = TRUE",
                 (username, username)
             )
             user = cursor.fetchone()
@@ -317,7 +318,7 @@ class UserAuthManager:
             token = jwt.encode(token_payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
             
             # Update last login
-            update_query = "UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE user_id = %s"
+            update_query = f"UPDATE {self.schema}.users SET last_login_at = CURRENT_TIMESTAMP WHERE user_id = %s"
             cursor.execute(update_query, (user_id,))
             conn.commit()
             
@@ -357,7 +358,7 @@ class UserAuthManager:
         try:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
             cursor.execute(
-                "SELECT user_id, username, email, first_name, last_name, learning_style, skill_level, created_at, is_admin, admin_role FROM users WHERE user_id = %s AND is_active = TRUE",
+                f"SELECT user_id, username, email, first_name, last_name, learning_style, skill_level, created_at, is_admin, admin_role FROM {self.schema}.users WHERE user_id = %s AND is_active = TRUE",
                 (user_id,)
             )
             user = cursor.fetchone()
@@ -433,7 +434,7 @@ class UserAuthManager:
             where_clause = f"WHERE {where_clause}" if where_conditions else ""
             
             # Get total count
-            count_query = f"SELECT COUNT(*) as total FROM users {where_clause}"
+            count_query = f"SELECT COUNT(*) as total FROM {self.schema}.users {where_clause}"
             cursor.execute(count_query, params)
             total = cursor.fetchone()['total']
             
@@ -441,7 +442,7 @@ class UserAuthManager:
             users_query = f"""
             SELECT user_id, username, email, first_name, last_name, learning_style, 
                    skill_level, created_at, last_login_at, is_active, is_admin, admin_role
-            FROM users 
+            FROM {self.schema}.users 
             {where_clause}
             ORDER BY created_at DESC
             LIMIT %s OFFSET %s
@@ -497,14 +498,14 @@ class UserAuthManager:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
             
             # Check if user exists
-            cursor.execute("SELECT user_id FROM users WHERE user_id = %s", (user_id,))
+            cursor.execute(f"SELECT user_id FROM {self.schema}.users WHERE user_id = %s", (user_id,))
             existing = cursor.fetchone()
             if not existing:
                 return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
             
             # Update admin status
-            update_query = """
-            UPDATE users 
+            update_query = f"""
+            UPDATE {self.schema}.users 
             SET is_admin = %s, admin_role = %s, updated_at = CURRENT_TIMESTAMP
             WHERE user_id = %s
             RETURNING user_id, username, is_admin, admin_role
@@ -551,15 +552,15 @@ class UserAuthManager:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
             
             # Check if user exists
-            cursor.execute("SELECT user_id, username FROM users WHERE user_id = %s", (user_id,))
+            cursor.execute(f"SELECT user_id, username FROM {self.schema}.users WHERE user_id = %s", (user_id,))
             existing = cursor.fetchone()
             if not existing:
                 return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
             
             # Update user status
             is_active = not suspended
-            update_query = """
-            UPDATE users 
+            update_query = f"""
+            UPDATE {self.schema}.users 
             SET is_active = %s, updated_at = CURRENT_TIMESTAMP
             WHERE user_id = %s
             RETURNING user_id, username, is_active
@@ -604,9 +605,9 @@ class UserAuthManager:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
             
             # Find user with this verification token
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT user_id, username, email, token_expires_at, is_email_verified 
-                FROM users 
+                FROM {self.schema}.users 
                 WHERE verification_token = %s
             """, (verification_token,))
             user = cursor.fetchone()
@@ -628,8 +629,8 @@ class UserAuthManager:
                 }
             
             # Update user to verified
-            cursor.execute("""
-                UPDATE users 
+            cursor.execute(f"""
+                UPDATE {self.schema}.users 
                 SET is_email_verified = TRUE, 
                     verification_token = NULL, 
                     token_expires_at = NULL,
@@ -678,9 +679,9 @@ class UserAuthManager:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
             
             # Check if user exists and email is not verified
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT user_id, username, is_email_verified 
-                FROM users 
+                FROM {self.schema}.users 
                 WHERE email = %s
             """, (email,))
             user = cursor.fetchone()
@@ -696,8 +697,8 @@ class UserAuthManager:
             expires_at = get_token_expiration()
             
             # Update user's verification token
-            cursor.execute("""
-                UPDATE users 
+            cursor.execute(f"""
+                UPDATE {self.schema}.users 
                 SET verification_token = %s, token_expires_at = %s, updated_at = CURRENT_TIMESTAMP
                 WHERE email = %s
                 RETURNING user_id, username
@@ -744,9 +745,9 @@ class UserAuthManager:
         
         try:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT is_email_verified, verification_token, token_expires_at
-                FROM users 
+                FROM {self.schema}.users 
                 WHERE user_id = %s
             """, (user_id,))
             user = cursor.fetchone()
