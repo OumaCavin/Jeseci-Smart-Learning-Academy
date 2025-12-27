@@ -73,9 +73,18 @@ try:
         else:
             print('   Check your inbox at: ' + email)
     else:
-        error = data.get('error', 'Unknown error')
-        code = data.get('code', '')
-        print('❌ Failed: ' + error)
+        # Check if 'detail' is a dictionary (custom error) or string (standard 404)
+        detail = data.get('detail')
+        if isinstance(detail, dict):
+            error_msg = detail.get('error', 'Unknown error')
+            code = detail.get('code', '')
+        else:
+            # Fallback for standard FastAPI errors (like 404 Not Found)
+            error_msg = str(detail) if detail else data.get('error', 'Unknown error')
+            code = ''
+        
+        print('❌ Failed: ' + error_msg)
+        
         if code == 'NOT_FOUND':
             print('   The email address is not registered.')
         elif code == 'ALREADY_VERIFIED':
