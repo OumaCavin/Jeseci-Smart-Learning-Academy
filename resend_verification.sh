@@ -39,6 +39,8 @@ fi
 
 echo ""
 echo "Sending verification email..."
+echo "  Email to send: $EMAIL"
+echo "  URL: http://localhost:8000/auth/resend-verification"
 echo ""
 
 # Run the resend verification script
@@ -52,11 +54,16 @@ load_dotenv(dotenv_path=os.path.join(os.getcwd(), 'backend', 'config', '.env'))
 
 import requests
 
-email = '$EMAIL'
+email = '''$EMAIL'''
+print(f'Python received email: [{email}]')
 url = 'http://localhost:8000/auth/resend-verification'
 
 try:
-    response = requests.post(url, json={'email': email})
+    payload = {'email': email}
+    print(f'Request payload: {payload}')
+    response = requests.post(url, json=payload)
+    print(f'Response status: {response.status_code}')
+    print(f'Response body: {response.text}')
     data = response.json()
     
     if response.status_code == 200:
