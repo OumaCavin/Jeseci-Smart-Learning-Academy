@@ -18,11 +18,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Email configuration
-SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+# Support both new naming convention (SMTP_*) and legacy naming
+SMTP_SERVER = os.getenv("SMTP_HOST", os.getenv("SMTP_SERVER", "smtp.gmail.com"))
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@jeseci.com")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@jeseci.com")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
+FROM_EMAIL = os.getenv("SMTP_FROM", os.getenv("FROM_EMAIL", "noreply@jeseci.com"))
+EMAIL_PASSWORD = os.getenv("SMTP_PASSWORD", os.getenv("EMAIL_PASSWORD", ""))
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 # Token configuration
