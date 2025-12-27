@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { apiService, User, ProgressData, AnalyticsData, AIGeneratedContent, LearningPath, Concept, Quiz, Achievement, ChatMessage } from './services/api';
 import { AdminProvider, useAdmin } from './contexts/AdminContext';
@@ -1286,7 +1287,9 @@ const AppContent: React.FC = () => {
     <div className="App">
       {/* Show Email Verification Page if URL contains verify-email or token */}
       {showVerifyPage && !isAuthenticated && (
-        <VerifyEmail />
+        <BrowserRouter>
+          <VerifyEmail />
+        </BrowserRouter>
       )}
 
       {/* Show Landing Page for non-authenticated users */}
