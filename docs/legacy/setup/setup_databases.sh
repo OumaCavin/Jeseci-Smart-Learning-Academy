@@ -22,9 +22,10 @@ print_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
 echo -e "\n${BLUE}🗄️  Jeseci Academy - Database Setup${NC}\n"
 
 # Load environment variables
+# DO NOT manually export with xargs - it can corrupt passwords with special characters
 if [ -f ".env" ]; then
-    print_info "Loading environment variables..."
-    export $(grep -v '^#' .env | xargs)
+    print_info "Environment file found: .env"
+    print_info "Variables will be loaded by Python scripts"
 else
     print_error ".env file not found!"
     exit 1
