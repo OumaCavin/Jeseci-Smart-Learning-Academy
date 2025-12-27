@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from fastapi import APIRouter, HTTPException, Depends, Header, Query, Request
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
-from admin_auth import get_current_admin_user, AdminRole
+from admin_auth import get_current_user_from_token, AdminRole
 
 # Initialize router
 lms_router = APIRouter()
@@ -528,7 +528,7 @@ async def get_supported_platforms():
 @lms_router.post("/lms/configurations", response_model=LMSConfigResponse)
 async def create_lms_configuration(
     request: LMSConfigCreateRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Create new LMS platform configuration.
@@ -591,7 +591,7 @@ async def create_lms_configuration(
 async def list_lms_configurations(
     platform: Optional[str] = Query(None),
     active_only: bool = Query(True),
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     List all LMS configurations.
@@ -621,7 +621,7 @@ async def list_lms_configurations(
 @lms_router.get("/lms/configurations/{config_id}")
 async def get_lms_configuration(
     config_id: str,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get detailed LMS configuration.
@@ -661,7 +661,7 @@ async def get_lms_configuration(
 async def update_lms_configuration(
     config_id: str,
     request: LMSConfigCreateRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Update existing LMS configuration.
@@ -705,7 +705,7 @@ async def update_lms_configuration(
 async def lti_launch(
     id_token: str = Field(...),
     state: str = Field(...),
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Handle LTI 1.3 launch request.
@@ -763,7 +763,7 @@ async def lti_launch(
 @lms_router.post("/lms/grades", response_model=Dict[str, Any])
 async def submit_grade(
     request: GradeSubmissionRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Submit grade to LMS via LTI Assignment and Grade Services (AGS).
@@ -835,7 +835,7 @@ async def get_grade_history(
     user_id: str,
     lms_config_id: Optional[str] = Query(None),
     limit: int = Query(default=50, ge=1, le=100),
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get grade submission history for a user.
@@ -873,7 +873,7 @@ async def get_grade_history(
 @lms_router.post("/lms/roster/sync", response_model=Dict[str, Any])
 async def sync_roster(
     request: RosterSyncRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Synchronize roster from LMS to Jeseci platform.
@@ -950,7 +950,7 @@ async def get_roster(
     lms_config_id: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     limit: int = Query(default=100, ge=1, le=500),
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get roster entries for a specific context/course.
@@ -983,7 +983,7 @@ async def get_roster(
 @lms_router.post("/lms/deep-link")
 async def handle_deep_linking(
     request: DeepLinkRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Handle LTI Deep Linking response.
@@ -1019,7 +1019,7 @@ async def handle_deep_linking(
 @lms_router.delete("/lms/configurations/{config_id}")
 async def delete_lms_configuration(
     config_id: str,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Delete LMS configuration (soft delete - deactivate).
@@ -1048,7 +1048,7 @@ async def delete_lms_configuration(
 
 @lms_router.get("/lms/statistics")
 async def get_lms_statistics(
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get LMS integration statistics.

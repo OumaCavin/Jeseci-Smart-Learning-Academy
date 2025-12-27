@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
-from admin_auth import get_current_admin_user, AdminRole
+from admin_auth import get_current_user_from_token, AdminRole
 
 # Initialize router
 realtime_router = APIRouter()
@@ -644,7 +644,7 @@ def get_live_metrics_data() -> List[Dict[str, Any]]:
 # =============================================================================
 
 @realtime_router.get("/realtime/dashboard", response_model=DashboardMetricsResponse)
-async def get_dashboard_metrics(current_user: Dict = Depends(get_current_admin_user)):
+async def get_dashboard_metrics(current_user: Dict = Depends(get_current_user_from_token)):
     """
     Get real-time dashboard metrics and status.
     
@@ -659,7 +659,7 @@ async def get_dashboard_metrics(current_user: Dict = Depends(get_current_admin_u
     )
 
 @realtime_router.get("/realtime/connections")
-async def get_connection_status(current_user: Dict = Depends(get_current_admin_user)):
+async def get_connection_status(current_user: Dict = Depends(get_current_user_from_token)):
     """
     Get current WebSocket connection statistics.
     """
@@ -688,7 +688,7 @@ async def get_connection_status(current_user: Dict = Depends(get_current_admin_u
 @realtime_router.post("/realtime/notifications", response_model=NotificationResponse)
 async def create_notification(
     request: NotificationCreateRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Create and broadcast a notification to admin groups.
@@ -748,7 +748,7 @@ async def create_notification(
 async def get_notifications(
     notification_type: Optional[str] = Query(None, description="Filter by type"),
     limit: int = Query(default=20, ge=1, le=100),
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get notifications for the current admin.
@@ -782,7 +782,7 @@ async def get_notifications(
 @realtime_router.post("/realtime/locks", response_model=LockResponse)
 async def request_content_lock(
     request: LockRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Request exclusive edit lock on content.
@@ -820,7 +820,7 @@ async def request_content_lock(
 async def release_content_lock(
     content_type: str,
     content_id: str,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Release content lock held by current admin.
@@ -844,7 +844,7 @@ async def release_content_lock(
     return result
 
 @realtime_router.get("/realtime/locks")
-async def get_active_locks(current_user: Dict = Depends(get_current_admin_user)):
+async def get_active_locks(current_user: Dict = Depends(get_current_user_from_token)):
     """
     Get all currently active content locks.
     """
@@ -856,7 +856,7 @@ async def get_active_locks(current_user: Dict = Depends(get_current_admin_user))
     }
 
 @realtime_router.get("/realtime/alerts")
-async def get_system_alerts(current_user: Dict = Depends(get_current_admin_user)):
+async def get_system_alerts(current_user: Dict = Depends(get_current_user_from_token)):
     """
     Get current system alerts.
     """
@@ -872,7 +872,7 @@ async def create_system_alert(
     alert_type: str,
     title: str,
     message: str,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Create a new system alert (Super Admin only).
@@ -909,7 +909,7 @@ async def create_system_alert(
 @realtime_router.get("/realtime/metrics/{metric_name}")
 async def get_specific_metric(
     metric_name: str,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get specific real-time metric value.
@@ -940,7 +940,7 @@ async def broadcast_message(
     title: str,
     content: Dict[str, Any],
     target_groups: List[str] = ["all_admins"],
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Broadcast custom message to admin groups.

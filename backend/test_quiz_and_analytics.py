@@ -90,7 +90,7 @@ def sample_question_data():
 class TestQuizManagement:
     """Test quiz creation and management functionality"""
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_get_quizzes_success(self, mock_admin_auth, mock_admin_user):
         """Test successful quiz retrieval"""
         mock_admin_auth.return_value = mock_admin_user
@@ -106,7 +106,7 @@ class TestQuizManagement:
         assert "quizzes" in data
         assert isinstance(data["quizzes"], list)
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_create_quiz_success(self, mock_admin_auth, mock_admin_user, sample_quiz_data):
         """Test successful quiz creation"""
         mock_admin_auth.return_value = mock_admin_user
@@ -123,7 +123,7 @@ class TestQuizManagement:
         assert data["quiz"]["title"] == sample_quiz_data["title"]
         assert "quiz_id" in data["quiz"]
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_update_quiz_success(self, mock_admin_auth, mock_admin_user):
         """Test successful quiz update"""
         mock_admin_auth.return_value = mock_admin_user
@@ -145,7 +145,7 @@ class TestQuizManagement:
         assert data["success"] is True
         assert data["quiz"]["title"] == update_data["title"]
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_delete_quiz_success(self, mock_admin_auth, mock_admin_user):
         """Test successful quiz deletion"""
         mock_admin_auth.return_value = mock_admin_user
@@ -169,7 +169,7 @@ class TestQuizManagement:
 class TestQuestionManagement:
     """Test question bank and question management functionality"""
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_get_questions_success(self, mock_admin_auth, mock_admin_user):
         """Test successful question retrieval"""
         mock_admin_auth.return_value = mock_admin_user
@@ -185,7 +185,7 @@ class TestQuestionManagement:
         assert "questions" in data
         assert isinstance(data["questions"], list)
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_create_question_success(self, mock_admin_auth, mock_admin_user, sample_question_data):
         """Test successful question creation"""
         mock_admin_auth.return_value = mock_admin_user
@@ -202,7 +202,7 @@ class TestQuestionManagement:
         assert data["question"]["question_text"] == sample_question_data["question_text"]
         assert "question_id" in data["question"]
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_bulk_create_questions_success(self, mock_admin_auth, mock_admin_user):
         """Test successful bulk question creation"""
         mock_admin_auth.return_value = mock_admin_user
@@ -245,7 +245,7 @@ class TestQuestionManagement:
 class TestAssessmentManagement:
     """Test assessment and evaluation functionality"""
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_get_assessments_success(self, mock_admin_auth, mock_admin_user):
         """Test successful assessment retrieval"""
         mock_admin_auth.return_value = mock_admin_user
@@ -260,7 +260,7 @@ class TestAssessmentManagement:
         assert data["success"] is True
         assert "assessments" in data
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_create_assessment_success(self, mock_admin_auth, mock_admin_user):
         """Test successful assessment creation"""
         mock_admin_auth.return_value = mock_admin_user
@@ -291,7 +291,7 @@ class TestAssessmentManagement:
         assert data["success"] is True
         assert data["assessment"]["title"] == assessment_data["title"]
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_get_assessment_submissions_success(self, mock_admin_auth, mock_admin_user):
         """Test successful assessment submissions retrieval"""
         mock_admin_auth.return_value = mock_admin_user
@@ -316,7 +316,7 @@ class TestAssessmentManagement:
 class TestAnalyticsDashboard:
     """Test analytics dashboard and metrics functionality"""
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_get_analytics_overview_success(self, mock_admin_auth, mock_admin_user):
         """Test successful analytics overview retrieval"""
         mock_admin_auth.return_value = mock_admin_user
@@ -333,7 +333,7 @@ class TestAnalyticsDashboard:
         assert "charts" in data
         assert "kpis" in data
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_get_user_analytics_success(self, mock_admin_auth, mock_admin_user):
         """Test successful user analytics retrieval"""
         mock_admin_auth.return_value = mock_admin_user
@@ -350,7 +350,7 @@ class TestAnalyticsDashboard:
         assert "engagement_data" in data
         assert "demographics" in data
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_get_content_performance_success(self, mock_admin_auth, mock_admin_user):
         """Test successful content performance analytics"""
         mock_admin_auth.return_value = mock_admin_user
@@ -367,7 +367,7 @@ class TestAnalyticsDashboard:
         assert "quiz_analytics" in data
         assert "content_effectiveness" in data
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_get_learning_progress_analytics_success(self, mock_admin_auth, mock_admin_user):
         """Test successful learning progress analytics"""
         mock_admin_auth.return_value = mock_admin_user
@@ -391,7 +391,7 @@ class TestAnalyticsDashboard:
 class TestSystemAnalytics:
     """Test system performance and health analytics"""
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_get_system_health_success(self, mock_admin_auth, mock_admin_user):
         """Test successful system health analytics"""
         mock_admin_auth.return_value = mock_admin_user
@@ -408,7 +408,7 @@ class TestSystemAnalytics:
         assert "performance_data" in data
         assert "health_status" in data
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_get_api_usage_analytics_success(self, mock_admin_auth, mock_admin_user):
         """Test successful API usage analytics"""
         mock_admin_auth.return_value = mock_admin_user
@@ -432,7 +432,7 @@ class TestSystemAnalytics:
 class TestCustomAnalytics:
     """Test custom analytics and reporting functionality"""
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_create_custom_report_success(self, mock_admin_auth, mock_admin_user):
         """Test successful custom report creation"""
         mock_admin_auth.return_value = mock_admin_user
@@ -462,7 +462,7 @@ class TestCustomAnalytics:
         assert data["report"]["name"] == report_config["name"]
         assert "report_id" in data["report"]
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_export_analytics_data_success(self, mock_admin_auth, mock_admin_user):
         """Test successful analytics data export"""
         mock_admin_auth.return_value = mock_admin_user
@@ -519,7 +519,7 @@ class TestQuizAnalyticsSecurity:
         )
         assert response.status_code == 401 or response.status_code == 403
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_content_admin_can_access_quiz_features(self, mock_admin_auth):
         """Test that content admins can access quiz features"""
         mock_admin_auth.return_value = {
@@ -535,7 +535,7 @@ class TestQuizAnalyticsSecurity:
         
         assert response.status_code == 200
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_analytics_admin_can_access_analytics_features(self, mock_admin_auth):
         """Test that analytics admins can access analytics features"""
         mock_admin_auth.return_value = {
@@ -558,7 +558,7 @@ class TestQuizAnalyticsSecurity:
 class TestQuizAnalyticsIntegration:
     """Test integration between quiz and analytics systems"""
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_quiz_creation_updates_analytics(self, mock_admin_auth, mock_admin_user, sample_quiz_data):
         """Test that quiz creation is reflected in analytics"""
         mock_admin_auth.return_value = mock_admin_user
@@ -582,7 +582,7 @@ class TestQuizAnalyticsIntegration:
         analytics_data = analytics_response.json()
         assert "quiz_analytics" in analytics_data
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_quiz_performance_analytics_integration(self, mock_admin_auth, mock_admin_user):
         """Test quiz performance data integration with analytics"""
         mock_admin_auth.return_value = mock_admin_user
@@ -609,7 +609,7 @@ class TestQuizAnalyticsIntegration:
 class TestQuizAnalyticsPerformance:
     """Test performance of quiz and analytics features"""
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_large_dataset_analytics_performance(self, mock_admin_auth, mock_admin_user):
         """Test analytics performance with large datasets"""
         mock_admin_auth.return_value = mock_admin_user
@@ -629,7 +629,7 @@ class TestQuizAnalyticsPerformance:
         # Response should complete within reasonable time
         # This is a basic test - in production, you'd measure actual response times
     
-    @patch('admin_auth.get_current_admin_user')
+    @patch('admin_auth.get_current_user_from_token')
     def test_bulk_quiz_operations_performance(self, mock_admin_auth, mock_admin_user):
         """Test performance of bulk quiz operations"""
         mock_admin_auth.return_value = mock_admin_user
