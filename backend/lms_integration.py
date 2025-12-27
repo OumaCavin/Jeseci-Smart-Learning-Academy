@@ -31,7 +31,7 @@ import asyncio
 # Add backend to path
 sys.path.insert(0, os.path.dirname(__file__))
 
-from fastapi import APIRouter, HTTPException, Depends, Header, Query, Request
+from fastapi import APIRouter, HTTPException, Depends, Header, Query, Request, Form
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 from admin_auth import get_current_user_from_token, AdminRole
@@ -703,8 +703,8 @@ async def update_lms_configuration(
 
 @lms_router.post("/lms/lti/launch")
 async def lti_launch(
-    id_token: str = Field(...),
-    state: str = Field(...),
+    id_token: str = Form(...),
+    state: str = Form(...),
     current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
