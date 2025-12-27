@@ -299,12 +299,12 @@ class UserAuthManager:
             # Insert into users table (only auth fields)
             insert_user_query = f"""
             INSERT INTO {self.schema}.users (id, user_id, username, email, password_hash, 
-                             is_admin, admin_role, is_email_verified, verification_token, token_expires_at)
-            VALUES (nextval('users_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                             is_active, is_admin, admin_role, is_email_verified, verification_token, token_expires_at)
+            VALUES (nextval('users_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, user_id
             """
             cursor.execute(insert_user_query, (user_id, username, email, password_hash, 
-                                               is_admin, admin_role,
+                                               True, is_admin, admin_role,
                                                is_email_verified, verification_token, token_expires_at))
             result = cursor.fetchone()
             user_db_id = result['id']  # INTEGER primary key
