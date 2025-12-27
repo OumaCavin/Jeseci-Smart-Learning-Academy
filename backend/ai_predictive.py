@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
-from admin_auth import get_current_admin_user, AdminRole
+from admin_auth import get_current_user_from_token, AdminRole
 
 # Initialize router
 ai_predictive_router = APIRouter()
@@ -549,7 +549,7 @@ def analyze_sentiment(content_id: str, content_type: str) -> SentimentScore:
 @ai_predictive_router.post("/ai/predict/risk", response_model=RiskAssessmentResponse)
 async def assess_student_risk(
     request: RiskAssessmentRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Assess dropout risk for one or more students using ML prediction.
@@ -635,7 +635,7 @@ async def assess_student_risk(
 @ai_predictive_router.get("/ai/predict/risk/{user_id}")
 async def get_student_risk(
     user_id: str,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get detailed risk assessment for a specific student.
@@ -695,7 +695,7 @@ async def get_learning_recommendations(
     user_id: str,
     content_types: str = "course,quiz,concept",
     max_recs: int = 5,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get personalized learning recommendations for a user using collaborative filtering.
@@ -747,7 +747,7 @@ async def get_learning_recommendations(
 @ai_predictive_router.post("/ai/sentiment/analyze", response_model=SentimentAnalysisResponse)
 async def analyze_content_sentiment(
     request: SentimentAnalysisRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Analyze sentiment from user feedback for a piece of content.
@@ -804,7 +804,7 @@ async def analyze_content_sentiment(
 
 @ai_predictive_router.get("/ai/analytics/risk-overview")
 async def get_risk_analytics_overview(
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get aggregated risk analytics across all students.
@@ -871,7 +871,7 @@ async def get_risk_analytics_overview(
 
 @ai_predictive_router.get("/ai/model/info")
 async def get_model_information(
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get information about the ML models currently in use.
@@ -914,7 +914,7 @@ async def get_model_information(
 async def retrain_ml_model(
     request: ModelTrainingRequest,
     background_tasks: BackgroundTasks,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Trigger ML model retraining in the background.
@@ -954,7 +954,7 @@ async def mock_retrain_model(model_type: str, days: int):
 @ai_predictive_router.get("/ai/personalization/{user_id}")
 async def get_user_personalization(
     user_id: str,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get complete user personalization profile including:
