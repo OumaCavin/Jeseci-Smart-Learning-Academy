@@ -24,7 +24,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 import enum
 
-from ..config.database import Base
+from backend.config.database import Base
 
 
 class SyncEventStatus(str, enum.Enum):

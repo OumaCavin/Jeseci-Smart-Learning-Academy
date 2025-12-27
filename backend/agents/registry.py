@@ -12,8 +12,8 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Type
 from dataclasses import dataclass, field
 
-from .base_agent import BaseAgent, AgentState
-from .message_bus import MessageBus
+from backend.agents.base_agent import BaseAgent, AgentState
+from backend.agents.message_bus import MessageBus
 
 # Configure logging
 logging.basicConfig(
