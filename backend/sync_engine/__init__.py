@@ -26,17 +26,17 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 __version__ = "1.0.0"
 __author__ = "Jeseci Development Team"
 
-from .config import get_redis_config, get_sync_config
-from .events import (
+from backend.sync_engine.config import get_redis_config, get_sync_config
+from backend.sync_engine.events import (
     EventType,
     SyncEvent,
     create_concept_event,
     create_learning_path_event,
     create_relationship_event
 )
-from .publisher import SyncEventPublisher
-from .consumer import SyncEventConsumer
-from .reconciliation import ReconciliationJob
+from backend.sync_engine.publisher import SyncEventPublisher
+from backend.sync_engine.consumer import SyncEventConsumer
+from backend.sync_engine.reconciliation import ReconciliationJob
 
 __all__ = [
     'EventType',

@@ -20,8 +20,8 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
 
-from .config import get_database_config, get_redis_config
-from .models import Base
+from backend.sync_engine.config import get_database_config, get_redis_config
+from backend.sync_engine.models import Base
 
 logger = logging.getLogger(__name__)
 

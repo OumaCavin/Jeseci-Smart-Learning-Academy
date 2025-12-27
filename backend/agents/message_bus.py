@@ -16,7 +16,7 @@ from enum import Enum
 from collections import defaultdict
 import uuid
 
-from .base_agent import AgentMessage, MessageType, Priority
+from backend.agents.base_agent import AgentMessage, MessageType, Priority
 
 # Configure logging
 logging.basicConfig(

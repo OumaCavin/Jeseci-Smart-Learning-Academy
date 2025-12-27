@@ -22,9 +22,9 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Callable
 
-from .config import get_sync_config
-from .database import get_postgres_sync_manager, get_neo4j_sync_manager
-from .models import SyncConflict, SyncStatus, ConflictResolutionStatus
+from backend.sync_engine.config import get_sync_config
+from backend.sync_engine.database import get_postgres_sync_manager, get_neo4j_sync_manager
+from backend.sync_engine.models import SyncConflict, SyncStatus, ConflictResolutionStatus
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +143,7 @@ class ConflictDetector:
             return None
         
         # Get schema from configuration
-        from .config import get_sync_config
+        from backend.sync_engine.config import get_sync_config
         config = get_sync_config()
         schema = config.postgres_schema
         id_field = "concept_id" if entity_type == "concept" else "path_id"

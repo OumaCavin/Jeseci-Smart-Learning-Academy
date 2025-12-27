@@ -21,10 +21,10 @@ from contextlib import contextmanager
 
 import redis
 
-from .config import get_redis_config, get_sync_config
-from .events import SyncEvent, EventType
-from .models import SyncEventLog, SyncEventStatus, SyncStatus
-from .database import get_postgres_sync_manager, get_neo4j_sync_manager, get_redis_sync_manager
+from backend.sync_engine.config import get_redis_config, get_sync_config
+from backend.sync_engine.events import SyncEvent, EventType
+from backend.sync_engine.models import SyncEventLog, SyncEventStatus, SyncStatus
+from backend.sync_engine.database import get_postgres_sync_manager, get_neo4j_sync_manager, get_redis_sync_manager
 
 logger = logging.getLogger(__name__)
 
