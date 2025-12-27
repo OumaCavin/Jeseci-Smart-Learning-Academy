@@ -198,16 +198,66 @@ See `docs/sync-engine.md` for complete sync engine documentation.
 
 ### Super Admin Creation
 
-After setting up the database, you need to create an initial super admin user to access the administrative features of the platform. Use the `create_super_admin.py` script to generate the first admin account.
+After setting up the database, you need to create an initial super admin user to access the administrative features of the platform. You can use either the interactive shell script or the manual Python script to generate the first admin account.
+
+#### Method 1: Interactive Script (Recommended)
+
+The easiest way to create a super admin user is using the interactive shell script that handles all environment variable loading and input validation automatically:
+
+```bash
+bash create_super_admin.sh
+```
+
+This will:
+1. Automatically load database credentials from `backend/config/.env`
+2. Prompt you for username, email, and password
+3. Validate password confirmation
+4. Create the super admin user in both PostgreSQL and Neo4j
+
+**Example Session:**
+```
+==================================================
+   SUPER ADMIN USER CREATION
+==================================================
+
+Username: admin
+Email: admin@example.com
+Password: *********
+Confirm Password: *********
+
+==================================================
+   User Details
+==================================================
+   Username: admin
+   Email: admin@example.com
+   Role: super_admin
+==================================================
+
+Create this super admin user? (y/N): y
+Creating super administrator user...
+
+✅ Super admin user created successfully!
+   Username: admin
+   Email: admin@example.com
+   User ID: user_admin_xxxxx
+   Admin Role: super_admin
+   Created: 2025-12-28
+
+Done.
+```
+
+#### Method 2: Manual Python Script
+
+If you prefer to specify all arguments directly, use the Python script:
 
 **Basic Usage:**
 ```bash
-PYTHONPATH=. python backend/create_super_admin.py --username admin --email admin@example.com --password your_secure_password
+PYTHONPATH=. POSTGRES_USER=jeseci_academy_user POSTGRES_PASSWORD='jeseci_secure_password_2024' POSTGRES_DB=jeseci_learning_academy POSTGRES_HOST=localhost python backend/create_super_admin.py --username admin --email admin@example.com --password your_secure_password
 ```
 
 **Full Command with All Options:**
 ```bash
-PYTHONPATH=. python backend/create_super_admin.py \
+PYTHONPATH=. POSTGRES_USER=jeseci_academy_user POSTGRES_PASSWORD='jeseci_secure_password_2024' POSTGRES_DB=jeseci_learning_academy POSTGRES_HOST=localhost python backend/create_super_admin.py \
     --username admin \
     --email admin@example.com \
     --password your_secure_password \
@@ -216,7 +266,7 @@ PYTHONPATH=. python backend/create_super_admin.py \
     --force
 ```
 
-### Command Arguments
+### Command Arguments (Python Script)
 
 | Argument | Required | Description | Default |
 |----------|----------|-------------|---------|
@@ -229,10 +279,76 @@ PYTHONPATH=. python backend/create_super_admin.py \
 
 ### Important Notes
 
+- Both methods require the database to be running (PostgreSQL and Neo4j)
+- The interactive script automatically loads credentials from `backend/config/.env`
+- For the Python script, you must provide database credentials via environment variables
 - The `--username` and `--email` arguments are required. The script will fail if either is missing.
 - If `--password` is not provided, a secure password will be automatically generated and displayed in the terminal.
 - Use the `--force` flag if you need to update an existing admin account with the same username or email.
 - The admin user will be created in the `jeseci_academy` schema of the PostgreSQL database.
+
+### Email Verification
+
+After creating a super admin user, you will need to verify the email address before logging in. The verification link will be:
+- **Sent to console** if SMTP is not configured
+- **Sent to actual email** if SMTP credentials are properly configured in `backend/config/.env`
+
+**Console Output Example (SMTP not configured):**
+```
+INFO:email_verification:Email password not configured - verification email for admin@example.com:
+INFO:email_verification:Verification link: http://localhost:3000/verify-email?token=xxxxx
+INFO:user_auth:Verification email sent to admin@example.com: console
+```
+
+**To enable actual email delivery**, configure SMTP settings as described below.
+
+### SMTP Configuration
+
+By default, verification emails are printed to the console for development purposes. To send actual emails to users, configure SMTP settings in `backend/config/.env`:
+
+**Required Environment Variables:**
+
+```bash
+# SMTP Configuration (for sending real verification emails)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=your_gmail_app_password
+SMTP_FROM=noreply@yourdomain.com
+```
+
+**Configuration Steps:**
+
+1. **Edit the .env file:**
+   ```bash
+   nano backend/config/.env
+   ```
+
+2. **Add or update SMTP settings:**
+   ```
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=cavin.otieno012@gmail.com
+   SMTP_PASSWORD=xxxx_xxxx_xxxx_xxxx  # Gmail App Password
+   SMTP_FROM=noreply@JeseciAcademy.com
+   ```
+
+3. **For Gmail users:**
+   - Enable 2-Factor Authentication on your Google account
+   - Generate an App Password at: Google Account → Security → 2-Step Verification → App passwords
+   - Use the 16-character app password in `SMTP_PASSWORD`
+
+4. **Restart the backend server:**
+   ```bash
+   bash ./jacserve
+   ```
+
+**Email Delivery Methods:**
+
+| Method | Description | Use Case |
+|--------|-------------|----------|
+| Console | Prints emails to terminal output | Development, testing |
+| SMTP | Sends emails to actual inbox | Production, staging |
 
 ### Security Recommendations
 
