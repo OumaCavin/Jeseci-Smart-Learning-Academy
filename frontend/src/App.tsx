@@ -297,7 +297,7 @@ const AppContent: React.FC = () => {
       // Check if email verification is required
       if (result.code === 'EMAIL_NOT_VERIFIED') {
         setVerificationRequired(true);
-        setUnverifiedEmail(result.email || username);
+        setUnverifiedEmail(result.user?.email || username);
         setMessage('Please verify your email before logging in.');
         // Still call the auth login to store the user data
         await login(username, password);
@@ -315,7 +315,7 @@ const AppContent: React.FC = () => {
       
       if (errorCode === 'EMAIL_NOT_VERIFIED') {
         setVerificationRequired(true);
-        setUnverifiedEmail(error.email || username);
+        setUnverifiedEmail(error.user?.email || username);
         setMessage('Please verify your email before logging in.');
       } else if (errorMessage.includes('already exists') || errorMessage.includes('Invalid credentials')) {
         setMessage(errorMessage);
