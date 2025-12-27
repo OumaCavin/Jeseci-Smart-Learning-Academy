@@ -301,14 +301,14 @@ class UserAuthManager:
             insert_user_query = f"""
             INSERT INTO {self.schema}.users (id, user_id, username, email, password_hash, 
                              is_active, is_admin, admin_role, is_email_verified, verification_token, 
-                             token_expires_at, created_at)
-            VALUES (nextval('users_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                             token_expires_at, created_at, updated_at)
+            VALUES (nextval('users_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, user_id
             """
             cursor.execute(insert_user_query, (user_id, username, email, password_hash, 
                                                True, is_admin, admin_role,
                                                is_email_verified, verification_token, 
-                                               token_expires_at, current_time))
+                                               token_expires_at, current_time, current_time))
             result = cursor.fetchone()
             user_db_id = result['id']  # INTEGER primary key
             
