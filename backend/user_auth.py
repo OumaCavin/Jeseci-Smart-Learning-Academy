@@ -323,11 +323,15 @@ class UserAuthManager:
             
             # Insert into user_learning_preferences table (links via users.id)
             insert_preferences_query = f"""
-            INSERT INTO {self.schema}.user_learning_preferences (user_id, preferred_difficulty, preferred_content_type, created_at, updated_at)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO {self.schema}.user_learning_preferences 
+                (user_id, preferred_difficulty, preferred_content_type, daily_goal_minutes, 
+                 notifications_enabled, email_reminders, dark_mode, auto_play_videos, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """
-            cursor.execute(insert_preferences_query, (user_db_id, learning_style, skill_level, current_time, current_time))
+            cursor.execute(insert_preferences_query, (user_db_id, learning_style, skill_level,
+                                                       30, True, True, False, True,
+                                                       current_time, current_time))
             
             # Commit transaction only after all INSERTs succeed
             conn.commit()
