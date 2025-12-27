@@ -297,15 +297,18 @@ class UserAuthManager:
                 token_expires_at = get_token_expiration()
             
             # Insert into users table (only auth fields)
+            current_time = datetime.now()
             insert_user_query = f"""
             INSERT INTO {self.schema}.users (id, user_id, username, email, password_hash, 
-                             is_active, is_admin, admin_role, is_email_verified, verification_token, token_expires_at)
-            VALUES (nextval('users_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                             is_active, is_admin, admin_role, is_email_verified, verification_token, 
+                             token_expires_at, created_at)
+            VALUES (nextval('users_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, user_id
             """
             cursor.execute(insert_user_query, (user_id, username, email, password_hash, 
                                                True, is_admin, admin_role,
-                                               is_email_verified, verification_token, token_expires_at))
+                                               is_email_verified, verification_token, 
+                                               token_expires_at, current_time))
             result = cursor.fetchone()
             user_db_id = result['id']  # INTEGER primary key
             
