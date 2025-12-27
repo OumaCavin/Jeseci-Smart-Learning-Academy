@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from collections import defaultdict
 
-from .base_agent import BaseAgent, AgentMessage, AgentTask, AgentState, MessageType, Priority
+from backend.agents.base_agent import BaseAgent, AgentMessage, AgentTask, AgentState, MessageType, Priority
 
 # Configure logging
 logging.basicConfig(

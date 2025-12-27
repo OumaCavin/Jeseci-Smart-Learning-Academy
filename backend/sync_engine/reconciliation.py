@@ -25,15 +25,15 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List, Tuple
 import hashlib
 
-from .config import get_sync_config, get_database_config
-from .events import SyncEvent, EventType
-from .models import (
+from backend.sync_engine.config import get_sync_config, get_database_config
+from backend.sync_engine.events import SyncEvent, EventType
+from backend.sync_engine.models import (
     SyncEventLog, SyncEventStatus, 
     SyncStatus, SyncConflict, 
     ReconciliationRun, ConflictResolutionStatus
 )
-from .publisher import get_sync_publisher
-from .database import (
+from backend.sync_engine.publisher import get_sync_publisher
+from backend.sync_engine.database import (
     get_postgres_sync_manager, 
     get_neo4j_sync_manager
 )
