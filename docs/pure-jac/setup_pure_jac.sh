@@ -196,14 +196,15 @@ main() {
     fi
     
     if [ -n "$ENV_FILE" ]; then
-        print_info "Loading environment variables from $ENV_FILE..."
-        # Load OpenAI key for byLLM
-        export $(grep -v '^#' "$ENV_FILE" | xargs)
+        print_info "Verifying environment file: $ENV_FILE..."
+        # DO NOT manually export - Python scripts should load .env directly
+        # The xargs method can corrupt environment variables with special characters
         
         if [ -n "$OPENAI_API_KEY" ]; then
-            print_status "OpenAI API key loaded"
+            print_status "OpenAI API key configured"
         else
-            print_warning "OpenAI API key not found in $ENV_FILE"
+            print_warning "OpenAI API key not found - byLLM features may not work"
+            print_info "Add OPENAI_API_KEY to $ENV_FILE for AI features"
         fi
     else
         print_warning "Environment file not found"

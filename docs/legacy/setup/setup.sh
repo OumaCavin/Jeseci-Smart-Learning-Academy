@@ -215,9 +215,10 @@ main() {
     print_header "Step 3: Database Setup"
     
     # Load environment variables if .env exists
+    # DO NOT manually export with xargs - it can corrupt passwords with special characters
     if file_exists ".env"; then
-        print_info "Loading environment variables from .env..."
-        export $(grep -v '^#' .env | xargs)
+        print_info "Environment file found: .env"
+        print_info "Variables will be loaded by Python scripts"
     else
         print_warning ".env file not found - using default values"
     fi
