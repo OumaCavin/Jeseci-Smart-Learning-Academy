@@ -132,6 +132,7 @@ const AppContent: React.FC = () => {
   const [showLandingPage, setShowLandingPage] = useState<boolean>(true);
   const [verificationRequired, setVerificationRequired] = useState<boolean>(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState<string>('');
+  const [showVerifyPage, setShowVerifyPage] = useState<boolean>(false);
 
   // Additional state for new features
   const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
@@ -140,6 +141,14 @@ const AppContent: React.FC = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
+
+  // Check for verification page on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (window.location.pathname.includes('verify-email') || urlParams.has('token')) {
+      setShowVerifyPage(true);
+    }
+  }, []);
 
   // Check backend health on mount
   useEffect(() => {
@@ -701,7 +710,10 @@ const AppContent: React.FC = () => {
             <p>Please check your inbox for the verification email or request a new one.</p>
             <button 
               className="btn btn-primary" 
-              onClick={() => window.location.href = `/verify-email?email=${encodeURIComponent(unverifiedEmail)}`}
+              onClick={() => {
+                setShowLandingPage(false);
+                setShowVerifyPage(true);
+              }}
             >
               Go to Verification Page
             </button>
@@ -1272,8 +1284,13 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="App">
+      {/* Show Email Verification Page if URL contains verify-email or token */}
+      {showVerifyPage && !isAuthenticated && (
+        <VerifyEmail />
+      )}
+
       {/* Show Landing Page for non-authenticated users */}
-      {!isAuthenticated && showLandingPage ? (
+      {!isAuthenticated && showLandingPage && !showVerifyPage ? (
         <LandingPage 
           onShowLogin={() => {
             setActiveTab('login');
