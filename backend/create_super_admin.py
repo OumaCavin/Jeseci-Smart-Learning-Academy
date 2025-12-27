@@ -18,6 +18,11 @@ import argparse
 import getpass
 from datetime import datetime
 
+# CRITICAL: Load environment variables FIRST, before any imports
+# This ensures all modules see the correct environment variables
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config', '.env'))
+
 # Add backend to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
