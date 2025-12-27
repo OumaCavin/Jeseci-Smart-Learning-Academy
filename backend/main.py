@@ -586,42 +586,6 @@ async def get_concepts():
         concepts=concepts,
         total=len(concepts)
     )
-            "related_concepts": ["Tree Structures", "Pathfinding", "Network Analysis"]
-        },
-        {
-            "id": "concept_recursion",
-            "name": "Recursion",
-            "description": "Functions that call themselves to solve problems",
-            "domain": "Jac Programming",
-            "difficulty": "intermediate",
-            "icon": "recursive",
-            "related_concepts": ["Base Cases", "Stack Overflow", "Dynamic Programming"]
-        },
-        {
-            "id": "concept_ai",
-            "name": "Machine Learning Basics",
-            "description": "Introduction to supervised and unsupervised learning",
-            "domain": "Jac Programming",
-            "difficulty": "intermediate",
-            "icon": "brain",
-            "related_concepts": ["Neural Networks", "Feature Engineering", "Model Training"]
-        },
-        {
-            "id": "concept_algo",
-            "name": "Algorithm Design",
-            "description": "Creating efficient solutions to computational problems",
-            "domain": "Jac Programming",
-            "difficulty": "advanced",
-            "icon": "lightning",
-            "related_concepts": ["Big O Notation", "Divide and Conquer", "Greedy Algorithms"]
-        }
-    ]
-    
-    return ConceptsResponse(
-        success=True,
-        concepts=concepts,
-        total=len(concepts)
-    )
 
 @app.get("/quizzes", response_model=QuizzesResponse)
 async def get_quizzes():
