@@ -312,8 +312,6 @@ class UserAuthManager:
             result = cursor.fetchone()
             user_db_id = result['id']  # INTEGER primary key
             
-            conn.commit()
-            
             # Insert into user_profile table (links via users.id)
             insert_profile_query = f"""
             INSERT INTO {self.schema}.user_profile (user_id, first_name, last_name, created_at, updated_at)
@@ -322,7 +320,6 @@ class UserAuthManager:
             """
             cursor.execute(insert_profile_query, (user_db_id, first_name, last_name, current_time, current_time))
             profile_result = cursor.fetchone()
-            conn.commit()
             
             # Insert into user_learning_preferences table (links via users.id)
             insert_preferences_query = f"""
@@ -331,6 +328,8 @@ class UserAuthManager:
             RETURNING id
             """
             cursor.execute(insert_preferences_query, (user_db_id, learning_style, skill_level, current_time, current_time))
+            
+            # Commit transaction only after all INSERTs succeed
             conn.commit()
             
             # Sync user to Neo4j graph for relationship queries
