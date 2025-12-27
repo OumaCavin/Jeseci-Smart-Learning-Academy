@@ -1,0 +1,9 @@
+#!/bin/bash
+# Jeseci Smart Learning Academy - Server Startup Script
+# This script sets up the environment and starts the Jac API server
+
+# Set PYTHONPATH to enable absolute imports
+export PYTHONPATH=.
+
+# Run the Jac server
+jac serve backend/app.jac --port 8000
