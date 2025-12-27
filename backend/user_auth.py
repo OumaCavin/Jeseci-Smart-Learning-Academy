@@ -299,10 +299,10 @@ class UserAuthManager:
             # Insert into users table (only auth fields)
             current_time = datetime.now()
             insert_user_query = f"""
-            INSERT INTO {self.schema}.users (id, user_id, username, email, password_hash, 
+            INSERT INTO {self.schema}.users (user_id, username, email, password_hash, 
                              is_active, is_admin, admin_role, is_email_verified, verification_token, 
                              token_expires_at, created_at, updated_at, last_login_at)
-            VALUES (nextval('users_id_seq'), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, user_id
             """
             cursor.execute(insert_user_query, (user_id, username, email, password_hash, 
@@ -316,18 +316,21 @@ class UserAuthManager:
             
             # Insert into user_profile table (links via users.id)
             insert_profile_query = f"""
-            INSERT INTO {self.schema}.user_profile (id, user_id, first_name, last_name)
-            VALUES (nextval('user_profile_id_seq'), %s, %s, %s)
+            INSERT INTO {self.schema}.user_profile (user_id, first_name, last_name)
+            VALUES (%s, %s, %s)
+            RETURNING id
             """
             cursor.execute(insert_profile_query, (user_db_id, first_name, last_name))
+            profile_result = cursor.fetchone()
+            conn.commit()
             
             # Insert into user_learning_preferences table (links via users.id)
             insert_preferences_query = f"""
-            INSERT INTO {self.schema}.user_learning_preferences (id, user_id, preferred_difficulty, preferred_content_type)
-            VALUES (nextval('user_learning_preferences_id_seq'), %s, %s, %s)
+            INSERT INTO {self.schema}.user_learning_preferences (user_id, preferred_difficulty, preferred_content_type)
+            VALUES (%s, %s, %s)
+            RETURNING id
             """
             cursor.execute(insert_preferences_query, (user_db_id, learning_style, skill_level))
-            
             conn.commit()
             
             # Sync user to Neo4j graph for relationship queries
