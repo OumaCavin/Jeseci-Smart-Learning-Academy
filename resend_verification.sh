@@ -46,10 +46,9 @@ echo ""
 python -c "
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from dotenv import load_dotenv
-load_dotenv(dotenv_path=os.path.join('backend', 'config', '.env'))
+load_dotenv(dotenv_path=os.path.join(os.getcwd(), 'backend', 'config', '.env'))
 
 import requests
 
