@@ -87,7 +87,7 @@ jac run backend/seed.py
 source .venv/bin/activate
 
 # Start the API server
-jac serve backend/app.jac --port 8000
+bash ./jacserve
 ```
 
 **Terminal 2 - Frontend (React Production Build):**
@@ -119,7 +119,7 @@ For development with hot reload:
 ```bash
 # Terminal 1: Backend
 source .venv/bin/activate
-jac serve backend/app.jac --port 8000 --debug
+bash ./jacserve
 
 # Terminal 2: Frontend Development
 cd frontend
@@ -202,13 +202,12 @@ After setting up the database, you need to create an initial super admin user to
 
 **Basic Usage:**
 ```bash
-cd backend
-python create_super_admin.py --username admin --email admin@example.com --password your_secure_password
+PYTHONPATH=. python backend/create_super_admin.py --username admin --email admin@example.com --password your_secure_password
 ```
 
 **Full Command with All Options:**
 ```bash
-python create_super_admin.py \
+PYTHONPATH=. python backend/create_super_admin.py \
     --username admin \
     --email admin@example.com \
     --password your_secure_password \
@@ -444,7 +443,7 @@ pnpm run build
 ### Backend Development
 ```bash
 # Run JAC backend
-jac serve backend/app.jac
+bash ./jacserve
 
 # Run with debug mode
 jac serve backend/app.jac --debug
@@ -477,7 +476,7 @@ pnpm run build
 pnpm run preview
 
 # Backend production mode
-jac serve backend/app.jac --port 8000
+bash ./jacserve
 ```
 
 ### Environment Variables
