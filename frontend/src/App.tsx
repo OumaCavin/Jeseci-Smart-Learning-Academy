@@ -1292,7 +1292,7 @@ const AppContent: React.FC = () => {
         </BrowserRouter>
       )}
 
-      {/* Show Landing Page for non-authenticated users */}
+      {/* Show Landing Page for non-authenticated users (only if not on verify page) */}
       {!isAuthenticated && showLandingPage && !showVerifyPage ? (
         <LandingPage 
           onShowLogin={() => {
@@ -1304,7 +1304,10 @@ const AppContent: React.FC = () => {
             setShowLandingPage(false);
           }}
         />
-      ) : (
+      ) : null}
+
+      {/* Show auth forms or dashboard only when NOT on verify page */}
+      {!isAuthenticated && !showLandingPage && !showVerifyPage && (
         <>
           <header className="app-header">
             <div className="header-content">
