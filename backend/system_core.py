@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
-from admin_auth import get_current_admin_user, AdminRole
+from admin_auth import get_current_user_from_token, AdminRole
 
 # Initialize router
 system_router = APIRouter()
@@ -587,7 +587,7 @@ def parse_search_query(query: str) -> Dict[str, Any]:
 @system_router.post("/content/version", response_model=VersionResponse)
 async def create_content_version(
     request: ContentVersionRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Create a new version of content.
@@ -660,7 +660,7 @@ async def get_content_history(
     content_id: str,
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=10, ge=1, le=50),
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get version history for a piece of content.
@@ -710,7 +710,7 @@ async def get_content_history(
 async def get_specific_version(
     content_id: str,
     version_number: int,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get a specific version of content.
@@ -764,7 +764,7 @@ async def get_specific_version(
 async def rollback_to_version(
     content_id: str,
     request: RollbackRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Rollback content to a specific version.
@@ -830,7 +830,7 @@ async def compare_versions(
     content_id: str,
     version_a: int = Query(..., ge=1),
     version_b: int = Query(..., ge=1),
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Compare two versions of content side by side.
@@ -886,7 +886,7 @@ async def compare_versions(
 @system_router.post("/search/global", response_model=SearchResponse)
 async def global_search(
     request: SearchRequest,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Perform advanced global search across all content types.
@@ -1064,7 +1064,7 @@ async def global_search(
 async def get_search_suggestions(
     q: str = Query(..., min_length=2, max_length=100),
     limit: int = Query(default=10, ge=1, le=20),
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get search suggestions based on partial query.
@@ -1110,7 +1110,7 @@ async def get_search_suggestions(
 @system_router.get("/search/history")
 async def get_search_history(
     limit: int = Query(default=50, ge=1, le=100),
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get recent search history.
@@ -1136,7 +1136,7 @@ async def get_search_history(
 @system_router.post("/search/index")
 async def reindex_content(
     content_type: Optional[str] = None,
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Trigger content reindexing.
@@ -1317,7 +1317,7 @@ async def get_rtl_languages():
 
 @system_router.get("/system/health/extended")
 async def get_extended_health_check(
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get extended system health information.
@@ -1358,7 +1358,7 @@ async def get_extended_health_check(
 
 @system_router.get("/system/statistics")
 async def get_system_statistics(
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get comprehensive system statistics.
@@ -1392,7 +1392,7 @@ async def get_system_statistics(
 async def get_all_content_history(
     content_type: Optional[str] = None,
     limit: int = Query(default=50, ge=1, le=100),
-    current_user: Dict = Depends(get_current_admin_user)
+    current_user: Dict = Depends(get_current_user_from_token)
 ):
     """
     Get history summary for all tracked content.

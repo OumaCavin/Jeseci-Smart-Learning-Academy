@@ -63,7 +63,7 @@ def mock_content_admin():
 class TestAIPredictiveAnalytics:
     """Test AI predictive analytics features"""
     
-    @patch('ai_predictive.get_current_admin_user')
+    @patch('ai_predictive.get_current_user_from_token')
     def test_risk_assessment_single_user(self, mock_admin_auth, mock_admin_user):
         """Test single user risk assessment"""
         mock_admin_auth.return_value = mock_admin_user
@@ -80,7 +80,7 @@ class TestAIPredictiveAnalytics:
         assert "summary" in data
         assert data["summary"]["total_students"] == 1
     
-    @patch('ai_predictive.get_current_admin_user')
+    @patch('ai_predictive.get_current_user_from_token')
     def test_risk_assessment_multiple_users(self, mock_admin_auth, mock_admin_user):
         """Test batch risk assessment for multiple users"""
         mock_admin_auth.return_value = mock_admin_user
@@ -100,7 +100,7 @@ class TestAIPredictiveAnalytics:
         assert "critical_count" in data["summary"]
         assert "high_count" in data["summary"]
     
-    @patch('ai_predictive.get_current_admin_user')
+    @patch('ai_predictive.get_current_user_from_token')
     def test_get_student_risk(self, mock_admin_auth, mock_admin_user):
         """Test getting risk prediction for specific student"""
         mock_admin_auth.return_value = mock_admin_user
@@ -114,7 +114,7 @@ class TestAIPredictiveAnalytics:
         assert "risk_score" in data["prediction"]
         assert "risk_level" in data["prediction"]
     
-    @patch('ai_predictive.get_current_admin_user')
+    @patch('ai_predictive.get_current_user_from_token')
     def test_learning_recommendations(self, mock_admin_auth, mock_admin_user):
         """Test learning recommendations endpoint"""
         mock_admin_auth.return_value = mock_admin_user
@@ -130,7 +130,7 @@ class TestAIPredictiveAnalytics:
         assert "recommendations" in data
         assert "learning_style" in data
     
-    @patch('ai_predictive.get_current_admin_user')
+    @patch('ai_predictive.get_current_user_from_token')
     def test_sentiment_analysis(self, mock_admin_auth, mock_admin_user):
         """Test content sentiment analysis"""
         mock_admin_auth.return_value = mock_admin_user
@@ -150,7 +150,7 @@ class TestAIPredictiveAnalytics:
         assert "overall_sentiment" in data["sentiment"]
         assert "positive_percentage" in data["sentiment"]
     
-    @patch('ai_predictive.get_current_admin_user')
+    @patch('ai_predictive.get_current_user_from_token')
     def test_risk_analytics_overview(self, mock_admin_auth, mock_admin_user):
         """Test aggregated risk analytics overview"""
         mock_admin_auth.return_value = mock_admin_user
@@ -164,7 +164,7 @@ class TestAIPredictiveAnalytics:
         assert "trends" in data
         assert "high_risk_segments" in data
     
-    @patch('ai_predictive.get_current_admin_user')
+    @patch('ai_predictive.get_current_user_from_token')
     def test_model_information(self, mock_admin_auth, mock_admin_user):
         """Test ML model information endpoint"""
         mock_admin_auth.return_value = mock_admin_user
@@ -179,7 +179,7 @@ class TestAIPredictiveAnalytics:
         assert "recommendation" in data["models"]
         assert "sentiment" in data["models"]
     
-    @patch('ai_predictive.get_current_admin_user')
+    @patch('ai_predictive.get_current_user_from_token')
     def test_user_personalization(self, mock_admin_auth, mock_admin_user):
         """Test user personalization profile"""
         mock_admin_auth.return_value = mock_admin_user
@@ -232,7 +232,7 @@ class TestAIPredictiveAnalytics:
 class TestRealtimeFeatures:
     """Test real-time features and WebSocket functionality"""
     
-    @patch('realtime_admin.get_current_admin_user')
+    @patch('realtime_admin.get_current_user_from_token')
     def test_dashboard_metrics(self, mock_admin_auth, mock_admin_user):
         """Test dashboard metrics endpoint"""
         mock_admin_auth.return_value = mock_admin_user
@@ -246,7 +246,7 @@ class TestRealtimeFeatures:
         assert "alerts" in data
         assert "connections" in data
     
-    @patch('realtime_admin.get_current_admin_user')
+    @patch('realtime_admin.get_current_user_from_token')
     def test_connection_status(self, mock_admin_auth, mock_admin_user):
         """Test connection status endpoint"""
         mock_admin_auth.return_value = mock_admin_user
@@ -259,7 +259,7 @@ class TestRealtimeFeatures:
         assert "summary" in data
         assert "details" in data
     
-    @patch('realtime_admin.get_current_admin_user')
+    @patch('realtime_admin.get_current_user_from_token')
     def test_create_notification(self, mock_admin_auth, mock_admin_user):
         """Test notification creation"""
         mock_admin_auth.return_value = mock_admin_user
@@ -282,7 +282,7 @@ class TestRealtimeFeatures:
         assert "notification" in data
         assert "broadcast_count" in data
     
-    @patch('realtime_admin.get_current_admin_user')
+    @patch('realtime_admin.get_current_user_from_token')
     def test_get_notifications(self, mock_admin_auth, mock_admin_user):
         """Test getting notifications"""
         mock_admin_auth.return_value = mock_admin_user
@@ -298,7 +298,7 @@ class TestRealtimeFeatures:
         assert "notifications" in data
         assert "total" in data
     
-    @patch('realtime_admin.get_current_admin_user')
+    @patch('realtime_admin.get_current_user_from_token')
     def test_content_locks(self, mock_admin_auth, mock_admin_user):
         """Test content lock functionality"""
         mock_admin_auth.return_value = mock_admin_user
@@ -317,7 +317,7 @@ class TestRealtimeFeatures:
         assert data["success"] is True
         assert "lock_details" in data
     
-    @patch('realtime_admin.get_current_admin_user')
+    @patch('realtime_admin.get_current_user_from_token')
     def test_get_active_locks(self, mock_admin_auth, mock_admin_user):
         """Test getting active content locks"""
         mock_admin_auth.return_value = mock_admin_user
@@ -330,7 +330,7 @@ class TestRealtimeFeatures:
         assert "locks" in data
         assert "total" in data
     
-    @patch('realtime_admin.get_current_admin_user')
+    @patch('realtime_admin.get_current_user_from_token')
     def test_system_alerts(self, mock_admin_auth, mock_admin_user):
         """Test system alerts endpoint"""
         mock_admin_auth.return_value = mock_admin_user
@@ -343,7 +343,7 @@ class TestRealtimeFeatures:
         assert "alerts" in data
         assert "total" in data
     
-    @patch('realtime_admin.get_current_admin_user')
+    @patch('realtime_admin.get_current_user_from_token')
     def test_specific_metric(self, mock_admin_auth, mock_admin_user):
         """Test getting specific metric"""
         mock_admin_auth.return_value = mock_admin_user
@@ -363,7 +363,7 @@ class TestRealtimeFeatures:
 class TestLMSIntegration:
     """Test LMS integration features"""
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_lti_tool_configuration(self, mock_admin_auth, mock_admin_user):
         """Test LTI tool configuration endpoint"""
         mock_admin_auth.return_value = mock_admin_user
@@ -386,7 +386,7 @@ class TestLMSIntegration:
         assert "xml" in response.headers.get("content-type", "")
         assert "cartridge_basiclti_link" in response.text
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_supported_platforms(self, mock_admin_auth, mock_admin_user):
         """Test supported LMS platforms"""
         mock_admin_auth.return_value = mock_admin_user
@@ -399,7 +399,7 @@ class TestLMSIntegration:
         assert "platforms" in data
         assert len(data["platforms"]) >= 3
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_list_lms_configurations(self, mock_admin_auth, mock_admin_user):
         """Test listing LMS configurations"""
         mock_admin_auth.return_value = mock_admin_user
@@ -415,7 +415,7 @@ class TestLMSIntegration:
         assert "configurations" in data
         assert "total" in data
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_get_specific_configuration(self, mock_admin_auth, mock_admin_user):
         """Test getting specific LMS configuration"""
         mock_admin_auth.return_value = mock_admin_user
@@ -429,7 +429,7 @@ class TestLMSIntegration:
         assert "config_xml" in data
         assert "config_json" in data
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_submit_grade(self, mock_admin_auth, mock_admin_user):
         """Test grade submission to LMS"""
         mock_admin_auth.return_value = mock_admin_user
@@ -455,7 +455,7 @@ class TestLMSIntegration:
         assert "passback_id" in data
         assert "grade" in data
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_get_grade_history(self, mock_admin_auth, mock_admin_user):
         """Test getting grade history"""
         mock_admin_auth.return_value = mock_admin_user
@@ -472,7 +472,7 @@ class TestLMSIntegration:
         assert "grades" in data
         assert "total" in data
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_sync_roster(self, mock_admin_auth, mock_admin_user):
         """Test roster synchronization"""
         mock_admin_auth.return_value = mock_admin_user
@@ -492,7 +492,7 @@ class TestLMSIntegration:
         assert "imported" in data
         assert "total_enrolled" in data
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_get_roster(self, mock_admin_auth, mock_admin_user):
         """Test getting roster entries"""
         mock_admin_auth.return_value = mock_admin_user
@@ -508,7 +508,7 @@ class TestLMSIntegration:
         assert "context_id" in data
         assert "roster" in data
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_deep_linking(self, mock_admin_auth, mock_admin_user):
         """Test deep linking endpoint"""
         mock_admin_auth.return_value = mock_admin_user
@@ -530,7 +530,7 @@ class TestLMSIntegration:
         assert "deployment" in data
         assert "lti_response" in data
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_lms_statistics(self, mock_admin_auth, mock_admin_user):
         """Test LMS integration statistics"""
         mock_admin_auth.return_value = mock_admin_user
@@ -550,7 +550,7 @@ class TestLMSIntegration:
 class TestSystemCore:
     """Test system core features"""
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_create_content_version(self, mock_admin_auth, mock_admin_user):
         """Test creating content version"""
         mock_admin_auth.return_value = mock_admin_user
@@ -576,7 +576,7 @@ class TestSystemCore:
         assert "version" in data
         assert "history" in data
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_get_content_history(self, mock_admin_auth, mock_admin_user):
         """Test getting content version history"""
         mock_admin_auth.return_value = mock_admin_user
@@ -593,7 +593,7 @@ class TestSystemCore:
         assert "versions" in data
         assert "pagination" in data
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_get_specific_version(self, mock_admin_auth, mock_admin_user):
         """Test getting specific version"""
         mock_admin_auth.return_value = mock_admin_user
@@ -606,7 +606,7 @@ class TestSystemCore:
         assert "version" in data
         assert "diff_with_current" in data
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_rollback_to_version(self, mock_admin_auth, mock_admin_user):
         """Test rolling back to specific version"""
         mock_admin_auth.return_value = mock_admin_user
@@ -623,7 +623,7 @@ class TestSystemCore:
         assert "current_version" in data
         assert "rolled_back_to" in data
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_compare_versions(self, mock_admin_auth, mock_admin_user):
         """Test comparing two versions"""
         mock_admin_auth.return_value = mock_admin_user
@@ -639,7 +639,7 @@ class TestSystemCore:
         assert "comparison" in data
         assert "diff" in data["comparison"]
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_global_search(self, mock_admin_auth, mock_admin_user):
         """Test global search functionality"""
         mock_admin_auth.return_value = mock_admin_user
@@ -665,7 +665,7 @@ class TestSystemCore:
         assert "facets" in data
         assert "search_time_ms" in data
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_search_with_exact_phrase(self, mock_admin_auth, mock_admin_user):
         """Test search with exact phrase matching"""
         mock_admin_auth.return_value = mock_admin_user
@@ -684,7 +684,7 @@ class TestSystemCore:
         data = response.json()
         assert data["success"] is True
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_search_suggestions(self, mock_admin_auth, mock_admin_user):
         """Test search suggestions"""
         mock_admin_auth.return_value = mock_admin_user
@@ -700,7 +700,7 @@ class TestSystemCore:
         assert "suggestions" in data
         assert "query" in data
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_search_history(self, mock_admin_auth, mock_admin_user):
         """Test getting search history"""
         mock_admin_auth.return_value = mock_admin_user
@@ -777,7 +777,7 @@ class TestSystemCore:
         assert "count" in data
         assert data["count"] >= 1
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_extended_health_check(self, mock_admin_auth, mock_admin_user):
         """Test extended health check"""
         mock_admin_auth.return_value = mock_admin_user
@@ -792,7 +792,7 @@ class TestSystemCore:
         assert "search" in data["health"]
         assert "internationalization" in data["health"]
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_system_statistics(self, mock_admin_auth, mock_admin_user):
         """Test system statistics"""
         mock_admin_auth.return_value = mock_admin_user
@@ -807,7 +807,7 @@ class TestSystemCore:
         assert "search" in data["statistics"]
         assert "localization" in data["statistics"]
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_all_content_history(self, mock_admin_auth, mock_admin_user):
         """Test getting all content history"""
         mock_admin_auth.return_value = mock_admin_user
@@ -853,7 +853,7 @@ class TestPhase4Security:
         response = client.post("/content/version", json={})
         assert response.status_code in [401, 403]
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_lms_config_creation_requires_super_admin(self, mock_admin_auth):
         """Test that LMS config creation requires super admin"""
         mock_admin_auth.return_value = {
@@ -880,7 +880,7 @@ class TestPhase4Security:
         
         assert response.status_code == 403
     
-    @patch('lms_integration.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
     def test_lms_delete_requires_super_admin(self, mock_admin_auth):
         """Test that LMS delete requires super admin"""
         mock_admin_auth.return_value = {
@@ -891,7 +891,7 @@ class TestPhase4Security:
         response = client.delete("/lms/configurations/lms_canvas_001")
         assert response.status_code == 403
     
-    @patch('realtime_admin.get_current_admin_user')
+    @patch('realtime_admin.get_current_user_from_token')
     def test_alert_creation_requires_super_admin(self, mock_admin_auth):
         """Test that alert creation requires super admin"""
         mock_admin_auth.return_value = {
@@ -916,8 +916,8 @@ class TestPhase4Security:
 class TestPhase4Integration:
     """Integration tests for Phase 4 features"""
     
-    @patch('ai_predictive.get_current_admin_user')
-    @patch('system_core.get_current_admin_user')
+    @patch('ai_predictive.get_current_user_from_token')
+    @patch('system_core.get_current_user_from_token')
     def test_versioning_affects_analytics(
         self, mock_system_auth, mock_ai_auth, mock_admin_user
     ):
@@ -948,8 +948,8 @@ class TestPhase4Integration:
         )
         assert sentiment_response.status_code == 200
     
-    @patch('lms_integration.get_current_admin_user')
-    @patch('system_core.get_current_admin_user')
+    @patch('lms_integration.get_current_user_from_token')
+    @patch('system_core.get_current_user_from_token')
     def test_lms_grade_reflects_content(
         self, mock_system_auth, mock_lms_auth, mock_admin_user
     ):
@@ -984,8 +984,8 @@ class TestPhase4Integration:
         )
         assert grade_response.status_code == 200
     
-    @patch('realtime_admin.get_current_admin_user')
-    @patch('system_core.get_current_admin_user')
+    @patch('realtime_admin.get_current_user_from_token')
+    @patch('system_core.get_current_user_from_token')
     def test_lock_prevents_edit_conflicts(
         self, mock_system_auth, mock_realtime_auth, mock_admin_user
     ):
@@ -1016,7 +1016,7 @@ class TestPhase4Integration:
 class TestPhase4Performance:
     """Performance tests for Phase 4 features"""
     
-    @patch('ai_predictive.get_current_admin_user')
+    @patch('ai_predictive.get_current_user_from_token')
     def test_batch_risk_assessment_performance(self, mock_admin_auth, mock_admin_user):
         """Test performance of batch risk assessment"""
         mock_admin_auth.return_value = mock_admin_user
@@ -1035,7 +1035,7 @@ class TestPhase4Performance:
         assert len(data["assessments"]) == 100
         assert data["summary"]["total_students"] == 100
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_large_search_performance(self, mock_admin_auth, mock_admin_user):
         """Test performance of large search queries"""
         mock_admin_auth.return_value = mock_admin_user
@@ -1060,7 +1060,7 @@ class TestPhase4Performance:
         assert data["success"] is True
         assert data["search_time_ms"] < 5000  # Should complete within 5 seconds
     
-    @patch('system_core.get_current_admin_user')
+    @patch('system_core.get_current_user_from_token')
     def test_version_history_pagination(self, mock_admin_auth, mock_admin_user):
         """Test pagination of version history"""
         mock_admin_auth.return_value = mock_admin_user
