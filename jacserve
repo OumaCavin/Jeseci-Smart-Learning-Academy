@@ -5,5 +5,8 @@
 # Set PYTHONPATH to enable absolute imports
 export PYTHONPATH=.
 
+# Remove cached session file to force fresh compilation with new endpoints
+rm -f backend/app.session
+
 # Run the Jac server
 jac serve backend/app.jac --port 8000
