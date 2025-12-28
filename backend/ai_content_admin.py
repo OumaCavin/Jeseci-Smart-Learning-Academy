@@ -12,7 +12,7 @@ License: MIT License
 import os
 import sys
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, HTTPException, Query, Depends, status
+from fastapi import APIRouter, HTTPException, Query, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from datetime import datetime, timedelta
@@ -517,32 +517,16 @@ ai_content_manager = AIContentManager()
 # AI Content Management Router
 # =============================================================================
 
-def create_ai_content_router() -> FastAPI:
+def create_ai_content_router() -> APIRouter:
     """Create AI content management router"""
     
-    ai_app = FastAPI(
-        title="Jeseci AI Content Management API",
-        description="AI content generation, review, and quality control",
-        version="1.0.0",
-        docs_url="/ai-admin/docs",
-        redoc_url="/ai-admin/redoc",
-        openapi_url="/ai-admin/openapi.json"
-    )
-
-    # Add CORS middleware
-    ai_app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    router = APIRouter()
 
     # =============================================================================
     # AI Content Generation & Management
     # =============================================================================
 
-    @ai_app.get("/admin/ai/content", response_model=AIContentListResponse)
+    @router.get("/admin/ai/content", response_model=AIContentListResponse)
     async def get_ai_content_admin(
         limit: int = Query(default=50, le=100, description="Maximum content items to return"),
         offset: int = Query(default=0, ge=0, description="Number of items to skip"),
@@ -589,7 +573,7 @@ def create_ai_content_router() -> FastAPI:
                 }
             )
 
-    @ai_app.post("/admin/ai/generate", response_model=AIContentResponse)
+    @router.post("/admin/ai/generate", response_model=AIContentResponse)
     async def generate_ai_content_admin(
         request: AIContentGenerateRequest,
         admin_user: Dict[str, Any] = ContentAdminUser
@@ -639,7 +623,7 @@ def create_ai_content_router() -> FastAPI:
                 }
             )
 
-    @ai_app.post("/admin/ai/stats/refresh", response_model=AIUsageStatsResponse)
+    @router.post("/admin/ai/stats/refresh", response_model=AIUsageStatsResponse)
     async def refresh_ai_usage_stats_admin(
         admin_user: Dict[str, Any] = ContentAdminUser
     ):
@@ -684,7 +668,7 @@ def create_ai_content_router() -> FastAPI:
                 }
             )
 
-    @ai_app.get("/admin/ai/domains", response_model=AvailableDomainsResponse)
+    @router.get("/admin/ai/domains", response_model=AvailableDomainsResponse)
     async def get_available_domains(
         admin_user: Dict[str, Any] = ContentAdminUser
     ):
@@ -714,7 +698,7 @@ def create_ai_content_router() -> FastAPI:
                 }
             )
 
-    @ai_app.put("/admin/ai/review", response_model=AIContentResponse)
+    @router.put("/admin/ai/review", response_model=AIContentResponse)
     async def review_ai_content_admin(
         request: AIContentReviewRequest,
         admin_user: Dict[str, Any] = ContentAdminUser
@@ -769,7 +753,7 @@ def create_ai_content_router() -> FastAPI:
     # AI Usage Analytics
     # =============================================================================
 
-    @ai_app.get("/admin/ai/analytics", response_model=AIUsageStatsResponse)
+    @router.get("/admin/ai/analytics", response_model=AIUsageStatsResponse)
     async def get_ai_usage_stats(
         period: str = Query(default="monthly", description="Statistics period: daily, weekly, monthly"),
         admin_user: Dict[str, Any] = ContentAdminUser

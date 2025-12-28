@@ -12,7 +12,7 @@ License: MIT License
 import os
 import sys
 from typing import Optional, Dict, Any, List, Union
-from fastapi import FastAPI, HTTPException, Query, Depends, status
+from fastapi import APIRouter, HTTPException, Query, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, validator
 from datetime import datetime, timedelta
@@ -642,32 +642,16 @@ quiz_manager = QuizManager()
 # Quiz Management Router
 # =============================================================================
 
-def create_quiz_admin_router() -> FastAPI:
+def create_quiz_admin_router() -> APIRouter:
     """Create quiz and assessment management router"""
     
-    quiz_app = FastAPI(
-        title="Jeseci Quiz & Assessment Management API",
-        description="Comprehensive quiz creation, administration, and analytics",
-        version="1.0.0",
-        docs_url="/quiz-admin/docs",
-        redoc_url="/quiz-admin/redoc",
-        openapi_url="/quiz-admin/openapi.json"
-    )
-
-    # Add CORS middleware
-    quiz_app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    router = APIRouter()
 
     # =============================================================================
     # Quiz Management Endpoints
     # =============================================================================
 
-    @quiz_app.get("/admin/quizzes", response_model=QuizListResponse)
+    @router.get("/admin/quizzes", response_model=QuizListResponse)
     async def get_quizzes_admin(
         limit: int = Query(default=50, le=100, description="Maximum quizzes to return"),
         offset: int = Query(default=0, ge=0, description="Number of quizzes to skip"),
@@ -716,7 +700,7 @@ def create_quiz_admin_router() -> FastAPI:
                 }
             )
 
-    @quiz_app.post("/admin/quizzes", response_model=QuizResponse)
+    @router.post("/admin/quizzes", response_model=QuizResponse)
     async def create_quiz_admin(
         request: QuizCreateRequest,
         admin_user: Dict[str, Any] = ContentAdminUser
@@ -765,7 +749,7 @@ def create_quiz_admin_router() -> FastAPI:
                 }
             )
 
-    @quiz_app.put("/admin/quizzes", response_model=QuizResponse)
+    @router.put("/admin/quizzes", response_model=QuizResponse)
     async def update_quiz_admin(
         request: QuizUpdateRequest,
         admin_user: Dict[str, Any] = ContentAdminUser
@@ -813,7 +797,7 @@ def create_quiz_admin_router() -> FastAPI:
     # Question Bank Management
     # =============================================================================
 
-    @quiz_app.post("/admin/question-bank", response_model=QuestionBankResponse)
+    @router.post("/admin/question-bank", response_model=QuestionBankResponse)
     async def add_to_question_bank_admin(
         request: QuestionBankCreateRequest,
         admin_user: Dict[str, Any] = ContentAdminUser
@@ -860,7 +844,7 @@ def create_quiz_admin_router() -> FastAPI:
                 }
             )
 
-    @quiz_app.get("/admin/question-bank")
+    @router.get("/admin/question-bank")
     async def get_question_bank_admin(
         category: Optional[str] = Query(default=None, description="Specific category"),
         admin_user: Dict[str, Any] = ContentAdminUser
@@ -911,7 +895,7 @@ def create_quiz_admin_router() -> FastAPI:
     # Quiz Analytics
     # =============================================================================
 
-    @quiz_app.get("/admin/quiz-analytics", response_model=QuizAnalyticsResponse)
+    @router.get("/admin/quiz-analytics", response_model=QuizAnalyticsResponse)
     async def get_quiz_analytics_admin(
         quiz_id: Optional[str] = Query(default=None, description="Specific quiz ID"),
         period: str = Query(default="all", description="Analytics period"),

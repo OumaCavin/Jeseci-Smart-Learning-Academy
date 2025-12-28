@@ -12,7 +12,7 @@ License: MIT License
 import os
 import sys
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, HTTPException, Query, Depends, status, UploadFile, File
+from fastapi import APIRouter, HTTPException, Query, Depends, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -579,32 +579,16 @@ content_manager = ContentManager()
 # Content Management Router
 # =============================================================================
 
-def create_content_admin_router() -> FastAPI:
+def create_content_admin_router() -> APIRouter:
     """Create content management router"""
     
-    content_app = FastAPI(
-        title="Jeseci Content Admin API",
-        description="Content management endpoints for courses, paths, and concepts",
-        version="1.0.0",
-        docs_url="/content-admin/docs",
-        redoc_url="/content-admin/redoc",
-        openapi_url="/content-admin/openapi.json"
-    )
-
-    # Add CORS middleware
-    content_app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    router = APIRouter()
 
     # =============================================================================
     # Course Management Endpoints
     # =============================================================================
 
-    @content_app.get("/admin/content/courses", response_model=ContentListResponse)
+    @router.get("/admin/content/courses", response_model=ContentListResponse)
     async def get_courses_admin(
         limit: int = Query(default=50, le=100, description="Maximum courses to return"),
         offset: int = Query(default=0, ge=0, description="Number of courses to skip"),
@@ -651,7 +635,7 @@ def create_content_admin_router() -> FastAPI:
                 }
             )
 
-    @content_app.post("/admin/content/courses", response_model=ContentResponse)
+    @router.post("/admin/content/courses", response_model=ContentResponse)
     async def create_course_admin(
         request: CourseCreateRequest,
         admin_user: Dict[str, Any] = ContentAdminUser
@@ -700,7 +684,7 @@ def create_content_admin_router() -> FastAPI:
                 }
             )
 
-    @content_app.put("/admin/content/courses", response_model=ContentResponse)
+    @router.put("/admin/content/courses", response_model=ContentResponse)
     async def update_course_admin(
         request: CourseUpdateRequest,
         admin_user: Dict[str, Any] = ContentAdminUser
@@ -745,7 +729,7 @@ def create_content_admin_router() -> FastAPI:
                 }
             )
 
-    @content_app.delete("/admin/content/courses/{course_id}")
+    @router.delete("/admin/content/courses/{course_id}")
     async def delete_course_admin(
         course_id: str,
         admin_user: Dict[str, Any] = SuperAdminUser  # Only super admin can delete
@@ -792,7 +776,7 @@ def create_content_admin_router() -> FastAPI:
     # Learning Path Management Endpoints
     # =============================================================================
 
-    @content_app.post("/admin/content/learning-paths", response_model=ContentResponse)
+    @router.post("/admin/content/learning-paths", response_model=ContentResponse)
     async def create_learning_path_admin(
         request: LearningPathCreateRequest,
         admin_user: Dict[str, Any] = ContentAdminUser
@@ -846,7 +830,7 @@ def create_content_admin_router() -> FastAPI:
     # Concept Management Endpoints
     # =============================================================================
 
-    @content_app.post("/admin/content/concepts", response_model=ContentResponse)
+    @router.post("/admin/content/concepts", response_model=ContentResponse)
     async def create_concept_admin(
         request: ConceptCreateRequest,
         admin_user: Dict[str, Any] = ContentAdminUser
@@ -899,7 +883,7 @@ def create_content_admin_router() -> FastAPI:
     # Bulk Operations
     # =============================================================================
 
-    @content_app.post("/admin/content/bulk-action")
+    @router.post("/admin/content/bulk-action")
     async def bulk_content_action(
         request: BulkContentActionRequest,
         admin_user: Dict[str, Any] = ContentAdminUser
