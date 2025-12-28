@@ -1026,7 +1026,7 @@ def create_analytics_admin_router() -> APIRouter:
                 }
             )
 
-    return analytics_app
+    return router
 
 # =============================================================================
 # Export analytics router

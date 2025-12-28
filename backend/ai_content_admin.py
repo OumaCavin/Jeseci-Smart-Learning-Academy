@@ -796,7 +796,7 @@ def create_ai_content_router() -> APIRouter:
                 }
             )
 
-    return ai_app
+    return router
 
 # =============================================================================
 # Export AI content router

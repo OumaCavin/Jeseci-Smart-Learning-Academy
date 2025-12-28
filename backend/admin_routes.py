@@ -530,7 +530,7 @@ def create_admin_router() -> APIRouter:
                 }
             )
 
-    return admin_app
+    return router
 
 
 # =============================================================================
