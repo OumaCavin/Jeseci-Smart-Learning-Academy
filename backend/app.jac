@@ -143,7 +143,7 @@ walker courses {
         report {
             "success": True,
             "courses": courses,
-            "total": courses.len
+            "total": len(courses)
         };
     }
 }
@@ -449,7 +449,7 @@ walker learning_paths {
         report {
             "success": True,
             "paths": paths,
-            "total": paths.len,
+            "total": len(paths),
             "categories": ["programming", "web-development", "programming-languages", "data-science", "devops"]
         };
     }
@@ -576,7 +576,7 @@ walker concepts {
         report {
             "success": True,
             "concepts": concepts,
-            "total": concepts.len
+            "total": len(concepts)
         };
     }
 }
@@ -658,7 +658,7 @@ walker quizzes {
         report {
             "success": True,
             "quizzes": quizzes,
-            "total": quizzes.len
+            "total": len(quizzes)
         };
     }
 }
@@ -714,7 +714,7 @@ walker achievements {
                 "description": "Complete 5 courses",
                 "icon": "trophy",
                 "earned": False,
-                "earned_at": null,
+                "earned_at": None,
                 "requirement": "Complete 5 courses",
                 "category": "learning"
             },
@@ -724,7 +724,7 @@ walker achievements {
                 "description": "Maintain a 7-day learning streak",
                 "icon": "fire",
                 "earned": False,
-                "earned_at": null,
+                "earned_at": None,
                 "requirement": "7-day learning streak",
                 "category": "consistency"
             },
@@ -734,7 +734,7 @@ walker achievements {
                 "description": "Score 100% on any quiz",
                 "icon": "graduate",
                 "earned": False,
-                "earned_at": null,
+                "earned_at": None,
                 "requirement": "Score 100% on a quiz",
                 "category": "knowledge"
             },
@@ -744,7 +744,7 @@ walker achievements {
                 "description": "Generate 10 AI-powered lessons",
                 "icon": "robot",
                 "earned": False,
-                "earned_at": null,
+                "earned_at": None,
                 "requirement": "Generate 10 AI lessons",
                 "category": "exploration"
             }
@@ -755,7 +755,7 @@ walker achievements {
         report {
             "success": True,
             "achievements": all_achievements,
-            "total": all_achievements.len,
+            "total": len(all_achievements),
             "earned_count": earned_count,
             "total_points": 100
         };
