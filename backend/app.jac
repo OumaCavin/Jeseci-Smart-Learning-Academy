@@ -12,6 +12,7 @@ import os;
 # Database and authentication modules
 import database as db_module;
 import user_auth as auth_module;
+import email_verification as email_verification_module;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -1615,4 +1616,206 @@ def send_contact_notification(contact_data: dict) -> dict {
 def send_confirmation_email(contact_data: dict) -> dict {
     import email_notifications as email_module;
     return email_module.send_confirmation_email(contact_data);
+}
+
+# Async email wrapper functions for auth walkers
+# These call the Python email module functions
+
+def send_verification_email(email: str, username: str, verification_token: str) -> dict {
+    import email_verification as email_module;
+    return email_module.send_verification_email(email, username, verification_token);
+}
+
+def send_welcome_email(email: str, username: str) -> dict {
+    import email_verification as email_module;
+    return email_module.send_welcome_email(email, username);
+}
+
+walker user_register {
+    has username: str;
+    has email: str;
+    has password: str;
+    has first_name: str = "";
+    has last_name: str = "";
+    has learning_style: str = "visual";
+    has skill_level: str = "beginner";
+    
+    can user_register with entry {
+        try {
+            result = auth_module.register_user(
+                self.username,
+                self.email,
+                self.password,
+                self.first_name,
+                self.last_name,
+                self.learning_style,
+                self.skill_level
+            );
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "user_id": result.get('user_id'),
+                    "username": result.get('username'),
+                    "email": result.get('email'),
+                    "requires_verification": result.get('requires_verification', True),
+                    "is_email_verified": result.get('is_email_verified', False),
+                    "message": result.get('message', 'Registration successful! Please check your email to verify your account.')
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Registration failed'),
+                    "code": result.get('code', 'ERROR')
+                };
+            }
+        } except error {
+            std.out("Registration error:", error);
+            report {
+                "success": False,
+                "error": "Registration failed: " + str(error),
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker user_login {
+    has username: str;
+    has password: str;
+    
+    can user_login with entry {
+        try {
+            result = auth_module.authenticate_user(self.username, self.password);
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "access_token": result.get('access_token'),
+                    "token_type": result.get('token_type', 'bearer'),
+                    "expires_in": result.get('expires_in'),
+                    "user": result.get('user'),
+                    "message": result.get('message', 'Login successful!')
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Invalid credentials'),
+                    "code": result.get('code', 'ERROR')
+                };
+            }
+        } except error {
+            std.out("Login error:", error);
+            report {
+                "success": False,
+                "error": "Login failed: " + str(error),
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker verify_email {
+    has token: str;
+    
+    can verify_email with entry {
+        if not self.token {
+            report {
+                "success": False,
+                "error": "Verification token is required",
+                "code": "MISSING_TOKEN"
+            };
+            return;
+        }
+        
+        try {
+            result = auth_module.verify_email(self.token);
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "message": result.get('message', 'Email verified successfully!'),
+                    "user": result.get('user')
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Invalid or expired token'),
+                    "code": result.get('code', 'INVALID_TOKEN')
+                };
+            }
+        } except error {
+            std.out("Verification error:", error);
+            report {
+                "success": False,
+                "error": "Verification failed: " + str(error),
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker resend_verification {
+    has email: str;
+    
+    can resend_verification with entry {
+        if not self.email {
+            report {
+                "success": False,
+                "error": "Email address is required",
+                "code": "MISSING_EMAIL"
+            };
+            return;
+        }
+        
+        try {
+            result = auth_module.resend_verification_email(self.email);
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "message": result.get('message', 'Verification email sent successfully'),
+                    "method": result.get('method', 'unknown')
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to send verification email'),
+                    "code": result.get('code', 'ERROR')
+                };
+            }
+        } except error {
+            std.out("Resend verification error:", error);
+            report {
+                "success": False,
+                "error": "Failed to resend verification email: " + str(error),
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker verification_status {
+    has user_id: str;
+    
+    can verification_status with entry {
+        try {
+            result = auth_module.get_user_verification_status(self.user_id);
+            
+            report {
+                "success": True,
+                "user_id": self.user_id,
+                "is_verified": result.get('is_verified', False),
+                "has_pending_token": result.get('has_pending_token', False),
+                "token_expires_at": result.get('token_expires_at')
+            };
+        } except error {
+            std.out("Verification status error:", error);
+            report {
+                "success": False,
+                "error": "Failed to get verification status: " + str(error),
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
 }
