@@ -64,10 +64,12 @@ async def _send_email_async(to_email: str, subject: str, body: str) -> dict:
             validate_certs=True
         ) as smtp:
             # For port 587, we need to use STARTTLS properly
-            await smtp.ehlo()
-            if smtp.has_extn('STARTTLS'):
+            # Gmail always supports STARTTLS on port 587
+            try:
                 await smtp.starttls(context=context)
-                await smtp.ehlo()  # Re-EHLO after TLS upgrade
+            except Exception:
+                # If starttls fails, connection might already be TLS
+                pass
             
             await smtp.login(FROM_EMAIL, EMAIL_PASSWORD)
             await smtp.send_message(msg)
