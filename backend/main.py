@@ -53,16 +53,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount admin routers
-app.mount("", admin_router)
-app.mount("", content_admin_router)
-app.mount("", ai_content_router)
-app.mount("", quiz_admin_router)
-app.mount("", analytics_admin_router)
-app.mount("", ai_predictive_router)
-app.mount("", realtime_router)
-app.mount("", lms_router)
-app.mount("", system_router)
+# Include API routers
+app.include_router(admin_router)
+app.include_router(content_admin_router)
+app.include_router(ai_content_router)
+app.include_router(quiz_admin_router)
+app.include_router(analytics_admin_router)
+app.include_router(ai_predictive_router)
+app.include_router(realtime_router)
+app.include_router(lms_router)
+app.include_router(system_router)
 
 # =============================================================================
 # Pydantic Models for HTTP API
