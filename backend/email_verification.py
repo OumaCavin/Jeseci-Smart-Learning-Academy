@@ -10,10 +10,19 @@ This module handles email verification functionality including:
 import os
 import secrets
 from datetime import datetime, timedelta
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import logging
+
+# Try to import aiosmtplib for async email sending
+try:
+    from aiosmtplib import SMTP
+    from email.message import EmailMessage
+    HAS_AIOSMTPLIB = True
+except ImportError:
+    HAS_AIOSMTPLIB = False
+    # Fallback to synchronous smtplib
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
 
 logger = logging.getLogger(__name__)
 
@@ -39,26 +48,24 @@ def get_token_expiration() -> datetime:
     return datetime.utcnow() + timedelta(hours=VERIFICATION_TOKEN_EXPIRE_HOURS)
 
 
-def send_verification_email(email: str, username: str, verification_token: str) -> dict:
+def _create_email_message(email: str, username: str, subject: str, 
+                          verification_link: str = None) -> dict:
     """
-    Send email verification email to user
+    Create email message content
     
     Args:
         email: Recipient email address
         username: User's username
-        verification_token: Unique verification token
+        subject: Email subject
+        verification_link: Optional verification link
         
     Returns:
-        dict with 'success', 'method' keys
+        dict with 'plain' and 'html' content
     """
-    try:
-        # Build verification link
-        verification_link = f"{FRONTEND_URL}/verify-email?token={verification_token}"
-        
-        # Create email content
-        subject = "Verify Your Email - Jeseci Smart Learning Academy"
-        
-        # Plain text body
+    current_year = datetime.now().year
+    
+    # Plain text body
+    if verification_link:
         body = f"""Welcome to Jeseci Smart Learning Academy, {username}!
 
 Thank you for creating an account. Please verify your email address to get started.
@@ -73,8 +80,24 @@ If you didn't create an account with us, please ignore this email.
 Best regards,
 The Jeseci Smart Learning Academy Team
 """
-        
-        # HTML body for better email client support
+    else:
+        body = f"""Welcome aboard, {username}!
+
+Your email has been successfully verified. You now have full access to Jeseci Smart Learning Academy.
+
+Getting Started:
+1. Complete your profile
+2. Explore our courses
+3. Start learning!
+
+If you have any questions, feel free to reach out to our support team.
+
+Best regards,
+The Jeseci Smart Learning Academy Team
+"""
+    
+    # HTML body for better email client support
+    if verification_link:
         html_body = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -106,18 +129,114 @@ The Jeseci Smart Learning Academy Team
         </div>
         <div class="footer">
             <p>If you didn't create an account with us, please ignore this email.</p>
-            <p>© {datetime.now().year} Jeseci Smart Learning Academy. All rights reserved.</p>
+            <p>© {current_year} Jeseci Smart Learning Academy. All rights reserved.</p>
         </div>
     </div>
 </body>
 </html>
 """
+    else:
+        html_body = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+        .content {{ background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }}
+        .success-icon {{ font-size: 48px; text-align: center; margin-bottom: 20px; }}
+        .footer {{ text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Welcome to Jeseci Smart Learning Academy!</h1>
+        </div>
+        <div class="content">
+            <div class="success-icon">✅</div>
+            <h2>Email Verified, {username}!</h2>
+            <p>Your email has been successfully verified.</p>
+            <p>You now have full access to Jeseci Smart Learning Academy.</p>
+            <h3>Getting Started:</h3>
+            <ol>
+                <li>Complete your profile</li>
+                <li>Explore our courses</li>
+                <li>Start learning!</li>
+            </ol>
+            <p>If you have any questions, feel free to reach out to our support team.</p>
+        </div>
+        <div class="footer">
+            <p>© {current_year} Jeseci Smart Learning Academy. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+    
+    return {"plain": body, "html": html_body}
+
+
+async def _send_email_async(email: str, subject: str, content: dict) -> dict:
+    """
+    Send email using aiosmtplib (async)
+    
+    Args:
+        email: Recipient email address
+        subject: Email subject
+        content: dict with 'plain' and 'html' content
         
-        if not EMAIL_PASSWORD:
-            logger.info(f"Email password not configured - verification email for {email}:")
-            logger.info(f"Verification link: {verification_link}")
-            return {"success": True, "method": "console"}
+    Returns:
+        dict with 'success' key
+    """
+    if not HAS_AIOSMTPLIB:
+        raise ImportError("aiosmtplib is not installed. Install with: pip install aiosmtplib")
+    
+    if not EMAIL_PASSWORD:
+        logger.info(f"Email credentials not configured - email would be sent to: {email}")
+        return {"success": True}
+    
+    try:
+        # Create email message
+        msg = EmailMessage()
+        msg['From'] = FROM_EMAIL
+        msg['To'] = email
+        msg['Subject'] = subject
+        msg.set_content(content['plain'])
+        msg.add_alternative(content['html'], subtype='html')
         
+        # Send email using aiosmtplib
+        async with SMTP(hostname=SMTP_SERVER, port=SMTP_PORT, timeout=30) as smtp:
+            await smtp.starttls()
+            await smtp.login(FROM_EMAIL, EMAIL_PASSWORD)
+            await smtp.send_message(msg)
+        
+        logger.info(f"Email sent successfully to {email}")
+        return {"success": True}
+        
+    except Exception as error:
+        logger.error(f"Failed to send email to {email}: {error}")
+        return {"success": False, "error": str(error)}
+
+
+def _send_email_sync(email: str, subject: str, content: dict) -> dict:
+    """
+    Send email using smtplib (sync fallback)
+    
+    Args:
+        email: Recipient email address
+        subject: Email subject
+        content: dict with 'plain' and 'html' content
+        
+    Returns:
+        dict with 'success' key
+    """
+    if not EMAIL_PASSWORD:
+        logger.info(f"Email credentials not configured - email would be sent to: {email}")
+        return {"success": True}
+    
+    try:
         # Create email message
         msg = MIMEMultipart('alternative')
         msg['From'] = FROM_EMAIL
@@ -125,12 +244,12 @@ The Jeseci Smart Learning Academy Team
         msg['Subject'] = subject
         
         # Attach both plain text and HTML versions
-        part1 = MIMEText(body, 'plain')
-        part2 = MIMEText(html_body, 'html')
+        part1 = MIMEText(content['plain'], 'plain')
+        part2 = MIMEText(content['html'], 'html')
         msg.attach(part1)
         msg.attach(part2)
         
-        # Send email
+        # Send email using smtplib
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         server.starttls()
         server.login(FROM_EMAIL, EMAIL_PASSWORD)
@@ -138,17 +257,60 @@ The Jeseci Smart Learning Academy Team
         server.sendmail(FROM_EMAIL, email, text)
         server.quit()
         
-        logger.info(f"Verification email sent to {email}")
-        return {"success": True, "method": "email"}
+        logger.info(f"Email sent successfully to {email}")
+        return {"success": True}
+        
+    except Exception as error:
+        logger.error(f"Failed to send email to {email}: {error}")
+        return {"success": False, "error": str(error)}
+
+
+async def send_verification_email(email: str, username: str, verification_token: str) -> dict:
+    """
+    Send email verification email to user (async)
+    
+    Args:
+        email: Recipient email address
+        username: User's username
+        verification_token: Unique verification token
+        
+    Returns:
+        dict with 'success', 'method' keys
+    """
+    try:
+        # Build verification link
+        verification_link = f"{FRONTEND_URL}/verify-email?token={verification_token}"
+        
+        subject = "Verify Your Email - Jeseci Smart Learning Academy"
+        
+        # Create email content
+        content = _create_email_message(email, username, subject, verification_link)
+        
+        # Check if credentials are configured
+        if not EMAIL_PASSWORD:
+            logger.info(f"Verification email for {email}:")
+            logger.info(f"Verification link: {verification_link}")
+            return {"success": True, "method": "console"}
+        
+        # Send email
+        if HAS_AIOSMTPLIB:
+            result = await _send_email_async(email, subject, content)
+        else:
+            result = _send_email_sync(email, subject, content)
+        
+        if result.get("success"):
+            return {"success": True, "method": "email"}
+        else:
+            return {"success": False, "error": result.get("error", "Unknown error")}
         
     except Exception as error:
         logger.error(f"Failed to send verification email to {email}: {error}")
         return {"success": False, "error": str(error)}
 
 
-def send_welcome_email(email: str, username: str) -> dict:
+async def send_welcome_email(email: str, username: str) -> dict:
     """
-    Send welcome email after email is verified
+    Send welcome email after email is verified (async)
     
     Args:
         email: Recipient email address
@@ -160,38 +322,24 @@ def send_welcome_email(email: str, username: str) -> dict:
     try:
         subject = "Welcome to Jeseci Smart Learning Academy!"
         
-        body = f"""Welcome aboard, {username}!
-
-Your email has been successfully verified. You now have full access to Jeseci Smart Learning Academy.
-
-Getting Started:
-1. Complete your profile
-2. Explore our courses
-3. Start learning!
-
-If you have any questions, feel free to reach out to our support team.
-
-Best regards,
-The Jeseci Smart Learning Academy Team
-"""
+        # Create email content (no verification link for welcome email)
+        content = _create_email_message(email, username, subject, verification_link=None)
         
+        # Check if credentials are configured
         if not EMAIL_PASSWORD:
-            logger.info(f"Welcome email for {username} ({email}) - console mode")
+            logger.info(f"Welcome email for {username} ({email}) - would be sent")
             return {"success": True, "method": "console"}
         
-        msg = MIMEText(body, 'plain')
-        msg['From'] = FROM_EMAIL
-        msg['To'] = email
-        msg['Subject'] = subject
+        # Send email
+        if HAS_AIOSMTPLIB:
+            result = await _send_email_async(email, subject, content)
+        else:
+            result = _send_email_sync(email, subject, content)
         
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(FROM_EMAIL, EMAIL_PASSWORD)
-        server.sendmail(FROM_EMAIL, email, msg.as_string())
-        server.quit()
-        
-        logger.info(f"Welcome email sent to {email}")
-        return {"success": True, "method": "email"}
+        if result.get("success"):
+            return {"success": True, "method": "email"}
+        else:
+            return {"success": False, "error": result.get("error", "Unknown error")}
         
     except Exception as error:
         logger.error(f"Failed to send welcome email to {email}: {error}")
@@ -212,7 +360,6 @@ def resend_verification_email(email: str) -> dict:
     import psycopg2
     from psycopg2 import extras
     from dotenv import load_dotenv
-    import os
     
     load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', 'config', '.env'))
     
@@ -259,7 +406,7 @@ def resend_verification_email(email: str) -> dict:
         updated_user = cursor.fetchone()
         conn.commit()
         
-        # Send verification email
+        # Send verification email (sync call for this function)
         email_result = send_verification_email(
             email=email,
             username=updated_user['username'],
