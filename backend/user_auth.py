@@ -21,7 +21,6 @@ from psycopg2 import pool, extras
 import bcrypt
 import jwt
 from datetime import datetime, timedelta
-import logging
 import uuid
 from email_verification import (
     generate_verification_token,
@@ -31,9 +30,8 @@ from email_verification import (
 )
 from backend.database.neo4j_manager import Neo4jManager
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 # JWT Configuration
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "jeseci_secret_key_change_in_production")

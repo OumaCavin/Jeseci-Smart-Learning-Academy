@@ -11,7 +11,6 @@ import os
 import asyncio
 import secrets
 from datetime import datetime, timedelta
-import logging
 
 # Try to import aiosmtplib for async email sending
 try:
@@ -25,7 +24,8 @@ except ImportError:
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
 
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 # Email configuration
 # Support both new naming convention (SMTP_*) and legacy naming
