@@ -13,6 +13,7 @@ import os;
 import database as db_module;
 import user_auth as auth_module;
 import email_verification as email_verification_module;
+import email_notifications as email_module;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -1534,27 +1535,27 @@ walker contact_mark_read {
 # Email Notification Functions
 # Wrapper functions that call Python email module
 
-can send_contact_notification(contact_data: dict) -> dict {
-    import email_notifications as email_module;
-    return email_module.send_contact_notification(contact_data);
+def send_contact_notification(contact_data: dict) -> dict {
+    result = email_module.send_contact_notification(contact_data);
+    report result;
 }
 
-can send_confirmation_email(contact_data: dict) -> dict {
-    import email_notifications as email_module;
-    return email_module.send_confirmation_email(contact_data);
+def send_confirmation_email(contact_data: dict) -> dict {
+    result = email_module.send_confirmation_email(contact_data);
+    report result;
 }
 
 # Async email wrapper functions for auth walkers
 # These call the Python email module functions
 
-can send_verification_email(email: str, username: str, verification_token: str) -> dict {
-    import email_verification as email_module;
-    return email_module.send_verification_email(email, username, verification_token);
+def send_verification_email(email: str, username: str, verification_token: str) -> dict {
+    result = email_verification_module.send_verification_email_sync(email, username, verification_token);
+    report result;
 }
 
-can send_welcome_email(email: str, username: str) -> dict {
-    import email_verification as email_module;
-    return email_module.send_welcome_email(email, username);
+def send_welcome_email(email: str, username: str) -> dict {
+    result = email_verification_module.send_welcome_email_sync(email, username);
+    report result;
 }
 
 walker user_register {
