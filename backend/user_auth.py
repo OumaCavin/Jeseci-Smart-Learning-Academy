@@ -639,8 +639,16 @@ class UserAuthManager:
         try:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
             
+            # First get the integer id from the string user_id
+            cursor.execute(f"SELECT id FROM {self.schema}.users WHERE user_id = %s", (user_id,))
+            user_row = cursor.fetchone()
+            if not user_row:
+                return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
+            
+            user_db_id = user_row['id']
+            
             # Check if user exists
-            cursor.execute(f"SELECT id FROM {self.schema}.users WHERE id = %s", (user_id,))
+            cursor.execute(f"SELECT id FROM {self.schema}.users WHERE id = %s", (user_db_id,))
             existing = cursor.fetchone()
             if not existing:
                 return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
@@ -652,7 +660,7 @@ class UserAuthManager:
             WHERE id = %s
             RETURNING user_id, username, is_admin, admin_role
             """
-            cursor.execute(update_query, (is_admin, admin_role, user_id))
+            cursor.execute(update_query, (is_admin, admin_role, user_db_id))
             updated_user = cursor.fetchone()
             conn.commit()
             
@@ -693,8 +701,17 @@ class UserAuthManager:
         try:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
             
+            # First get the integer id from the string user_id
+            cursor.execute(f"SELECT id, username FROM {self.schema}.users WHERE user_id = %s", (user_id,))
+            user_row = cursor.fetchone()
+            if not user_row:
+                return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
+            
+            user_db_id = user_row['id']
+            existing_username = user_row['username']
+            
             # Check if user exists
-            cursor.execute(f"SELECT id, username FROM {self.schema}.users WHERE id = %s", (user_id,))
+            cursor.execute(f"SELECT id, username FROM {self.schema}.users WHERE id = %s", (user_db_id,))
             existing = cursor.fetchone()
             if not existing:
                 return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
@@ -707,12 +724,12 @@ class UserAuthManager:
             WHERE id = %s
             RETURNING user_id, username, is_active
             """
-            cursor.execute(update_query, (is_active, user_id))
+            cursor.execute(update_query, (is_active, user_db_id))
             updated_user = cursor.fetchone()
             conn.commit()
             
             action = "suspended" if suspended else "activated"
-            logger.info(f"User {action}: {existing['username']} ({user_id})")
+            logger.info(f"User {action}: {existing_username} ({user_id})")
             return {
                 "success": True,
                 "user_id": updated_user['user_id'],
@@ -887,11 +904,20 @@ class UserAuthManager:
         
         try:
             cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
+            
+            # First get the integer id from the string user_id
+            cursor.execute(f"SELECT id FROM {self.schema}.users WHERE user_id = %s", (user_id,))
+            user_row = cursor.fetchone()
+            if not user_row:
+                return {"is_verified": False}
+            
+            user_db_id = user_row['id']
+            
             cursor.execute(f"""
                 SELECT is_email_verified, verification_token, token_expires_at
                 FROM {self.schema}.users 
                 WHERE id = %s
-            """, (user_id,))
+            """, (user_db_id,))
             user = cursor.fetchone()
             
             if not user:
