@@ -619,7 +619,7 @@ walker quizzes {
                 "difficulty": "beginner",
                 "estimated_time": 5,
                 "completed": False,
-                "score": null
+                "score": None
             },
             {
                 "id": "quiz_oop",
@@ -651,7 +651,7 @@ walker quizzes {
                 "difficulty": "intermediate",
                 "estimated_time": 10,
                 "completed": False,
-                "score": null
+                "score": None
             }
         ];
         
