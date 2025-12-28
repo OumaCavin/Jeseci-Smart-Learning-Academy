@@ -165,13 +165,18 @@ const AppContent: React.FC = () => {
 
   // Helper function to extract arrays from API response objects
   const extractArrayFromResponse = <T,>(response: any): T[] => {
-    // If response is already an array, return it
+    // If response is already an array, return it directly
     if (Array.isArray(response)) {
       return response as T[];
     }
     
+    // If response is null or undefined, return empty array
+    if (!response) {
+      return [] as T[];
+    }
+    
     // If response is an object, look for common array properties
-    if (response && typeof response === 'object') {
+    if (typeof response === 'object') {
       // Common property names that might contain the array data
       const arrayProperties = [
         'data', 'results', 'items', 'concepts', 'paths', 
@@ -179,24 +184,34 @@ const AppContent: React.FC = () => {
         'concepts_list', 'paths_list', 'courses_list'
       ];
       
+      // First, check for known array properties
       for (const prop of arrayProperties) {
         if (Array.isArray(response[prop])) {
           return response[prop] as T[];
         }
       }
       
-      // If response has success property and no array found, try to find any array property
+      // If response has success property, try to find any array property (excluding 'success')
       if ('success' in response) {
         const keys = Object.keys(response);
         for (const key of keys) {
+          // Skip the success property and look for arrays
           if (key !== 'success' && Array.isArray(response[key])) {
             return response[key] as T[];
           }
         }
+        
+        // If we have a 'success' property but no array found, 
+        // check if the response itself should be returned (for responses with multiple properties)
+        // But for list endpoints, we should still try to find data
+        const dataKeys = keys.filter(k => k !== 'success');
+        if (dataKeys.length === 0) {
+          return [] as T[];
+        }
       }
     }
     
-    // Return empty array as fallback
+    // Return empty array as fallback with logging
     console.warn('Could not extract array from response:', response);
     return [] as T[];
   };

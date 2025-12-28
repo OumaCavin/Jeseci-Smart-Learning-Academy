@@ -232,14 +232,15 @@ class ApiService {
       return response as T;
     }
 
-    // Jaclang API returns data wrapped in a "reports" array
+    // Jaclang API via jac serve returns data in a specific format
+    // Check for reports array format (native Jaclang walker response)
     if (response?.reports && Array.isArray(response.reports) && response.reports.length > 0) {
       const report = response.reports[0];
       
       // If report is an object with success property, extract the inner data
       if (typeof report === 'object' && report !== null && !Array.isArray(report)) {
         // Some endpoints return {success: true, data: [...]}
-        // Others return {success: true, courses: [...]}
+        // Others return {success: true, concepts: [...]}
         // Others return just {...}
         if (report.success === true || report.success === undefined) {
           // Check for authentication responses with user and token properties
@@ -249,8 +250,10 @@ class ApiService {
           }
           
           // Check for nested array properties and return the array value
-          const keys = Object.keys(report);
-          for (const key of keys) {
+          const arrayKeys = ['data', 'results', 'items', 'concepts', 'paths', 
+                            'courses', 'quizzes', 'achievements', 'modules',
+                            'concepts_list', 'paths_list', 'courses_list'];
+          for (const key of arrayKeys) {
             if (Array.isArray(report[key])) {
               return report[key] as unknown as T;
             }
@@ -259,7 +262,9 @@ class ApiService {
           // If no array properties, count non-success object properties
           // Only extract if there's exactly one object property (like progress)
           // Don't extract if there are multiple mixed properties (like login)
-          const objectKeys = keys.filter(key => key !== 'success' && typeof report[key] === 'object' && report[key] !== null);
+          const objectKeys = Object.keys(report).filter(key => 
+            key !== 'success' && typeof report[key] === 'object' && report[key] !== null
+          );
           if (objectKeys.length === 1) {
             return report[objectKeys[0]] as unknown as T;
           }
@@ -279,9 +284,10 @@ class ApiService {
       return report as T;
     }
     
-    // Handle direct response data (already unwrapped)
+    // Handle direct response data (already unwrapped or standard API response)
+    // This handles the Pure Jaclang API format: {success: true, concepts: [...], total: n}
     if (typeof response === 'object' && response !== null) {
-      // If response has success property, extract inner data
+      // Check for success property first
       if ('success' in response) {
         if (response.success === true) {
           // Check for authentication responses with user and token properties
@@ -290,22 +296,29 @@ class ApiService {
             return response as T;
           }
           
-          // Check for array properties first
-          const keys = Object.keys(response);
-          for (const key of keys) {
+          // Check for array properties first - this handles the standard wrapper format
+          // {success: true, concepts: [...], total: n}
+          const arrayKeys = ['data', 'results', 'items', 'concepts', 'paths', 
+                            'courses', 'quizzes', 'achievements', 'modules',
+                            'concepts_list', 'paths_list', 'courses_list'];
+          for (const key of arrayKeys) {
             if (Array.isArray(response[key])) {
               return response[key] as unknown as T;
             }
           }
           
           // Only extract single object property (not for login with multiple properties)
-          const objectKeys = keys.filter(key => key !== 'success' && typeof response[key] === 'object' && response[key] !== null);
+          const objectKeys = Object.keys(response).filter(key => 
+            key !== 'success' && typeof response[key] === 'object' && response[key] !== null
+          );
           if (objectKeys.length === 1) {
             return response[objectKeys[0]] as unknown as T;
           }
         }
+        // For unsuccessful responses, return the full response for error handling
         return response as T;
       }
+      // If no success property, return as-is
       return response as T;
     }
     
