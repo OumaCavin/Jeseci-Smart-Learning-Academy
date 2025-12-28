@@ -52,8 +52,23 @@ async def _send_email_async(to_email: str, subject: str, body: str) -> dict:
         msg['Subject'] = subject
         msg.set_content(body)
         
-        async with SMTP(hostname=SMTP_SERVER, port=SMTP_PORT, timeout=30) as smtp:
-            await smtp.starttls()
+        # Create SSL context for secure connection
+        import ssl
+        context = ssl.create_default_context()
+        
+        # Send email using aiosmtplib with proper TLS handling
+        async with SMTP(
+            hostname=SMTP_SERVER, 
+            port=SMTP_PORT, 
+            timeout=30,
+            validate_certs=True
+        ) as smtp:
+            # For port 587, we need to use STARTTLS properly
+            await smtp.ehlo()
+            if smtp.has_extn('STARTTLS'):
+                await smtp.starttls(context=context)
+                await smtp.ehlo()  # Re-EHLO after TLS upgrade
+            
             await smtp.login(FROM_EMAIL, EMAIL_PASSWORD)
             await smtp.send_message(msg)
         
@@ -88,8 +103,14 @@ def _send_email_sync(to_email: str, subject: str, body: str) -> dict:
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
         
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
+        # Send email using smtplib with proper TLS context
+        import ssl
+        context = ssl.create_default_context()
+        
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=30)
+        server.ehlo()
+        server.starttls(context=context)
+        server.ehlo()  # Re-EHLO after TLS upgrade
         server.login(FROM_EMAIL, EMAIL_PASSWORD)
         text = msg.as_string()
         server.sendmail(FROM_EMAIL, to_email, text)
