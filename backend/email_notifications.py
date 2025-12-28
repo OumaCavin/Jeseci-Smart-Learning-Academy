@@ -2,7 +2,6 @@
 # This module handles all email-related functionality
 
 import os
-import logging
 
 # Try to import aiosmtplib for async email sending
 try:
@@ -16,7 +15,8 @@ except ImportError:
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
 
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 # Email configuration
 SMTP_SERVER = os.getenv("SMTP_HOST", os.getenv("SMTP_SERVER", "smtp.gmail.com"))

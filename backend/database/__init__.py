@@ -15,11 +15,9 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', 'config', 
 import psycopg2
 from psycopg2 import pool, extras
 from neo4j import GraphDatabase
-import logging
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 class DatabaseConfig:
     """Database configuration holder"""
