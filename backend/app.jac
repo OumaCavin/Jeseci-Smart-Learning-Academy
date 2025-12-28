@@ -1534,12 +1534,12 @@ walker contact_mark_read {
 # Email Notification Functions
 # Wrapper functions that call Python email module
 
-def send_contact_notification(contact_data: dict) -> dict {
+can send_contact_notification(contact_data: dict) -> dict {
     import email_notifications as email_module;
     return email_module.send_contact_notification(contact_data);
 }
 
-def send_confirmation_email(contact_data: dict) -> dict {
+can send_confirmation_email(contact_data: dict) -> dict {
     import email_notifications as email_module;
     return email_module.send_confirmation_email(contact_data);
 }
@@ -1547,12 +1547,12 @@ def send_confirmation_email(contact_data: dict) -> dict {
 # Async email wrapper functions for auth walkers
 # These call the Python email module functions
 
-def send_verification_email(email: str, username: str, verification_token: str) -> dict {
+can send_verification_email(email: str, username: str, verification_token: str) -> dict {
     import email_verification as email_module;
     return email_module.send_verification_email(email, username, verification_token);
 }
 
-def send_welcome_email(email: str, username: str) -> dict {
+can send_welcome_email(email: str, username: str) -> dict {
     import email_verification as email_module;
     return email_module.send_welcome_email(email, username);
 }
