@@ -946,7 +946,7 @@ def create_content_admin_router() -> APIRouter:
                 }
             )
 
-    return content_app
+    return router
 
 # =============================================================================
 # Export content router

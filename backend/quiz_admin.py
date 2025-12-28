@@ -940,7 +940,7 @@ def create_quiz_admin_router() -> APIRouter:
                 }
             )
 
-    return quiz_app
+    return router
 
 # =============================================================================
 # Export quiz router
