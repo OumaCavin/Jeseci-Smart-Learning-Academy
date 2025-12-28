@@ -432,7 +432,7 @@ class ApiService {
 
   // Email Verification
   async verifyEmail(token: string): Promise<any> {
-    const response = await this.makeRequest('/auth/verify-email', {
+    const response = await this.makeRequest('/walker/verify_email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -443,7 +443,7 @@ class ApiService {
   }
 
   async resendVerificationEmail(email: string): Promise<any> {
-    const response = await this.makeRequest('/auth/resend-verification', {
+    const response = await this.makeRequest('/walker/resend_verification', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -454,8 +454,9 @@ class ApiService {
   }
 
   async getVerificationStatus(userId: string): Promise<any> {
-    const response = await this.makeRequest(`/auth/verification-status/${userId}`, {
-      method: 'GET',
+    const response = await this.makeRequest('/walker/verification_status', {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userId }),
     });
     return response;
   }

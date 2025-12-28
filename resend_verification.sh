@@ -40,7 +40,7 @@ fi
 echo ""
 echo "Sending verification email..."
 echo "  Email to send: $EMAIL"
-echo "  URL: http://localhost:8000/auth/resend-verification"
+echo "  URL: http://localhost:8000/walker/resend_verification"
 echo ""
 
 # Run the resend verification script
@@ -56,7 +56,7 @@ import requests
 
 email = '''$EMAIL'''
 print(f'Python received email: [{email}]')
-url = 'http://localhost:8000/auth/resend-verification'
+url = 'http://localhost:8000/walker/resend_verification'
 
 try:
     payload = {'email': email}
