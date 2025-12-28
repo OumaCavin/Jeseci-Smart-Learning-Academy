@@ -8,6 +8,7 @@ This module handles email verification functionality including:
 """
 
 import os
+import asyncio
 import secrets
 from datetime import datetime, timedelta
 import logging
@@ -406,12 +407,12 @@ def resend_verification_email(email: str) -> dict:
         updated_user = cursor.fetchone()
         conn.commit()
         
-        # Send verification email (sync call for this function)
-        email_result = send_verification_email(
+        # Send verification email using asyncio.run() for async function
+        email_result = asyncio.run(send_verification_email(
             email=email,
             username=updated_user['username'],
             verification_token=new_token
-        )
+        ))
         
         return {
             "success": True,

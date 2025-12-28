@@ -9,6 +9,7 @@ License: MIT License
 """
 
 import os
+import asyncio
 import secrets
 from dotenv import load_dotenv
 
@@ -359,11 +360,11 @@ class UserAuthManager:
             # Send verification email if not skipped
             requires_verification = False
             if not skip_verification:
-                email_result = send_verification_email(
+                email_result = asyncio.run(send_verification_email(
                     email=email,
                     username=username,
                     verification_token=verification_token
-                )
+                ))
                 requires_verification = True
                 logger.info(f"Verification email sent to {email}: {email_result.get('method', 'unknown')}")
             
@@ -785,7 +786,7 @@ class UserAuthManager:
             logger.info(f"Email verified successfully for user: {updated_user['username']}")
             
             # Send welcome email
-            send_welcome_email(email=updated_user['email'], username=updated_user['username'])
+            asyncio.run(send_welcome_email(email=updated_user['email'], username=updated_user['username']))
             
             return {
                 "success": True,
@@ -848,11 +849,11 @@ class UserAuthManager:
             conn.commit()
             
             # Send verification email
-            email_result = send_verification_email(
+            email_result = asyncio.run(send_verification_email(
                 email=email,
                 username=updated_user['username'],
                 verification_token=new_token
-            )
+            ))
             
             logger.info(f"Verification email resent to {email}")
             
