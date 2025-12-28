@@ -12,7 +12,7 @@ License: MIT License
 import os
 import sys
 from typing import Optional, Dict, Any, List, Union
-from fastapi import FastAPI, HTTPException, Query, Depends, status
+from fastapi import APIRouter, HTTPException, Query, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, validator
 from datetime import datetime, timedelta
@@ -730,32 +730,16 @@ analytics_manager = AdvancedAnalyticsManager()
 # Advanced Analytics Router
 # =============================================================================
 
-def create_analytics_admin_router() -> FastAPI:
+def create_analytics_admin_router() -> APIRouter:
     """Create advanced analytics and dashboard management router"""
     
-    analytics_app = FastAPI(
-        title="Jeseci Advanced Analytics API",
-        description="Advanced analytics, custom dashboards, and reporting",
-        version="1.0.0",
-        docs_url="/analytics-admin/docs",
-        redoc_url="/analytics-admin/redoc",
-        openapi_url="/analytics-admin/openapi.json"
-    )
-
-    # Add CORS middleware
-    analytics_app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    router = APIRouter()
 
     # =============================================================================
     # Analytics Endpoints
     # =============================================================================
 
-    @analytics_app.post("/admin/analytics/refresh", response_model=AnalyticsResponse)
+    @router.post("/admin/analytics/refresh", response_model=AnalyticsResponse)
     async def refresh_analytics_admin(
         admin_user: Dict[str, Any] = AnalyticsAdminUser
     ):
@@ -795,7 +779,7 @@ def create_analytics_admin_router() -> FastAPI:
                 }
             )
 
-    @analytics_app.get("/admin/analytics/users", response_model=AnalyticsResponse)
+    @router.get("/admin/analytics/users", response_model=AnalyticsResponse)
     async def get_user_analytics_admin(
         time_frame: str = Query(default="monthly", description="Analytics time frame"),
         segment: Optional[str] = Query(default=None, description="User segment filter"),
@@ -832,7 +816,7 @@ def create_analytics_admin_router() -> FastAPI:
                 }
             )
 
-    @analytics_app.get("/admin/analytics/learning", response_model=AnalyticsResponse)
+    @router.get("/admin/analytics/learning", response_model=AnalyticsResponse)
     async def get_learning_analytics_admin(
         time_frame: str = Query(default="monthly", description="Analytics time frame"),
         course_id: Optional[str] = Query(default=None, description="Specific course filter"),
@@ -869,7 +853,7 @@ def create_analytics_admin_router() -> FastAPI:
                 }
             )
 
-    @analytics_app.get("/admin/analytics/content", response_model=AnalyticsResponse)
+    @router.get("/admin/analytics/content", response_model=AnalyticsResponse)
     async def get_content_analytics_admin(
         time_frame: str = Query(default="monthly", description="Analytics time frame"),
         content_type: Optional[str] = Query(default=None, description="Content type filter"),
@@ -910,7 +894,7 @@ def create_analytics_admin_router() -> FastAPI:
     # Dashboard Management
     # =============================================================================
 
-    @analytics_app.get("/admin/dashboards", response_model=DashboardListResponse)
+    @router.get("/admin/dashboards", response_model=DashboardListResponse)
     async def get_dashboards_admin(
         dashboard_type: Optional[str] = Query(default=None, description="Dashboard type filter"),
         admin_user: Dict[str, Any] = AnalyticsAdminUser
@@ -941,7 +925,7 @@ def create_analytics_admin_router() -> FastAPI:
                 }
             )
 
-    @analytics_app.post("/admin/dashboards", response_model=DashboardResponse)
+    @router.post("/admin/dashboards", response_model=DashboardResponse)
     async def create_dashboard_admin(
         request: DashboardCreateRequest,
         admin_user: Dict[str, Any] = AnalyticsAdminUser
@@ -993,7 +977,7 @@ def create_analytics_admin_router() -> FastAPI:
     # Report Generation
     # =============================================================================
 
-    @analytics_app.post("/admin/reports", response_model=ReportResponse)
+    @router.post("/admin/reports", response_model=ReportResponse)
     async def generate_report_admin(
         request: AnalyticsReportRequest,
         admin_user: Dict[str, Any] = AnalyticsAdminUser

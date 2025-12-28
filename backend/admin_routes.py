@@ -12,7 +12,7 @@ License: MIT License
 import os
 import sys
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, HTTPException, Query, Depends, status
+from fastapi import APIRouter, HTTPException, Query, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -78,32 +78,16 @@ class BulkUserActionRequest(BaseModel):
 # Admin Router Creation
 # =============================================================================
 
-def create_admin_router() -> FastAPI:
-    """Create admin-only FastAPI router with endpoints"""
+def create_admin_router() -> APIRouter:
+    """Create admin-only API router with endpoints"""
     
-    admin_app = FastAPI(
-        title="Jeseci Admin API",
-        description="Admin-only endpoints for platform management",
-        version="1.0.0",
-        docs_url="/admin/docs",
-        redoc_url="/admin/redoc",
-        openapi_url="/admin/openapi.json"
-    )
-
-    # Add CORS middleware
-    admin_app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    router = APIRouter()
 
     # =============================================================================
     # Admin Dashboard & Overview
     # =============================================================================
 
-    @admin_app.get("/admin/dashboard", response_model=AdminStatsResponse)
+    @router.get("/admin/dashboard", response_model=AdminStatsResponse)
     async def get_admin_dashboard(admin_user: Dict[str, Any] = AdminUser):
         """Get admin dashboard overview statistics"""
         try:
@@ -177,7 +161,7 @@ def create_admin_router() -> FastAPI:
     # User Management Endpoints
     # =============================================================================
 
-    @admin_app.get("/admin/users", response_model=AdminUserListResponse)
+    @router.get("/admin/users", response_model=AdminUserListResponse)
     async def get_all_users_admin(
         limit: int = Query(default=50, le=200, description="Maximum users to return"),
         offset: int = Query(default=0, ge=0, description="Number of users to skip"),
@@ -254,7 +238,7 @@ def create_admin_router() -> FastAPI:
                 }
             )
 
-    @admin_app.post("/admin/users/create", response_model=AdminActionResponse)
+    @router.post("/admin/users/create", response_model=AdminActionResponse)
     async def create_admin_user(
         request: AdminUserCreateRequest,
         admin_user: Dict[str, Any] = UserAdminUser
@@ -335,7 +319,7 @@ def create_admin_router() -> FastAPI:
                 }
             )
 
-    @admin_app.put("/admin/users/update", response_model=AdminActionResponse)
+    @router.put("/admin/users/update", response_model=AdminActionResponse)
     async def update_user_admin(
         request: AdminUserUpdateRequest,
         admin_user: Dict[str, Any] = UserAdminUser
@@ -432,7 +416,7 @@ def create_admin_router() -> FastAPI:
                 }
             )
 
-    @admin_app.post("/admin/users/bulk-action", response_model=AdminActionResponse)
+    @router.post("/admin/users/bulk-action", response_model=AdminActionResponse)
     async def bulk_user_action(
         request: BulkUserActionRequest,
         admin_user: Dict[str, Any] = UserAdminUser
@@ -507,7 +491,7 @@ def create_admin_router() -> FastAPI:
     # System Administration (Super Admin Only)
     # =============================================================================
 
-    @admin_app.get("/admin/system/health")
+    @router.get("/admin/system/health")
     async def get_system_health(admin_user: Dict[str, Any] = SuperAdminUser):
         """Get comprehensive system health status (Super Admin only)"""
         try:
