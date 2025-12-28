@@ -8,7 +8,6 @@ tracking, mastery metrics, learning pattern analysis, and performance reporting.
 
 import asyncio
 import json
-import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
@@ -16,12 +15,8 @@ from collections import defaultdict
 
 from backend.agents.base_agent import BaseAgent, AgentMessage, AgentTask, AgentState, MessageType, Priority
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 
 @dataclass

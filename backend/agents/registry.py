@@ -7,7 +7,6 @@ in the multi-agent system.
 """
 
 import asyncio
-import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Type
 from dataclasses import dataclass, field
@@ -15,12 +14,8 @@ from dataclasses import dataclass, field
 from backend.agents.base_agent import BaseAgent, AgentState
 from backend.agents.message_bus import MessageBus
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 
 @dataclass

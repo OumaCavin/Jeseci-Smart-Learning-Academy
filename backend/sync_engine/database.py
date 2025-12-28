@@ -9,7 +9,6 @@ Author: Jeseci Development Team
 """
 
 import os
-import logging
 from contextlib import contextmanager
 from typing import Optional, Dict, Any, List
 
@@ -23,7 +22,8 @@ from sqlalchemy.pool import QueuePool
 from backend.sync_engine.config import get_database_config, get_redis_config
 from backend.sync_engine.models import Base
 
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 
 class PostgresSyncManager:

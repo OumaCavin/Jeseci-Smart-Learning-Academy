@@ -6,7 +6,6 @@ This service provides an HTTP API for the Jaclang backend to generate AI content
 import os
 import sys
 import json
-import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -15,9 +14,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from ai_generator import sync_generate_lesson, ai_generator
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 # Create Flask app
 app = Flask(__name__)

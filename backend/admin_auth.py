@@ -23,6 +23,13 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), 'config', '.env'
 # Import user auth module
 import user_auth as auth_module
 
+# Import centralized logging configuration
+from logger_config import logger as main_logger
+
+# Get specialized audit logger
+import logging
+logger = logging.getLogger("admin_audit")
+
 # JWT Configuration
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "jeseci_secret_key_change_in_production")
 JWT_ALGORITHM = "HS256"

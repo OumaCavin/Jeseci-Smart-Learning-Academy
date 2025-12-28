@@ -16,12 +16,8 @@ from typing import Any, Dict, List, Optional, Callable, Awaitable
 from dataclasses import dataclass, field, asdict
 from abc import ABC, abstractmethod
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 
 class AgentState(Enum):

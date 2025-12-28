@@ -8,7 +8,6 @@ enabling agents to exchange messages asynchronously with various delivery patter
 
 import asyncio
 import json
-import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Callable, Set
 from dataclasses import dataclass, field
@@ -18,12 +17,8 @@ import uuid
 
 from backend.agents.base_agent import AgentMessage, MessageType, Priority
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 
 class DeliveryPattern(Enum):

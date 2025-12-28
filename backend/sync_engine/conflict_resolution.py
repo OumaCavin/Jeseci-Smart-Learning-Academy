@@ -15,7 +15,6 @@ Author: Cavin Otieno
 
 import hashlib
 import json
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -26,7 +25,8 @@ from backend.sync_engine.config import get_sync_config
 from backend.sync_engine.database import get_postgres_sync_manager, get_neo4j_sync_manager
 from backend.sync_engine.models import SyncConflict, SyncStatus, ConflictResolutionStatus
 
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 
 class ConflictType(str, Enum):

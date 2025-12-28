@@ -27,7 +27,8 @@ from backend.sync_engine.events import SyncEvent, EventType
 from backend.sync_engine.models import SyncEventLog, SyncEventStatus
 from backend.sync_engine.database import get_postgres_sync_manager, get_redis_sync_manager
 
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 
 class SyncEventPublisher:
