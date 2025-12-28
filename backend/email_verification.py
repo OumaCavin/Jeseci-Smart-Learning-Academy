@@ -347,6 +347,36 @@ async def send_welcome_email(email: str, username: str) -> dict:
         return {"success": False, "error": str(error)}
 
 
+# Synchronous wrapper functions for Jaclang compatibility
+def send_verification_email_sync(email: str, username: str, verification_token: str) -> dict:
+    """
+    Synchronous wrapper for send_verification_email (for Jaclang compatibility)
+    
+    Args:
+        email: Recipient email address
+        username: User's username
+        verification_token: Unique verification token
+        
+    Returns:
+        dict with 'success', 'method' keys
+    """
+    return asyncio.run(send_verification_email(email, username, verification_token))
+
+
+def send_welcome_email_sync(email: str, username: str) -> dict:
+    """
+    Synchronous wrapper for send_welcome_email (for Jaclang compatibility)
+    
+    Args:
+        email: Recipient email address
+        username: User's username
+        
+    Returns:
+        dict with 'success', 'method' keys
+    """
+    return asyncio.run(send_welcome_email(email, username))
+
+
 def resend_verification_email(email: str) -> dict:
     """
     Resend verification email to a user
