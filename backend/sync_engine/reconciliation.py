@@ -38,7 +38,8 @@ from backend.sync_engine.database import (
     get_neo4j_sync_manager
 )
 
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 
 class ReconciliationJob:

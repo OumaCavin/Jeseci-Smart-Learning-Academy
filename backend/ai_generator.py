@@ -10,10 +10,8 @@ import aiohttp
 from datetime import datetime
 from typing import List, Optional
 
-# Setup logging
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Import centralized logging configuration
+from logger_config import logger
 
 # Get OpenAI API key from environment
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
