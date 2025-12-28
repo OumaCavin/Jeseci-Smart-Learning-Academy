@@ -748,7 +748,7 @@ class UserAuthManager:
             
             # Find user with this verification token
             cursor.execute(f"""
-                SELECT user_id, username, email, token_expires_at, is_email_verified 
+                SELECT id, user_id, username, email, token_expires_at, is_email_verified 
                 FROM {self.schema}.users 
                 WHERE verification_token = %s
             """, (verification_token,))
@@ -779,7 +779,7 @@ class UserAuthManager:
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
                 RETURNING user_id, username, email
-            """, (user['user_id'],))
+            """, (user['id'],))
             updated_user = cursor.fetchone()
             conn.commit()
             
