@@ -234,127 +234,55 @@ if command -v psql &> /dev/null; then
                 print_info "No tables found in database (tables will be created by application)"
             fi
             
-            # Create tables using SQLAlchemy
+            # Run table creation using centralized database initialization script
             print_section "Creating Database Tables"
-            print_info "Running database migrations using SQLAlchemy..."
+            print_info "Running database initialization script..."
             printf "\n"
-            
-            # Drop existing schema objects to fix duplicate index errors
+
+            # Drop existing schema objects to fix duplicate index errors (first-time setup only)
             print_info "Dropping existing schema '$DB_SCHEMA' to fix any duplicate objects..."
             sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "DROP SCHEMA IF EXISTS $DB_SCHEMA CASCADE;" 2>/dev/null || true
-            
+
             # Create the schema fresh
             print_info "Creating schema '$DB_SCHEMA'..."
             sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "CREATE SCHEMA $DB_SCHEMA;" 2>/dev/null || true
             sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "GRANT ALL ON SCHEMA $DB_SCHEMA TO $POSTGRES_USER;" 2>/dev/null || true
             sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON TABLES TO $POSTGRES_USER;" 2>/dev/null || true
             sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON SEQUENCES TO $POSTGRES_USER;" 2>/dev/null || true
-            
-            # Run table creation and capture output
-            PYTHON_OUTPUT=$(python3 << 'PYTHON_SCRIPT'
+
+            # Use the centralized database initialization script
+            PYTHON_OUTPUT=$(python3 -c "
 import sys
 import os
-
-# Add project root to path, then backend for config imports
-sys.path.insert(0, os.getcwd())
 sys.path.insert(0, os.path.join(os.getcwd(), 'backend'))
-
-print("[INFO] Starting table creation...")
-print(f"[INFO] Current directory: {os.getcwd()}")
-print(f"[INFO] Python path: {sys.path[:3]}...")
+from database.initialize_database import initialize_database
 
 try:
-    # Import SQLAlchemy configuration and ALL models
-    from backend.config.database import Base, get_engine
-    print("[INFO] Imported backend.config.database successfully")
-    
-    from database.models import (
-        # User Domain
-        User, UserProfile, UserLearningPreference,
-        # Content Domain
-        Concept, ConceptContent, LearningPath, Lesson, LearningPathConcept,
-        concept_relations,
-        # Progress & Tracking
-        UserConceptProgress, UserLearningPath, UserLessonProgress, LearningSession,
-        # Assessment
-        Quiz, QuizAttempt,
-        # Gamification
-        Achievement, UserAchievement, Badge, UserBadge,
-        # System & Monitoring
-        SystemLog, SystemHealth, AIAgent,
-    )
-    print("[INFO] Imported all models successfully")
-    
-    # Create all tables from models
-    print("[INFO] Creating engine...")
-    engine = get_engine()
-    print(f"[INFO] Engine created: {engine}")
-    
-    print("[INFO] Creating tables...")
-    Base.metadata.create_all(bind=engine)
-    print("[INFO] Tables created successfully")
-    
-    # Verify tables were created by querying information_schema
-    from sqlalchemy import inspect
-    inspector = inspect(engine)
-    tables = inspector.get_table_names()
-    print(f"[INFO] Found {len(tables)} tables in database")
-    
-    expected_tables = [
-        # User Domain
-        'users', 'user_profile', 'user_learning_preferences',
-        # Content Domain
-        'concepts', 'concept_content', 'learning_paths', 'lessons', 'learning_path_concepts',
-        'concept_relations', 'lesson_concepts',
-        # Progress & Tracking
-        'user_concept_progress', 'user_learning_paths', 'user_lesson_progress', 'learning_sessions',
-        # Assessment
-        'quizzes', 'quiz_attempts',
-        # Gamification
-        'achievements', 'user_achievements', 'badges', 'user_badges',
-        # System & Monitoring
-        'system_logs', 'system_health', 'ai_agents'
-    ]
-    
-    created_count = 0
-    for table in sorted(expected_tables):
-        if table in tables:
-            created_count += 1
-            print(f'[✓] Table "{table}" exists')
-        else:
-            print(f'[!] Table "{table}" not found')
-    
-    print('')
-    if created_count == len(expected_tables):
-        print(f'[✓] All {len(expected_tables)} database tables created successfully using SQLAlchemy!')
+    success = initialize_database()
+    if success:
+        print('')
+        print('[OK] All database tables created successfully!')
     else:
-        print(f'[!] Only {created_count}/{len(expected_tables)} tables verified')
-        
+        print('[!] Some tables may not have been created')
+        sys.exit(1)
 except Exception as e:
-    print(f'[!] Error creating tables: {e}')
+    print(f'[!] Error: {e}')
     import traceback
     traceback.print_exc()
     sys.exit(1)
-PYTHON_SCRIPT
-)
-            
+" 2>&1)
+
             echo "$PYTHON_OUTPUT"
-            
+
             # Check if Python script exited with error
             if [ $? -ne 0 ]; then
                 printf "\n"
                 print_error "Failed to create database tables"
                 exit 1
             fi
-            
-            # Check if all tables were created
-            if echo "$PYTHON_OUTPUT" | grep -q "All 23 database tables created successfully"; then
-                printf "\n"
-                print_status "PostgreSQL setup completed successfully (23 tables created)"
-            else
-                printf "\n"
-                print_warning "PostgreSQL setup completed but not all tables were created"
-            fi
+
+            printf "\n"
+            print_status "PostgreSQL setup completed successfully"
             
         else
             print_error "Could not connect to database '$POSTGRES_DB'"
