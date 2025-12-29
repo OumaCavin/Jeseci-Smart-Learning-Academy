@@ -2182,8 +2182,8 @@ walker admin_quizzes_analytics {
 walker admin_quizzes_create {
     has title: str;
     has description: str;
-    has course_id: str = "";
     has difficulty: str;
+    has course_id: str = "";
     
     can admin_quizzes_create with entry {
         quiz_store.initialize_quizzes();
