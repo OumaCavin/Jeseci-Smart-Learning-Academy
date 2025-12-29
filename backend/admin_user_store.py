@@ -31,11 +31,11 @@ def initialize_admin_store():
         pg_manager = get_postgres_manager()
         
         query = """
-        SELECT u.user_id, u.username, u.email, u.is_admin, u.admin_role, 
+        SELECT u.id, u.user_id, u.username, u.email, u.is_admin, u.admin_role, 
                u.is_active, u.created_at, u.last_login_at,
                p.first_name, p.last_name
         FROM jeseci_academy.users u
-        LEFT JOIN jeseci_academy.user_profile p ON u.user_id = p.user_id
+        LEFT JOIN jeseci_academy.user_profile p ON u.id = p.user_id
         WHERE u.is_admin = true
         ORDER BY u.created_at DESC
         """
@@ -99,11 +99,11 @@ def search_admin_users(query, include_inactive=False, admin_only=False):
     where_clause = " AND ".join(sql_conditions)
     
     search_query = f"""
-    SELECT u.user_id, u.username, u.email, u.is_admin, u.admin_role, 
+    SELECT u.id, u.user_id, u.username, u.email, u.is_admin, u.admin_role, 
            u.is_active, u.created_at, u.last_login_at,
            p.first_name, p.last_name
     FROM jeseci_academy.users u
-    LEFT JOIN jeseci_academy.user_profile p ON u.user_id = p.user_id
+    LEFT JOIN jeseci_academy.user_profile p ON u.id = p.user_id
     WHERE {where_clause}
     ORDER BY u.created_at DESC
     """
@@ -155,16 +155,20 @@ def create_admin_user(username, email, password, admin_role, first_name="", last
     password_hash = hashlib.sha256(password.encode()).hexdigest()
     
     # Insert new admin user into users table (without first_name/last_name)
+    # RETURNING id to use for profile insertion
     insert_user_query = """
     INSERT INTO jeseci_academy.users 
     (user_id, username, email, password_hash, is_admin, admin_role, is_active, created_at, updated_at)
     VALUES (%s, %s, %s, %s, true, %s, true, NOW(), NOW())
+    RETURNING id
     """
     
     user_result = pg_manager.execute_query(insert_user_query, 
-        (user_id, username, email, password_hash, admin_role), fetch=False)
+        (user_id, username, email, password_hash, admin_role))
     
-    if user_result or user_result is not None:
+    if user_result:
+        user_db_id = user_result[0]['id']  # Get the INTEGER id for profile insert
+        
         # Also insert into user_profile table for first_name/last_name
         if first_name or last_name:
             insert_profile_query = """
@@ -176,7 +180,7 @@ def create_admin_user(username, email, password, admin_role, first_name="", last
                 last_name = EXCLUDED.last_name,
                 updated_at = NOW()
             """
-            pg_manager.execute_query(insert_profile_query, (user_id, first_name, last_name), fetch=False)
+            pg_manager.execute_query(insert_profile_query, (user_db_id, first_name, last_name), fetch=False)
         
         # Invalidate cache to force reload
         global cache_initialized
@@ -204,12 +208,14 @@ def update_admin_user(user_id, updates):
     """Update an existing admin user in PostgreSQL"""
     pg_manager = get_postgres_manager()
     
-    # Check if user exists
-    check_query = "SELECT user_id FROM jeseci_academy.users WHERE user_id = %s"
+    # Check if user exists and get INTEGER id
+    check_query = "SELECT id, user_id FROM jeseci_academy.users WHERE user_id = %s"
     existing = pg_manager.execute_query(check_query, (user_id,))
     
     if not existing:
         return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
+    
+    user_db_id = existing[0]['id']  # Get INTEGER id for profile operations
     
     # Build update query for users table
     allowed_user_fields = ['is_admin', 'admin_role', 'is_active']
@@ -234,10 +240,10 @@ def update_admin_user(user_id, updates):
         """
         pg_manager.execute_query(user_update_query, user_params, fetch=False)
     
-    # Update profile table if needed
+    # Update profile table if needed (using INTEGER user_db_id)
     if profile_fields:
         profile_set_clauses = []
-        profile_params = [user_id]
+        profile_params = [user_db_id]
         for field, value in profile_fields.items():
             profile_set_clauses.append(f"{field} = %s")
             profile_params.append(value)
@@ -261,31 +267,40 @@ def bulk_admin_action(user_ids, action, reason=""):
     """Perform bulk action on admin users in PostgreSQL"""
     pg_manager = get_postgres_manager()
     
-    if action == 'suspend':
+    # For delete action, we need INTEGER ids for user_profile deletion
+    if action == 'delete':
+        # Look up INTEGER ids from the VARCHAR user_ids
+        lookup_query = "SELECT id FROM jeseci_academy.users WHERE user_id = ANY(%s)"
+        lookup_result = pg_manager.execute_query(lookup_query, (user_ids,))
+        integer_ids = [row['id'] for row in lookup_result] if lookup_result else []
+        
+        # Delete from profile first (foreign key uses INTEGER id)
+        if integer_ids:
+            delete_profile = "DELETE FROM jeseci_academy.user_profile WHERE user_id = ANY(%s)"
+            pg_manager.execute_query(delete_profile, (integer_ids,), fetch=False)
+        
+        # Delete from users table using VARCHAR user_id
+        update_query = """
+        DELETE FROM jeseci_academy.users 
+        WHERE user_id = ANY(%s)
+        """
+        result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
+    elif action == 'suspend':
         update_query = """
         UPDATE jeseci_academy.users 
         SET is_active = false, updated_at = NOW()
         WHERE user_id = ANY(%s)
         """
+        result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
     elif action == 'activate':
         update_query = """
         UPDATE jeseci_academy.users 
         SET is_active = true, updated_at = NOW()
         WHERE user_id = ANY(%s)
         """
-    elif action == 'delete':
-        # Delete from profile first (foreign key)
-        delete_profile = "DELETE FROM jeseci_academy.user_profile WHERE user_id = ANY(%s)"
-        pg_manager.execute_query(delete_profile, (user_ids,), fetch=False)
-        
-        update_query = """
-        DELETE FROM jeseci_academy.users 
-        WHERE user_id = ANY(%s)
-        """
+        result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
     else:
         return {"success": False, "error": "Unknown action", "code": "INVALID_ACTION"}
-    
-    result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
     
     if result or result is not None:
         # Invalidate cache
