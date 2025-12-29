@@ -112,7 +112,12 @@ class UserAuthManager:
                       first_name: str = "", last_name: str = "",
                       learning_style: str = "visual", skill_level: str = "beginner",
                       is_admin: bool = False, admin_role: str = "student",
-                      skip_verification: bool = False) -> dict:
+                      skip_verification: bool = False,
+                      daily_goal_minutes: int = 30,
+                      notifications_enabled: bool = True,
+                      email_reminders: bool = True,
+                      dark_mode: bool = False,
+                      auto_play_videos: bool = True) -> dict:
         """
         Register a new user with bcrypt password hashing and email verification.
         
@@ -132,6 +137,11 @@ class UserAuthManager:
             is_admin: Whether user has admin privileges (default: False)
             admin_role: Admin role level (student, admin, super_admin)
             skip_verification: Skip email verification (for admin-created users)
+            daily_goal_minutes: Daily learning goal in minutes (default: 30)
+            notifications_enabled: Enable push notifications (default: True)
+            email_reminders: Enable email reminders (default: True)
+            dark_mode: Enable dark mode UI (default: False)
+            auto_play_videos: Auto-play video content (default: True)
             
         Returns:
             dict with 'success', 'user_id', 'requires_verification', and 'message' keys
@@ -199,7 +209,8 @@ class UserAuthManager:
             RETURNING id
             """
             cursor.execute(insert_preferences_query, (user_db_id, learning_style, skill_level,
-                                                       30, True, True, False, True,
+                                                       daily_goal_minutes, notifications_enabled, 
+                                                       email_reminders, dark_mode, auto_play_videos,
                                                        current_time, current_time))
             
             # Commit transaction only after all INSERTs succeed
@@ -826,11 +837,17 @@ def register_user(username: str, email: str, password: str,
                   first_name: str = "", last_name: str = "",
                   learning_style: str = "visual", skill_level: str = "beginner",
                   is_admin: bool = False, admin_role: str = "student",
-                  skip_verification: bool = False) -> dict:
+                  skip_verification: bool = False,
+                  daily_goal_minutes: int = 30,
+                  notifications_enabled: bool = True,
+                  email_reminders: bool = True,
+                  dark_mode: bool = False,
+                  auto_play_videos: bool = True) -> dict:
     """Wrapper function for Jaclang integration"""
     return auth_manager.register_user(username, email, password, first_name, last_name, 
                                     learning_style, skill_level, is_admin, admin_role,
-                                    skip_verification)
+                                    skip_verification, daily_goal_minutes, notifications_enabled,
+                                    email_reminders, dark_mode, auto_play_videos)
 
 
 def authenticate_user(username: str, password: str) -> dict:

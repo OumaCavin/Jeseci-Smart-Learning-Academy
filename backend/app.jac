@@ -2009,6 +2009,11 @@ walker admin_users_create {
     has learning_style: str = "visual";
     has skill_level: str = "beginner";
     has skip_verification: bool = true;  # Default to true (pre-verified)
+    has daily_goal_minutes: int = 30;
+    has notifications_enabled: bool = true;
+    has email_reminders: bool = true;
+    has dark_mode: bool = false;
+    has auto_play_videos: bool = true;
     
     can admin_users_create with entry {
         # Initialize store if needed
@@ -2024,7 +2029,12 @@ walker admin_users_create {
             self.last_name,
             self.learning_style,
             self.skill_level,
-            self.skip_verification
+            self.skip_verification,
+            self.daily_goal_minutes,
+            self.notifications_enabled,
+            self.email_reminders,
+            self.dark_mode,
+            self.auto_play_videos
         );
         
         if result['success'] {
