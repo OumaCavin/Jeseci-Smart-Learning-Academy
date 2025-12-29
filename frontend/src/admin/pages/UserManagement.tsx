@@ -324,6 +324,11 @@ const CreateAdminModal: React.FC<{ onClose: () => void; onCreated: () => void }>
     learning_style: 'visual',
     skill_level: 'beginner',
     skip_verification: true,  // Default to true (pre-verified)
+    daily_goal_minutes: 30,
+    notifications_enabled: true,
+    email_reminders: true,
+    dark_mode: false,
+    auto_play_videos: true,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -366,7 +371,9 @@ const CreateAdminModal: React.FC<{ onClose: () => void; onCreated: () => void }>
         borderRadius: '12px',
         padding: '24px',
         width: '100%',
-        maxWidth: '480px',
+        maxWidth: '600px',
+        maxHeight: '90vh',
+        overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 style={{ margin: 0 }}>Create Admin User</h2>
@@ -481,15 +488,73 @@ const CreateAdminModal: React.FC<{ onClose: () => void; onCreated: () => void }>
           </div>
 
           <div className="form-group">
+            <label className="form-label">Daily Goal (minutes)</label>
+            <input
+              type="number"
+              className="form-input"
+              value={formData.daily_goal_minutes}
+              onChange={(e) => setFormData(f => ({ ...f, daily_goal_minutes: parseInt(e.target.value) || 30 }))}
+              min={5}
+              max={120}
+              step={5}
+            />
+            <small style={{ color: '#6b7280' }}>
+              Set the user's daily learning goal in minutes (5-120)
+            </small>
+          </div>
+
+          <div className="form-group" style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', marginTop: '16px' }}>
+            <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#374151' }}>Notification Preferences</h4>
+            
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '8px' }}>
+              <input
+                type="checkbox"
+                checked={formData.notifications_enabled}
+                onChange={(e) => setFormData(f => ({ ...f, notifications_enabled: e.target.checked }))}
+              />
+              <span>Enable push notifications</span>
+            </label>
+            
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '8px' }}>
+              <input
+                type="checkbox"
+                checked={formData.email_reminders}
+                onChange={(e) => setFormData(f => ({ ...f, email_reminders: e.target.checked }))}
+              />
+              <span>Enable email reminders</span>
+            </label>
+            
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={formData.dark_mode}
+                onChange={(e) => setFormData(f => ({ ...f, dark_mode: e.target.checked }))}
+              />
+              <span>Enable dark mode</span>
+            </label>
+          </div>
+
+          <div className="form-group" style={{ marginTop: '16px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={formData.auto_play_videos}
+                onChange={(e) => setFormData(f => ({ ...f, auto_play_videos: e.target.checked }))}
+              />
+              <span>Auto-play videos</span>
+            </label>
+          </div>
+
+          <div className="form-group" style={{ marginTop: '16px', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <input
                 type="checkbox"
                 checked={formData.skip_verification}
                 onChange={(e) => setFormData(f => ({ ...f, skip_verification: e.target.checked }))}
               />
-              <span>Skip email verification (user can login immediately)</span>
+              <span><strong>Skip email verification</strong> (user can login immediately)</span>
             </label>
-            <small style={{ color: '#6b7280', marginLeft: '24px' }}>
+            <small style={{ color: '#6b7280', marginLeft: '24px', display: 'block', marginTop: '4px' }}>
               When unchecked, a verification email will be sent to the user
             </small>
           </div>

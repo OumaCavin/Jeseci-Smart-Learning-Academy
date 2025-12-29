@@ -232,6 +232,11 @@ class AdminApiService {
     learning_style?: string;
     skill_level?: string;
     skip_verification?: boolean;
+    daily_goal_minutes?: number;
+    notifications_enabled?: boolean;
+    email_reminders?: boolean;
+    dark_mode?: boolean;
+    auto_play_videos?: boolean;
   }): Promise<AdminActionResponse> {
     return this.makeRequest<AdminActionResponse>('/walker/admin_users_create', {
       method: 'POST',
