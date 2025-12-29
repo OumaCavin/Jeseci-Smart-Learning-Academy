@@ -2292,10 +2292,10 @@ walker admin_ai_content {
 
 walker admin_ai_generate {
     has concept_name: str;
+    has generated_by: str = "admin";
     has domain: str = "Computer Science";
     has difficulty: str = "beginner";
     has related_concepts: list = [];
-    has generated_by: str = "admin";
     
     can admin_ai_generate with entry {
         import datetime;
