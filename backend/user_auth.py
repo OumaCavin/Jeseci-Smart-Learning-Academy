@@ -228,9 +228,48 @@ class UserAuthManager:
                 """)
             except Exception as e:
                 logger.debug(f"Index might already exist: {e}")
-            
+
+            # Create learning_paths table
+            try:
+                cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.learning_paths (
+                    id SERIAL PRIMARY KEY,
+                    path_id VARCHAR(50) UNIQUE NOT NULL,
+                    name VARCHAR(100) NOT NULL,
+                    title VARCHAR(200) NOT NULL,
+                    category VARCHAR(100),
+                    difficulty VARCHAR(50),
+                    estimated_duration INTEGER,
+                    description TEXT,
+                    is_public BOOLEAN DEFAULT FALSE,
+                    is_published BOOLEAN DEFAULT FALSE,
+                    thumbnail_url VARCHAR(500),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """)
+                logger.info("learning_paths table created")
+            except Exception as e:
+                logger.debug(f"learning_paths table might already exist: {e}")
+
+            # Create learning_path_concepts table for linking concepts to paths
+            try:
+                cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.learning_path_concepts (
+                    id SERIAL PRIMARY KEY,
+                    path_id VARCHAR(50) NOT NULL,
+                    concept_id VARCHAR(100) NOT NULL,
+                    sequence_order INTEGER DEFAULT 0,
+                    is_required BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """)
+                logger.info("learning_path_concepts table created")
+            except Exception as e:
+                logger.debug(f"learning_path_concepts table might already exist: {e}")
+
             conn.commit()
-            logger.info("User tables ensured: users, user_profile, user_learning_preferences")
+            logger.info("User tables and content tables ensured: users, user_profile, user_learning_preferences, learning_paths, learning_path_concepts")
         except Exception as e:
             logger.error(f"Failed to create user tables: {e}")
             if conn:
