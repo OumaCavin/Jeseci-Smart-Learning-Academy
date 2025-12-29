@@ -229,6 +229,7 @@ class AdminApiService {
     first_name?: string;
     last_name?: string;
     admin_role: string;
+    skip_verification?: boolean;
   }): Promise<AdminActionResponse> {
     return this.makeRequest<AdminActionResponse>('/walker/admin_users_create', {
       method: 'POST',

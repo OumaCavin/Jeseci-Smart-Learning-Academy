@@ -2006,6 +2006,7 @@ walker admin_users_create {
     has admin_role: str;
     has first_name: str = "";
     has last_name: str = "";
+    has skip_verification: bool = true;  # Default to true (pre-verified)
     
     can admin_users_create with entry {
         # Initialize store if needed
@@ -2018,7 +2019,8 @@ walker admin_users_create {
             self.password,
             self.admin_role,
             self.first_name,
-            self.last_name
+            self.last_name,
+            self.skip_verification
         );
         
         if result['success'] {

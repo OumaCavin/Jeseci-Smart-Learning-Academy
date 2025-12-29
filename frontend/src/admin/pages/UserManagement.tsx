@@ -321,6 +321,7 @@ const CreateAdminModal: React.FC<{ onClose: () => void; onCreated: () => void }>
     first_name: '',
     last_name: '',
     admin_role: 'admin',
+    skip_verification: true,  // Default to true (pre-verified)
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -446,6 +447,20 @@ const CreateAdminModal: React.FC<{ onClose: () => void; onCreated: () => void }>
               <option value="user_admin">User Admin</option>
               <option value="super_admin">Super Admin</option>
             </select>
+          </div>
+
+          <div className="form-group">
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={formData.skip_verification}
+                onChange={(e) => setFormData(f => ({ ...f, skip_verification: e.target.checked }))}
+              />
+              <span>Skip email verification (user can login immediately)</span>
+            </label>
+            <small style={{ color: '#6b7280', marginLeft: '24px' }}>
+              When unchecked, a verification email will be sent to the user
+            </small>
           </div>
 
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
