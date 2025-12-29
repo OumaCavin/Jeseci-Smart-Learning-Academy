@@ -799,10 +799,17 @@ class UserAuthManager:
             conn.commit()
             
             logger.info(f"Email verified successfully for user: {updated_user['username']}")
-            
-            # Send welcome email
-            asyncio.run(send_welcome_email(email=updated_user['email'], username=updated_user['username']))
-            
+
+            # Send welcome email (non-blocking - don't fail verification if email fails)
+            try:
+                welcome_result = asyncio.run(send_welcome_email(email=updated_user['email'], username=updated_user['username']))
+                if welcome_result.get('success'):
+                    logger.info(f"Welcome email sent successfully to {updated_user['email']}")
+                else:
+                    logger.warning(f"Welcome email failed to send to {updated_user['email']}: {welcome_result.get('error')}")
+            except Exception as welcome_error:
+                logger.error(f"Exception sending welcome email to {updated_user['email']}: {welcome_error}")
+
             return {
                 "success": True,
                 "message": "Email verified successfully! Welcome to Jeseci Smart Learning Academy.",
