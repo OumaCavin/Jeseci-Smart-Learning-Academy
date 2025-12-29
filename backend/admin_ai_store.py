@@ -79,21 +79,12 @@ def save_ai_content(concept_name: str, domain: str, difficulty: str, content: st
     INSERT INTO jeseci_academy.ai_generated_content 
     (content_id, concept_name, domain, difficulty, content, related_concepts, 
      generated_by, model, tokens_used, generated_at)
-    VALUES (:content_id, :concept_name, :domain, :difficulty, :content, 
-            :related_concepts, :generated_by, :model, :tokens_used, NOW())
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
     """
     
-    result = pg_manager.execute_query(insert_query, {
-        'content_id': content_id,
-        'concept_name': concept_name,
-        'domain': domain,
-        'difficulty': difficulty,
-        'content': content,
-        'related_concepts': related_concepts_json,
-        'generated_by': generated_by,
-        'model': model,
-        'tokens_used': tokens_used
-    }, fetch=False)
+    result = pg_manager.execute_query(insert_query, 
+        (content_id, concept_name, domain, difficulty, content, 
+         related_concepts_json, generated_by, model, tokens_used), fetch=False)
     
     if result or result is not None:
         # Update stats
@@ -189,25 +180,25 @@ def update_ai_stats(domain: Optional[str], tokens_used: Optional[int]) -> None:
         # Check if domain entry exists
         check_query = """
         SELECT id FROM jeseci_academy.ai_usage_stats 
-        WHERE stat_type = 'domain_usage' AND stat_key = :domain
+        WHERE stat_type = 'domain_usage' AND stat_key = %s
         """
-        existing = pg_manager.execute_query(check_query, {'domain': domain})
+        existing = pg_manager.execute_query(check_query, (domain,))
         
         if existing:
             # Update existing entry
             update_query = """
             UPDATE jeseci_academy.ai_usage_stats 
             SET stat_value = stat_value + 1, updated_at = NOW()
-            WHERE stat_type = 'domain_usage' AND stat_key = :domain
+            WHERE stat_type = 'domain_usage' AND stat_key = %s
             """
-            pg_manager.execute_query(update_query, {'domain': domain}, fetch=False)
+            pg_manager.execute_query(update_query, (domain,), fetch=False)
         else:
             # Insert new entry
             insert_query = """
             INSERT INTO jeseci_academy.ai_usage_stats (stat_type, stat_key, stat_value, updated_at)
-            VALUES ('domain_usage', :domain, 1, NOW())
+            VALUES ('domain_usage', %s, 1, NOW())
             """
-            pg_manager.execute_query(insert_query, {'domain': domain}, fetch=False)
+            pg_manager.execute_query(insert_query, (domain,), fetch=False)
 
 
 def initialize_ai_store() -> Dict[str, Any]:
@@ -241,20 +232,13 @@ def initialize_ai_store() -> Dict[str, Any]:
             INSERT INTO jeseci_academy.ai_generated_content 
             (content_id, concept_name, domain, difficulty, content, related_concepts, 
              generated_by, model, tokens_used, generated_at)
-            VALUES (:content_id, :concept_name, :domain, :difficulty, :content, 
-                    :related_concepts, :generated_by, :model, :tokens_used, NOW())
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
             """
             
-            pg_manager.execute_query(insert_query, {
-                'content_id': actual_content_id,
-                'concept_name': content_data['concept_name'],
-                'domain': content_data['domain'],
-                'difficulty': content_data['difficulty'],
-                'content': content_data['content'],
-                'related_concepts': content_data['related_concepts'],
-                'generated_by': content_data['generated_by'],
-                'model': content_data['model'],
-                'tokens_used': 100
-            }, fetch=False)
+            pg_manager.execute_query(insert_query, 
+                (actual_content_id, content_data['concept_name'], content_data['domain'], 
+                 content_data['difficulty'], content_data['content'], 
+                 content_data['related_concepts'], content_data['generated_by'], 
+                 content_data['model'], 100), fetch=False)
     
     return {"initialized": True}

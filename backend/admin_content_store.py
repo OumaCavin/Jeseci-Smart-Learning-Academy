@@ -86,17 +86,11 @@ def create_course(title, description, domain, difficulty, content_type="interact
     insert_query = """
     INSERT INTO jeseci_academy.learning_paths 
     (path_id, name, title, category, difficulty, description, is_published, created_at)
-    VALUES (:path_id, :name, :title, :category, :difficulty, :description, true, NOW())
+    VALUES (%s, %s, %s, %s, %s, %s, true, NOW())
     """
     
-    result = pg_manager.execute_query(insert_query, {
-        'path_id': course_id,
-        'name': name,
-        'title': title,
-        'category': domain,
-        'difficulty': difficulty,
-        'description': description
-    }, fetch=False)
+    result = pg_manager.execute_query(insert_query, 
+        (course_id, name, title, domain, difficulty, description), fetch=False)
     
     if result or result is not None:
         # Invalidate cache
@@ -122,38 +116,39 @@ def update_course(course_id, title="", description="", domain="", difficulty="")
     pg_manager = get_postgres_manager()
     
     # Check if course exists
-    check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = :course_id"
-    existing = pg_manager.execute_query(check_query, {'course_id': course_id})
+    check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = %s"
+    existing = pg_manager.execute_query(check_query, (course_id,))
     
     if not existing:
         return {"success": False, "error": "Course not found"}
     
     # Build dynamic update
     updates = []
-    params = {'course_id': course_id}
+    params = []
     
     if title:
-        updates.append("title = :title")
-        params['title'] = title
+        updates.append("title = %s")
+        params.append(title)
     if description:
-        updates.append("description = :description")
-        params['description'] = description
+        updates.append("description = %s")
+        params.append(description)
     if domain:
-        updates.append("category = :domain")
-        params['domain'] = domain
+        updates.append("category = %s")
+        params.append(domain)
     if difficulty:
-        updates.append("difficulty = :difficulty")
-        params['difficulty'] = difficulty
+        updates.append("difficulty = %s")
+        params.append(difficulty)
     
     if not updates:
         return {"success": True, "message": "No fields to update"}
     
     updates.append("updated_at = NOW()")
+    params.append(course_id)
     
     update_query = f"""
     UPDATE jeseci_academy.learning_paths 
     SET {', '.join(updates)}
-    WHERE path_id = :course_id
+    WHERE path_id = %s
     """
     
     result = pg_manager.execute_query(update_query, params, fetch=False)
@@ -169,14 +164,14 @@ def delete_course(course_id):
     """Delete a course from PostgreSQL"""
     pg_manager = get_postgres_manager()
     
-    check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = :course_id"
-    existing = pg_manager.execute_query(check_query, {'course_id': course_id})
+    check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = %s"
+    existing = pg_manager.execute_query(check_query, (course_id,))
     
     if not existing:
         return {"success": False, "error": "Course not found"}
     
-    delete_query = "DELETE FROM jeseci_academy.learning_paths WHERE path_id = :course_id"
-    result = pg_manager.execute_query(delete_query, {'course_id': course_id}, fetch=False)
+    delete_query = "DELETE FROM jeseci_academy.learning_paths WHERE path_id = %s"
+    result = pg_manager.execute_query(delete_query, (course_id,), fetch=False)
     
     if result or result is not None:
         global cache_initialized
@@ -432,18 +427,11 @@ def create_path(title, description, courses, concepts, difficulty, duration):
     insert_query = """
     INSERT INTO jeseci_academy.learning_paths 
     (path_id, name, title, category, difficulty, estimated_duration, description, is_published, created_at)
-    VALUES (:path_id, :name, :title, :category, :difficulty, :duration, :description, true, NOW())
+    VALUES (%s, %s, %s, %s, %s, %s, %s, true, NOW())
     """
     
-    result = pg_manager.execute_query(insert_query, {
-        'path_id': path_id,
-        'name': name,
-        'title': title,
-        'category': "Learning Path",
-        'difficulty': difficulty,
-        'duration': duration_minutes,
-        'description': description
-    }, fetch=False)
+    result = pg_manager.execute_query(insert_query, 
+        (path_id, name, title, "Learning Path", difficulty, duration_minutes, description), fetch=False)
     
     if result or result is not None:
         # Invalidate cache

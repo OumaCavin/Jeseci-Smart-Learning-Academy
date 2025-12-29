@@ -86,16 +86,11 @@ def create_quiz(title, description, course_id, difficulty):
     insert_query = """
     INSERT INTO jeseci_academy.quizzes 
     (quiz_id, title, description, concept_id, passing_score, max_attempts, is_published, created_at)
-    VALUES (:quiz_id, :title, :description, :course_id, :passing_score, 3, true, NOW())
+    VALUES (%s, %s, %s, %s, %s, 3, true, NOW())
     """
     
-    result = pg_manager.execute_query(insert_query, {
-        'quiz_id': quiz_id,
-        'title': title,
-        'description': description,
-        'course_id': course_id or None,
-        'passing_score': passing_score
-    }, fetch=False)
+    result = pg_manager.execute_query(insert_query, 
+        (quiz_id, title, description, course_id or None, passing_score), fetch=False)
     
     if result or result is not None:
         # Invalidate cache
@@ -121,27 +116,27 @@ def update_quiz(quiz_id, title="", description="", difficulty=""):
     pg_manager = get_postgres_manager()
     
     # Check if quiz exists
-    check_query = "SELECT quiz_id FROM jeseci_academy.quizzes WHERE quiz_id = :quiz_id"
-    existing = pg_manager.execute_query(check_query, {'quiz_id': quiz_id})
+    check_query = "SELECT quiz_id FROM jeseci_academy.quizzes WHERE quiz_id = %s"
+    existing = pg_manager.execute_query(check_query, (quiz_id,))
     
     if not existing:
         return {"success": False, "error": "Quiz not found"}
     
     # Build dynamic update
     updates = []
-    params = {'quiz_id': quiz_id}
+    params = [quiz_id]
     
     if title:
-        updates.append("title = :title")
-        params['title'] = title
+        updates.append("title = %s")
+        params.append(title)
     if description:
-        updates.append("description = :description")
-        params['description'] = description
+        updates.append("description = %s")
+        params.append(description)
     if difficulty:
         # Update passing score based on difficulty
         passing_score = 70 if difficulty == "beginner" else (80 if difficulty == "intermediate" else 90)
-        updates.append("passing_score = :passing_score")
-        params['passing_score'] = passing_score
+        updates.append("passing_score = %s")
+        params.append(passing_score)
     
     if not updates:
         return {"success": True, "message": "No fields to update"}
@@ -151,7 +146,7 @@ def update_quiz(quiz_id, title="", description="", difficulty=""):
     update_query = f"""
     UPDATE jeseci_academy.quizzes 
     SET {', '.join(updates)}
-    WHERE quiz_id = :quiz_id
+    WHERE quiz_id = %s
     """
     
     result = pg_manager.execute_query(update_query, params, fetch=False)
@@ -167,14 +162,14 @@ def delete_quiz(quiz_id):
     """Delete a quiz from PostgreSQL"""
     pg_manager = get_postgres_manager()
     
-    check_query = "SELECT quiz_id FROM jeseci_academy.quizzes WHERE quiz_id = :quiz_id"
-    existing = pg_manager.execute_query(check_query, {'quiz_id': quiz_id})
+    check_query = "SELECT quiz_id FROM jeseci_academy.quizzes WHERE quiz_id = %s"
+    existing = pg_manager.execute_query(check_query, (quiz_id,))
     
     if not existing:
         return {"success": False, "error": "Quiz not found"}
     
-    delete_query = "DELETE FROM jeseci_academy.quizzes WHERE quiz_id = :quiz_id"
-    result = pg_manager.execute_query(delete_query, {'quiz_id': quiz_id}, fetch=False)
+    delete_query = "DELETE FROM jeseci_academy.quizzes WHERE quiz_id = %s"
+    result = pg_manager.execute_query(delete_query, (quiz_id,), fetch=False)
     
     if result or result is not None:
         global cache_initialized
@@ -188,8 +183,8 @@ def record_quiz_attempt(quiz_id, user_id, score, total_questions, correct_answer
     pg_manager = get_postgres_manager()
     
     # Check if quiz exists
-    check_query = "SELECT passing_score FROM jeseci_academy.quizzes WHERE quiz_id = :quiz_id"
-    quiz_result = pg_manager.execute_query(check_query, {'quiz_id': quiz_id})
+    check_query = "SELECT passing_score FROM jeseci_academy.quizzes WHERE quiz_id = %s"
+    quiz_result = pg_manager.execute_query(check_query, (quiz_id,))
     
     if not quiz_result:
         return {"success": False, "error": "Quiz not found"}
@@ -201,18 +196,11 @@ def record_quiz_attempt(quiz_id, user_id, score, total_questions, correct_answer
     insert_query = """
     INSERT INTO jeseci_academy.quiz_attempts 
     (user_id, quiz_id, score, total_questions, correct_answers, time_taken_seconds, is_passed, started_at, completed_at)
-    VALUES (:user_id, :quiz_id, :score, :total_questions, :correct_answers, :time_taken, :is_passed, NOW(), NOW())
+    VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
     """
     
-    result = pg_manager.execute_query(insert_query, {
-        'user_id': user_id,
-        'quiz_id': quiz_id,
-        'score': score,
-        'total_questions': total_questions,
-        'correct_answers': correct_answers,
-        'time_taken': time_taken_seconds,
-        'is_passed': is_passed
-    }, fetch=False)
+    result = pg_manager.execute_query(insert_query, 
+        (user_id, quiz_id, score, total_questions, correct_answers, time_taken_seconds, is_passed), fetch=False)
     
     if result or result is not None:
         return {"success": True, "attempt_id": quiz_id, "is_passed": is_passed}
