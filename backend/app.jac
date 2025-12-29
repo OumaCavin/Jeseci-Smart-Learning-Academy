@@ -2006,6 +2006,8 @@ walker admin_users_create {
     has admin_role: str;
     has first_name: str = "";
     has last_name: str = "";
+    has learning_style: str = "visual";
+    has skill_level: str = "beginner";
     has skip_verification: bool = true;  # Default to true (pre-verified)
     
     can admin_users_create with entry {
@@ -2020,6 +2022,8 @@ walker admin_users_create {
             self.admin_role,
             self.first_name,
             self.last_name,
+            self.learning_style,
+            self.skill_level,
             self.skip_verification
         );
         
