@@ -1842,9 +1842,9 @@ walker admin_users_create {
     has username: str;
     has email: str;
     has password: str;
+    has admin_role: str;
     has first_name: str = "";
     has last_name: str = "";
-    has admin_role: str;
     
     can admin_users_create with entry {
         import datetime;
