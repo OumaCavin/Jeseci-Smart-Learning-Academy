@@ -14,6 +14,7 @@ import database as db_module;
 import user_auth as auth_module;
 import email_verification as email_verification_module;
 import email_notifications as email_module;
+import admin_user_store as admin_store;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -1795,38 +1796,39 @@ walker admin_users {
     has search: str = "";
     
     can admin_users with entry {
-        # Mock user list for admin management
-        users = [
-            {
-                "user_id": "user_cavin_78a5d49f",
-                "username": "cavin",
-                "email": "otienocavin2025@gmail.com",
-                "first_name": "",
-                "last_name": "",
-                "is_admin": True,
-                "admin_role": "super_admin",
-                "is_active": True,
-                "created_at": "2025-12-01T10:00:00Z",
-                "last_login": "2025-12-29T11:08:26Z"
-            },
-            {
-                "user_id": "user_jane_abc12345",
-                "username": "jane_doe",
-                "email": "jane@example.com",
-                "first_name": "Jane",
-                "last_name": "Doe",
-                "is_admin": False,
-                "admin_role": "",
-                "is_active": True,
-                "created_at": "2025-12-15T14:30:00Z",
-                "last_login": "2025-12-28T09:15:00Z"
+        # Initialize store if needed
+        admin_store.initialize_admin_store();
+        
+        # Get users from storage with filters
+        if self.search {
+            users = admin_store.search_admin_users(self.search, self.include_inactive, self.admin_only);
+        } else {
+            users = admin_store.get_all_admin_users();
+            
+            # Apply filters
+            if not self.include_inactive {
+                users = [u for u in users if u.get('is_active', True)];
             }
-        ];
+            if self.admin_only {
+                users = [u for u in users if u.get('is_admin', False)];
+            }
+        }
+        
+        # Remove password from response
+        safe_users = [];
+        for user in users {
+            safe_user = {k: v for k, v in user.items() if k != 'password'};
+            safe_users.append(safe_user);
+        }
+        
+        # Apply pagination
+        total = len(safe_users);
+        paginated_users = safe_users[self.offset:self.offset + self.limit];
         
         report {
             "success": True,
-            "users": users,
-            "total": len(users),
+            "users": paginated_users,
+            "total": total,
             "limit": self.limit,
             "offset": self.offset,
             "filters": {
@@ -1847,17 +1849,36 @@ walker admin_users_create {
     has last_name: str = "";
     
     can admin_users_create with entry {
-        import datetime;
-        user_id = "user_" + self.username + "_" + str(int(datetime.datetime.now().timestamp()))[0:8];
+        # Initialize store if needed
+        admin_store.initialize_admin_store();
         
-        report {
-            "success": True,
-            "user_id": user_id,
-            "username": self.username,
-            "email": self.email,
-            "admin_role": self.admin_role,
-            "message": "Admin user created successfully"
-        };
+        # Create user in storage
+        result = admin_store.create_admin_user(
+            self.username,
+            self.email,
+            self.password,
+            self.admin_role,
+            self.first_name,
+            self.last_name
+        );
+        
+        if result['success'] {
+            user = result['user'];
+            report {
+                "success": True,
+                "user_id": user['user_id'],
+                "username": user['username'],
+                "email": user['email'],
+                "admin_role": user['admin_role'],
+                "message": "Admin user created successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to create user'),
+                "code": result.get('code', 'ERROR')
+            };
+        }
     }
 }
 
@@ -1868,12 +1889,33 @@ walker admin_users_update {
     has is_active: bool = True;
     
     can admin_users_update with entry {
-        report {
-            "success": True,
-            "user_id": self.user_id,
-            "action": "update",
-            "message": "User updated successfully"
-        };
+        # Initialize store if needed
+        admin_store.initialize_admin_store();
+        
+        # Build updates dict
+        updates = {};
+        if self.admin_role {
+            updates['admin_role'] = self.admin_role;
+        }
+        updates['is_admin'] = self.is_admin;
+        updates['is_active'] = self.is_active;
+        
+        result = admin_store.update_admin_user(self.user_id, updates);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "user_id": self.user_id,
+                "action": "update",
+                "message": "User updated successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to update user'),
+                "code": result.get('code', 'ERROR')
+            };
+        }
     }
 }
 
@@ -1883,11 +1925,16 @@ walker admin_users_bulk_action {
     has reason: str = "";
     
     can admin_users_bulk_action with entry {
+        # Initialize store if needed
+        admin_store.initialize_admin_store();
+        
+        result = admin_store.bulk_admin_action(self.user_ids, self.action, self.reason);
+        
         import datetime;
         report {
-            "success": True,
-            "users_affected": len(self.user_ids),
-            "action": self.action,
+            "success": result['success'],
+            "users_affected": result['users_affected'],
+            "action": result['action'],
             "message": "Bulk action completed successfully",
             "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         };
