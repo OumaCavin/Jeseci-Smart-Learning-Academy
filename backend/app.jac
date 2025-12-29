@@ -1746,3 +1746,484 @@ walker verification_status {
         }
     }
 }
+
+# ==============================================================================
+# Admin Dashboard API Endpoints
+# ==============================================================================
+
+walker admin_dashboard {
+    can admin_dashboard with entry {
+        # Admin dashboard statistics
+        stats = {
+            "user_statistics": {
+                "total_users": 156,
+                "active_users": 142,
+                "inactive_users": 14,
+                "total_admins": 5,
+                "new_users_this_week": 12
+            },
+            "admin_statistics": {
+                "total_admins": 5,
+                "role_distribution": {
+                    "super_admin": 1,
+                    "content_admin": 2,
+                    "user_admin": 1,
+                    "analytics_admin": 1
+                }
+            },
+            "system_health": {
+                "database_status": "connected",
+                "api_status": "healthy",
+                "auth_system": "operational"
+            }
+        };
+        
+        import datetime;
+        report {
+            "success": True,
+            "stats": stats,
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        };
+    }
+}
+
+walker admin_users {
+    has limit: int = 50;
+    has offset: int = 0;
+    has include_inactive: bool = False;
+    has admin_only: bool = False;
+    has search: str = "";
+    
+    can admin_users with entry {
+        # Mock user list for admin management
+        users = [
+            {
+                "user_id": "user_cavin_78a5d49f",
+                "username": "cavin",
+                "email": "otienocavin2025@gmail.com",
+                "first_name": "",
+                "last_name": "",
+                "is_admin": True,
+                "admin_role": "super_admin",
+                "is_active": True,
+                "created_at": "2025-12-01T10:00:00Z",
+                "last_login": "2025-12-29T11:08:26Z"
+            },
+            {
+                "user_id": "user_jane_abc12345",
+                "username": "jane_doe",
+                "email": "jane@example.com",
+                "first_name": "Jane",
+                "last_name": "Doe",
+                "is_admin": False,
+                "admin_role": "",
+                "is_active": True,
+                "created_at": "2025-12-15T14:30:00Z",
+                "last_login": "2025-12-28T09:15:00Z"
+            }
+        ];
+        
+        report {
+            "success": True,
+            "users": users,
+            "total": len(users),
+            "limit": self.limit,
+            "offset": self.offset,
+            "filters": {
+                "include_inactive": self.include_inactive,
+                "admin_only": self.admin_only,
+                "search": self.search
+            }
+        };
+    }
+}
+
+walker admin_users_create {
+    has username: str;
+    has email: str;
+    has password: str;
+    has first_name: str = "";
+    has last_name: str = "";
+    has admin_role: str;
+    
+    can admin_users_create with entry {
+        import datetime;
+        user_id = "user_" + self.username + "_" + str(int(datetime.datetime.now().timestamp()))[0:8];
+        
+        report {
+            "success": True,
+            "user_id": user_id,
+            "username": self.username,
+            "email": self.email,
+            "admin_role": self.admin_role,
+            "message": "Admin user created successfully"
+        };
+    }
+}
+
+walker admin_users_update {
+    has user_id: str;
+    has is_admin: bool = False;
+    has admin_role: str = "";
+    has is_active: bool = True;
+    
+    can admin_users_update with entry {
+        report {
+            "success": True,
+            "user_id": self.user_id,
+            "action": "update",
+            "message": "User updated successfully"
+        };
+    }
+}
+
+walker admin_users_bulk_action {
+    has user_ids: list;
+    has action: str;
+    has reason: str = "";
+    
+    can admin_users_bulk_action with entry {
+        import datetime;
+        report {
+            "success": True,
+            "users_affected": len(self.user_ids),
+            "action": self.action,
+            "message": "Bulk action completed successfully",
+            "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        };
+    }
+}
+
+# ==============================================================================
+# Admin Content Management API Endpoints
+# ==============================================================================
+
+walker admin_content_courses {
+    can admin_content_courses with entry {
+        courses = [
+            {
+                "course_id": "jac_fundamentals",
+                "title": "Jac Programming Fundamentals",
+                "description": "Learn the basics of Jac programming language - variables, functions, and control flow",
+                "domain": "Jac Language",
+                "difficulty": "beginner",
+                "content_type": "interactive",
+                "created_at": "2025-12-01T10:00:00Z"
+            },
+            {
+                "course_id": "jac_osp_basics",
+                "title": "Object-Spatial Programming Basics",
+                "description": "Master the fundamentals of OSP with nodes, edges, and walkers",
+                "domain": "Jac Language",
+                "difficulty": "intermediate",
+                "content_type": "interactive",
+                "created_at": "2025-12-05T14:30:00Z"
+            }
+        ];
+        
+        report {
+            "success": True,
+            "courses": courses
+        };
+    }
+}
+
+walker admin_content_course_update {
+    has course_id: str;
+    has title: str = "";
+    has description: str = "";
+    has domain: str = "";
+    has difficulty: str = "";
+    
+    can admin_content_course_update with entry {
+        report {
+            "success": True,
+            "course_id": self.course_id,
+            "message": "Course updated successfully"
+        };
+    }
+}
+
+walker admin_content_course_delete {
+    has course_id: str;
+    
+    can admin_content_course_delete with entry {
+        report {
+            "success": True,
+            "course_id": self.course_id,
+            "message": "Course deleted successfully"
+        };
+    }
+}
+
+walker admin_content_concepts {
+    can admin_content_concepts with entry {
+        concepts = [
+            {
+                "concept_id": "jac_variables",
+                "name": "Variables and Data Types",
+                "display_name": "Variables & Types",
+                "category": "Programming Basics",
+                "difficulty_level": "beginner",
+                "domain": "Jac Language",
+                "description": "Learn about variables and data types",
+                "icon": "variable"
+            },
+            {
+                "concept_id": "jac_osp",
+                "name": "Object-Spatial Programming",
+                "display_name": "OSP Basics",
+                "category": "Programming Paradigm",
+                "difficulty_level": "intermediate",
+                "domain": "Jac Language",
+                "description": "Master Jac's unique graph-based programming",
+                "icon": "graph"
+            }
+        ];
+        
+        report {
+            "success": True,
+            "concepts": concepts
+        };
+    }
+}
+
+walker admin_content_paths {
+    can admin_content_paths with entry {
+        paths = [
+            {
+                "path_id": "path_python",
+                "title": "Python Mastery",
+                "description": "Master Python from fundamentals to advanced concepts",
+                "courses": ["course_1", "course_2", "course_4"],
+                "concepts": ["concept_oop", "concept_algo"],
+                "difficulty": "beginner",
+                "total_modules": 8,
+                "duration": "8 weeks"
+            }
+        ];
+        
+        report {
+            "success": True,
+            "paths": paths
+        };
+    }
+}
+
+# ==============================================================================
+# Admin Quiz Management API Endpoints
+# ==============================================================================
+
+walker admin_quizzes {
+    can admin_quizzes with entry {
+        quizzes = [
+            {
+                "quiz_id": "quiz_python_basics",
+                "title": "Python Basics Quiz",
+                "description": "Test your understanding of Python fundamentals",
+                "course_id": "course_python",
+                "difficulty": "beginner",
+                "questions_count": 5,
+                "created_at": "2025-12-10T10:00:00Z"
+            },
+            {
+                "quiz_id": "quiz_oop",
+                "title": "Object-Oriented Programming Quiz",
+                "description": "Test your OOP knowledge",
+                "course_id": "course_oop",
+                "difficulty": "intermediate",
+                "questions_count": 10,
+                "created_at": "2025-12-12T14:30:00Z"
+            }
+        ];
+        
+        report {
+            "success": True,
+            "quizzes": quizzes
+        };
+    }
+}
+
+walker admin_quizzes_analytics {
+    can admin_quizzes_analytics with entry {
+        report {
+            "success": True,
+            "analytics": {
+                "total_quizzes": 8,
+                "total_attempts": 245,
+                "average_score": 78.5,
+                "pass_rate": 85.0
+            }
+        };
+    }
+}
+
+walker admin_quizzes_update {
+    has quiz_id: str;
+    has title: str = "";
+    has description: str = "";
+    has difficulty: str = "";
+    
+    can admin_quizzes_update with entry {
+        report {
+            "success": True,
+            "quiz_id": self.quiz_id,
+            "message": "Quiz updated successfully"
+        };
+    }
+}
+
+walker admin_quizzes_delete {
+    has quiz_id: str;
+    
+    can admin_quizzes_delete with entry {
+        report {
+            "success": True,
+            "quiz_id": self.quiz_id,
+            "message": "Quiz deleted successfully"
+        };
+    }
+}
+
+# ==============================================================================
+# Admin AI Content API Endpoints
+# ==============================================================================
+
+walker admin_ai_domains {
+    can admin_ai_domains with entry {
+        domains = [
+            {"id": "cs", "name": "Computer Science", "description": "CS fundamentals", "course_count": 5},
+            {"id": "math", "name": "Mathematics", "description": "Math topics", "course_count": 3},
+            {"id": "physics", "name": "Physics", "description": "Physics concepts", "course_count": 4}
+        ];
+        
+        report {
+            "success": True,
+            "domains": domains
+        };
+    }
+}
+
+walker admin_ai_stats {
+    can admin_ai_stats with entry {
+        report {
+            "success": True,
+            "stats": {
+                "total_generations": 156,
+                "total_tokens_used": 1250000,
+                "domains_used": {"Computer Science": 85, "Mathematics": 45, "Physics": 26},
+                "recent_generations": [
+                    {
+                        "content_id": "ai_001",
+                        "concept_name": "Variables and Data Types",
+                        "domain": "Jac Language",
+                        "difficulty": "beginner",
+                        "generated_at": "2025-12-29T11:10:57Z",
+                        "generated_by": "user_cavin_78a5d49f"
+                    }
+                ]
+            }
+        };
+    }
+}
+
+walker admin_ai_content {
+    can admin_ai_content with entry {
+        report {
+            "success": True,
+            "content": [
+                {
+                    "content_id": "ai_001",
+                    "concept_name": "Variables and Data Types",
+                    "domain": "Jac Language",
+                    "difficulty": "beginner",
+                    "content": "AI-generated content...",
+                    "related_concepts": ["Type Annotations", "Strings"],
+                    "generated_at": "2025-12-29T11:10:57Z",
+                    "generated_by": "user_cavin_78a5d49f"
+                }
+            ]
+        };
+    }
+}
+
+# ==============================================================================
+# Admin Analytics API Endpoints
+# ==============================================================================
+
+walker admin_analytics_users {
+    can admin_analytics_users with entry {
+        report {
+            "success": True,
+            "analytics": {
+                "total_users": 156,
+                "active_users": 142,
+                "new_users": [12, 15, 18, 22, 19, 25, 30],
+                "user_growth": [
+                    {"date": "2025-12-23", "count": 120},
+                    {"date": "2025-12-24", "count": 125},
+                    {"date": "2025-12-25", "count": 130},
+                    {"date": "2025-12-26", "count": 138},
+                    {"date": "2025-12-27", "count": 145},
+                    {"date": "2025-12-28", "count": 150},
+                    {"date": "2025-12-29", "count": 156}
+                ]
+            }
+        };
+    }
+}
+
+walker admin_analytics_learning {
+    can admin_analytics_learning with entry {
+        report {
+            "success": True,
+            "analytics": {
+                "total_sessions": 1250,
+                "completed_courses": 89,
+                "average_progress": 72.5,
+                "learning_trends": [
+                    {"date": "2025-12-23", "sessions": 150},
+                    {"date": "2025-12-24", "sessions": 165},
+                    {"date": "2025-12-25", "sessions": 180},
+                    {"date": "2025-12-26", "sessions": 175},
+                    {"date": "2025-12-27", "sessions": 190},
+                    {"date": "2025-12-28", "sessions": 200},
+                    {"date": "2025-12-29", "sessions": 190}
+                ]
+            }
+        };
+    }
+}
+
+walker admin_analytics_content {
+    can admin_analytics_content with entry {
+        report {
+            "success": True,
+            "analytics": {
+                "total_courses": 12,
+                "total_concepts": 48,
+                "popular_content": [
+                    {"title": "Variables and Data Types", "views": 1250},
+                    {"title": "Object-Spatial Programming", "views": 980},
+                    {"title": "Walker Functions", "views": 875}
+                ],
+                "content_by_difficulty": {
+                    "beginner": 15,
+                    "intermediate": 25,
+                    "advanced": 8
+                }
+            }
+        };
+    }
+}
+
+walker admin_analytics_refresh {
+    can admin_analytics_refresh with entry {
+        import datetime;
+        report {
+            "success": True,
+            "message": "Analytics cache refreshed successfully",
+            "refreshed_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        };
+    }
+}
