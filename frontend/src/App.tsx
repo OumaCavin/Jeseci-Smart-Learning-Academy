@@ -6,6 +6,8 @@ import { AdminProvider, useAdmin } from './contexts/AdminContext';
 import { AdminLayout, DashboardOverview, UserManagement, ContentManager, QuizManager, AILab, AnalyticsReports } from './admin';
 import LandingPage from './components/LandingPage';
 import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import './App.css';
 
 // =============================================================================
@@ -134,6 +136,7 @@ const AppContent: React.FC = () => {
   const [verificationRequired, setVerificationRequired] = useState<boolean>(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState<string>('');
   const [showVerifyPage, setShowVerifyPage] = useState<boolean>(false);
+  const [showForgotPassword, setShowForgotPassword] = useState<boolean>(false);
 
   // Additional state for new features
   const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
@@ -143,11 +146,14 @@ const AppContent: React.FC = () => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
 
-  // Check for verification page on mount
+  // Check for verification and reset pages on mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (window.location.pathname.includes('verify-email') || urlParams.has('token')) {
       setShowVerifyPage(true);
+    }
+    if (window.location.pathname.includes('reset-password') || urlParams.has('reset_token')) {
+      setShowForgotPassword(true);
     }
   }, []);
 
@@ -757,7 +763,19 @@ const AppContent: React.FC = () => {
             setVerificationRequired(false);
           }}>Register</button>
         </div>
-        
+
+        <div className="auth-forgot">
+          <button 
+            className="btn-link"
+            onClick={() => {
+              setShowForgotPassword(true);
+              setActiveTab('login');
+            }}
+          >
+            Forgot Password?
+          </button>
+        </div>
+
         <div className="auth-back">
           <button onClick={() => setShowLandingPage(true)}>← Back to Home</button>
         </div>
@@ -1304,6 +1322,20 @@ const AppContent: React.FC = () => {
       {showVerifyPage && !isAuthenticated && (
         <BrowserRouter>
           <VerifyEmail />
+        </BrowserRouter>
+      )}
+
+      {/* Show Forgot Password Page */}
+      {showForgotPassword && !isAuthenticated && (
+        <BrowserRouter>
+          <ForgotPassword />
+        </BrowserRouter>
+      )}
+
+      {/* Show Reset Password Page if URL contains reset token */}
+      {window.location.pathname.includes('reset-password') && !isAuthenticated && (
+        <BrowserRouter>
+          <ResetPassword />
         </BrowserRouter>
       )}
 

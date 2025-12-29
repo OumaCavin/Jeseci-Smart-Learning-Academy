@@ -145,6 +145,25 @@
   text-decoration: underline;
 }
 
+.auth-forgot {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.auth-forgot .btn-link {
+  background: none;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0;
+}
+
+.auth-forgot .btn-link:hover {
+  text-decoration: underline;
+}
+
 /* Loading Spinner */
 .loading-spinner-container {
   display: flex;
@@ -261,4 +280,149 @@
 
 .verification-notice .btn:hover {
   background: linear-gradient(135deg, #5a67d8 0%, #6b46a1 100%);
+}
+
+/* Forgot Password Page Styles */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.auth-page .auth-container {
+  min-height: auto;
+  padding: 0;
+}
+
+.auth-message {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.auth-message.success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #34d399;
+}
+
+.auth-message.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #f87171;
+}
+
+.auth-form .form-group {
+  margin-bottom: 1.25rem;
+}
+
+.auth-form .btn-full {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.auth-footer p {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper .form-input {
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+}
+
+.password-requirements {
+  margin-top: 0.5rem;
+  color: #6b7280;
+}
+
+.auth-loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.spinner-large {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.token-info {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.token-info strong {
+  color: white;
+}
+
+.token-error {
+  text-align: center;
+  padding: 2rem;
+}
+
+.token-error .error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.token-error p {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.btn-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-loading .spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
