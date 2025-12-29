@@ -14,6 +14,7 @@ import database as db_module;
 import user_auth as auth_module;
 import email_verification as email_verification_module;
 import email_notifications as email_module;
+import password_reset as reset_module;
 import admin_user_store as admin_store;
 import admin_content_store as content_store;
 import admin_quiz_store as quiz_store;
@@ -1746,6 +1747,126 @@ walker verification_status {
             report {
                 "success": False,
                 "error": "Failed to get verification status: " + str(error),
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+# ==============================================================================
+# Password Reset API Endpoints
+# ==============================================================================
+
+walker forgot_password {
+    has email: str;
+    
+    can forgot_password with entry {
+        try {
+            result = reset_module.create_password_reset_request(self.email);
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "message": result.get('message', 'If an account with that email exists, a password reset link has been sent')
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to process request'),
+                    "code": "REQUEST_FAILED"
+                };
+            }
+        } except error {
+            std.out("Forgot password error:", error);
+            report {
+                "success": False,
+                "error": "Failed to process request: " + str(error),
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker reset_password_validate {
+    has token: str;
+    
+    can reset_password_validate with entry {
+        try {
+            result = reset_module.validate_password_reset_token(self.token);
+            
+            if result.get('valid') {
+                report {
+                    "success": True,
+                    "valid": True,
+                    "username": result.get('username'),
+                    "email": result.get('email'),
+                    "expires_at": result.get('expires_at')
+                };
+            } else {
+                report {
+                    "success": True,
+                    "valid": False,
+                    "error": result.get('error', 'Invalid or expired token')
+                };
+            }
+        } except error {
+            std.out("Reset password validation error:", error);
+            report {
+                "success": False,
+                "valid": False,
+                "error": "Token validation failed: " + str(error),
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker reset_password {
+    has token: str;
+    has new_password: str;
+    has confirm_password: str;
+    
+    can reset_password with entry {
+        try {
+            # Validate passwords match
+            if self.new_password != self.confirm_password {
+                report {
+                    "success": False,
+                    "error": "Passwords do not match",
+                    "code": "PASSWORD_MISMATCH"
+                };
+                return;
+            }
+            
+            # Validate password strength
+            if len(self.new_password) < 8 {
+                report {
+                    "success": False,
+                    "error": "Password must be at least 8 characters long",
+                    "code": "PASSWORD_TOO_SHORT"
+                };
+                return;
+            }
+            
+            result = reset_module.reset_user_password(self.token, self.new_password);
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "message": result.get('message', 'Password has been reset successfully')
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to reset password'),
+                    "code": "RESET_FAILED"
+                };
+            }
+        } except error {
+            std.out("Reset password error:", error);
+            report {
+                "success": False,
+                "error": "Failed to reset password: " + str(error),
                 "code": "INTERNAL_ERROR"
             };
         }

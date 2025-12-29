@@ -598,6 +598,32 @@ class ApiService {
       }),
     });
   }
+
+  // Password Reset
+  async forgotPassword(email: string): Promise<any> {
+    return this.makeRequest('/walker/forgot_password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async validateResetToken(token: string): Promise<any> {
+    return this.makeRequest('/walker/reset_password_validate', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
+  async resetPassword(token: string, newPassword: string, confirmPassword: string): Promise<any> {
+    return this.makeRequest('/walker/reset_password', {
+      method: 'POST',
+      body: JSON.stringify({
+        token,
+        new_password: newPassword,
+        confirm_password: confirmPassword
+      }),
+    });
+  }
 }
 
 export const apiService = new ApiService();
