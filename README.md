@@ -70,13 +70,11 @@ bash ./setup.sh
 bash backend/database/cleanup_databases.sh
 bash backend/database/setup_databases.sh
 
-# 4. Run sync engine migration
-cd backend
-python migrations/001_create_sync_engine_tables.py
-cd ..
-
-# 5. Seed initial content
+# 4. Seed initial content (Neo4j)
 jac run backend/seed.py
+
+# 5. Create super admin user
+bash create_super_admin.sh
 ```
 
 ### Starting the Application
@@ -170,10 +168,11 @@ NEO4J_PASSWORD=neo4j_secure_password_2024
 # Clean and reset all databases
 bash backend/database/cleanup_databases.sh
 
-# Set up databases with users and permissions
+# Set up databases with users, permissions, and ALL tables
 bash backend/database/setup_databases.sh
 
-# Run sync engine migration
+# Optionally run sync engine migration (only for EXISTING installations)
+# Fresh installations don't need this - tables are created by setup_databases.sh
 cd backend
 python migrations/001_create_sync_engine_tables.py
 cd ..
@@ -181,7 +180,7 @@ cd ..
 
 ### Sync Engine Tables Created
 
-The sync engine migration creates these tables in the `jeseci_academy` schema:
+The following tables are created by `initialize_database.py` (called by `setup_databases.sh`):
 
 | Table              | Purpose                                                |
 |--------------------|--------------------------------------------------------|
@@ -189,6 +188,8 @@ The sync engine migration creates these tables in the `jeseci_academy` schema:
 | sync_status        | Current sync status for each entity                    |
 | sync_conflicts     | Records detected conflicts between databases           |
 | reconciliation_runs| Records reconciliation job runs for auditing           |
+
+**Note:** The migration script (`001_create_sync_engine_tables.py`) is only needed for **existing** installations that were set up before these tables were added to the centralized initialization. Fresh installations get all tables automatically.
 
 See `docs/sync-engine.md` for complete sync engine documentation.
 
