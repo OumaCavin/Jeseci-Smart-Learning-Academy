@@ -11,8 +11,8 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from database import get_postgres_manager
 
-# Import email service for welcome emails
-from email_verification import send_welcome_email_sync
+# Import user auth module for proper user registration (handles bcrypt, preferences, Neo4j sync)
+import user_auth as auth_module
 
 # In-memory cache for quick lookups (synced with PostgreSQL)
 admin_users_cache = {}
@@ -131,93 +131,63 @@ def search_admin_users(query, include_inactive=False, admin_only=False):
     return users
 
 def create_admin_user(username, email, password, admin_role, first_name="", last_name=""):
-    """Create a new admin user in PostgreSQL"""
-    import hashlib
+    """Create a new admin user using the proper registration flow from user_auth module.
     
-    pg_manager = get_postgres_manager()
-    
-    # Check for existing user using positional parameters
-    check_query = """
-    SELECT user_id FROM jeseci_academy.users 
-    WHERE email = %s OR username = %s
-    """
-    existing = pg_manager.execute_query(check_query, (email, username))
-    
-    if existing:
-        for row in existing:
-            if row.get('email') == email:
-                return {"success": False, "error": "User with this email already exists", "code": "DUPLICATE_EMAIL"}
-            if row.get('username') == username:
-                return {"success": False, "error": "Username already exists", "code": "DUPLICATE_USERNAME"}
-    
-    # Generate user ID
-    timestamp = str(int(datetime.datetime.now().timestamp()))
-    user_id = f"user_{username}_{timestamp[0:8]}"
-    
-    # Hash password
-    password_hash = hashlib.sha256(password.encode()).hexdigest()
-    
-    # Insert new admin user into users table (without first_name/last_name)
-    # RETURNING id to use for profile insertion
-    insert_user_query = """
-    INSERT INTO jeseci_academy.users 
-    (user_id, username, email, password_hash, is_admin, admin_role, is_active, created_at, updated_at)
-    VALUES (%s, %s, %s, %s, true, %s, true, NOW(), NOW())
-    RETURNING id
+    This ensures:
+    - Proper bcrypt password hashing
+    - Creation of user_learning_preferences record
+    - Neo4j graph sync
+    - Proper transaction handling with commit/rollback
+    - Email verification skipped (is_email_verified = True)
     """
     
-    user_result = pg_manager.execute_query(insert_user_query, 
-        (user_id, username, email, password_hash, admin_role))
+    # Use the user_auth.register_user function which handles all the required operations
+    result = auth_module.register_user(
+        username=username,
+        email=email,
+        password=password,
+        first_name=first_name,
+        last_name=last_name,
+        learning_style="visual",
+        skill_level="beginner",
+        is_admin=True,
+        admin_role=admin_role,
+        skip_verification=True  # Admin users are pre-verified
+    )
     
-    if user_result:
-        user_db_id = user_result[0]['id']  # Get the INTEGER id for profile insert
-        
-        # Also insert into user_profile table for first_name/last_name
-        if first_name or last_name:
-            insert_profile_query = """
-            INSERT INTO jeseci_academy.user_profile 
-            (user_id, first_name, last_name, created_at, updated_at)
-            VALUES (%s, %s, %s, NOW(), NOW())
-            ON CONFLICT (user_id) DO UPDATE SET 
-                first_name = EXCLUDED.first_name,
-                last_name = EXCLUDED.last_name,
-                updated_at = NOW()
-            """
-            pg_manager.execute_query(insert_profile_query, (user_db_id, first_name, last_name), fetch=False)
-        
+    if result.get('success'):
         # Invalidate cache to force reload
         global cache_initialized
         cache_initialized = False
         
-        # Send welcome email to the new admin user
-        email_result = send_welcome_email_sync(email, username)
-        email_sent = email_result.get('success', False)
-        email_method = email_result.get('method', 'none')
-        
         # Build complete user object matching the cache structure
-        created_at = datetime.datetime.now()
         user_object = {
-            "user_id": user_id,
-            "username": username,
-            "email": email,
+            "user_id": result.get('user_id'),
+            "username": result.get('username'),
+            "email": result.get('email'),
             "first_name": first_name,
             "last_name": last_name,
             "is_admin": True,
-            "admin_role": admin_role,
+            "admin_role": result.get('admin_role'),
             "is_active": True,
-            "created_at": created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "created_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
             "last_login": None
         }
         
         return {
             "success": True, 
             "user": user_object,
-            "email_sent": email_sent,
-            "email_method": email_method,
             "message": "Admin user created successfully"
         }
     
-    return {"success": False, "error": "Failed to create user", "code": "INSERT_ERROR"}
+    # Return the error from auth_module
+    error_code = result.get('code', 'UNKNOWN_ERROR')
+    error_msg = result.get('error', 'Failed to create user')
+    
+    if error_code == 'CONFLICT':
+        error_msg = "User with this email or username already exists"
+    
+    return {"success": False, "error": error_msg, "code": error_code}
 
 def update_admin_user(user_id, updates):
     """Update an existing admin user in PostgreSQL"""
