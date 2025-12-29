@@ -15,6 +15,10 @@ import user_auth as auth_module;
 import email_verification as email_verification_module;
 import email_notifications as email_module;
 import admin_user_store as admin_store;
+import admin_content_store as content_store;
+import admin_quiz_store as quiz_store;
+import admin_ai_store as ai_store;
+import admin_analytics_store as analytics_store;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -1754,23 +1758,51 @@ walker verification_status {
 
 walker admin_dashboard {
     can admin_dashboard with entry {
-        # Admin dashboard statistics
+        # Initialize all stores to get real statistics
+        admin_store.initialize_admin_store();
+        content_store.initialize_courses();
+        content_store.initialize_concepts();
+        content_store.initialize_paths();
+        quiz_store.initialize_quizzes();
+        analytics_store.initialize_analytics();
+        
+        # Get real counts from stores
+        all_users = admin_store.get_all_admin_users();
+        all_courses = content_store.get_all_courses();
+        all_quizzes = quiz_store.get_all_quizzes();
+        user_analytics = analytics_store.get_user_analytics();
+        learning_analytics = analytics_store.get_learning_analytics();
+        
+        # Count admins by role
+        role_distribution = {};
+        for user in all_users {
+            if user.get('is_admin', False) {
+                role = user.get('admin_role', 'unknown');
+                role_distribution[role] = role_distribution.get(role, 0) + 1;
+            }
+        }
+        
+        # Admin dashboard statistics from real data
+        active_count = len([u for u in all_users if u.get('is_active', True)]);
+        admin_count = len([u for u in all_users if u.get('is_admin', False)]);
+        
         stats = {
             "user_statistics": {
-                "total_users": 156,
-                "active_users": 142,
-                "inactive_users": 14,
-                "total_admins": 5,
-                "new_users_this_week": 12
+                "total_users": len(all_users),
+                "active_users": active_count,
+                "inactive_users": len(all_users) - active_count,
+                "total_admins": admin_count,
+                "new_users_this_week": user_analytics.get('new_users', [0,0,0,0,0,0,0])[-1]
             },
             "admin_statistics": {
-                "total_admins": 5,
-                "role_distribution": {
-                    "super_admin": 1,
-                    "content_admin": 2,
-                    "user_admin": 1,
-                    "analytics_admin": 1
-                }
+                "total_admins": admin_count,
+                "role_distribution": role_distribution
+            },
+            "content_statistics": {
+                "total_courses": len(all_courses),
+                "total_concepts": len(content_store.get_all_concepts()),
+                "total_paths": len(content_store.get_all_paths()),
+                "total_quizzes": len(all_quizzes)
             },
             "system_health": {
                 "database_status": "connected",
@@ -1947,31 +1979,40 @@ walker admin_users_bulk_action {
 
 walker admin_content_courses {
     can admin_content_courses with entry {
-        courses = [
-            {
-                "course_id": "jac_fundamentals",
-                "title": "Jac Programming Fundamentals",
-                "description": "Learn the basics of Jac programming language - variables, functions, and control flow",
-                "domain": "Jac Language",
-                "difficulty": "beginner",
-                "content_type": "interactive",
-                "created_at": "2025-12-01T10:00:00Z"
-            },
-            {
-                "course_id": "jac_osp_basics",
-                "title": "Object-Spatial Programming Basics",
-                "description": "Master the fundamentals of OSP with nodes, edges, and walkers",
-                "domain": "Jac Language",
-                "difficulty": "intermediate",
-                "content_type": "interactive",
-                "created_at": "2025-12-05T14:30:00Z"
-            }
-        ];
+        # Initialize store and get courses
+        content_store.initialize_courses();
+        courses = content_store.get_all_courses();
         
         report {
             "success": True,
             "courses": courses
         };
+    }
+}
+
+walker admin_content_course_create {
+    has title: str;
+    has description: str;
+    has domain: str;
+    has difficulty: str;
+    has content_type: str = "interactive";
+    
+    can admin_content_course_create with entry {
+        content_store.initialize_courses();
+        result = content_store.create_course(self.title, self.description, self.domain, self.difficulty, self.content_type);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "course_id": result['course_id'],
+                "message": "Course created successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to create course')
+            };
+        }
     }
 }
 
@@ -1983,11 +2024,21 @@ walker admin_content_course_update {
     has difficulty: str = "";
     
     can admin_content_course_update with entry {
-        report {
-            "success": True,
-            "course_id": self.course_id,
-            "message": "Course updated successfully"
-        };
+        content_store.initialize_courses();
+        result = content_store.update_course(self.course_id, self.title, self.description, self.domain, self.difficulty);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "course_id": self.course_id,
+                "message": "Course updated successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to update course')
+            };
+        }
     }
 }
 
@@ -1995,38 +2046,29 @@ walker admin_content_course_delete {
     has course_id: str;
     
     can admin_content_course_delete with entry {
-        report {
-            "success": True,
-            "course_id": self.course_id,
-            "message": "Course deleted successfully"
-        };
+        content_store.initialize_courses();
+        result = content_store.delete_course(self.course_id);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "course_id": self.course_id,
+                "message": "Course deleted successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to delete course')
+            };
+        }
     }
 }
 
 walker admin_content_concepts {
     can admin_content_concepts with entry {
-        concepts = [
-            {
-                "concept_id": "jac_variables",
-                "name": "Variables and Data Types",
-                "display_name": "Variables & Types",
-                "category": "Programming Basics",
-                "difficulty_level": "beginner",
-                "domain": "Jac Language",
-                "description": "Learn about variables and data types",
-                "icon": "variable"
-            },
-            {
-                "concept_id": "jac_osp",
-                "name": "Object-Spatial Programming",
-                "display_name": "OSP Basics",
-                "category": "Programming Paradigm",
-                "difficulty_level": "intermediate",
-                "domain": "Jac Language",
-                "description": "Master Jac's unique graph-based programming",
-                "icon": "graph"
-            }
-        ];
+        # Initialize store and get concepts
+        content_store.initialize_concepts();
+        concepts = content_store.get_all_concepts();
         
         report {
             "success": True,
@@ -2035,25 +2077,71 @@ walker admin_content_concepts {
     }
 }
 
+walker admin_content_concept_create {
+    has name: str;
+    has display_name: str = "";
+    has category: str;
+    has difficulty_level: str;
+    has domain: str;
+    has description: str = "";
+    has icon: str = "";
+    
+    can admin_content_concept_create with entry {
+        content_store.initialize_concepts();
+        result = content_store.create_concept(self.name, self.display_name, self.category, self.difficulty_level, self.domain, self.description, self.icon);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "concept_id": result['concept_id'],
+                "message": "Concept created successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to create concept')
+            };
+        }
+    }
+}
+
 walker admin_content_paths {
     can admin_content_paths with entry {
-        paths = [
-            {
-                "path_id": "path_python",
-                "title": "Python Mastery",
-                "description": "Master Python from fundamentals to advanced concepts",
-                "courses": ["course_1", "course_2", "course_4"],
-                "concepts": ["concept_oop", "concept_algo"],
-                "difficulty": "beginner",
-                "total_modules": 8,
-                "duration": "8 weeks"
-            }
-        ];
+        # Initialize store and get paths
+        content_store.initialize_paths();
+        paths = content_store.get_all_paths();
         
         report {
             "success": True,
             "paths": paths
         };
+    }
+}
+
+walker admin_content_path_create {
+    has title: str;
+    has description: str;
+    has courses: list;
+    has concepts: list;
+    has difficulty: str;
+    has duration: str;
+    
+    can admin_content_path_create with entry {
+        content_store.initialize_paths();
+        result = content_store.create_path(self.title, self.description, self.courses, self.concepts, self.difficulty, self.duration);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "path_id": result['path_id'],
+                "message": "Learning path created successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to create learning path')
+            };
+        }
     }
 }
 
@@ -2063,26 +2151,9 @@ walker admin_content_paths {
 
 walker admin_quizzes {
     can admin_quizzes with entry {
-        quizzes = [
-            {
-                "quiz_id": "quiz_python_basics",
-                "title": "Python Basics Quiz",
-                "description": "Test your understanding of Python fundamentals",
-                "course_id": "course_python",
-                "difficulty": "beginner",
-                "questions_count": 5,
-                "created_at": "2025-12-10T10:00:00Z"
-            },
-            {
-                "quiz_id": "quiz_oop",
-                "title": "Object-Oriented Programming Quiz",
-                "description": "Test your OOP knowledge",
-                "course_id": "course_oop",
-                "difficulty": "intermediate",
-                "questions_count": 10,
-                "created_at": "2025-12-12T14:30:00Z"
-            }
-        ];
+        # Initialize store and get quizzes
+        quiz_store.initialize_quizzes();
+        quizzes = quiz_store.get_all_quizzes();
         
         report {
             "success": True,
@@ -2093,15 +2164,38 @@ walker admin_quizzes {
 
 walker admin_quizzes_analytics {
     can admin_quizzes_analytics with entry {
+        quiz_store.initialize_quizzes();
+        analytics = quiz_store.get_quiz_analytics();
+        
         report {
             "success": True,
-            "analytics": {
-                "total_quizzes": 8,
-                "total_attempts": 245,
-                "average_score": 78.5,
-                "pass_rate": 85.0
-            }
+            "analytics": analytics
         };
+    }
+}
+
+walker admin_quizzes_create {
+    has title: str;
+    has description: str;
+    has course_id: str = "";
+    has difficulty: str;
+    
+    can admin_quizzes_create with entry {
+        quiz_store.initialize_quizzes();
+        result = quiz_store.create_quiz(self.title, self.description, self.course_id, self.difficulty);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "quiz_id": result['quiz_id'],
+                "message": "Quiz created successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to create quiz')
+            };
+        }
     }
 }
 
@@ -2112,11 +2206,21 @@ walker admin_quizzes_update {
     has difficulty: str = "";
     
     can admin_quizzes_update with entry {
-        report {
-            "success": True,
-            "quiz_id": self.quiz_id,
-            "message": "Quiz updated successfully"
-        };
+        quiz_store.initialize_quizzes();
+        result = quiz_store.update_quiz(self.quiz_id, self.title, self.description, self.difficulty);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "quiz_id": self.quiz_id,
+                "message": "Quiz updated successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to update quiz')
+            };
+        }
     }
 }
 
@@ -2124,11 +2228,21 @@ walker admin_quizzes_delete {
     has quiz_id: str;
     
     can admin_quizzes_delete with entry {
-        report {
-            "success": True,
-            "quiz_id": self.quiz_id,
-            "message": "Quiz deleted successfully"
-        };
+        quiz_store.initialize_quizzes();
+        result = quiz_store.delete_quiz(self.quiz_id);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "quiz_id": self.quiz_id,
+                "message": "Quiz deleted successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to delete quiz')
+            };
+        }
     }
 }
 
@@ -2138,11 +2252,7 @@ walker admin_quizzes_delete {
 
 walker admin_ai_domains {
     can admin_ai_domains with entry {
-        domains = [
-            {"id": "cs", "name": "Computer Science", "description": "CS fundamentals", "course_count": 5},
-            {"id": "math", "name": "Mathematics", "description": "Math topics", "course_count": 3},
-            {"id": "physics", "name": "Physics", "description": "Physics concepts", "course_count": 4}
-        ];
+        domains = ai_store.get_ai_domains();
         
         report {
             "success": True,
@@ -2153,43 +2263,24 @@ walker admin_ai_domains {
 
 walker admin_ai_stats {
     can admin_ai_stats with entry {
+        ai_store.initialize_ai_content();
+        stats = ai_store.get_ai_stats();
+        
         report {
             "success": True,
-            "stats": {
-                "total_generations": 156,
-                "total_tokens_used": 1250000,
-                "domains_used": {"Computer Science": 85, "Mathematics": 45, "Physics": 26},
-                "recent_generations": [
-                    {
-                        "content_id": "ai_001",
-                        "concept_name": "Variables and Data Types",
-                        "domain": "Jac Language",
-                        "difficulty": "beginner",
-                        "generated_at": "2025-12-29T11:10:57Z",
-                        "generated_by": "user_cavin_78a5d49f"
-                    }
-                ]
-            }
+            "stats": stats
         };
     }
 }
 
 walker admin_ai_content {
     can admin_ai_content with entry {
+        ai_store.initialize_ai_content();
+        content = ai_store.get_all_ai_content();
+        
         report {
             "success": True,
-            "content": [
-                {
-                    "content_id": "ai_001",
-                    "concept_name": "Variables and Data Types",
-                    "domain": "Jac Language",
-                    "difficulty": "beginner",
-                    "content": "AI-generated content...",
-                    "related_concepts": ["Type Annotations", "Strings"],
-                    "generated_at": "2025-12-29T11:10:57Z",
-                    "generated_by": "user_cavin_78a5d49f"
-                }
-            ]
+            "content": content
         };
     }
 }
@@ -2199,6 +2290,7 @@ walker admin_ai_generate {
     has domain: str = "Computer Science";
     has difficulty: str = "beginner";
     has related_concepts: list = [];
+    has generated_by: str = "admin";
     
     can admin_ai_generate with entry {
         import datetime;
@@ -2237,6 +2329,16 @@ walker admin_ai_generate {
         generated_content += "## Summary\n\n";
         generated_content += "In this lesson, we explored " + self.concept_name + " and its applications in " + self.domain + ".\n";
         
+        # Save generated content to store
+        result = ai_store.save_ai_content(
+            self.concept_name,
+            self.domain,
+            self.difficulty,
+            generated_content,
+            self.generated_by,
+            self.related_concepts
+        );
+        
         report {
             "success": True,
             "content": {
@@ -2247,7 +2349,7 @@ walker admin_ai_generate {
                 "content": generated_content,
                 "related_concepts": self.related_concepts,
                 "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "generated_by": "admin",
+                "generated_by": self.generated_by,
                 "source": "ai_generator",
                 "model": "openai" if use_openai else "mock"
             },
@@ -2262,77 +2364,50 @@ walker admin_ai_generate {
 
 walker admin_analytics_users {
     can admin_analytics_users with entry {
+        analytics_store.initialize_analytics();
+        analytics = analytics_store.get_user_analytics();
+        
         report {
             "success": True,
-            "analytics": {
-                "total_users": 156,
-                "active_users": 142,
-                "new_users": [12, 15, 18, 22, 19, 25, 30],
-                "user_growth": [
-                    {"date": "2025-12-23", "count": 120},
-                    {"date": "2025-12-24", "count": 125},
-                    {"date": "2025-12-25", "count": 130},
-                    {"date": "2025-12-26", "count": 138},
-                    {"date": "2025-12-27", "count": 145},
-                    {"date": "2025-12-28", "count": 150},
-                    {"date": "2025-12-29", "count": 156}
-                ]
-            }
+            "analytics": analytics
         };
     }
 }
 
 walker admin_analytics_learning {
     can admin_analytics_learning with entry {
+        analytics_store.initialize_analytics();
+        analytics = analytics_store.get_learning_analytics();
+        
         report {
             "success": True,
-            "analytics": {
-                "total_sessions": 1250,
-                "completed_courses": 89,
-                "average_progress": 72.5,
-                "learning_trends": [
-                    {"date": "2025-12-23", "sessions": 150},
-                    {"date": "2025-12-24", "sessions": 165},
-                    {"date": "2025-12-25", "sessions": 180},
-                    {"date": "2025-12-26", "sessions": 175},
-                    {"date": "2025-12-27", "sessions": 190},
-                    {"date": "2025-12-28", "sessions": 200},
-                    {"date": "2025-12-29", "sessions": 190}
-                ]
-            }
+            "analytics": analytics
         };
     }
 }
 
 walker admin_analytics_content {
     can admin_analytics_content with entry {
+        analytics_store.initialize_analytics();
+        analytics = analytics_store.get_content_analytics();
+        
         report {
             "success": True,
-            "analytics": {
-                "total_courses": 12,
-                "total_concepts": 48,
-                "popular_content": [
-                    {"title": "Variables and Data Types", "views": 1250},
-                    {"title": "Object-Spatial Programming", "views": 980},
-                    {"title": "Walker Functions", "views": 875}
-                ],
-                "content_by_difficulty": {
-                    "beginner": 15,
-                    "intermediate": 25,
-                    "advanced": 8
-                }
-            }
+            "analytics": analytics
         };
     }
 }
 
 walker admin_analytics_refresh {
     can admin_analytics_refresh with entry {
+        analytics_store.initialize_analytics();
+        result = analytics_store.refresh_analytics();
+        
         import datetime;
         report {
-            "success": True,
+            "success": result['success'],
             "message": "Analytics cache refreshed successfully",
-            "refreshed_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            "refreshed_at": result['refreshed_at']
         };
     }
 }
