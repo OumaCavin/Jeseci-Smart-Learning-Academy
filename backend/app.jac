@@ -1850,7 +1850,7 @@ walker admin_users {
         safe_users = [];
         for user in users {
             safe_user = {};
-            for key, value in user.items() {
+            for (key, value) in user.items() {
                 if key != 'password' {
                     safe_user[key] = value;
                 }
@@ -2084,10 +2084,10 @@ walker admin_content_concepts {
 
 walker admin_content_concept_create {
     has name: str;
-    has display_name: str = "";
     has category: str;
     has difficulty_level: str;
     has domain: str;
+    has display_name: str = "";
     has description: str = "";
     has icon: str = "";
     
