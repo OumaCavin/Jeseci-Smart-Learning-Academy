@@ -10,6 +10,10 @@ Tables Created:
 - sync_conflicts: Records detected conflicts between PostgreSQL and Neo4j
 - reconciliation_runs: Records reconciliation job runs for auditing
 
+NOTE: These tables are now ALSO created by initialize_database.py.
+This migration is only needed for EXISTING installations that were set up
+before the centralized initialization script included these tables.
+
 Author: Cavin Otieno
 Date: 2025-12-26
 """
@@ -30,16 +34,22 @@ def run_migration():
     
     This function orchestrates the entire migration process,
     creating all required tables for the sync engine.
+    
+    NOTE: If these tables already exist (e.g., from initialize_database.py),
+    this migration will safely skip creating them.
     """
     print("=" * 80)
     print("Starting Sync Engine Tables Migration")
     print("=" * 80)
     print()
+    print("[INFO] This migration creates tables for PostgreSQL-Neo4j synchronization.")
+    print("[INFO] If tables already exist, they will be skipped (using IF NOT EXISTS).")
+    print()
     
     try:
         # Get database engine
         engine = get_engine()
-        print(f"Connected to database successfully.")
+        print(f"[INFO] Connected to database successfully.")
         print()
         
         # Get the SQL migration file path
@@ -66,7 +76,7 @@ def run_migration():
         print("Migration completed successfully!")
         print("=" * 80)
         print()
-        print("The following tables have been created in the 'jeseci_academy' schema:")
+        print("The following sync engine tables are now available:")
         print("  1. sync_event_log - Tracks synchronization events (outbox pattern)")
         print("  2. sync_status - Tracks current sync status for entities")
         print("  3. sync_conflicts - Records detected conflicts between databases")
@@ -75,6 +85,9 @@ def run_migration():
         print("Custom enum types created:")
         print("  1. sync_event_status_enum")
         print("  2. conflict_resolution_status_enum")
+        print()
+        print("[NOTE] If tables already existed, they were skipped (this is normal")
+        print("       for fresh installations using initialize_database.py).")
         print()
         
         return True
