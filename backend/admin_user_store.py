@@ -130,7 +130,7 @@ def search_admin_users(query, include_inactive=False, admin_only=False):
     
     return users
 
-def create_admin_user(username, email, password, admin_role, first_name="", last_name=""):
+def create_admin_user(username, email, password, admin_role, first_name="", last_name="", skip_verification=True):
     """Create a new admin user using the proper registration flow from user_auth module.
     
     This ensures:
@@ -138,7 +138,17 @@ def create_admin_user(username, email, password, admin_role, first_name="", last
     - Creation of user_learning_preferences record
     - Neo4j graph sync
     - Proper transaction handling with commit/rollback
-    - Email verification skipped (is_email_verified = True)
+    - Optional email verification (skip_verification=True by default)
+    
+    Args:
+        username: Admin username
+        email: Admin email
+        password: Admin password
+        admin_role: Admin role (admin, content_admin, user_admin, super_admin)
+        first_name: Optional first name
+        last_name: Optional last name
+        skip_verification: If True, user is pre-verified and can login immediately.
+                         If False, a verification email is sent and user must verify first.
     """
     
     # Use the user_auth.register_user function which handles all the required operations
@@ -152,7 +162,7 @@ def create_admin_user(username, email, password, admin_role, first_name="", last
         skill_level="beginner",
         is_admin=True,
         admin_role=admin_role,
-        skip_verification=True  # Admin users are pre-verified
+        skip_verification=skip_verification
     )
     
     if result.get('success'):
