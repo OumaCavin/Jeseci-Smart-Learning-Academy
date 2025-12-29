@@ -31,11 +31,13 @@ def initialize_admin_store():
         pg_manager = get_postgres_manager()
         
         query = """
-        SELECT user_id, username, email, first_name, last_name, 
-               is_admin, admin_role, is_active, created_at, last_login_at
-        FROM jeseci_academy.users
-        WHERE is_admin = true
-        ORDER BY created_at DESC
+        SELECT u.user_id, u.username, u.email, u.is_admin, u.admin_role, 
+               u.is_active, u.created_at, u.last_login_at,
+               p.first_name, p.last_name
+        FROM jeseci_academy.users u
+        LEFT JOIN jeseci_academy.user_profile p ON u.user_id = p.user_id
+        WHERE u.is_admin = true
+        ORDER BY u.created_at DESC
         """
         
         result = pg_manager.execute_query(query)
@@ -84,27 +86,29 @@ def search_admin_users(query, include_inactive=False, admin_only=False):
     """Search admin users in PostgreSQL"""
     pg_manager = get_postgres_manager()
     
-    # Build dynamic query
-    sql_conditions = ["is_admin = true"]
-    params = {}
+    # Build dynamic query with positional parameters
+    sql_conditions = ["u.is_admin = true"]
+    params = []
     
     if not include_inactive:
-        sql_conditions.append("is_active = true")
+        sql_conditions.append("u.is_active = true")
     if query:
-        sql_conditions.append("(username ILIKE :search OR email ILIKE :search OR first_name ILIKE :search OR last_name ILIKE :search)")
-        params['search'] = f"%{query}%"
+        sql_conditions.append("(u.username ILIKE %s OR u.email ILIKE %s OR p.first_name ILIKE %s OR p.last_name ILIKE %s)")
+        params.extend([f"%{query}%", f"%{query}%", f"%{query}%", f"%{query}%"])
     
     where_clause = " AND ".join(sql_conditions)
     
-    query = f"""
-    SELECT user_id, username, email, first_name, last_name, 
-           is_admin, admin_role, is_active, created_at, last_login_at
-    FROM jeseci_academy.users
+    search_query = f"""
+    SELECT u.user_id, u.username, u.email, u.is_admin, u.admin_role, 
+           u.is_active, u.created_at, u.last_login_at,
+           p.first_name, p.last_name
+    FROM jeseci_academy.users u
+    LEFT JOIN jeseci_academy.user_profile p ON u.user_id = p.user_id
     WHERE {where_clause}
-    ORDER BY created_at DESC
+    ORDER BY u.created_at DESC
     """
     
-    result = pg_manager.execute_query(query, params)
+    result = pg_manager.execute_query(search_query, params)
     
     users = []
     for row in result or []:
@@ -129,12 +133,12 @@ def create_admin_user(username, email, password, admin_role, first_name="", last
     
     pg_manager = get_postgres_manager()
     
-    # Check for existing user
+    # Check for existing user using positional parameters
     check_query = """
     SELECT user_id FROM jeseci_academy.users 
-    WHERE email = :email OR username = :username
+    WHERE email = %s OR username = %s
     """
-    existing = pg_manager.execute_query(check_query, {'email': email, 'username': username})
+    existing = pg_manager.execute_query(check_query, (email, username))
     
     if existing:
         for row in existing:
@@ -150,24 +154,30 @@ def create_admin_user(username, email, password, admin_role, first_name="", last
     # Hash password
     password_hash = hashlib.sha256(password.encode()).hexdigest()
     
-    # Insert new admin user
-    insert_query = """
+    # Insert new admin user into users table (without first_name/last_name)
+    insert_user_query = """
     INSERT INTO jeseci_academy.users 
-    (user_id, username, email, password_hash, is_admin, admin_role, first_name, last_name, is_active, created_at)
-    VALUES (:user_id, :username, :email, :password_hash, true, :admin_role, :first_name, :last_name, true, NOW())
+    (user_id, username, email, password_hash, is_admin, admin_role, is_active, created_at, updated_at)
+    VALUES (%s, %s, %s, %s, true, %s, true, NOW(), NOW())
     """
     
-    result = pg_manager.execute_query(insert_query, {
-        'user_id': user_id,
-        'username': username,
-        'email': email,
-        'password_hash': password_hash,
-        'admin_role': admin_role,
-        'first_name': first_name,
-        'last_name': last_name
-    }, fetch=False)
+    user_result = pg_manager.execute_query(insert_user_query, 
+        (user_id, username, email, password_hash, admin_role), fetch=False)
     
-    if result or result is not None:
+    if user_result or user_result is not None:
+        # Also insert into user_profile table for first_name/last_name
+        if first_name or last_name:
+            insert_profile_query = """
+            INSERT INTO jeseci_academy.user_profile 
+            (user_id, first_name, last_name, created_at, updated_at)
+            VALUES (%s, %s, %s, NOW(), NOW())
+            ON CONFLICT (user_id) DO UPDATE SET 
+                first_name = EXCLUDED.first_name,
+                last_name = EXCLUDED.last_name,
+                updated_at = NOW()
+            """
+            pg_manager.execute_query(insert_profile_query, (user_id, first_name, last_name), fetch=False)
+        
         # Invalidate cache to force reload
         global cache_initialized
         cache_initialized = False
@@ -195,43 +205,57 @@ def update_admin_user(user_id, updates):
     pg_manager = get_postgres_manager()
     
     # Check if user exists
-    check_query = "SELECT user_id FROM jeseci_academy.users WHERE user_id = :user_id"
-    existing = pg_manager.execute_query(check_query, {'user_id': user_id})
+    check_query = "SELECT user_id FROM jeseci_academy.users WHERE user_id = %s"
+    existing = pg_manager.execute_query(check_query, (user_id,))
     
     if not existing:
         return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
     
-    # Build update query dynamically
-    allowed_fields = ['is_admin', 'admin_role', 'is_active', 'first_name', 'last_name']
-    set_clauses = []
-    params = {'user_id': user_id}
+    # Build update query for users table
+    allowed_user_fields = ['is_admin', 'admin_role', 'is_active']
+    user_set_clauses = []
+    user_params = [user_id]
     
+    # Handle profile fields separately
+    profile_fields = {}
     for field, value in updates.items():
-        if field in allowed_fields:
-            set_clauses.append(f"{field} = :{field}")
-            params[field] = value
+        if field in allowed_user_fields:
+            user_set_clauses.append(f"{field} = %s")
+            user_params.append(value)
+        elif field in ['first_name', 'last_name']:
+            profile_fields[field] = value
     
-    if not set_clauses:
-        return {"success": True, "message": "No fields to update"}
+    if user_set_clauses:
+        user_set_clauses.append("updated_at = NOW()")
+        user_update_query = f"""
+        UPDATE jeseci_academy.users 
+        SET {', '.join(user_set_clauses)}
+        WHERE user_id = %s
+        """
+        pg_manager.execute_query(user_update_query, user_params, fetch=False)
     
-    set_clauses.append("updated_at = NOW()")
-    
-    update_query = f"""
-    UPDATE jeseci_academy.users 
-    SET {', '.join(set_clauses)}
-    WHERE user_id = :user_id
-    """
-    
-    result = pg_manager.execute_query(update_query, params, fetch=False)
-    
-    if result or result is not None:
-        # Invalidate cache
-        global cache_initialized
-        cache_initialized = False
+    # Update profile table if needed
+    if profile_fields:
+        profile_set_clauses = []
+        profile_params = [user_id]
+        for field, value in profile_fields.items():
+            profile_set_clauses.append(f"{field} = %s")
+            profile_params.append(value)
         
-        return {"success": True, "message": "User updated successfully"}
+        if profile_set_clauses:
+            profile_set_clauses.append("updated_at = NOW()")
+            profile_update_query = f"""
+            UPDATE jeseci_academy.user_profile 
+            SET {', '.join(profile_set_clauses)}
+            WHERE user_id = %s
+            """
+            pg_manager.execute_query(profile_update_query, profile_params, fetch=False)
     
-    return {"success": False, "error": "Failed to update user", "code": "UPDATE_ERROR"}
+    # Invalidate cache
+    global cache_initialized
+    cache_initialized = False
+    
+    return {"success": True, "message": "User updated successfully"}
 
 def bulk_admin_action(user_ids, action, reason=""):
     """Perform bulk action on admin users in PostgreSQL"""
@@ -241,23 +265,27 @@ def bulk_admin_action(user_ids, action, reason=""):
         update_query = """
         UPDATE jeseci_academy.users 
         SET is_active = false, updated_at = NOW()
-        WHERE user_id = ANY(:user_ids)
+        WHERE user_id = ANY(%s)
         """
     elif action == 'activate':
         update_query = """
         UPDATE jeseci_academy.users 
         SET is_active = true, updated_at = NOW()
-        WHERE user_id = ANY(:user_ids)
+        WHERE user_id = ANY(%s)
         """
     elif action == 'delete':
+        # Delete from profile first (foreign key)
+        delete_profile = "DELETE FROM jeseci_academy.user_profile WHERE user_id = ANY(%s)"
+        pg_manager.execute_query(delete_profile, (user_ids,), fetch=False)
+        
         update_query = """
         DELETE FROM jeseci_academy.users 
-        WHERE user_id = ANY(:user_ids)
+        WHERE user_id = ANY(%s)
         """
     else:
         return {"success": False, "error": "Unknown action", "code": "INVALID_ACTION"}
     
-    result = pg_manager.execute_query(update_query, {'user_ids': user_ids}, fetch=False)
+    result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
     
     if result or result is not None:
         # Invalidate cache
