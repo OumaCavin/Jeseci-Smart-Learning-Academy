@@ -1668,7 +1668,8 @@ walker verify_email {
                 report {
                     "success": True,
                     "message": result.get('message', 'Email verified successfully!'),
-                    "user": result.get('user')
+                    "user_id": result.get('user_id'),
+                    "username": result.get('username')
                 };
             } else {
                 report {
