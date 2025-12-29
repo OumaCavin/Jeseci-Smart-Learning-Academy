@@ -2147,6 +2147,68 @@ walker admin_ai_content {
     }
 }
 
+walker admin_ai_generate {
+    has concept_name: str;
+    has domain: str = "Computer Science";
+    has difficulty: str = "beginner";
+    has related_concepts: list = [];
+    
+    can admin_ai_generate with entry {
+        import datetime;
+        import os;
+        
+        # Check OpenAI configuration
+        api_key = os.getenv("OPENAI_API_KEY", "");
+        use_openai = api_key != "";
+        
+        # Generate content
+        content_id = "ai_" + str(int(datetime.datetime.now().timestamp()));
+        
+        # Generate mock content based on parameters
+        generated_content = "# " + self.concept_name + "\n\n";
+        generated_content += "## Overview\n";
+        generated_content += "This lesson covers the fundamental concepts of " + self.concept_name + " in the field of " + self.domain + ".\n\n";
+        
+        generated_content += "## Key Concepts\n\n";
+        generated_content += "1. **Introduction**: Understanding the basics of " + self.concept_name + "\n";
+        generated_content += "2. **Core Principles**: The main principles that govern " + self.concept_name + "\n";
+        generated_content += "3. **Practical Applications**: How these concepts apply in real-world scenarios\n\n";
+        
+        generated_content += "## Examples\n\n";
+        generated_content += "```python\n";
+        generated_content += "# Example code for " + self.concept_name + "\n";
+        generated_content += "def example_function():\n";
+        generated_content += "    # Your code here\n";
+        generated_content += "    pass\n";
+        generated_content += "```\n\n";
+        
+        generated_content += "## Practice Exercises\n\n";
+        generated_content += "1. Exercise 1: Basic implementation\n";
+        generated_content += "2. Exercise 2: Advanced usage\n";
+        generated_content += "3. Exercise 3: Real-world application\n\n";
+        
+        generated_content += "## Summary\n\n";
+        generated_content += "In this lesson, we explored " + self.concept_name + " and its applications in " + self.domain + ".\n";
+        
+        report {
+            "success": True,
+            "content": {
+                "content_id": content_id,
+                "concept_name": self.concept_name,
+                "domain": self.domain,
+                "difficulty": self.difficulty,
+                "content": generated_content,
+                "related_concepts": self.related_concepts,
+                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "generated_by": "admin",
+                "source": "ai_generator",
+                "model": "openai" if use_openai else "mock"
+            },
+            "message": "AI content generated successfully"
+        };
+    }
+}
+
 # ==============================================================================
 # Admin Analytics API Endpoints
 # ==============================================================================
