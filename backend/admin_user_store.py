@@ -86,11 +86,22 @@ def get_admin_user_by_email(email):
     return None
 
 def search_admin_users(query, include_inactive=False, admin_only=False):
-    """Search admin users in PostgreSQL"""
+    """Search users in PostgreSQL with optional admin filtering.
+    
+    Args:
+        query: Search string to match against username, email, first_name, last_name
+        include_inactive: Include inactive users in results
+        admin_only: If True, only search admin users. If False, search all users.
+    """
     pg_manager = get_postgres_manager()
     
     # Build dynamic query with positional parameters
-    sql_conditions = ["u.is_admin = true"]
+    # Only apply is_admin filter if admin_only is True
+    if admin_only:
+        sql_conditions = ["u.is_admin = true"]
+    else:
+        sql_conditions = []  # No admin filter - search all users
+    
     params = []
     
     if not include_inactive:
@@ -100,6 +111,8 @@ def search_admin_users(query, include_inactive=False, admin_only=False):
         params.extend([f"%{query}%", f"%{query}%", f"%{query}%", f"%{query}%"])
     
     where_clause = " AND ".join(sql_conditions)
+    if where_clause:
+        where_clause = "WHERE " + where_clause
     
     search_query = f"""
     SELECT u.id, u.user_id, u.username, u.email, u.is_admin, u.admin_role, 
@@ -107,7 +120,7 @@ def search_admin_users(query, include_inactive=False, admin_only=False):
            p.first_name, p.last_name
     FROM jeseci_academy.users u
     LEFT JOIN jeseci_academy.user_profile p ON u.id = p.user_id
-    WHERE {where_clause}
+    {where_clause}
     ORDER BY u.created_at DESC
     """
     
