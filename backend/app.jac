@@ -1850,10 +1850,9 @@ walker admin_users {
         safe_users = [];
         for user in users {
             safe_user = {};
-            user_keys = user.keys();
-            for key in user_keys {
+            for key, value in user.items() {
                 if key != 'password' {
-                    safe_user[key] = user[key];
+                    safe_user[key] = value;
                 }
             }
             safe_users.append(safe_user);
