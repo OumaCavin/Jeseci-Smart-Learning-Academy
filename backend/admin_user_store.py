@@ -11,6 +11,9 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from database import get_postgres_manager
 
+# Import email service for welcome emails
+from email_verification import send_welcome_email_sync
+
 # In-memory cache for quick lookups (synced with PostgreSQL)
 admin_users_cache = {}
 admin_users_lock = threading.Lock()
@@ -186,19 +189,31 @@ def create_admin_user(username, email, password, admin_role, first_name="", last
         global cache_initialized
         cache_initialized = False
         
+        # Send welcome email to the new admin user
+        email_result = send_welcome_email_sync(email, username)
+        email_sent = email_result.get('success', False)
+        email_method = email_result.get('method', 'none')
+        
+        # Build complete user object matching the cache structure
+        created_at = datetime.datetime.now()
+        user_object = {
+            "user_id": user_id,
+            "username": username,
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "is_admin": True,
+            "admin_role": admin_role,
+            "is_active": True,
+            "created_at": created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "last_login": None
+        }
+        
         return {
             "success": True, 
-            "user": {
-                "user_id": user_id,
-                "username": username,
-                "email": email,
-                "admin_role": admin_role,
-                "first_name": first_name,
-                "last_name": last_name,
-                "is_admin": True,
-                "is_active": True,
-                "created_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-            },
+            "user": user_object,
+            "email_sent": email_sent,
+            "email_method": email_method,
             "message": "Admin user created successfully"
         }
     
