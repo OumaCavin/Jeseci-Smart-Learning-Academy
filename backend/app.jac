@@ -1849,7 +1849,12 @@ walker admin_users {
         # Remove password from response
         safe_users = [];
         for user in users {
-            safe_user = {k: v for k, v in user.items() if k != 'password'};
+            safe_user = {};
+            for k, v in user {
+                if k != 'password' {
+                    safe_user[k] = v;
+                }
+            }
             safe_users.append(safe_user);
         }
         
