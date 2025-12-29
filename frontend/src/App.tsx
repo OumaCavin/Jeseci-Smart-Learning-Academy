@@ -1321,8 +1321,8 @@ const AppContent: React.FC = () => {
         />
       ) : null}
 
-      {/* Show auth forms or dashboard only when NOT on verify page */}
-      {!isAuthenticated && !showLandingPage && !showVerifyPage && (
+      {/* Show main application for authenticated users OR auth forms for non-authenticated users */}
+      {(isAuthenticated || (!showLandingPage && !showVerifyPage)) && (
         <>
           <header className="app-header">
             <div className="header-content">
@@ -1362,9 +1362,13 @@ const AppContent: React.FC = () => {
           )}
 
           <main className="app-main">
-            {viewMode === 'admin' ? (
-              <AdminPage />
-            ) : !isAuthenticated ? (
+            {isAuthenticated ? (
+              viewMode === 'admin' ? (
+                <AdminPage />
+              ) : (
+                renderDashboard()
+              )
+            ) : (
               <div className="auth-section">
                 <div className="auth-tabs">
                   <button 
@@ -1386,8 +1390,6 @@ const AppContent: React.FC = () => {
                 {activeTab === 'login' && renderLoginForm()}
                 {activeTab === 'register' && renderRegisterForm()}
               </div>
-            ) : (
-              renderDashboard()
             )}
           </main>
 
