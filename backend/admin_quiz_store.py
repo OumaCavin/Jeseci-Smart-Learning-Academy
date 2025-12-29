@@ -1,94 +1,106 @@
-# In-memory storage for admin quiz management
-# This module provides persistent storage for quiz management operations
+# Admin quiz storage using PostgreSQL database
+# Uses the existing Quiz model from SQLAlchemy
 
-import json
 import os
 import threading
 import datetime
+from typing import Optional
 
-# In-memory storage
-quizzes_store = {}
+# Import database utilities
+import sys
+sys.path.insert(0, os.path.dirname(__file__))
+from database import get_postgres_manager
+
+# In-memory cache for quick lookups
+quizzes_cache = {}
 quizzes_lock = threading.Lock()
-
-# File path for persistence
-DATA_DIR = "data"
-QUIZZES_FILE = os.path.join(DATA_DIR, "admin_quizzes.json")
-
-def ensure_data_dir():
-    """Ensure data directory exists"""
-    os.makedirs(DATA_DIR, exist_ok=True)
-
-def load_json_store(filepath, default_data):
-    """Load data from JSON file"""
-    try:
-        if os.path.exists(filepath):
-            with open(filepath, 'r') as f:
-                return json.load(f)
-    except Exception as e:
-        print(f"Error loading {filepath}: {e}")
-    return default_data
-
-def save_json_store(filepath, data):
-    """Save data to JSON file"""
-    try:
-        ensure_data_dir()
-        with open(filepath, 'w') as f:
-            json.dump(data, f, indent=2)
-    except Exception as e:
-        print(f"Error saving {filepath}: {e}")
+cache_initialized = False
 
 # ==============================================================================
-# QUIZZES STORAGE
+# QUIZZES STORAGE (PostgreSQL)
 # ==============================================================================
 
 def initialize_quizzes():
-    """Initialize quizzes store with default data if empty"""
-    global quizzes_store
-    default_quizzes = {
-        "quiz_python_basics": {
-            "quiz_id": "quiz_python_basics",
-            "title": "Python Basics Quiz",
-            "description": "Test your understanding of Python fundamentals",
-            "course_id": "course_python",
-            "difficulty": "beginner",
-            "questions_count": 5,
-            "created_at": "2025-12-10T10:00:00Z",
-            "updated_at": None,
-            "attempts_count": 0,
-            "total_score": 0
-        },
-        "quiz_oop": {
-            "quiz_id": "quiz_oop",
-            "title": "Object-Oriented Programming Quiz",
-            "description": "Test your OOP knowledge",
-            "course_id": "course_oop",
-            "difficulty": "intermediate",
-            "questions_count": 10,
-            "created_at": "2025-12-12T14:30:00Z",
-            "updated_at": None,
-            "attempts_count": 0,
-            "total_score": 0
-        }
-    }
-    quizzes_store = load_json_store(QUIZZES_FILE, default_quizzes)
-    return quizzes_store
+    """Initialize quizzes from PostgreSQL"""
+    global quizzes_cache, cache_initialized
+    
+    if cache_initialized:
+        return quizzes_cache
+    
+    with quizzes_lock:
+        if cache_initialized:
+            return quizzes_cache
+            
+        pg_manager = get_postgres_manager()
+        
+        query = """
+        SELECT quiz_id, title, description, concept_id, lesson_id, 
+               passing_score, time_limit_minutes, max_attempts, is_published,
+               created_at, updated_at
+        FROM jeseci_academy.quizzes
+        ORDER BY created_at DESC
+        """
+        
+        result = pg_manager.execute_query(query)
+        
+        quizzes_cache = {}
+        if result:
+            for row in result:
+                quiz_id = row.get('quiz_id')
+                quizzes_cache[quiz_id] = {
+                    "quiz_id": quiz_id,
+                    "title": row.get('title'),
+                    "description": row.get('description'),
+                    "course_id": row.get('concept_id') or row.get('lesson_id'),
+                    "difficulty": row.get('passing_score', 70) >= 70 and "intermediate" or "beginner",
+                    "questions_count": 0,  # Would need QuizQuestion table for this
+                    "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+                    "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None
+                }
+        
+        cache_initialized = True
+        return quizzes_cache
 
 def get_all_quizzes():
-    """Get all quizzes"""
+    """Get all quizzes from PostgreSQL"""
+    initialize_quizzes()
     with quizzes_lock:
-        return list(quizzes_store.values())
+        return list(quizzes_cache.values())
 
 def get_quiz_by_id(quiz_id):
-    """Get a specific quiz by ID"""
+    """Get a specific quiz from PostgreSQL"""
+    initialize_quizzes()
     with quizzes_lock:
-        return quizzes_store.get(quiz_id)
+        return quizzes_cache.get(quiz_id)
 
 def create_quiz(title, description, course_id, difficulty):
-    """Create a new quiz"""
-    global quizzes_store
-    with quizzes_lock:
-        # Generate quiz ID
-        quiz_id = "quiz_" + title.lower().replace(" ", "_").replace("-", "_")[0:15] + "_" + str(int(datetime.datetime.now().timestamp()))[0:8]
+    """Create a new quiz in PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    # Generate quiz ID
+    quiz_id = "quiz_" + title.lower().replace(" ", "_").replace("-", "_")[0:15] + "_" + str(int(datetime.datetime.now().timestamp()))[0:8]
+    
+    # Determine passing score based on difficulty
+    passing_score = 70 if difficulty == "beginner" else (80 if difficulty == "intermediate" else 90)
+    
+    insert_query = """
+    INSERT INTO jeseci_academy.quizzes 
+    (quiz_id, title, description, concept_id, passing_score, max_attempts, is_published, created_at)
+    VALUES (:quiz_id, :title, :description, :course_id, :passing_score, 3, true, NOW())
+    """
+    
+    result = pg_manager.execute_query(insert_query, {
+        'quiz_id': quiz_id,
+        'title': title,
+        'description': description,
+        'course_id': course_id or None,
+        'passing_score': passing_score
+    }, fetch=False)
+    
+    if result or result is not None:
+        # Invalidate cache
+        global cache_initialized
+        cache_initialized = False
         
         new_quiz = {
             "quiz_id": quiz_id,
@@ -98,77 +110,143 @@ def create_quiz(title, description, course_id, difficulty):
             "difficulty": difficulty,
             "questions_count": 0,
             "created_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "updated_at": None,
-            "attempts_count": 0,
-            "total_score": 0
+            "updated_at": None
         }
-        
-        quizzes_store[quiz_id] = new_quiz
-        save_json_store(QUIZZES_FILE, quizzes_store)
-        
         return {"success": True, "quiz_id": quiz_id, "quiz": new_quiz}
+    
+    return {"success": False, "error": "Failed to create quiz"}
 
 def update_quiz(quiz_id, title="", description="", difficulty=""):
-    """Update an existing quiz"""
-    global quizzes_store
-    with quizzes_lock:
-        if quiz_id not in quizzes_store:
-            return {"success": False, "error": "Quiz not found"}
-        
-        quiz = quizzes_store[quiz_id]
-        if title: quiz["title"] = title
-        if description: quiz["description"] = description
-        if difficulty: quiz["difficulty"] = difficulty
-        quiz["updated_at"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-        
-        quizzes_store[quiz_id] = quiz
-        save_json_store(QUIZZES_FILE, quizzes_store)
-        
+    """Update an existing quiz in PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    # Check if quiz exists
+    check_query = "SELECT quiz_id FROM jeseci_academy.quizzes WHERE quiz_id = :quiz_id"
+    existing = pg_manager.execute_query(check_query, {'quiz_id': quiz_id})
+    
+    if not existing:
+        return {"success": False, "error": "Quiz not found"}
+    
+    # Build dynamic update
+    updates = []
+    params = {'quiz_id': quiz_id}
+    
+    if title:
+        updates.append("title = :title")
+        params['title'] = title
+    if description:
+        updates.append("description = :description")
+        params['description'] = description
+    if difficulty:
+        # Update passing score based on difficulty
+        passing_score = 70 if difficulty == "beginner" else (80 if difficulty == "intermediate" else 90)
+        updates.append("passing_score = :passing_score")
+        params['passing_score'] = passing_score
+    
+    if not updates:
+        return {"success": True, "message": "No fields to update"}
+    
+    updates.append("updated_at = NOW()")
+    
+    update_query = f"""
+    UPDATE jeseci_academy.quizzes 
+    SET {', '.join(updates)}
+    WHERE quiz_id = :quiz_id
+    """
+    
+    result = pg_manager.execute_query(update_query, params, fetch=False)
+    
+    if result or result is not None:
+        global cache_initialized
+        cache_initialized = False
         return {"success": True, "quiz_id": quiz_id}
+    
+    return {"success": False, "error": "Failed to update quiz"}
 
 def delete_quiz(quiz_id):
-    """Delete a quiz"""
-    global quizzes_store
-    with quizzes_lock:
-        if quiz_id not in quizzes_store:
-            return {"success": False, "error": "Quiz not found"}
-        
-        del quizzes_store[quiz_id]
-        save_json_store(QUIZZES_FILE, quizzes_store)
-        
+    """Delete a quiz from PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    check_query = "SELECT quiz_id FROM jeseci_academy.quizzes WHERE quiz_id = :quiz_id"
+    existing = pg_manager.execute_query(check_query, {'quiz_id': quiz_id})
+    
+    if not existing:
+        return {"success": False, "error": "Quiz not found"}
+    
+    delete_query = "DELETE FROM jeseci_academy.quizzes WHERE quiz_id = :quiz_id"
+    result = pg_manager.execute_query(delete_query, {'quiz_id': quiz_id}, fetch=False)
+    
+    if result or result is not None:
+        global cache_initialized
+        cache_initialized = False
         return {"success": True, "quiz_id": quiz_id}
+    
+    return {"success": False, "error": "Failed to delete quiz"}
 
-def record_quiz_attempt(quiz_id, score):
-    """Record a quiz attempt for analytics"""
-    global quizzes_store
-    with quizzes_lock:
-        if quiz_id not in quizzes_store:
-            return
-        
-        quiz = quizzes_store[quiz_id]
-        quiz["attempts_count"] = quiz.get("attempts_count", 0) + 1
-        quiz["total_score"] = quiz.get("total_score", 0) + score
-        quizzes_store[quiz_id] = quiz
-        save_json_store(QUIZZES_FILE, quizzes_store)
+def record_quiz_attempt(quiz_id, user_id, score, total_questions, correct_answers, time_taken_seconds):
+    """Record a quiz attempt in PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    # Check if quiz exists
+    check_query = "SELECT passing_score FROM jeseci_academy.quizzes WHERE quiz_id = :quiz_id"
+    quiz_result = pg_manager.execute_query(check_query, {'quiz_id': quiz_id})
+    
+    if not quiz_result:
+        return {"success": False, "error": "Quiz not found"}
+    
+    passing_score = quiz_result[0].get('passing_score', 70)
+    is_passed = score >= passing_score
+    
+    # Insert attempt
+    insert_query = """
+    INSERT INTO jeseci_academy.quiz_attempts 
+    (user_id, quiz_id, score, total_questions, correct_answers, time_taken_seconds, is_passed, started_at, completed_at)
+    VALUES (:user_id, :quiz_id, :score, :total_questions, :correct_answers, :time_taken, :is_passed, NOW(), NOW())
+    """
+    
+    result = pg_manager.execute_query(insert_query, {
+        'user_id': user_id,
+        'quiz_id': quiz_id,
+        'score': score,
+        'total_questions': total_questions,
+        'correct_answers': correct_answers,
+        'time_taken': time_taken_seconds,
+        'is_passed': is_passed
+    }, fetch=False)
+    
+    if result or result is not None:
+        return {"success": True, "attempt_id": quiz_id, "is_passed": is_passed}
+    
+    return {"success": False, "error": "Failed to record attempt"}
 
 def get_quiz_analytics():
-    """Get quiz analytics data"""
-    with quizzes_lock:
-        quizzes = list(quizzes_store.values())
-        total_quizzes = len(quizzes)
-        total_attempts = sum(q.get("attempts_count", 0) for q in quizzes)
-        
-        # Calculate average score
-        total_scores = sum(q.get("total_score", 0) for q in quizzes)
-        average_score = total_scores / total_attempts if total_attempts > 0 else 0
-        
-        # Calculate pass rate (assuming pass is 70%)
-        passed_count = sum(1 for q in quizzes if q.get("total_score", 0) / max(q.get("attempts_count", 1), 1) >= 70)
-        pass_rate = (passed_count / total_quizzes * 100) if total_quizzes > 0 else 0
-        
-        return {
-            "total_quizzes": total_quizzes,
-            "total_attempts": total_attempts,
-            "average_score": round(average_score, 1),
-            "pass_rate": round(pass_rate, 1)
-        }
+    """Get quiz analytics from PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    # Get total quizzes
+    count_query = "SELECT COUNT(*) as count FROM jeseci_academy.quizzes"
+    count_result = pg_manager.execute_query(count_query)
+    total_quizzes = count_result[0].get('count', 0) if count_result else 0
+    
+    # Get total attempts and average score
+    attempts_query = """
+    SELECT COUNT(*) as total_attempts, 
+           AVG(score) as avg_score,
+           SUM(CASE WHEN is_passed = true THEN 1 ELSE 0 END) as passed_count
+    FROM jeseci_academy.quiz_attempts
+    """
+    attempts_result = pg_manager.execute_query(attempts_query)
+    
+    total_attempts = attempts_result[0].get('total_attempts', 0) if attempts_result else 0
+    average_score = attempts_result[0].get('avg_score', 0) if attempts_result else 0
+    passed_count = attempts_result[0].get('passed_count', 0) if attempts_result else 0
+    
+    # Calculate pass rate
+    pass_rate = (passed_count / total_attempts * 100) if total_attempts > 0 else 0
+    
+    return {
+        "total_quizzes": total_quizzes,
+        "total_attempts": total_attempts,
+        "average_score": round(average_score, 1) if average_score else 0,
+        "pass_rate": round(pass_rate, 1)
+    }
