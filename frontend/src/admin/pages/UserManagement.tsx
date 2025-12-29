@@ -321,6 +321,8 @@ const CreateAdminModal: React.FC<{ onClose: () => void; onCreated: () => void }>
     first_name: '',
     last_name: '',
     admin_role: 'admin',
+    learning_style: 'visual',
+    skill_level: 'beginner',
     skip_verification: true,  // Default to true (pre-verified)
   });
   const [loading, setLoading] = useState(false);
@@ -447,6 +449,35 @@ const CreateAdminModal: React.FC<{ onClose: () => void; onCreated: () => void }>
               <option value="user_admin">User Admin</option>
               <option value="super_admin">Super Admin</option>
             </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">Learning Style</label>
+              <select
+                className="form-select"
+                value={formData.learning_style}
+                onChange={(e) => setFormData(f => ({ ...f, learning_style: e.target.value }))}
+              >
+                <option value="visual">Visual</option>
+                <option value="auditory">Auditory</option>
+                <option value="reading">Reading/Writing</option>
+                <option value="kinesthetic">Kinesthetic</option>
+              </select>
+            </div>
+
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">Skill Level</label>
+              <select
+                className="form-select"
+                value={formData.skill_level}
+                onChange={(e) => setFormData(f => ({ ...f, skill_level: e.target.value }))}
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
           </div>
 
           <div className="form-group">
