@@ -1,94 +1,107 @@
-# In-memory storage for admin content management (courses, concepts, learning paths)
-# This module provides persistent storage for all content management operations
+# Admin content storage using PostgreSQL and Neo4j databases
+# - Courses stored in PostgreSQL (LearningPath model)
+# - Concepts stored in Neo4j (graph relationships and prerequisites)
+# - Learning paths use both PostgreSQL and Neo4j
 
-import json
 import os
 import threading
 import datetime
+from typing import Optional
 
-# In-memory storage
-courses_store = {}
-concepts_store = {}
-paths_store = {}
+# Import database utilities
+import sys
+sys.path.insert(0, os.path.dirname(__file__))
+from database import get_postgres_manager, get_neo4j_manager
+
+# In-memory cache for PostgreSQL data
+courses_cache = {}
+paths_cache = {}
 content_lock = threading.Lock()
-
-# File paths for persistence
-DATA_DIR = "data"
-COURSES_FILE = os.path.join(DATA_DIR, "admin_courses.json")
-CONCEPTS_FILE = os.path.join(DATA_DIR, "admin_concepts.json")
-PATHS_FILE = os.path.join(DATA_DIR, "admin_paths.json")
-
-def ensure_data_dir():
-    """Ensure data directory exists"""
-    os.makedirs(DATA_DIR, exist_ok=True)
-
-def load_json_store(filepath, default_data):
-    """Load data from JSON file"""
-    try:
-        if os.path.exists(filepath):
-            with open(filepath, 'r') as f:
-                return json.load(f)
-    except Exception as e:
-        print(f"Error loading {filepath}: {e}")
-    return default_data
-
-def save_json_store(filepath, data):
-    """Save data to JSON file"""
-    try:
-        ensure_data_dir()
-        with open(filepath, 'w') as f:
-            json.dump(data, f, indent=2)
-    except Exception as e:
-        print(f"Error saving {filepath}: {e}")
+cache_initialized = False
 
 # ==============================================================================
-# COURSES STORAGE
+# COURSES STORAGE (PostgreSQL - LearningPath model)
 # ==============================================================================
 
 def initialize_courses():
-    """Initialize courses store with default data if empty"""
-    global courses_store
-    default_courses = {
-        "jac_fundamentals": {
-            "course_id": "jac_fundamentals",
-            "title": "Jac Programming Fundamentals",
-            "description": "Learn the basics of Jac programming language - variables, functions, and control flow",
-            "domain": "Jac Language",
-            "difficulty": "beginner",
-            "content_type": "interactive",
-            "created_at": "2025-12-01T10:00:00Z",
-            "updated_at": None
-        },
-        "jac_osp_basics": {
-            "course_id": "jac_osp_basics",
-            "title": "Object-Spatial Programming Basics",
-            "description": "Master the fundamentals of OSP with nodes, edges, and walkers",
-            "domain": "Jac Language",
-            "difficulty": "intermediate",
-            "content_type": "interactive",
-            "created_at": "2025-12-05T14:30:00Z",
-            "updated_at": None
-        }
-    }
-    courses_store = load_json_store(COURSES_FILE, default_courses)
-    return courses_store
+    """Initialize courses from PostgreSQL"""
+    global courses_cache, cache_initialized
+    
+    if cache_initialized:
+        return courses_cache
+    
+    with content_lock:
+        if cache_initialized:
+            return courses_cache
+            
+        pg_manager = get_postgres_manager()
+        
+        query = """
+        SELECT path_id, name, title, category, difficulty, 
+               estimated_duration, description, is_published, created_at, updated_at
+        FROM jeseci_academy.learning_paths
+        ORDER BY created_at DESC
+        """
+        
+        result = pg_manager.execute_query(query)
+        
+        courses_cache = {}
+        if result:
+            for row in result:
+                path_id = row.get('path_id')
+                courses_cache[path_id] = {
+                    "course_id": path_id,
+                    "title": row.get('title'),
+                    "description": row.get('description'),
+                    "domain": row.get('category') or "",
+                    "difficulty": row.get('difficulty') or "beginner",
+                    "content_type": "interactive",
+                    "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+                    "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None
+                }
+        
+        cache_initialized = True
+        return courses_cache
 
 def get_all_courses():
-    """Get all courses"""
+    """Get all courses from PostgreSQL"""
+    initialize_courses()
     with content_lock:
-        return list(courses_store.values())
+        return list(courses_cache.values())
 
 def get_course_by_id(course_id):
-    """Get a specific course by ID"""
+    """Get a specific course from PostgreSQL"""
+    initialize_courses()
     with content_lock:
-        return courses_store.get(course_id)
+        return courses_cache.get(course_id)
 
 def create_course(title, description, domain, difficulty, content_type="interactive"):
-    """Create a new course"""
-    global courses_store
-    with content_lock:
-        # Generate course ID
-        course_id = "course_" + title.lower().replace(" ", "_").replace("-", "_")[0:20] + "_" + str(int(datetime.datetime.now().timestamp()))[0:8]
+    """Create a new course in PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    # Generate course ID
+    course_id = "course_" + title.lower().replace(" ", "_").replace("-", "_")[0:20] + "_" + str(int(datetime.datetime.now().timestamp()))[0:8]
+    name = title.lower().replace(" ", "_").replace("-", "_")
+    
+    insert_query = """
+    INSERT INTO jeseci_academy.learning_paths 
+    (path_id, name, title, category, difficulty, description, is_published, created_at)
+    VALUES (:path_id, :name, :title, :category, :difficulty, :description, true, NOW())
+    """
+    
+    result = pg_manager.execute_query(insert_query, {
+        'path_id': course_id,
+        'name': name,
+        'title': title,
+        'category': domain,
+        'difficulty': difficulty,
+        'description': description
+    }, fetch=False)
+    
+    if result or result is not None:
+        # Invalidate cache
+        global cache_initialized
+        cache_initialized = False
         
         new_course = {
             "course_id": course_id,
@@ -100,92 +113,177 @@ def create_course(title, description, domain, difficulty, content_type="interact
             "created_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
             "updated_at": None
         }
-        
-        courses_store[course_id] = new_course
-        save_json_store(COURSES_FILE, courses_store)
-        
         return {"success": True, "course_id": course_id, "course": new_course}
+    
+    return {"success": False, "error": "Failed to create course"}
 
 def update_course(course_id, title="", description="", domain="", difficulty=""):
-    """Update an existing course"""
-    global courses_store
-    with content_lock:
-        if course_id not in courses_store:
-            return {"success": False, "error": "Course not found"}
-        
-        course = courses_store[course_id]
-        if title: course["title"] = title
-        if description: course["description"] = description
-        if domain: course["domain"] = domain
-        if difficulty: course["difficulty"] = difficulty
-        course["updated_at"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-        
-        courses_store[course_id] = course
-        save_json_store(COURSES_FILE, courses_store)
-        
+    """Update an existing course in PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    # Check if course exists
+    check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = :course_id"
+    existing = pg_manager.execute_query(check_query, {'course_id': course_id})
+    
+    if not existing:
+        return {"success": False, "error": "Course not found"}
+    
+    # Build dynamic update
+    updates = []
+    params = {'course_id': course_id}
+    
+    if title:
+        updates.append("title = :title")
+        params['title'] = title
+    if description:
+        updates.append("description = :description")
+        params['description'] = description
+    if domain:
+        updates.append("category = :domain")
+        params['domain'] = domain
+    if difficulty:
+        updates.append("difficulty = :difficulty")
+        params['difficulty'] = difficulty
+    
+    if not updates:
+        return {"success": True, "message": "No fields to update"}
+    
+    updates.append("updated_at = NOW()")
+    
+    update_query = f"""
+    UPDATE jeseci_academy.learning_paths 
+    SET {', '.join(updates)}
+    WHERE path_id = :course_id
+    """
+    
+    result = pg_manager.execute_query(update_query, params, fetch=False)
+    
+    if result or result is not None:
+        global cache_initialized
+        cache_initialized = False
         return {"success": True, "course_id": course_id}
+    
+    return {"success": False, "error": "Failed to update course"}
 
 def delete_course(course_id):
-    """Delete a course"""
-    global courses_store
-    with content_lock:
-        if course_id not in courses_store:
-            return {"success": False, "error": "Course not found"}
-        
-        del courses_store[course_id]
-        save_json_store(COURSES_FILE, courses_store)
-        
+    """Delete a course from PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = :course_id"
+    existing = pg_manager.execute_query(check_query, {'course_id': course_id})
+    
+    if not existing:
+        return {"success": False, "error": "Course not found"}
+    
+    delete_query = "DELETE FROM jeseci_academy.learning_paths WHERE path_id = :course_id"
+    result = pg_manager.execute_query(delete_query, {'course_id': course_id}, fetch=False)
+    
+    if result or result is not None:
+        global cache_initialized
+        cache_initialized = False
         return {"success": True, "course_id": course_id}
+    
+    return {"success": False, "error": "Failed to delete course"}
 
 # ==============================================================================
-# CONCEPTS STORAGE
+# CONCEPTS STORAGE (Neo4j - Graph relationships)
 # ==============================================================================
 
 def initialize_concepts():
-    """Initialize concepts store with default data if empty"""
-    global concepts_store
-    default_concepts = {
-        "jac_variables": {
-            "concept_id": "jac_variables",
-            "name": "Variables and Data Types",
-            "display_name": "Variables & Types",
-            "category": "Programming Basics",
-            "difficulty_level": "beginner",
-            "domain": "Jac Language",
-            "description": "Learn about variables and data types",
-            "icon": "variable"
-        },
-        "jac_osp": {
-            "concept_id": "jac_osp",
-            "name": "Object-Spatial Programming",
-            "display_name": "OSP Basics",
-            "category": "Programming Paradigm",
-            "difficulty_level": "intermediate",
-            "domain": "Jac Language",
-            "description": "Master Jac's unique graph-based programming",
-            "icon": "graph"
-        }
-    }
-    concepts_store = load_json_store(CONCEPTS_FILE, default_concepts)
-    return concepts_store
+    """Initialize concepts from Neo4j graph database"""
+    neo4j_manager = get_neo4j_manager()
+    
+    query = """
+    MATCH (c:Concept)
+    RETURN c.concept_id AS concept_id, c.name AS name, c.display_name AS display_name,
+           c.category AS category, c.difficulty_level AS difficulty_level,
+           c.domain AS domain, c.description AS description, c.icon AS icon
+    ORDER BY c.name
+    """
+    
+    result = neo4j_manager.execute_query(query)
+    
+    concepts = {}
+    if result:
+        for row in result:
+            concept_id = row.get('concept_id')
+            concepts[concept_id] = {
+                "concept_id": concept_id,
+                "name": row.get('name'),
+                "display_name": row.get('display_name') or row.get('name'),
+                "category": row.get('category') or "",
+                "difficulty_level": row.get('difficulty_level') or "beginner",
+                "domain": row.get('domain') or "",
+                "description": row.get('description') or "",
+                "icon": row.get('icon') or "default"
+            }
+    
+    return concepts
 
 def get_all_concepts():
-    """Get all concepts"""
-    with content_lock:
-        return list(concepts_store.values())
+    """Get all concepts from Neo4j"""
+    return initialize_concepts()
 
 def get_concept_by_id(concept_id):
-    """Get a specific concept by ID"""
-    with content_lock:
-        return concepts_store.get(concept_id)
+    """Get a specific concept from Neo4j"""
+    neo4j_manager = get_neo4j_manager()
+    
+    query = """
+    MATCH (c:Concept {concept_id: $concept_id})
+    RETURN c.concept_id AS concept_id, c.name AS name, c.display_name AS display_name,
+           c.category AS category, c.difficulty_level AS difficulty_level,
+           c.domain AS domain, c.description AS description, c.icon AS icon
+    """
+    
+    result = neo4j_manager.execute_query(query, {"concept_id": concept_id})
+    
+    if result and len(result) > 0:
+        row = result[0]
+        return {
+            "concept_id": row.get('concept_id'),
+            "name": row.get('name'),
+            "display_name": row.get('display_name') or row.get('name'),
+            "category": row.get('category') or "",
+            "difficulty_level": row.get('difficulty_level') or "beginner",
+            "domain": row.get('domain') or "",
+            "description": row.get('description') or "",
+            "icon": row.get('icon') or "default"
+        }
+    
+    return None
 
 def create_concept(name, display_name, category, difficulty_level, domain, description="", icon=""):
-    """Create a new concept"""
-    global concepts_store
-    with content_lock:
-        # Generate concept ID
-        concept_id = "concept_" + name.lower().replace(" ", "_").replace("-", "_")[0:20] + "_" + str(int(datetime.datetime.now().timestamp()))[0:8]
-        
+    """Create a new concept in Neo4j"""
+    neo4j_manager = get_neo4j_manager()
+    
+    # Generate concept ID
+    concept_id = "concept_" + name.lower().replace(" ", "_").replace("-", "_")[0:20] + "_" + str(int(datetime.datetime.now().timestamp()))[0:8]
+    
+    query = """
+    MERGE (c:Concept {concept_id: $concept_id})
+    SET c.name = $name,
+        c.display_name = $display_name,
+        c.category = $category,
+        c.difficulty_level = $difficulty_level,
+        c.domain = $domain,
+        c.description = $description,
+        c.icon = $icon,
+        c.created_at = timestamp()
+    RETURN c.concept_id AS concept_id
+    """
+    
+    result = neo4j_manager.execute_write(query, {
+        "concept_id": concept_id,
+        "name": name,
+        "display_name": display_name or name,
+        "category": category,
+        "difficulty_level": difficulty_level,
+        "domain": domain,
+        "description": description,
+        "icon": icon or "default"
+    })
+    
+    if result:
         new_concept = {
             "concept_id": concept_id,
             "name": name,
@@ -196,50 +294,161 @@ def create_concept(name, display_name, category, difficulty_level, domain, descr
             "description": description,
             "icon": icon or "default"
         }
-        
-        concepts_store[concept_id] = new_concept
-        save_json_store(CONCEPTS_FILE, concepts_store)
-        
         return {"success": True, "concept_id": concept_id, "concept": new_concept}
+    
+    return {"success": False, "error": "Failed to create concept"}
+
+def get_concept_relationships(concept_id):
+    """Get all relationships for a concept from Neo4j"""
+    neo4j_manager = get_neo4j_manager()
+    
+    query = """
+    MATCH (c:Concept {concept_id: $concept_id})
+    OPTIONAL MATCH (c)-[r:PREREQUISITE]->(prereq:Concept)
+    OPTIONAL MATCH (c)-[:RELATED_TO]->(related:Concept)
+    OPTIONAL MATCH (c)<-[:PREREQUISITE]-(depends:Concept)
+    RETURN c,
+           collect(DISTINCT {id: prereq.concept_id, name: prereq.name, type: 'prerequisite'}) AS prerequisites,
+           collect(DISTINCT {id: related.concept_id, name: related.name, type: 'related'}) AS related,
+           collect(DISTINCT {id: depends.concept_id, name: depends.name, type: 'depends_on'}) AS depends_on
+    """
+    
+    result = neo4j_manager.execute_query(query, {"concept_id": concept_id})
+    
+    if result and len(result) > 0:
+        return {
+            "prerequisites": result[0].get('prerequisites', []),
+            "related": result[0].get('related', []),
+            "depends_on": result[0].get('depends_on', [])
+        }
+    
+    return {"prerequisites": [], "related": [], "depends_on": []}
+
+def add_concept_relationship(source_id, target_id, relationship_type, strength=1):
+    """Add a relationship between two concepts in Neo4j"""
+    neo4j_manager = get_neo4j_manager()
+    
+    valid_types = ['PREREQUISITE', 'RELATED_TO', 'PART_OF', 'BUILDS_UPON']
+    if relationship_type.upper() not in valid_types:
+        return {"success": False, "error": f"Invalid relationship type. Valid types: {valid_types}"}
+    
+    query = f"""
+    MATCH (a:Concept {{concept_id: $source_id}})
+    MATCH (b:Concept {{concept_id: $target_id}})
+    MERGE (a)-[r:{relationship_type.upper()}]->(b)
+    SET r.strength = $strength, r.created_at = timestamp()
+    RETURN a.name, type(r), b.name
+    """
+    
+    result = neo4j_manager.execute_write(query, {
+        "source_id": source_id,
+        "target_id": target_id,
+        "strength": strength
+    })
+    
+    if result:
+        return {"success": True, "message": f"Relationship {relationship_type} created"}
+    
+    return {"success": False, "error": "Failed to create relationship"}
 
 # ==============================================================================
-# LEARNING PATHS STORAGE
+# LEARNING PATHS STORAGE (PostgreSQL + Neo4j)
 # ==============================================================================
 
 def initialize_paths():
-    """Initialize learning paths store with default data if empty"""
-    global paths_store
-    default_paths = {
-        "path_python": {
-            "path_id": "path_python",
-            "title": "Python Mastery",
-            "description": "Master Python from fundamentals to advanced concepts",
-            "courses": ["course_1", "course_2", "course_4"],
-            "concepts": ["concept_oop", "concept_algo"],
-            "difficulty": "beginner",
-            "total_modules": 8,
-            "duration": "8 weeks"
-        }
-    }
-    paths_store = load_json_store(PATHS_FILE, default_paths)
-    return paths_store
+    """Initialize learning paths from PostgreSQL"""
+    global paths_cache, cache_initialized
+    
+    if cache_initialized:
+        return paths_cache
+    
+    with content_lock:
+        if cache_initialized:
+            return paths_cache
+            
+        pg_manager = get_postgres_manager()
+        
+        query = """
+        SELECT path_id, name, title, category, difficulty, 
+               estimated_duration, description, created_at
+        FROM jeseci_academy.learning_paths
+        ORDER BY created_at DESC
+        """
+        
+        result = pg_manager.execute_query(query)
+        
+        paths_cache = {}
+        if result:
+            for row in result:
+                path_id = row.get('path_id')
+                paths_cache[path_id] = {
+                    "path_id": path_id,
+                    "title": row.get('title'),
+                    "description": row.get('description'),
+                    "courses": [],
+                    "concepts": [],
+                    "difficulty": row.get('difficulty') or "beginner",
+                    "total_modules": 0,
+                    "duration": str(row.get('estimated_duration') or 0) + " minutes"
+                }
+        
+        cache_initialized = True
+        return paths_cache
 
 def get_all_paths():
     """Get all learning paths"""
+    initialize_paths()
     with content_lock:
-        return list(paths_store.values())
+        return list(paths_cache.values())
 
 def get_path_by_id(path_id):
-    """Get a specific learning path by ID"""
+    """Get a specific learning path"""
+    initialize_paths()
     with content_lock:
-        return paths_store.get(path_id)
+        return paths_cache.get(path_id)
 
 def create_path(title, description, courses, concepts, difficulty, duration):
-    """Create a new learning path"""
-    global paths_store
-    with content_lock:
-        # Generate path ID
-        path_id = "path_" + title.lower().replace(" ", "_").replace("-", "_")[0:15] + "_" + str(int(datetime.datetime.now().timestamp()))[0:8]
+    """Create a new learning path in PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    # Generate path ID
+    path_id = "path_" + title.lower().replace(" ", "_").replace("-", "_")[0:15] + "_" + str(int(datetime.datetime.now().timestamp()))[0:8]
+    name = title.lower().replace(" ", "_").replace("-", "_")
+    
+    # Parse duration to integer (minutes)
+    duration_minutes = 0
+    try:
+        if "week" in duration.lower():
+            weeks = int(duration.lower().replace("weeks", "").replace("week", "").strip())
+            duration_minutes = weeks * 7 * 24 * 60
+        elif "hour" in duration.lower():
+            hours = int(duration.lower().replace("hours", "").replace("hour", "").strip())
+            duration_minutes = hours * 60
+        else:
+            duration_minutes = int(duration)
+    except:
+        duration_minutes = 480  # Default 8 hours
+    
+    insert_query = """
+    INSERT INTO jeseci_academy.learning_paths 
+    (path_id, name, title, category, difficulty, estimated_duration, description, is_published, created_at)
+    VALUES (:path_id, :name, :title, :category, :difficulty, :duration, :description, true, NOW())
+    """
+    
+    result = pg_manager.execute_query(insert_query, {
+        'path_id': path_id,
+        'name': name,
+        'title': title,
+        'category': "Learning Path",
+        'difficulty': difficulty,
+        'duration': duration_minutes,
+        'description': description
+    }, fetch=False)
+    
+    if result or result is not None:
+        # Invalidate cache
+        global cache_initialized
+        cache_initialized = False
         
         new_path = {
             "path_id": path_id,
@@ -251,8 +460,39 @@ def create_path(title, description, courses, concepts, difficulty, duration):
             "total_modules": len(courses) + len(concepts),
             "duration": duration
         }
-        
-        paths_store[path_id] = new_path
-        save_json_store(PATHS_FILE, paths_store)
-        
         return {"success": True, "path_id": path_id, "path": new_path}
+    
+    return {"success": False, "error": "Failed to create learning path"}
+
+def get_recommended_concepts(user_id, completed_concept_ids, limit=5):
+    """Get personalized learning recommendations from Neo4j"""
+    neo4j_manager = get_neo4j_manager()
+    
+    query = """
+    MATCH (c:Concept)
+    WHERE NOT c.concept_id IN $completed_ids
+    OPTIONAL MATCH (c)-[:PREREQUISITE|RELATED_TO]->(prereq:Concept)
+    WITH c, COUNT(prereq) as prereq_count
+    WHERE prereq_count = 0 OR prereq_count <= 2
+    RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
+           c.category AS category, c.difficulty_level AS difficulty, c.description AS description
+    LIMIT $limit
+    """
+    
+    result = neo4j_manager.execute_query(query, {
+        "completed_ids": completed_concept_ids or [],
+        "limit": limit
+    })
+    
+    recommendations = []
+    for row in result or []:
+        recommendations.append({
+            "concept_id": row.get('id'),
+            "name": row.get('name'),
+            "display_name": row.get('display_name'),
+            "category": row.get('category'),
+            "difficulty": row.get('difficulty'),
+            "description": row.get('description')
+        })
+    
+    return recommendations

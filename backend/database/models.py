@@ -728,6 +728,68 @@ class AIAgent(Base):
         return f"<AIAgent(id={self.id}, name='{self.name}', provider='{self.provider}')>"
 
 
+class AIGeneratedContent(Base):
+    """Stores AI-generated content for admin management"""
+    __tablename__ = "ai_generated_content"
+    __table_args__ = {"schema": "jeseci_academy"}
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    content_id: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    concept_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    domain: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    difficulty: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # beginner, intermediate, advanced
+    content: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # The generated content body
+    related_concepts: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # List of related concept names
+    generated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)  # User ID who triggered generation
+    model: Mapped[str] = mapped_column(String(100), default="openai")  # AI model used
+    tokens_used: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    generated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    __table_args__ = (
+        Index("idx_aigc_domain", "domain"),
+        Index("idx_aigc_difficulty", "difficulty"),
+        Index("idx_aigc_generated_at", "generated_at"),
+    )
+    
+    def __repr__(self) -> str:
+        return f"<AIGeneratedContent(content_id='{self.content_id}', concept_name='{self.concept_name}')>"
+    
+    def to_dict(self):
+        """Convert model to dictionary for API responses"""
+        return {
+            "content_id": self.content_id,
+            "concept_name": self.concept_name,
+            "domain": self.domain,
+            "difficulty": self.difficulty,
+            "content": self.content,
+            "related_concepts": self.related_concepts,
+            "generated_by": self.generated_by,
+            "model": self.model,
+            "tokens_used": self.tokens_used,
+            "generated_at": self.generated_at.isoformat() if self.generated_at else None
+        }
+
+
+class AIUsageStats(Base):
+    """Tracks AI usage statistics for the admin dashboard"""
+    __tablename__ = "ai_usage_stats"
+    __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    stat_type: Mapped[str] = mapped_column(String(50), nullable=False)  # total_generations, total_tokens, domain_usage
+    stat_key: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # Domain name for domain_usage
+    stat_value: Mapped[int] = mapped_column(Integer, default=0)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    
+    __table_args__ = (
+        UniqueConstraint("stat_type", "stat_key", name="uq_ai_stat"),
+        Index("idx_aius_stat_type", "stat_type"),
+    )
+    
+    def __repr__(self) -> str:
+        return f"<AIUsageStats(type='{self.stat_type}', key='{self.stat_key}', value={self.stat_value})>"
+
+
 # =============================================================================
 # Export all models for convenient importing
 # =============================================================================
@@ -745,4 +807,6 @@ __all__ = [
     "Achievement", "UserAchievement", "Badge", "UserBadge",
     # System & Monitoring
     "SystemLog", "SystemHealth", "AIAgent",
+    # AI
+    "AIGeneratedContent", "AIUsageStats",
 ]

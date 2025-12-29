@@ -1,175 +1,269 @@
-# In-memory admin user storage for Jaclang backend
-# This module provides persistent storage for admin users across requests
+# Admin user storage using PostgreSQL database
+# Uses the existing User model from SQLAlchemy
 
-import json
 import os
 import threading
+import datetime
+from typing import Optional
 
-# In-memory storage
-admin_users_store = {}
+# Import database utilities
+import sys
+sys.path.insert(0, os.path.dirname(__file__))
+from database import get_postgres_manager
+
+# In-memory cache for quick lookups (synced with PostgreSQL)
+admin_users_cache = {}
 admin_users_lock = threading.Lock()
-
-# File path for persistence
-DATA_FILE = "data/admin_users.json"
-
-def load_admin_users():
-    """Load admin users from file if it exists"""
-    global admin_users_store
-    try:
-        if os.path.exists(DATA_FILE):
-            with open(DATA_FILE, 'r') as f:
-                admin_users_store = json.load(f)
-    except Exception as e:
-        print(f"Error loading admin users: {e}")
-        admin_users_store = {}
-
-def save_admin_users():
-    """Save admin users to file"""
-    try:
-        os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-        with open(DATA_FILE, 'w') as f:
-            json.dump(admin_users_store, f, indent=2)
-    except Exception as e:
-        print(f"Error saving admin users: {e}")
+cache_initialized = False
 
 def initialize_admin_store():
-    """Initialize the admin user store with default admin"""
-    global admin_users_store
-    load_admin_users()
+    """Initialize admin store by loading users from PostgreSQL"""
+    global admin_users_cache, cache_initialized
     
-    # If store is empty, add default admin
-    if not admin_users_store:
-        admin_users_store = {
-            "user_cavin_78a5d49f": {
-                "user_id": "user_cavin_78a5d49f",
-                "username": "cavin",
-                "email": "otienocavin2025@gmail.com",
-                "first_name": "",
-                "last_name": "",
-                "is_admin": True,
-                "admin_role": "super_admin",
-                "is_active": True,
-                "created_at": "2025-12-01T10:00:00Z",
-                "last_login": "2025-12-29T11:08:26Z"
-            }
-        }
-        save_admin_users()
+    if cache_initialized:
+        return
     
-    return admin_users_store
+    with admin_users_lock:
+        if cache_initialized:
+            return
+            
+        # Load admin users from PostgreSQL
+        pg_manager = get_postgres_manager()
+        
+        query = """
+        SELECT user_id, username, email, first_name, last_name, 
+               is_admin, admin_role, is_active, created_at, last_login_at
+        FROM jeseci_academy.users
+        WHERE is_admin = true
+        ORDER BY created_at DESC
+        """
+        
+        result = pg_manager.execute_query(query)
+        
+        admin_users_cache = {}
+        if result:
+            for row in result:
+                user_id = row.get('user_id')
+                admin_users_cache[user_id] = {
+                    "user_id": user_id,
+                    "username": row.get('username'),
+                    "email": row.get('email'),
+                    "first_name": row.get('first_name') or "",
+                    "last_name": row.get('last_name') or "",
+                    "is_admin": row.get('is_admin'),
+                    "admin_role": row.get('admin_role') or "",
+                    "is_active": row.get('is_active'),
+                    "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+                    "last_login": row.get('last_login_at').isoformat() if row.get('last_login_at') else None
+                }
+        
+        cache_initialized = True
 
 def get_all_admin_users():
-    """Get all admin users from store"""
+    """Get all admin users from PostgreSQL"""
+    initialize_admin_store()
     with admin_users_lock:
-        return list(admin_users_store.values())
+        return list(admin_users_cache.values())
 
 def get_admin_user_by_id(user_id):
     """Get a specific admin user by ID"""
+    initialize_admin_store()
     with admin_users_lock:
-        return admin_users_store.get(user_id)
+        return admin_users_cache.get(user_id)
 
 def get_admin_user_by_email(email):
     """Get a specific admin user by email"""
+    initialize_admin_store()
     with admin_users_lock:
-        for user in admin_users_store.values():
+        for user in admin_users_cache.values():
             if user.get('email', '').lower() == email.lower():
                 return user
     return None
 
 def search_admin_users(query, include_inactive=False, admin_only=False):
-    """Search admin users by query string"""
-    with admin_users_lock:
-        results = []
-        query_lower = query.lower() if query else ""
-        
-        for user in admin_users_store.values():
-            # Filter by inactive status
-            if not include_inactive and not user.get('is_active', True):
-                continue
-            
-            # Filter by admin only
-            if admin_only and not user.get('is_admin', False):
-                continue
-            
-            # Search in username, email, first_name, last_name
-            if query_lower:
-                searchable = f"{user.get('username', '')} {user.get('email', '')} {user.get('first_name', '')} {user.get('last_name', '')}".lower()
-                if query_lower not in searchable:
-                    continue
-            
-            results.append(user)
-        
-        return results
+    """Search admin users in PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    # Build dynamic query
+    sql_conditions = ["is_admin = true"]
+    params = {}
+    
+    if not include_inactive:
+        sql_conditions.append("is_active = true")
+    if query:
+        sql_conditions.append("(username ILIKE :search OR email ILIKE :search OR first_name ILIKE :search OR last_name ILIKE :search)")
+        params['search'] = f"%{query}%"
+    
+    where_clause = " AND ".join(sql_conditions)
+    
+    query = f"""
+    SELECT user_id, username, email, first_name, last_name, 
+           is_admin, admin_role, is_active, created_at, last_login_at
+    FROM jeseci_academy.users
+    WHERE {where_clause}
+    ORDER BY created_at DESC
+    """
+    
+    result = pg_manager.execute_query(query, params)
+    
+    users = []
+    for row in result or []:
+        users.append({
+            "user_id": row.get('user_id'),
+            "username": row.get('username'),
+            "email": row.get('email'),
+            "first_name": row.get('first_name') or "",
+            "last_name": row.get('last_name') or "",
+            "is_admin": row.get('is_admin'),
+            "admin_role": row.get('admin_role') or "",
+            "is_active": row.get('is_active'),
+            "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+            "last_login": row.get('last_login_at').isoformat() if row.get('last_login_at') else None
+        })
+    
+    return users
 
 def create_admin_user(username, email, password, admin_role, first_name="", last_name=""):
-    """Create a new admin user"""
-    import datetime
-    import uuid
+    """Create a new admin user in PostgreSQL"""
+    import hashlib
     
-    with admin_users_lock:
-        # Check if user already exists
-        for user in admin_users_store.values():
-            if user.get('email', '').lower() == email.lower():
+    pg_manager = get_postgres_manager()
+    
+    # Check for existing user
+    check_query = """
+    SELECT user_id FROM jeseci_academy.users 
+    WHERE email = :email OR username = :username
+    """
+    existing = pg_manager.execute_query(check_query, {'email': email, 'username': username})
+    
+    if existing:
+        for row in existing:
+            if row.get('email') == email:
                 return {"success": False, "error": "User with this email already exists", "code": "DUPLICATE_EMAIL"}
-            if user.get('username', '').lower() == username.lower():
+            if row.get('username') == username:
                 return {"success": False, "error": "Username already exists", "code": "DUPLICATE_USERNAME"}
+    
+    # Generate user ID
+    timestamp = str(int(datetime.datetime.now().timestamp()))
+    user_id = f"user_{username}_{timestamp[0:8]}"
+    
+    # Hash password
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
+    
+    # Insert new admin user
+    insert_query = """
+    INSERT INTO jeseci_academy.users 
+    (user_id, username, email, password_hash, is_admin, admin_role, first_name, last_name, is_active, created_at)
+    VALUES (:user_id, :username, :email, :password_hash, true, :admin_role, :first_name, :last_name, true, NOW())
+    """
+    
+    result = pg_manager.execute_query(insert_query, {
+        'user_id': user_id,
+        'username': username,
+        'email': email,
+        'password_hash': password_hash,
+        'admin_role': admin_role,
+        'first_name': first_name,
+        'last_name': last_name
+    }, fetch=False)
+    
+    if result or result is not None:
+        # Invalidate cache to force reload
+        global cache_initialized
+        cache_initialized = False
         
-        # Generate user ID
-        timestamp = str(int(datetime.datetime.now().timestamp()))
-        user_id = f"user_{username}_{timestamp[0:8]}"
-        
-        # Create user
-        new_user = {
-            "user_id": user_id,
-            "username": username,
-            "email": email.lower(),
-            "password": password,  # In production, this should be hashed
-            "first_name": first_name,
-            "last_name": last_name,
-            "is_admin": True,
-            "admin_role": admin_role,
-            "is_active": True,
-            "created_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "last_login": None
+        return {
+            "success": True, 
+            "user": {
+                "user_id": user_id,
+                "username": username,
+                "email": email,
+                "admin_role": admin_role,
+                "first_name": first_name,
+                "last_name": last_name,
+                "is_admin": True,
+                "is_active": True,
+                "created_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            },
+            "message": "Admin user created successfully"
         }
-        
-        admin_users_store[user_id] = new_user
-        save_admin_users()
-        
-        # Return user without password
-        safe_user = {k: v for k, v in new_user.items() if k != 'password'}
-        return {"success": True, "user": safe_user, "message": "Admin user created successfully"}
+    
+    return {"success": False, "error": "Failed to create user", "code": "INSERT_ERROR"}
 
 def update_admin_user(user_id, updates):
-    """Update an existing admin user"""
-    with admin_users_lock:
-        if user_id not in admin_users_store:
-            return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
+    """Update an existing admin user in PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    # Check if user exists
+    check_query = "SELECT user_id FROM jeseci_academy.users WHERE user_id = :user_id"
+    existing = pg_manager.execute_query(check_query, {'user_id': user_id})
+    
+    if not existing:
+        return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
+    
+    # Build update query dynamically
+    allowed_fields = ['is_admin', 'admin_role', 'is_active', 'first_name', 'last_name']
+    set_clauses = []
+    params = {'user_id': user_id}
+    
+    for field, value in updates.items():
+        if field in allowed_fields:
+            set_clauses.append(f"{field} = :{field}")
+            params[field] = value
+    
+    if not set_clauses:
+        return {"success": True, "message": "No fields to update"}
+    
+    set_clauses.append("updated_at = NOW()")
+    
+    update_query = f"""
+    UPDATE jeseci_academy.users 
+    SET {', '.join(set_clauses)}
+    WHERE user_id = :user_id
+    """
+    
+    result = pg_manager.execute_query(update_query, params, fetch=False)
+    
+    if result or result is not None:
+        # Invalidate cache
+        global cache_initialized
+        cache_initialized = False
         
-        # Update user fields
-        for key, value in updates.items():
-            if key not in ['user_id', 'created_at']:
-                admin_users_store[user_id][key] = value
-        
-        save_admin_users()
         return {"success": True, "message": "User updated successfully"}
+    
+    return {"success": False, "error": "Failed to update user", "code": "UPDATE_ERROR"}
 
 def bulk_admin_action(user_ids, action, reason=""):
-    """Perform bulk action on admin users"""
-    with admin_users_lock:
-        affected = 0
+    """Perform bulk action on admin users in PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    if action == 'suspend':
+        update_query = """
+        UPDATE jeseci_academy.users 
+        SET is_active = false, updated_at = NOW()
+        WHERE user_id = ANY(:user_ids)
+        """
+    elif action == 'activate':
+        update_query = """
+        UPDATE jeseci_academy.users 
+        SET is_active = true, updated_at = NOW()
+        WHERE user_id = ANY(:user_ids)
+        """
+    elif action == 'delete':
+        update_query = """
+        DELETE FROM jeseci_academy.users 
+        WHERE user_id = ANY(:user_ids)
+        """
+    else:
+        return {"success": False, "error": "Unknown action", "code": "INVALID_ACTION"}
+    
+    result = pg_manager.execute_query(update_query, {'user_ids': user_ids}, fetch=False)
+    
+    if result or result is not None:
+        # Invalidate cache
+        global cache_initialized
+        cache_initialized = False
         
-        for user_id in user_ids:
-            if user_id in admin_users_store:
-                if action == 'suspend':
-                    admin_users_store[user_id]['is_active'] = False
-                elif action == 'activate':
-                    admin_users_store[user_id]['is_active'] = True
-                elif action == 'delete':
-                    del admin_users_store[user_id]
-                
-                affected += 1
-        
-        if affected > 0:
-            save_admin_users()
-        
-        return {"success": True, "users_affected": affected, "action": action}
+        return {"success": True, "users_affected": len(user_ids), "action": action}
+    
+    return {"success": False, "error": "Failed to perform action", "code": "ACTION_ERROR"}
