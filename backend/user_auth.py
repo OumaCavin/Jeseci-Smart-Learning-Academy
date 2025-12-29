@@ -29,6 +29,7 @@ from email_verification import (
     send_welcome_email
 )
 from backend.database.neo4j_manager import Neo4jManager
+from backend.database.initialize_database import initialize_database
 
 # Import centralized logging configuration
 from logger_config import logger
@@ -74,7 +75,12 @@ class UserAuthManager:
                 password=config['password']
             )
             logger.info(f"User auth PostgreSQL pool initialized: {config['host']}:{config['port']}/{config['database']}")
-            self._ensure_tables()
+            
+            # Initialize all database tables using the centralized script
+            try:
+                initialize_database()
+            except Exception as init_error:
+                logger.error(f"Failed to initialize database tables: {init_error}")
         except Exception as e:
             logger.error(f"Failed to initialize user auth PostgreSQL pool: {e}")
             UserAuthManager._pool = None
@@ -101,181 +107,6 @@ class UserAuthManager:
         """Return a connection to the pool"""
         if UserAuthManager._pool and conn:
             UserAuthManager._pool.putconn(conn)
-    
-    def _ensure_tables(self):
-        """Create users, user_profile, and user_learning_preferences tables if they don't exist"""
-        conn = self._get_connection()
-        if conn is None:
-            logger.error("Cannot create users table: no database connection")
-            return
-        
-        try:
-            cursor = conn.cursor()
-            
-            # Create users table (only auth-related fields)
-            create_users_query = f"""
-            CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.users (
-                id SERIAL PRIMARY KEY,
-                user_id VARCHAR(64) UNIQUE NOT NULL,
-                username VARCHAR(50) UNIQUE NOT NULL,
-                email VARCHAR(255) UNIQUE NOT NULL,
-                password_hash VARCHAR(255) NOT NULL,
-                is_active BOOLEAN DEFAULT TRUE,
-                is_admin BOOLEAN DEFAULT FALSE,
-                admin_role VARCHAR(50) DEFAULT 'student',
-                is_email_verified BOOLEAN DEFAULT FALSE,
-                verification_token VARCHAR(255),
-                token_expires_at TIMESTAMP,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_login_at TIMESTAMP
-            )
-            """
-            cursor.execute(create_users_query)
-            
-            # Create user_profile table (extended user information)
-            create_profile_query = f"""
-            CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.user_profile (
-                id SERIAL PRIMARY KEY,
-                user_id VARCHAR(64) UNIQUE NOT NULL,
-                first_name VARCHAR(100),
-                last_name VARCHAR(100),
-                bio TEXT,
-                avatar_url VARCHAR(500),
-                timezone VARCHAR(50),
-                language VARCHAR(10) DEFAULT 'en',
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-            """
-            cursor.execute(create_profile_query)
-            
-            # Create user_learning_preferences table
-            create_preferences_query = f"""
-            CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.user_learning_preferences (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER UNIQUE NOT NULL,
-                daily_goal_minutes INTEGER DEFAULT 30,
-                preferred_difficulty VARCHAR(20) DEFAULT 'intermediate',
-                preferred_content_type VARCHAR(50) DEFAULT 'text',
-                notifications_enabled BOOLEAN DEFAULT TRUE,
-                email_reminders BOOLEAN DEFAULT TRUE,
-                dark_mode BOOLEAN DEFAULT FALSE,
-                auto_play_videos BOOLEAN DEFAULT TRUE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-            """
-            cursor.execute(create_preferences_query)
-            
-            # Add missing columns for existing installations
-            alter_queries = [
-                # Users table columns
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS user_id VARCHAR(64) UNIQUE NOT NULL",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS email VARCHAR(255) UNIQUE",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255) NOT NULL DEFAULT 'dummy'",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS admin_role VARCHAR(50) DEFAULT 'student'",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255)",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS token_expires_at TIMESTAMP",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
-                f"ALTER TABLE {DB_SCHEMA}.users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP",
-                # UserProfile columns
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS user_id INTEGER UNIQUE NOT NULL",
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)",
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)",
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS display_name VARCHAR(100)",
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS bio TEXT",
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500)",
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS profile_image_path VARCHAR(500)",
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS timezone VARCHAR(50)",
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'en'",
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
-                f"ALTER TABLE {DB_SCHEMA}.user_profile ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
-                # UserLearningPreferences columns
-                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS user_id INTEGER UNIQUE NOT NULL",
-                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS daily_goal_minutes INTEGER DEFAULT 30",
-                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS preferred_difficulty VARCHAR(20) DEFAULT 'intermediate'",
-                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS preferred_content_type VARCHAR(50) DEFAULT 'text'",
-                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE",
-                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS email_reminders BOOLEAN DEFAULT TRUE",
-                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS dark_mode BOOLEAN DEFAULT FALSE",
-                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS auto_play_videos BOOLEAN DEFAULT TRUE",
-                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
-                f"ALTER TABLE {DB_SCHEMA}.user_learning_preferences ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
-            ]
-            for query in alter_queries:
-                try:
-                    cursor.execute(query)
-                except Exception as e:
-                    logger.debug(f"Column might already exist: {e}")
-            
-            # Create sequences for profile and preferences tables
-            try:
-                cursor.execute(f"CREATE SEQUENCE IF NOT EXISTS {DB_SCHEMA}.user_profile_id_seq")
-                cursor.execute(f"CREATE SEQUENCE IF NOT EXISTS {DB_SCHEMA}.user_learning_preferences_id_seq")
-            except Exception as e:
-                logger.debug(f"Sequences might already exist: {e}")
-            
-            # Create indexes
-            try:
-                cursor.execute(f"""
-                    CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_verification_token 
-                    ON {DB_SCHEMA}.users(verification_token)
-                """)
-            except Exception as e:
-                logger.debug(f"Index might already exist: {e}")
-
-            # Create learning_paths table
-            try:
-                cursor.execute(f"""
-                CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.learning_paths (
-                    id SERIAL PRIMARY KEY,
-                    path_id VARCHAR(50) UNIQUE NOT NULL,
-                    name VARCHAR(100) NOT NULL,
-                    title VARCHAR(200) NOT NULL,
-                    category VARCHAR(100),
-                    difficulty VARCHAR(50),
-                    estimated_duration INTEGER,
-                    description TEXT,
-                    is_public BOOLEAN DEFAULT FALSE,
-                    is_published BOOLEAN DEFAULT FALSE,
-                    thumbnail_url VARCHAR(500),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-                """)
-                logger.info("learning_paths table created")
-            except Exception as e:
-                logger.debug(f"learning_paths table might already exist: {e}")
-
-            # Create learning_path_concepts table for linking concepts to paths
-            try:
-                cursor.execute(f"""
-                CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.learning_path_concepts (
-                    id SERIAL PRIMARY KEY,
-                    path_id VARCHAR(50) NOT NULL,
-                    concept_id VARCHAR(100) NOT NULL,
-                    sequence_order INTEGER DEFAULT 0,
-                    is_required BOOLEAN DEFAULT TRUE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-                """)
-                logger.info("learning_path_concepts table created")
-            except Exception as e:
-                logger.debug(f"learning_path_concepts table might already exist: {e}")
-
-            conn.commit()
-            logger.info("User tables and content tables ensured: users, user_profile, user_learning_preferences, learning_paths, learning_path_concepts")
-        except Exception as e:
-            logger.error(f"Failed to create user tables: {e}")
-            if conn:
-                conn.rollback()
-        finally:
-            self._return_connection(conn)
     
     def register_user(self, username: str, email: str, password: str, 
                       first_name: str = "", last_name: str = "",
