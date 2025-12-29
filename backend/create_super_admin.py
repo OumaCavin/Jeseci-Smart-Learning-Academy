@@ -62,7 +62,8 @@ def create_super_admin(username: str, email: str, password: str,
             first_name=first_name,
             last_name=last_name,
             is_admin=True,
-            admin_role=AdminRole.SUPER_ADMIN
+            admin_role=AdminRole.SUPER_ADMIN,
+            skip_verification=True  # Skip email verification for admin-created users
         )
         
         if result["success"]:
