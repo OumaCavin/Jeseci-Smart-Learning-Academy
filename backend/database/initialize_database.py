@@ -471,6 +471,192 @@ def create_ai_tables(cursor):
     logger.info("✓ AI tables created: ai_agents, ai_generated_content, ai_usage_stats")
 
 
+def create_sync_engine_tables(cursor):
+    """Create sync engine tables for PostgreSQL-Neo4j synchronization"""
+    logger.info("Creating sync engine tables...")
+
+    # Create custom enum types
+    cursor.execute(f"""
+        DO $$ BEGIN
+            CREATE TYPE sync_event_status_enum AS ENUM (
+                'PENDING', 'PUBLISHED', 'PROCESSING',
+                'COMPLETED', 'FAILED', 'SKIPPED'
+            );
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
+
+    cursor.execute(f"""
+        DO $$ BEGIN
+            CREATE TYPE conflict_resolution_status_enum AS ENUM (
+                'DETECTED', 'RESOLVED', 'MANUAL_REVIEW', 'IGNORED'
+            );
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
+
+    # Create sync_event_log table (outbox pattern)
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.sync_event_log (
+            id SERIAL PRIMARY KEY,
+            event_id VARCHAR(64) NOT NULL UNIQUE,
+            correlation_id VARCHAR(64) NOT NULL,
+            event_type VARCHAR(50) NOT NULL,
+            entity_id VARCHAR(100) NOT NULL,
+            entity_type VARCHAR(50) NOT NULL,
+            payload JSONB NOT NULL DEFAULT '{{}}',
+            source_version INTEGER NOT NULL DEFAULT 0,
+            status sync_event_status_enum NOT NULL DEFAULT 'PENDING',
+            retry_count INTEGER NOT NULL DEFAULT 0,
+            max_retries INTEGER NOT NULL DEFAULT 3,
+            error_message TEXT,
+            error_trace TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            published_at TIMESTAMP,
+            completed_at TIMESTAMP,
+            redis_message_id VARCHAR(100)
+        )
+    """)
+
+    # Create sync_status table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.sync_status (
+            id SERIAL PRIMARY KEY,
+            entity_id VARCHAR(100) NOT NULL,
+            entity_type VARCHAR(50) NOT NULL,
+            is_synced BOOLEAN NOT NULL DEFAULT FALSE,
+            last_synced_at TIMESTAMP,
+            last_synced_version INTEGER,
+            source_version INTEGER NOT NULL DEFAULT 0,
+            neo4j_version INTEGER,
+            neo4j_checksum VARCHAR(256),
+            has_pending_changes BOOLEAN NOT NULL DEFAULT FALSE,
+            has_conflict BOOLEAN NOT NULL DEFAULT FALSE,
+            conflict_count INTEGER NOT NULL DEFAULT 0,
+            last_error TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(entity_id, entity_type)
+        )
+    """)
+
+    # Create sync_conflicts table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.sync_conflicts (
+            id SERIAL PRIMARY KEY,
+            entity_id VARCHAR(100) NOT NULL,
+            entity_type VARCHAR(50) NOT NULL,
+            conflict_type VARCHAR(50) NOT NULL,
+            source_version INTEGER NOT NULL,
+            target_version INTEGER,
+            source_data JSONB NOT NULL,
+            target_data JSONB,
+            difference_summary TEXT,
+            resolution_status conflict_resolution_status_enum NOT NULL DEFAULT 'DETECTED',
+            resolution_method VARCHAR(50),
+            resolved_by VARCHAR(100),
+            resolution_notes TEXT,
+            event_id VARCHAR(64),
+            detected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            resolved_at TIMESTAMP
+        )
+    """)
+
+    # Create reconciliation_runs table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.reconciliation_runs (
+            id SERIAL PRIMARY KEY,
+            run_id VARCHAR(64) NOT NULL UNIQUE,
+            run_type VARCHAR(50) NOT NULL,
+            entities_checked INTEGER NOT NULL DEFAULT 0,
+            inconsistencies_found INTEGER NOT NULL DEFAULT 0,
+            inconsistencies_repaired INTEGER NOT NULL DEFAULT 0,
+            conflicts_detected INTEGER NOT NULL DEFAULT 0,
+            conflicts_resolved INTEGER NOT NULL DEFAULT 0,
+            failed_entities INTEGER NOT NULL DEFAULT 0,
+            started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            completed_at TIMESTAMP,
+            duration_seconds INTEGER,
+            status VARCHAR(20) NOT NULL DEFAULT 'RUNNING',
+            error_message TEXT,
+            batch_size INTEGER NOT NULL DEFAULT 50,
+            entities_included TEXT
+        )
+    """)
+
+    # Create helper function for auto-updating timestamps
+    cursor.execute(f"""
+        CREATE OR REPLACE FUNCTION {DB_SCHEMA}.update_updated_at_column()
+        RETURNS TRIGGER AS $$
+        BEGIN
+            NEW.updated_at = CURRENT_TIMESTAMP;
+            RETURN NEW;
+        END;
+        $$ language 'plpgsql';
+    """)
+
+    # Create triggers (will be skipped if they already exist)
+    try:
+        cursor.execute(f"""
+            DROP TRIGGER IF EXISTS update_sync_event_log_updated_at ON {DB_SCHEMA}.sync_event_log;
+            CREATE TRIGGER update_sync_event_log_updated_at
+                BEFORE UPDATE ON {DB_SCHEMA}.sync_event_log
+                FOR EACH ROW
+                EXECUTE FUNCTION {DB_SCHEMA}.update_updated_at_column();
+        """)
+        cursor.execute(f"""
+            DROP TRIGGER IF EXISTS update_sync_status_updated_at ON {DB_SCHEMA}.sync_status;
+            CREATE TRIGGER update_sync_status_updated_at
+                BEFORE UPDATE ON {DB_SCHEMA}.sync_status
+                FOR EACH ROW
+                EXECUTE FUNCTION {DB_SCHEMA}.update_updated_at_column();
+        """)
+    except Exception as e:
+        logger.debug(f"Triggers might already exist: {e}")
+
+    logger.info("✓ Sync engine tables created: sync_event_log, sync_status, sync_conflicts, reconciliation_runs")
+
+
+def create_sync_engine_indexes(cursor):
+    """Create indexes for sync engine tables"""
+    logger.info("Creating sync engine indexes...")
+
+    sync_indexes = [
+        # Sync event log indexes
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_event_log_event_id ON {DB_SCHEMA}.sync_event_log(event_id)",
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_event_log_correlation_id ON {DB_SCHEMA}.sync_event_log(correlation_id)",
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_event_log_entity ON {DB_SCHEMA}.sync_event_log(entity_id, entity_type)",
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_event_log_status ON {DB_SCHEMA}.sync_event_log(status)",
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_event_log_retry ON {DB_SCHEMA}.sync_event_log(status, retry_count) WHERE status IN ('PENDING', 'PUBLISHED', 'FAILED')",
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_event_log_created ON {DB_SCHEMA}.sync_event_log(created_at DESC)",
+
+        # Sync status indexes
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_status_entity ON {DB_SCHEMA}.sync_status(entity_id, entity_type)",
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_status_synced ON {DB_SCHEMA}.sync_status(is_synced)",
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_status_pending ON {DB_SCHEMA}.sync_status(has_pending_changes) WHERE has_pending_changes = TRUE",
+
+        # Sync conflicts indexes
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_conflicts_entity ON {DB_SCHEMA}.sync_conflicts(entity_id, entity_type)",
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_conflicts_status ON {DB_SCHEMA}.sync_conflicts(resolution_status) WHERE resolution_status IN ('DETECTED', 'MANUAL_REVIEW')",
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_sync_conflicts_detected ON {DB_SCHEMA}.sync_conflicts(detected_at DESC)",
+
+        # Reconciliation runs indexes
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_reconciliation_runs_status ON {DB_SCHEMA}.reconciliation_runs(status)",
+        f"CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_reconciliation_runs_started ON {DB_SCHEMA}.reconciliation_runs(started_at DESC)",
+    ]
+
+    for index_query in sync_indexes:
+        try:
+            cursor.execute(index_query)
+        except Exception as e:
+            logger.debug(f"Sync index might already exist: {e}")
+
+    logger.info("✓ Sync engine indexes created")
+
+
 def create_indexes(cursor):
     """Create database indexes for performance"""
     logger.info("Creating database indexes...")
@@ -545,6 +731,8 @@ def initialize_database():
         create_gamification_tables(cursor)
         create_system_tables(cursor)
         create_ai_tables(cursor)
+        create_sync_engine_tables(cursor)
+        create_sync_engine_indexes(cursor)
         create_indexes(cursor)
         
         conn.commit()
