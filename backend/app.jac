@@ -1889,7 +1889,7 @@ walker admin_dashboard {
         analytics_store.initialize_analytics();
         
         # Get real counts from stores
-        all_users = admin_store.get_all_admin_users();
+        all_users = admin_store.get_all_users();
         all_courses = content_store.get_all_courses();
         all_quizzes = quiz_store.get_all_quizzes();
         user_analytics = analytics_store.get_user_analytics();
@@ -1957,7 +1957,7 @@ walker admin_users {
         if self.search {
             users = admin_store.search_admin_users(self.search, self.include_inactive, self.admin_only);
         } else {
-            users = admin_store.get_all_admin_users();
+            users = admin_store.get_all_users();
             
             # Apply filters
             if not self.include_inactive {
