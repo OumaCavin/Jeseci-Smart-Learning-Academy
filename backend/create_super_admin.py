@@ -27,7 +27,6 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import user_auth as auth_module
-from email_verification import send_welcome_email_sync
 
 # Define AdminRole locally to avoid FastAPI dependency
 class AdminRole:
@@ -63,8 +62,7 @@ def create_super_admin(username: str, email: str, password: str,
             first_name=first_name,
             last_name=last_name,
             is_admin=True,
-            admin_role=AdminRole.SUPER_ADMIN,
-            skip_verification=True  # Super admins are auto-verified
+            admin_role=AdminRole.SUPER_ADMIN
         )
         
         if result["success"]:
@@ -74,17 +72,6 @@ def create_super_admin(username: str, email: str, password: str,
             print(f"   User ID: {result['user_id']}")
             print(f"   Admin Role: {result['admin_role']}")
             print(f"   Created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            
-            # Send welcome email to the new super admin
-            try:
-                welcome_result = send_welcome_email_sync(email=email, username=username)
-                if welcome_result.get('success'):
-                    print(f"   📧 Welcome email sent to {email}")
-                else:
-                    print(f"   ⚠️ Welcome email could not be sent: {welcome_result.get('error', 'Unknown error')}")
-            except Exception as email_error:
-                print(f"   ⚠️ Failed to send welcome email: {email_error}")
-            
             return True
         else:
             print(f"❌ Failed to create super admin user: {result.get('error')}")
