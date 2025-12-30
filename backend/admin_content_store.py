@@ -216,8 +216,9 @@ def initialize_concepts():
     return concepts
 
 def get_all_concepts():
-    """Get all concepts from Neo4j"""
-    return initialize_concepts()
+    """Get all concepts from Neo4j as a list"""
+    concepts_dict = initialize_concepts()
+    return list(concepts_dict.values())
 
 def get_concept_by_id(concept_id):
     """Get a specific concept from Neo4j"""
