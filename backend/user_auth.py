@@ -208,7 +208,7 @@ class UserAuthManager:
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """
-            cursor.execute(insert_preferences_query, (user_db_id, learning_style, skill_level,
+            cursor.execute(insert_preferences_query, (user_db_id, skill_level, learning_style,
                                                        daily_goal_minutes, notifications_enabled, 
                                                        email_reminders, dark_mode, auto_play_videos,
                                                        current_time, current_time))
