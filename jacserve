@@ -1,5 +1,5 @@
 #!/bin/bash
-# Jeseci Smart Learning Academy - Server Startup Script
+# Jeseci Smart Learning Academy - Server Startup Script.
 # This script sets up the environment and starts the Jac API server
 
 # Set PYTHONPATH to enable absolute imports
