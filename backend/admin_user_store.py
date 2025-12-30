@@ -20,7 +20,7 @@ admin_users_lock = threading.Lock()
 cache_initialized = False
 
 def initialize_admin_store():
-    """Initialize admin store by loading users from PostgreSQL"""
+    """Initialize admin store by loading all users from PostgreSQL"""
     global admin_users_cache, cache_initialized
     
     if cache_initialized:
@@ -30,7 +30,7 @@ def initialize_admin_store():
         if cache_initialized:
             return
             
-        # Load admin users from PostgreSQL
+        # Load all users from PostgreSQL
         pg_manager = get_postgres_manager()
         
         query = """
@@ -39,7 +39,6 @@ def initialize_admin_store():
                p.first_name, p.last_name
         FROM jeseci_academy.users u
         LEFT JOIN jeseci_academy.user_profile p ON u.id = p.user_id
-        WHERE u.is_admin = true
         ORDER BY u.created_at DESC
         """
         
@@ -64,8 +63,8 @@ def initialize_admin_store():
         
         cache_initialized = True
 
-def get_all_admin_users():
-    """Get all admin users from PostgreSQL"""
+def get_all_users():
+    """Get all users from PostgreSQL"""
     initialize_admin_store()
     with admin_users_lock:
         return list(admin_users_cache.values())
