@@ -201,6 +201,12 @@ class ApiService {
   }
 
   private extractJacData<T>(response: any): T {
+    // Handle Jaclang API response with result/reports structure
+    if (response?.result !== undefined) {
+      // Extract from result field (primary response data)
+      return response.result;
+    }
+    
     // Jaclang API returns data in different formats
     if (response?.reports && Array.isArray(response.reports) && response.reports.length > 0) {
       // Extract from reports array

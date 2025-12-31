@@ -195,6 +195,12 @@ class AdminApiService {
       }
 
       const data = await response.json();
+      
+      // Handle Jaclang API response with result/reports structure
+      if (data?.result !== undefined) {
+        return data.result;
+      }
+      
       return data;
     } catch (error) {
       console.error(`Admin API request failed: ${endpoint}`, error);
