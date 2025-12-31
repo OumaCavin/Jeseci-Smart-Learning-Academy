@@ -815,7 +815,7 @@ walker graph_init {
                 "postgresql_connected": result['postgresql'],
                 "message": "Graph Knowledge Engine ready"
             };
-        } except as e {
+        } except Exception as e {
             print("Error initializing graph: " + str(e));
             report {
                 "success": False,
@@ -854,7 +854,7 @@ walker graph_concepts {
                 "count": len(result) if result else 0,
                 "source": "graph_database"
             };
-        } except as e {
+        } except Exception as e {
             print("Error fetching graph concepts: " + str(e));
             report {
                 "success": False,
@@ -913,7 +913,7 @@ walker graph_concept_detail {
                     "concept_id": self.concept_id
                 };
             }
-        } except as e {
+        } except Exception as e {
             print("Error fetching concept detail: " + str(e));
             report {
                 "success": False,
@@ -951,7 +951,7 @@ walker graph_paths {
                 "count": len(result) if result else 0,
                 "source": "graph_database"
             };
-        } except as e {
+        } except Exception as e {
             print("Error fetching graph paths: " + str(e));
             report {
                 "success": False,
@@ -1005,7 +1005,7 @@ walker graph_path_detail {
                     "path_id": self.path_id
                 };
             }
-        } except as e {
+        } except Exception as e {
             print("Error fetching path detail: " + str(e));
             report {
                 "success": False,
@@ -1061,7 +1061,7 @@ walker graph_user_progress {
                     "total_time_minutes": stats_result[0]['total_time'] if stats_result else 0
                 }
             };
-        } except as e {
+        } except Exception as e {
             print("Error fetching user progress: " + str(e));
             report {
                 "success": False,
@@ -1122,7 +1122,7 @@ walker graph_complete_concept {
                 "score": self.score,
                 "message": "Concept marked as completed"
             };
-        } except as e {
+        } except Exception as e {
             print("Error completing concept: " + str(e));
             report {
                 "success": False,
@@ -1167,7 +1167,7 @@ walker graph_enroll_path {
                 "path_id": self.path_id,
                 "status": "enrolled"
             };
-        } except as e {
+        } except Exception as e {
             print("Error enrolling in path: " + str(e));
             report {
                 "success": False,
@@ -1217,7 +1217,7 @@ walker graph_recommendations {
                 "count": len(result) if result else 0,
                 "algorithm": "prerequisite_based"
             };
-        } except as e {
+        } except Exception as e {
             print("Error fetching recommendations: " + str(e));
             report {
                 "success": False,
@@ -1265,7 +1265,7 @@ walker graph_next_concept {
                 "path_id": self.path_id,
                 "next_concept": result[0] if result else None
             };
-        } except as e {
+        } except Exception as e {
             print("Error fetching next concept: " + str(e));
             report {
                 "success": False,
@@ -1316,7 +1316,7 @@ walker graph_learning_journey {
                 "count": len(result) if result else 0,
                 "category_distribution": categories
             };
-        } except as e {
+        } except Exception as e {
             print("Error fetching learning journey: " + str(e));
             report {
                 "success": False,
@@ -1354,7 +1354,7 @@ walker graph_popular_concepts {
                 "popular_concepts": result or [],
                 "count": len(result) if result else 0
             };
-        } except as e {
+        } except Exception as e {
             print("Error fetching popular concepts: " + str(e));
             report {
                 "success": False,
@@ -1456,7 +1456,7 @@ walker graph_seed {
                 "prerequisites_created": len(prereqs),
                 "paths_created": 1
             };
-        } except as e {
+        } except Exception as e {
             print("Error seeding graph: " + str(e));
             report {
                 "success": False,
@@ -1488,7 +1488,7 @@ walker graph_stats {
                     "prerequisite_relationships": rel_count[0]['count'] if rel_count else 0
                 }
             };
-        } except as e {
+        } except Exception as e {
             print("Error fetching graph stats: " + str(e));
             report {
                 "success": False,
@@ -2044,14 +2044,14 @@ walker admin_dashboard {
         
         try {
             admin_store.initialize_admin_store();
-        } except as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             init_error = "Failed to load user data";
         }
         
         try {
             content_store.initialize_courses();
-        } except as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             if init_error: init_error = init_error + "; ";
             init_error = init_error + "Failed to load course data";
@@ -2059,7 +2059,7 @@ walker admin_dashboard {
         
         try {
             content_store.initialize_concepts();
-        } except as e {
+        } except Exception as e {
             print("Error initializing concepts: " + str(e));
             if init_error: init_error = init_error + "; ";
             init_error = init_error + "Failed to load concept data";
@@ -2067,7 +2067,7 @@ walker admin_dashboard {
         
         try {
             content_store.initialize_paths();
-        } except as e {
+        } except Exception as e {
             print("Error initializing paths: " + str(e));
             if init_error: init_error = init_error + "; ";
             init_error = init_error + "Failed to load learning path data";
@@ -2075,7 +2075,7 @@ walker admin_dashboard {
         
         try {
             quiz_store.initialize_quizzes();
-        } except as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             if init_error: init_error = init_error + "; ";
             init_error = init_error + "Failed to load quiz data";
@@ -2083,7 +2083,7 @@ walker admin_dashboard {
         
         try {
             analytics_store.initialize_analytics();
-        } except as e {
+        } except Exception as e {
             print("Error initializing analytics: " + str(e));
             if init_error: init_error = init_error + "; ";
             init_error = init_error + "Failed to load analytics data";
@@ -2179,7 +2179,7 @@ walker admin_users {
         # Initialize store with error handling
         try {
             admin_store.initialize_admin_store();
-        } except as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             report {
                 "success": False,
@@ -2203,7 +2203,7 @@ walker admin_users {
                     users = [u for u in users if u.get('is_admin', False)];
                 }
             }
-        } except as e {
+        } except Exception as e {
             print("Error fetching users: " + str(e));
             report {
                 "success": False,
@@ -2262,7 +2262,7 @@ walker admin_users_create {
         # Initialize store with error handling
         try {
             admin_store.initialize_admin_store();
-        } except as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             report {
                 "success": False,
@@ -2318,7 +2318,7 @@ walker admin_users_update {
         # Initialize store with error handling
         try {
             admin_store.initialize_admin_store();
-        } except as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             report {
                 "success": False,
@@ -2362,7 +2362,7 @@ walker admin_users_bulk_action {
         # Initialize store with error handling
         try {
             admin_store.initialize_admin_store();
-        } except as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             report {
                 "success": False,
@@ -2394,7 +2394,7 @@ walker admin_content_courses {
         try {
             content_store.initialize_courses();
             courses = content_store.get_all_courses();
-        } except as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             report {
                 "success": False,
@@ -2420,7 +2420,7 @@ walker admin_content_course_create {
         # Initialize store with error handling
         try {
             content_store.initialize_courses();
-        } except as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             report {
                 "success": False,
@@ -2456,7 +2456,7 @@ walker admin_content_course_update {
         # Initialize store with error handling
         try {
             content_store.initialize_courses();
-        } except as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             report {
                 "success": False,
@@ -2488,7 +2488,7 @@ walker admin_content_course_delete {
         # Initialize store with error handling
         try {
             content_store.initialize_courses();
-        } except as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             report {
                 "success": False,
@@ -2520,7 +2520,7 @@ walker admin_content_concepts {
         try {
             content_store.initialize_concepts();
             concepts = content_store.get_all_concepts();
-        } except as e {
+        } except Exception as e {
             print("Error initializing concepts: " + str(e));
             report {
                 "success": False,
@@ -2548,7 +2548,7 @@ walker admin_content_concept_create {
         # Initialize store with error handling
         try {
             content_store.initialize_concepts();
-        } except as e {
+        } except Exception as e {
             print("Error initializing concepts: " + str(e));
             report {
                 "success": False,
@@ -2580,7 +2580,7 @@ walker admin_content_paths {
         try {
             content_store.initialize_paths();
             paths = content_store.get_all_paths();
-        } except as e {
+        } except Exception as e {
             print("Error initializing paths: " + str(e));
             report {
                 "success": False,
@@ -2607,7 +2607,7 @@ walker admin_content_path_create {
         # Initialize store with error handling
         try {
             content_store.initialize_paths();
-        } except as e {
+        } except Exception as e {
             print("Error initializing paths: " + str(e));
             report {
                 "success": False,
@@ -2643,7 +2643,7 @@ walker admin_quizzes {
         try {
             quiz_store.initialize_quizzes();
             quizzes = quiz_store.get_all_quizzes();
-        } except as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             report {
                 "success": False,
@@ -2665,7 +2665,7 @@ walker admin_quizzes_analytics {
         try {
             quiz_store.initialize_quizzes();
             analytics = quiz_store.get_quiz_analytics();
-        } except as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             report {
                 "success": False,
@@ -2690,7 +2690,7 @@ walker admin_quizzes_create {
         # Initialize store with error handling
         try {
             quiz_store.initialize_quizzes();
-        } except as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             report {
                 "success": False,
@@ -2725,7 +2725,7 @@ walker admin_quizzes_update {
         # Initialize store with error handling
         try {
             quiz_store.initialize_quizzes();
-        } except as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             report {
                 "success": False,
@@ -2757,7 +2757,7 @@ walker admin_quizzes_delete {
         # Initialize store with error handling
         try {
             quiz_store.initialize_quizzes();
-        } except as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             report {
                 "success": False,
@@ -2792,7 +2792,7 @@ walker admin_ai_domains {
         domains = [];
         try {
             domains = ai_store.get_ai_domains();
-        } except as e {
+        } except Exception as e {
             print("Error fetching AI domains: " + str(e));
             report {
                 "success": False,
@@ -2814,7 +2814,7 @@ walker admin_ai_stats {
         try {
             ai_store.initialize_ai_content();
             stats = ai_store.get_ai_stats();
-        } except as e {
+        } except Exception as e {
             print("Error initializing AI content: " + str(e));
             report {
                 "success": False,
@@ -2836,7 +2836,7 @@ walker admin_ai_content {
         try {
             ai_store.initialize_ai_content();
             content = ai_store.get_all_ai_content();
-        } except as e {
+        } except Exception as e {
             print("Error initializing AI content: " + str(e));
             report {
                 "success": False,
@@ -2865,7 +2865,7 @@ walker admin_ai_generate {
         # Initialize AI store with error handling
         try {
             ai_store.initialize_ai_content();
-        } except as e {
+        } except Exception as e {
             print("Error initializing AI content: " + str(e));
             report {
                 "success": False,
@@ -2946,7 +2946,7 @@ walker admin_analytics_users {
         try {
             analytics_store.initialize_analytics();
             analytics = analytics_store.get_user_analytics();
-        } except as e {
+        } except Exception as e {
             print("Error initializing analytics: " + str(e));
             report {
                 "success": False,
@@ -2968,7 +2968,7 @@ walker admin_analytics_learning {
         try {
             analytics_store.initialize_analytics();
             analytics = analytics_store.get_learning_analytics();
-        } except as e {
+        } except Exception as e {
             print("Error initializing analytics: " + str(e));
             report {
                 "success": False,
@@ -2990,7 +2990,7 @@ walker admin_analytics_content {
         try {
             analytics_store.initialize_analytics();
             analytics = analytics_store.get_content_analytics();
-        } except as e {
+        } except Exception as e {
             print("Error initializing analytics: " + str(e));
             report {
                 "success": False,
@@ -3010,7 +3010,7 @@ walker admin_analytics_refresh {
         # Initialize store with error handling
         try {
             analytics_store.initialize_analytics();
-        } except as e {
+        } except Exception as e {
             print("Error initializing analytics: " + str(e));
             report {
                 "success": False,
