@@ -85,6 +85,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             <span className="breadcrumb">Jeseci Smart Learning Academy</span>
           </div>
           <div className="header-right">
+            <button 
+              className="student-portal-btn"
+              onClick={() => window.location.href = '/'}
+              title="Return to Student Portal"
+            >
+              <span>🏠</span>
+              <span>Back to Student Portal</span>
+            </button>
             <span className="admin-badge">{adminUser?.admin_role || 'Administrator'}</span>
           </div>
         </header>
