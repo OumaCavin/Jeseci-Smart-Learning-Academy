@@ -4,7 +4,11 @@
 import os
 import threading
 import datetime
+import logging
 from typing import Optional
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 # Import database utilities
 import sys
@@ -33,35 +37,40 @@ def initialize_admin_store():
         # Load all users from PostgreSQL
         pg_manager = get_postgres_manager()
         
-        query = """
-        SELECT u.id, u.user_id, u.username, u.email, u.is_admin, u.admin_role, 
-               u.is_active, u.created_at, u.last_login_at,
-               p.first_name, p.last_name
-        FROM jeseci_academy.users u
-        LEFT JOIN jeseci_academy.user_profile p ON u.id = p.user_id
-        ORDER BY u.created_at DESC
-        """
-        
-        result = pg_manager.execute_query(query)
-        
-        admin_users_cache = {}
-        if result:
-            for row in result:
-                user_id = row.get('user_id')
-                admin_users_cache[user_id] = {
-                    "user_id": user_id,
-                    "username": row.get('username'),
-                    "email": row.get('email'),
-                    "first_name": row.get('first_name') or "",
-                    "last_name": row.get('last_name') or "",
-                    "is_admin": row.get('is_admin'),
-                    "admin_role": row.get('admin_role') or "",
-                    "is_active": row.get('is_active'),
-                    "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
-                    "last_login": row.get('last_login_at').isoformat() if row.get('last_login_at') else None
-                }
-        
-        cache_initialized = True
+        try:
+            query = """
+            SELECT u.id, u.user_id, u.username, u.email, u.is_admin, u.admin_role, 
+                   u.is_active, u.created_at, u.last_login_at, u.updated_at,
+                   p.first_name, p.last_name
+            FROM jeseci_academy.users u
+            LEFT JOIN jeseci_academy.user_profile p ON u.id = p.user_id
+            ORDER BY u.created_at DESC
+            """
+            
+            result = pg_manager.execute_query(query)
+            
+            admin_users_cache = {}
+            if result:
+                for row in result:
+                    user_id = row.get('user_id')
+                    admin_users_cache[user_id] = {
+                        "user_id": user_id,
+                        "username": row.get('username'),
+                        "email": row.get('email'),
+                        "first_name": row.get('first_name') or "",
+                        "last_name": row.get('last_name') or "",
+                        "is_admin": row.get('is_admin'),
+                        "admin_role": row.get('admin_role') or "",
+                        "is_active": row.get('is_active'),
+                        "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+                        "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None,
+                        "last_login": row.get('last_login_at').isoformat() if row.get('last_login_at') else None
+                    }
+            
+            cache_initialized = True
+        except Exception as e:
+            logger.error(f"Error initializing admin store: {e}")
+            cache_initialized = False
 
 def get_all_users():
     """Get all users from PostgreSQL"""
@@ -115,7 +124,7 @@ def search_admin_users(query, include_inactive=False, admin_only=False):
     
     search_query = f"""
     SELECT u.id, u.user_id, u.username, u.email, u.is_admin, u.admin_role, 
-           u.is_active, u.created_at, u.last_login_at,
+           u.is_active, u.created_at, u.last_login_at, u.updated_at,
            p.first_name, p.last_name
     FROM jeseci_academy.users u
     LEFT JOIN jeseci_academy.user_profile p ON u.id = p.user_id
@@ -123,7 +132,11 @@ def search_admin_users(query, include_inactive=False, admin_only=False):
     ORDER BY u.created_at DESC
     """
     
-    result = pg_manager.execute_query(search_query, params)
+    try:
+        result = pg_manager.execute_query(search_query, params)
+    except Exception as e:
+        logger.error(f"Error searching admin users: {e}")
+        return []
     
     users = []
     for row in result or []:
@@ -137,6 +150,7 @@ def search_admin_users(query, include_inactive=False, admin_only=False):
             "admin_role": row.get('admin_role') or "",
             "is_active": row.get('is_active'),
             "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+            "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None,
             "last_login": row.get('last_login_at').isoformat() if row.get('last_login_at') else None
         })
     
@@ -233,7 +247,11 @@ def update_admin_user(user_id, updates):
     
     # Check if user exists and get INTEGER id
     check_query = "SELECT id, user_id FROM jeseci_academy.users WHERE user_id = %s"
-    existing = pg_manager.execute_query(check_query, (user_id,))
+    try:
+        existing = pg_manager.execute_query(check_query, (user_id,))
+    except Exception as e:
+        logger.error(f"Error checking user existence: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
     
     if not existing:
         return {"success": False, "error": "User not found", "code": "NOT_FOUND"}
@@ -261,7 +279,11 @@ def update_admin_user(user_id, updates):
         SET {', '.join(user_set_clauses)}
         WHERE user_id = %s
         """
-        pg_manager.execute_query(user_update_query, user_params, fetch=False)
+        try:
+            pg_manager.execute_query(user_update_query, user_params, fetch=False)
+        except Exception as e:
+            logger.error(f"Error updating user: {e}")
+            return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
     
     # Update profile table if needed (using INTEGER user_db_id)
     if profile_fields:
@@ -278,7 +300,11 @@ def update_admin_user(user_id, updates):
             SET {', '.join(profile_set_clauses)}
             WHERE user_id = %s
             """
-            pg_manager.execute_query(profile_update_query, profile_params, fetch=False)
+            try:
+                pg_manager.execute_query(profile_update_query, profile_params, fetch=False)
+            except Exception as e:
+                logger.error(f"Error updating user profile: {e}")
+                return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
     
     # Invalidate cache
     global cache_initialized
@@ -294,34 +320,55 @@ def bulk_admin_action(user_ids, action, reason=""):
     if action == 'delete':
         # Look up INTEGER ids from the VARCHAR user_ids
         lookup_query = "SELECT id FROM jeseci_academy.users WHERE user_id = ANY(%s)"
-        lookup_result = pg_manager.execute_query(lookup_query, (user_ids,))
+        try:
+            lookup_result = pg_manager.execute_query(lookup_query, (user_ids,))
+        except Exception as e:
+            logger.error(f"Error looking up user IDs for bulk delete: {e}")
+            return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
+        
         integer_ids = [row['id'] for row in lookup_result] if lookup_result else []
         
         # Delete from profile first (foreign key uses INTEGER id)
         if integer_ids:
             delete_profile = "DELETE FROM jeseci_academy.user_profile WHERE user_id = ANY(%s)"
-            pg_manager.execute_query(delete_profile, (integer_ids,), fetch=False)
+            try:
+                pg_manager.execute_query(delete_profile, (integer_ids,), fetch=False)
+            except Exception as e:
+                logger.error(f"Error deleting user profiles: {e}")
+                return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
         
         # Delete from users table using VARCHAR user_id
         update_query = """
         DELETE FROM jeseci_academy.users 
         WHERE user_id = ANY(%s)
         """
-        result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
+        try:
+            result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
+        except Exception as e:
+            logger.error(f"Error deleting users: {e}")
+            return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
     elif action == 'suspend':
         update_query = """
         UPDATE jeseci_academy.users 
         SET is_active = false, updated_at = NOW()
         WHERE user_id = ANY(%s)
         """
-        result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
+        try:
+            result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
+        except Exception as e:
+            logger.error(f"Error suspending users: {e}")
+            return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
     elif action == 'activate':
         update_query = """
         UPDATE jeseci_academy.users 
         SET is_active = true, updated_at = NOW()
         WHERE user_id = ANY(%s)
         """
-        result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
+        try:
+            result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
+        except Exception as e:
+            logger.error(f"Error activating users: {e}")
+            return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
     else:
         return {"success": False, "error": "Unknown action", "code": "INVALID_ACTION"}
     

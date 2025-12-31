@@ -36,7 +36,7 @@ node GraphConcept {
     has name: str;
     has display_name: str;
     has category: str;
-    has difficulty: str = "beginner";
+    has difficulty_level: str = "beginner";
     has difficulty_score: int = 1;
     has description: str = "";
     has estimated_duration: int = 30;
@@ -288,7 +288,7 @@ walker ConceptManager {
         query = """
         MATCH (c:Concept)
         RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-               c.category AS category, c.difficulty AS difficulty,
+               c.category AS category, c.difficulty_level AS difficulty_level,
                c.description AS description, c.estimated_duration AS duration,
                c.prerequisites_count AS prereq_count, c.related_count AS related_count
         ORDER BY c.name
@@ -505,7 +505,7 @@ walker PathManager {
             name: c.name,
             display_name: c.display_name,
             category: c.category,
-            difficulty: c.difficulty,
+            difficulty: c.difficulty_level,
             order_index: r.order_index,
             is_required: r.is_required
         }) AS concepts
@@ -559,7 +559,7 @@ walker PathManager {
             name: c.name,
             display_name: c.display_name,
             category: c.category,
-            difficulty: c.difficulty,
+            difficulty: c.difficulty_level,
             estimated_duration: c.estimated_duration,
             order_index: rels[0].order_index
         }) AS concept_list
@@ -593,7 +593,7 @@ walker ProgressTracker {
         manager = neo4j_db.get_neo4j_manager();
         
         query = """
-        MERGE (u:User {user_id: $user_id})
+        MERGE (u:User {user_id: toString($user_id)})
         SET u.username = $username,
             u.display_name = $display_name,
             u.email = $email,
@@ -623,7 +623,7 @@ walker ProgressTracker {
         manager = neo4j_db.get_neo4j_manager();
         
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         MATCH (p:LearningPath {path_id: $path_id})
         MERGE (u)-[r:EnrolledIn {
             enrolled_at: timestamp(),
@@ -658,7 +658,7 @@ walker ProgressTracker {
         manager = neo4j_db.get_neo4j_manager();
         
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         MATCH (c:Concept {concept_id: $concept_id})
         MERGE (u)-[r:Completed {
             completed_at: timestamp(),
@@ -695,7 +695,7 @@ walker ProgressTracker {
         manager = neo4j_db.get_neo4j_manager();
         
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         MATCH (c:Concept {concept_id: $concept_id})
         MERGE (u)-[r:ProgressOn {
             progress_percent: $progress,
@@ -729,7 +729,7 @@ walker ProgressTracker {
         manager = neo4j_db.get_neo4j_manager();
         
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         MATCH (p:LearningPath {path_id: $path_id})
         OPTIONAL MATCH (p)-[:PathContains]->(c:Concept)
         OPTIONAL MATCH (u)-[:Completed]->(c)
@@ -761,9 +761,9 @@ walker ProgressTracker {
         manager = neo4j_db.get_neo4j_manager();
         
         query = """
-        MATCH (u:User {user_id: $user_id})-[r:Completed]->(c:Concept)
+        MATCH (u:User {user_id: toString($user_id)})-[r:Completed]->(c:Concept)
         RETURN c.concept_id AS id, c.name AS name, c.category AS category,
-               c.difficulty AS difficulty, r.score AS score, r.completed_at AS completed_at
+               c.difficulty_level AS difficulty_level, r.score AS score, r.completed_at AS completed_at
         ORDER BY r.completed_at DESC
         """;
         
@@ -793,7 +793,7 @@ walker KnowledgeRecommender {
         
         if path_id {
             query = """
-            MATCH (u:User {user_id: $user_id})
+            MATCH (u:User {user_id: toString($user_id)})
             MATCH (p:LearningPath {path_id: $path_id})
             MATCH (p)-[:PathContains]->(c:Concept)
             WHERE NOT (u)-[:Completed]->(c)
@@ -801,20 +801,20 @@ walker KnowledgeRecommender {
             WITH u, c, collect(DISTINCT prereq.concept_id) AS prereqs
             WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
             RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-                   c.category AS category, c.difficulty AS difficulty,
+                   c.category AS category, c.difficulty_level AS difficulty_level,
                    c.estimated_duration AS duration, size(prereqs) AS prereq_count
             LIMIT $limit
             """;
         } else {
             query = """
-            MATCH (u:User {user_id: $user_id})
+            MATCH (u:User {user_id: toString($user_id)})
             MATCH (c:Concept)
             WHERE NOT (u)-[:Completed]->(c)
             OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
             WITH u, c, collect(DISTINCT prereq.concept_id) AS prereqs
             WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
             RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-                   c.category AS category, c.difficulty AS difficulty,
+                   c.category AS category, c.difficulty_level AS difficulty_level,
                    c.estimated_duration AS duration, size(prereqs) AS prereq_count
             LIMIT $limit
             """;
@@ -842,7 +842,7 @@ walker KnowledgeRecommender {
         manager = neo4j_db.get_neo4j_manager();
         
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         MATCH (p:LearningPath {path_id: $path_id})
         MATCH (p)-[r:PathContains]->(c:Concept)
         WHERE NOT (u)-[:Completed]->(c)
@@ -853,7 +853,7 @@ walker KnowledgeRecommender {
         ORDER BY r.order_index
         LIMIT 1
         RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-               c.category AS category, c.difficulty AS difficulty, r.order_index AS position
+               c.category AS category, c.difficulty_level AS difficulty_level, r.order_index AS position
         """;
         
         result = manager.execute_query(query, {
@@ -877,14 +877,14 @@ walker KnowledgeRecommender {
         manager = neo4j_db.get_neo4j_manager();
         
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         MATCH (c:Concept)
         WHERE NOT (u)-[:Completed]->(c)
         OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
         WITH c, collect(DISTINCT prereq.concept_id) AS prereqs
         WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
         RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-               c.category AS category, c.difficulty AS difficulty, size(prereqs) AS prereq_count
+               c.category AS category, c.difficulty_level AS difficulty_level, size(prereqs) AS prereq_count
         LIMIT $limit
         """;
         
@@ -909,14 +909,14 @@ walker KnowledgeRecommender {
         manager = neo4j_db.get_neo4j_manager();
         
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         MATCH (c:Concept)
         WHERE NOT (u)-[:Completed]->(c)
         OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
         WITH c, collect(DISTINCT prereq.concept_id) AS prereqs
         WHERE NOT all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
         RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-               c.category AS category, c.difficulty AS difficulty, size(prereqs) AS prereq_count
+               c.category AS category, c.difficulty_level AS difficulty_level, size(prereqs) AS prereq_count
         LIMIT $limit
         """;
         
@@ -980,12 +980,12 @@ walker LearningAnalytics {
         manager = neo4j_db.get_neo4j_manager();
         
         concepts_query = """
-        MATCH (u:User {user_id: $user_id})-[r:Completed]->(c:Concept)
+        MATCH (u:User {user_id: toString($user_id)})-[r:Completed]->(c:Concept)
         RETURN count(c) AS total_completed, avg(r.score) AS avg_score, sum(r.time_spent) AS total_time
         """;
         
         paths_query = """
-        MATCH (u:User {user_id: $user_id})-[r:EnrolledIn]->(p:LearningPath)
+        MATCH (u:User {user_id: toString($user_id)})-[r:EnrolledIn]->(p:LearningPath)
         RETURN count(p) AS total_paths, avg(r.progress_percent) AS avg_progress
         """;
         
@@ -1042,7 +1042,7 @@ walker LearningAnalytics {
         query = """
         MATCH (c:Concept {concept_id: $concept_id})
         OPTIONAL MATCH (u:User)-[r:Completed]->(c)
-        RETURN c.name AS name, c.difficulty AS difficulty,
+        RETURN c.name AS name, c.difficulty_level AS difficulty_level,
                count(r) AS attempts, avg(r.score) AS avg_score, avg(r.time_spent) AS avg_time
         """;
         
@@ -1063,7 +1063,7 @@ walker LearningAnalytics {
         MATCH (c:Concept)
         OPTIONAL MATCH (u:User)-[r:Completed]->(c)
         RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-               c.category AS category, c.difficulty AS difficulty,
+               c.category AS category, c.difficulty_level AS difficulty_level,
                count(r) AS completion_count, avg(r.score) AS avg_score
         ORDER BY completion_count DESC
         LIMIT $limit
@@ -1085,11 +1085,11 @@ walker LearningAnalytics {
         manager = neo4j_db.get_neo4j_manager();
         
         query = """
-        MATCH (u:User {user_id: $user_id})-[r:Completed]->(c:Concept)
+        MATCH (u:User {user_id: toString($user_id)})-[r:Completed]->(c:Concept)
         WITH c, r
         ORDER BY r.completed_at
         RETURN c.concept_id AS id, c.name AS name, c.category AS category,
-               c.difficulty AS difficulty, r.score AS score, r.completed_at AS completed_at
+               c.difficulty_level AS difficulty_level, r.score AS score, r.completed_at AS completed_at
         """;
         
         result = manager.execute_query(query, {"user_id": user_id});
@@ -1116,28 +1116,28 @@ walker GraphSeeder {
         
         ## Create sample concepts
         concepts = [
-            {"id": "prog_basics", "name": "programming_basics", "display_name": "Programming Basics", "category": "Programming", "difficulty": "beginner", "duration": 30},
-            {"id": "variables", "name": "variables_data_types", "display_name": "Variables and Data Types", "category": "Programming", "difficulty": "beginner", "duration": 45},
-            {"id": "control_flow", "name": "control_flow", "display_name": "Control Flow", "category": "Programming", "difficulty": "beginner", "duration": 45},
-            {"id": "functions", "name": "functions", "display_name": "Functions", "category": "Programming", "difficulty": "intermediate", "duration": 60},
-            {"id": "data_structures", "name": "data_structures", "display_name": "Data Structures", "category": "Programming", "difficulty": "intermediate", "duration": 90},
-            {"id": "oop", "name": "oop", "display_name": "Object-Oriented Programming", "category": "Programming", "difficulty": "intermediate", "duration": 90},
-            {"id": "algorithms", "name": "algorithms", "display_name": "Algorithms", "category": "Computer Science", "difficulty": "advanced", "duration": 120},
-            {"id": "web_basics", "name": "web_basics", "display_name": "Web Development Basics", "category": "Web Dev", "difficulty": "beginner", "duration": 60},
-            {"id": "databases", "name": "databases", "display_name": "Databases", "category": "Data Management", "difficulty": "intermediate", "duration": 90},
-            {"id": "graph_concepts", "name": "graph_concepts", "display_name": "Graph Concepts", "category": "Computer Science", "difficulty": "advanced", "duration": 90}
+            {"id": "prog_basics", "name": "programming_basics", "display_name": "Programming Basics", "category": "Programming", "difficulty_level": "beginner", "estimated_duration": 30},
+            {"id": "variables", "name": "variables_data_types", "display_name": "Variables and Data Types", "category": "Programming", "difficulty_level": "beginner", "estimated_duration": 45},
+            {"id": "control_flow", "name": "control_flow", "display_name": "Control Flow", "category": "Programming", "difficulty_level": "beginner", "estimated_duration": 45},
+            {"id": "functions", "name": "functions", "display_name": "Functions", "category": "Programming", "difficulty_level": "intermediate", "estimated_duration": 60},
+            {"id": "data_structures", "name": "data_structures", "display_name": "Data Structures", "category": "Programming", "difficulty_level": "intermediate", "estimated_duration": 90},
+            {"id": "oop", "name": "oop", "display_name": "Object-Oriented Programming", "category": "Programming", "difficulty_level": "intermediate", "estimated_duration": 90},
+            {"id": "algorithms", "name": "algorithms", "display_name": "Algorithms", "category": "Computer Science", "difficulty_level": "advanced", "estimated_duration": 120},
+            {"id": "web_basics", "name": "web_basics", "display_name": "Web Development Basics", "category": "Web Dev", "difficulty_level": "beginner", "estimated_duration": 60},
+            {"id": "databases", "name": "databases", "display_name": "Databases", "category": "Data Management", "difficulty_level": "intermediate", "estimated_duration": 90},
+            {"id": "graph_concepts", "name": "graph_concepts", "display_name": "Graph Concepts", "category": "Computer Science", "difficulty_level": "advanced", "estimated_duration": 90}
         ];
         
         for concept in concepts {
             create_query = """
             MERGE (c:Concept {concept_id: $id})
             SET c.name = $name, c.display_name = $display_name, c.category = $category,
-                c.difficulty = $difficulty, c.difficulty_score = CASE $difficulty
+                c.difficulty_level = $difficulty_level, c.difficulty_score = CASE $difficulty_level
                     WHEN 'beginner' THEN 1
                     WHEN 'intermediate' THEN 2
                     WHEN 'advanced' THEN 3
                     ELSE 1 END,
-                c.estimated_duration = $duration, c.created_at = timestamp()
+                c.estimated_duration = $estimated_duration, c.created_at = timestamp()
             """;
             manager.execute_query(create_query, concept);
         }
