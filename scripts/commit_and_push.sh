@@ -39,7 +39,7 @@ git add .env.example
 echo "🔧 Adding configuration files..."
 git add .gitignore
 git add scripts/cleanup_project.sh
-git add PROJECT_UPDATE_COMPLETE.md
+git add docs/PROJECT_UPDATE_COMPLETE.md
 
 # Add any frontend changes
 echo "🎨 Adding frontend updates..."
