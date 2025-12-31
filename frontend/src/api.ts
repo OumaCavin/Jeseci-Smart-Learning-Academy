@@ -201,21 +201,25 @@ class ApiService {
   }
 
   private extractJacData<T>(response: any): T {
-    // Jaclang API returns data in reports array for successful responses
+    // Handle Jaclang API response wrapped in reports array
     if (response?.reports && Array.isArray(response.reports) && response.reports.length > 0) {
       // Extract from reports array
       const report = response.reports[0];
       if (typeof report === 'object' && !Array.isArray(report)) {
+        console.log('API extracted from reports:', report);
         return report;
       }
+      console.log('API extracted from reports (non-object):', report);
       return report;
     }
     
     // Handle direct response data (when reports array is not present)
     if (typeof response === 'object' && !Array.isArray(response)) {
+      console.log('API direct response:', response);
       return response;
     }
     
+    console.log('API fallback response:', response);
     return response;
   }
 

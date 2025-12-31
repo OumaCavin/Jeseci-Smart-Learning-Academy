@@ -73,7 +73,12 @@ class ContactService {
       })
     });
 
-    const result = await response.json();
+    let result = await response.json();
+    
+    // Handle Jaclang API response wrapped in reports array
+    if (result?.reports && Array.isArray(result.reports) && result.reports.length > 0) {
+      result = result.reports[0];
+    }
 
     if (result.success) {
       return {
