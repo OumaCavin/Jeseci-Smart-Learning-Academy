@@ -2017,22 +2017,39 @@ walker admin_users {
     has search: str = "";
     
     can admin_users with entry {
-        # Initialize store if needed
-        admin_store.initialize_admin_store();
+        # Initialize store with error handling
+        try {
+            admin_store.initialize_admin_store();
+        } except as e {
+            print("Error initializing admin store: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load user data: " + str(e)
+            };
+        }
         
         # Get users from storage with filters
-        if self.search {
-            users = admin_store.search_admin_users(self.search, self.include_inactive, self.admin_only);
-        } else {
-            users = admin_store.get_all_users();
-            
-            # Apply filters
-            if not self.include_inactive {
-                users = [u for u in users if u.get('is_active', True)];
+        users = [];
+        try {
+            if self.search {
+                users = admin_store.search_admin_users(self.search, self.include_inactive, self.admin_only);
+            } else {
+                users = admin_store.get_all_users();
+                
+                # Apply filters
+                if not self.include_inactive {
+                    users = [u for u in users if u.get('is_active', True)];
+                }
+                if self.admin_only {
+                    users = [u for u in users if u.get('is_admin', False)];
+                }
             }
-            if self.admin_only {
-                users = [u for u in users if u.get('is_admin', False)];
-            }
+        } except as e {
+            print("Error fetching users: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to fetch users: " + str(e)
+            };
         }
         
         # Remove password from response
@@ -2083,8 +2100,16 @@ walker admin_users_create {
     has auto_play_videos: bool = true;
     
     can admin_users_create with entry {
-        # Initialize store if needed
-        admin_store.initialize_admin_store();
+        # Initialize store with error handling
+        try {
+            admin_store.initialize_admin_store();
+        } except as e {
+            print("Error initializing admin store: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize user store: " + str(e)
+            };
+        }
         
         # Create user in storage
         result = admin_store.create_admin_user(
@@ -2131,8 +2156,16 @@ walker admin_users_update {
     has is_active: bool = True;
     
     can admin_users_update with entry {
-        # Initialize store if needed
-        admin_store.initialize_admin_store();
+        # Initialize store with error handling
+        try {
+            admin_store.initialize_admin_store();
+        } except as e {
+            print("Error initializing admin store: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize user store: " + str(e)
+            };
+        }
         
         # Build updates dict
         updates = {};
@@ -2167,16 +2200,24 @@ walker admin_users_bulk_action {
     has reason: str = "";
     
     can admin_users_bulk_action with entry {
-        # Initialize store if needed
-        admin_store.initialize_admin_store();
+        # Initialize store with error handling
+        try {
+            admin_store.initialize_admin_store();
+        } except as e {
+            print("Error initializing admin store: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize user store: " + str(e)
+            };
+        }
         
         result = admin_store.bulk_admin_action(self.user_ids, self.action, self.reason);
         
         import datetime;
         report {
             "success": result['success'],
-            "users_affected": result['users_affected'],
-            "action": result['action'],
+            "users_affected": result.get('users_affected', 0),
+            "action": result.get('action', self.action),
             "message": "Bulk action completed successfully",
             "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         };
@@ -2189,9 +2230,18 @@ walker admin_users_bulk_action {
 
 walker admin_content_courses {
     can admin_content_courses with entry {
-        # Initialize store and get courses
-        content_store.initialize_courses();
-        courses = content_store.get_all_courses();
+        # Initialize store and get courses with error handling
+        courses = [];
+        try {
+            content_store.initialize_courses();
+            courses = content_store.get_all_courses();
+        } except as e {
+            print("Error initializing courses: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load courses: " + str(e)
+            };
+        }
         
         report {
             "success": True,
@@ -2208,7 +2258,17 @@ walker admin_content_course_create {
     has content_type: str = "interactive";
     
     can admin_content_course_create with entry {
-        content_store.initialize_courses();
+        # Initialize store with error handling
+        try {
+            content_store.initialize_courses();
+        } except as e {
+            print("Error initializing courses: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize course store: " + str(e)
+            };
+        }
+        
         result = content_store.create_course(self.title, self.description, self.domain, self.difficulty, self.content_type);
         
         if result['success'] {
@@ -2234,7 +2294,17 @@ walker admin_content_course_update {
     has difficulty: str = "";
     
     can admin_content_course_update with entry {
-        content_store.initialize_courses();
+        # Initialize store with error handling
+        try {
+            content_store.initialize_courses();
+        } except as e {
+            print("Error initializing courses: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize course store: " + str(e)
+            };
+        }
+        
         result = content_store.update_course(self.course_id, self.title, self.description, self.domain, self.difficulty);
         
         if result['success'] {
@@ -2256,7 +2326,17 @@ walker admin_content_course_delete {
     has course_id: str;
     
     can admin_content_course_delete with entry {
-        content_store.initialize_courses();
+        # Initialize store with error handling
+        try {
+            content_store.initialize_courses();
+        } except as e {
+            print("Error initializing courses: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize course store: " + str(e)
+            };
+        }
+        
         result = content_store.delete_course(self.course_id);
         
         if result['success'] {
@@ -2276,9 +2356,18 @@ walker admin_content_course_delete {
 
 walker admin_content_concepts {
     can admin_content_concepts with entry {
-        # Initialize store and get concepts
-        content_store.initialize_concepts();
-        concepts = content_store.get_all_concepts();
+        # Initialize store and get concepts with error handling
+        concepts = [];
+        try {
+            content_store.initialize_concepts();
+            concepts = content_store.get_all_concepts();
+        } except as e {
+            print("Error initializing concepts: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load concepts: " + str(e)
+            };
+        }
         
         report {
             "success": True,
@@ -2297,7 +2386,17 @@ walker admin_content_concept_create {
     has icon: str = "";
     
     can admin_content_concept_create with entry {
-        content_store.initialize_concepts();
+        # Initialize store with error handling
+        try {
+            content_store.initialize_concepts();
+        } except as e {
+            print("Error initializing concepts: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize concept store: " + str(e)
+            };
+        }
+        
         result = content_store.create_concept(self.name, self.display_name, self.category, self.difficulty_level, self.domain, self.description, self.icon);
         
         if result['success'] {
@@ -2317,9 +2416,18 @@ walker admin_content_concept_create {
 
 walker admin_content_paths {
     can admin_content_paths with entry {
-        # Initialize store and get paths
-        content_store.initialize_paths();
-        paths = content_store.get_all_paths();
+        # Initialize store and get paths with error handling
+        paths = [];
+        try {
+            content_store.initialize_paths();
+            paths = content_store.get_all_paths();
+        } except as e {
+            print("Error initializing paths: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load learning paths: " + str(e)
+            };
+        }
         
         report {
             "success": True,
@@ -2337,7 +2445,17 @@ walker admin_content_path_create {
     has duration: str;
     
     can admin_content_path_create with entry {
-        content_store.initialize_paths();
+        # Initialize store with error handling
+        try {
+            content_store.initialize_paths();
+        } except as e {
+            print("Error initializing paths: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize path store: " + str(e)
+            };
+        }
+        
         result = content_store.create_path(self.title, self.description, self.courses, self.concepts, self.difficulty, self.duration);
         
         if result['success'] {
@@ -2361,9 +2479,18 @@ walker admin_content_path_create {
 
 walker admin_quizzes {
     can admin_quizzes with entry {
-        # Initialize store and get quizzes
-        quiz_store.initialize_quizzes();
-        quizzes = quiz_store.get_all_quizzes();
+        # Initialize store and get quizzes with error handling
+        quizzes = [];
+        try {
+            quiz_store.initialize_quizzes();
+            quizzes = quiz_store.get_all_quizzes();
+        } except as e {
+            print("Error initializing quizzes: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load quizzes: " + str(e)
+            };
+        }
         
         report {
             "success": True,
@@ -2374,8 +2501,18 @@ walker admin_quizzes {
 
 walker admin_quizzes_analytics {
     can admin_quizzes_analytics with entry {
-        quiz_store.initialize_quizzes();
-        analytics = quiz_store.get_quiz_analytics();
+        # Initialize store with error handling
+        analytics = {};
+        try {
+            quiz_store.initialize_quizzes();
+            analytics = quiz_store.get_quiz_analytics();
+        } except as e {
+            print("Error initializing quizzes: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load quiz analytics: " + str(e)
+            };
+        }
         
         report {
             "success": True,
@@ -2391,7 +2528,17 @@ walker admin_quizzes_create {
     has course_id: str = "";
     
     can admin_quizzes_create with entry {
-        quiz_store.initialize_quizzes();
+        # Initialize store with error handling
+        try {
+            quiz_store.initialize_quizzes();
+        } except as e {
+            print("Error initializing quizzes: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize quiz store: " + str(e)
+            };
+        }
+        
         result = quiz_store.create_quiz(self.title, self.description, self.course_id, self.difficulty);
         
         if result['success'] {
@@ -2416,7 +2563,17 @@ walker admin_quizzes_update {
     has difficulty: str = "";
     
     can admin_quizzes_update with entry {
-        quiz_store.initialize_quizzes();
+        # Initialize store with error handling
+        try {
+            quiz_store.initialize_quizzes();
+        } except as e {
+            print("Error initializing quizzes: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize quiz store: " + str(e)
+            };
+        }
+        
         result = quiz_store.update_quiz(self.quiz_id, self.title, self.description, self.difficulty);
         
         if result['success'] {
@@ -2438,7 +2595,17 @@ walker admin_quizzes_delete {
     has quiz_id: str;
     
     can admin_quizzes_delete with entry {
-        quiz_store.initialize_quizzes();
+        # Initialize store with error handling
+        try {
+            quiz_store.initialize_quizzes();
+        } except as e {
+            print("Error initializing quizzes: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize quiz store: " + str(e)
+            };
+        }
+        
         result = quiz_store.delete_quiz(self.quiz_id);
         
         if result['success'] {
@@ -2462,7 +2629,17 @@ walker admin_quizzes_delete {
 
 walker admin_ai_domains {
     can admin_ai_domains with entry {
-        domains = ai_store.get_ai_domains();
+        # Get AI domains with error handling
+        domains = [];
+        try {
+            domains = ai_store.get_ai_domains();
+        } except as e {
+            print("Error fetching AI domains: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load AI domains: " + str(e)
+            };
+        }
         
         report {
             "success": True,
@@ -2473,8 +2650,18 @@ walker admin_ai_domains {
 
 walker admin_ai_stats {
     can admin_ai_stats with entry {
-        ai_store.initialize_ai_content();
-        stats = ai_store.get_ai_stats();
+        # Initialize store and get stats with error handling
+        stats = {};
+        try {
+            ai_store.initialize_ai_content();
+            stats = ai_store.get_ai_stats();
+        } except as e {
+            print("Error initializing AI content: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load AI stats: " + str(e)
+            };
+        }
         
         report {
             "success": True,
@@ -2485,8 +2672,18 @@ walker admin_ai_stats {
 
 walker admin_ai_content {
     can admin_ai_content with entry {
-        ai_store.initialize_ai_content();
-        content = ai_store.get_all_ai_content();
+        # Initialize store and get content with error handling
+        content = [];
+        try {
+            ai_store.initialize_ai_content();
+            content = ai_store.get_all_ai_content();
+        } except as e {
+            print("Error initializing AI content: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load AI content: " + str(e)
+            };
+        }
         
         report {
             "success": True,
@@ -2505,6 +2702,17 @@ walker admin_ai_generate {
     can admin_ai_generate with entry {
         import datetime;
         import os;
+        
+        # Initialize AI store with error handling
+        try {
+            ai_store.initialize_ai_content();
+        } except as e {
+            print("Error initializing AI content: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize AI store: " + str(e)
+            };
+        }
         
         # Check OpenAI configuration
         api_key = os.getenv("OPENAI_API_KEY", "");
@@ -2574,8 +2782,18 @@ walker admin_ai_generate {
 
 walker admin_analytics_users {
     can admin_analytics_users with entry {
-        analytics_store.initialize_analytics();
-        analytics = analytics_store.get_user_analytics();
+        # Initialize store and get analytics with error handling
+        analytics = {};
+        try {
+            analytics_store.initialize_analytics();
+            analytics = analytics_store.get_user_analytics();
+        } except as e {
+            print("Error initializing analytics: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load user analytics: " + str(e)
+            };
+        }
         
         report {
             "success": True,
@@ -2586,8 +2804,18 @@ walker admin_analytics_users {
 
 walker admin_analytics_learning {
     can admin_analytics_learning with entry {
-        analytics_store.initialize_analytics();
-        analytics = analytics_store.get_learning_analytics();
+        # Initialize store and get analytics with error handling
+        analytics = {};
+        try {
+            analytics_store.initialize_analytics();
+            analytics = analytics_store.get_learning_analytics();
+        } except as e {
+            print("Error initializing analytics: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load learning analytics: " + str(e)
+            };
+        }
         
         report {
             "success": True,
@@ -2598,8 +2826,18 @@ walker admin_analytics_learning {
 
 walker admin_analytics_content {
     can admin_analytics_content with entry {
-        analytics_store.initialize_analytics();
-        analytics = analytics_store.get_content_analytics();
+        # Initialize store and get analytics with error handling
+        analytics = {};
+        try {
+            analytics_store.initialize_analytics();
+            analytics = analytics_store.get_content_analytics();
+        } except as e {
+            print("Error initializing analytics: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load content analytics: " + str(e)
+            };
+        }
         
         report {
             "success": True,
@@ -2610,14 +2848,24 @@ walker admin_analytics_content {
 
 walker admin_analytics_refresh {
     can admin_analytics_refresh with entry {
-        analytics_store.initialize_analytics();
+        # Initialize store with error handling
+        try {
+            analytics_store.initialize_analytics();
+        } except as e {
+            print("Error initializing analytics: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize analytics store: " + str(e)
+            };
+        }
+        
         result = analytics_store.refresh_analytics();
         
         import datetime;
         report {
-            "success": result['success'],
+            "success": result.get('success', False),
             "message": "Analytics cache refreshed successfully",
-            "refreshed_at": result['refreshed_at']
+            "refreshed_at": result.get('refreshed_at', datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
         };
     }
 }

@@ -500,7 +500,7 @@ def get_recommended_concepts(user_id, completed_concept_ids, limit=5):
             "name": row.get('name'),
             "display_name": row.get('display_name'),
             "category": row.get('category'),
-            "difficulty": row.get('difficulty'),
+            "difficulty": row.get('difficulty_level'),
             "description": row.get('description')
         })
     
