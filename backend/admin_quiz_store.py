@@ -4,7 +4,11 @@
 import os
 import threading
 import datetime
+import logging
 from typing import Optional
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 # Import database utilities
 import sys
@@ -33,33 +37,38 @@ def initialize_quizzes():
             
         pg_manager = get_postgres_manager()
         
-        query = """
-        SELECT quiz_id, title, description, concept_id, lesson_id, 
-               passing_score, time_limit_minutes, max_attempts, is_published,
-               created_at, updated_at
-        FROM jeseci_academy.quizzes
-        ORDER BY created_at DESC
-        """
-        
-        result = pg_manager.execute_query(query)
-        
-        quizzes_cache = {}
-        if result:
-            for row in result:
-                quiz_id = row.get('quiz_id')
-                quizzes_cache[quiz_id] = {
-                    "quiz_id": quiz_id,
-                    "title": row.get('title'),
-                    "description": row.get('description'),
-                    "course_id": row.get('concept_id') or row.get('lesson_id'),
-                    "difficulty": row.get('passing_score', 70) >= 70 and "intermediate" or "beginner",
-                    "questions_count": 0,  # Would need QuizQuestion table for this
-                    "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
-                    "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None
-                }
-        
-        cache_initialized = True
-        return quizzes_cache
+        try:
+            query = """
+            SELECT quiz_id, title, description, concept_id, lesson_id, 
+                   passing_score, time_limit_minutes, max_attempts, is_published,
+                   created_at, updated_at
+            FROM jeseci_academy.quizzes
+            ORDER BY created_at DESC
+            """
+            
+            result = pg_manager.execute_query(query)
+            
+            quizzes_cache = {}
+            if result:
+                for row in result:
+                    quiz_id = row.get('quiz_id')
+                    quizzes_cache[quiz_id] = {
+                        "quiz_id": quiz_id,
+                        "title": row.get('title'),
+                        "description": row.get('description'),
+                        "course_id": row.get('concept_id') or row.get('lesson_id'),
+                        "difficulty": row.get('passing_score', 70) >= 70 and "intermediate" or "beginner",
+                        "questions_count": 0,  # Would need QuizQuestion table for this
+                        "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+                        "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None
+                    }
+            
+            cache_initialized = True
+            return quizzes_cache
+        except Exception as e:
+            logger.error(f"Error initializing quizzes: {e}")
+            cache_initialized = False
+            return {}
 
 def get_all_quizzes():
     """Get all quizzes from PostgreSQL"""
@@ -85,12 +94,16 @@ def create_quiz(title, description, course_id, difficulty):
     
     insert_query = """
     INSERT INTO jeseci_academy.quizzes 
-    (quiz_id, title, description, concept_id, passing_score, max_attempts, is_published, created_at)
-    VALUES (%s, %s, %s, %s, %s, 3, true, NOW())
+    (quiz_id, title, description, concept_id, lesson_id, passing_score, max_attempts, is_published, time_limit_minutes, created_at)
+    VALUES (%s, %s, %s, %s, %s, %s, 3, true, %s, NOW())
     """
     
-    result = pg_manager.execute_query(insert_query, 
-        (quiz_id, title, description, course_id or None, passing_score), fetch=False)
+    try:
+        result = pg_manager.execute_query(insert_query, 
+            (quiz_id, title, description, course_id or None, None, passing_score, 30), fetch=False)
+    except Exception as e:
+        logger.error(f"Error creating quiz: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         # Invalidate cache
@@ -117,7 +130,11 @@ def update_quiz(quiz_id, title="", description="", difficulty=""):
     
     # Check if quiz exists
     check_query = "SELECT quiz_id FROM jeseci_academy.quizzes WHERE quiz_id = %s"
-    existing = pg_manager.execute_query(check_query, (quiz_id,))
+    try:
+        existing = pg_manager.execute_query(check_query, (quiz_id,))
+    except Exception as e:
+        logger.error(f"Error checking quiz existence: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if not existing:
         return {"success": False, "error": "Quiz not found"}
@@ -149,7 +166,11 @@ def update_quiz(quiz_id, title="", description="", difficulty=""):
     WHERE quiz_id = %s
     """
     
-    result = pg_manager.execute_query(update_query, params, fetch=False)
+    try:
+        result = pg_manager.execute_query(update_query, params, fetch=False)
+    except Exception as e:
+        logger.error(f"Error updating quiz: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         global cache_initialized
@@ -163,13 +184,21 @@ def delete_quiz(quiz_id):
     pg_manager = get_postgres_manager()
     
     check_query = "SELECT quiz_id FROM jeseci_academy.quizzes WHERE quiz_id = %s"
-    existing = pg_manager.execute_query(check_query, (quiz_id,))
+    try:
+        existing = pg_manager.execute_query(check_query, (quiz_id,))
+    except Exception as e:
+        logger.error(f"Error checking quiz existence for delete: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if not existing:
         return {"success": False, "error": "Quiz not found"}
     
     delete_query = "DELETE FROM jeseci_academy.quizzes WHERE quiz_id = %s"
-    result = pg_manager.execute_query(delete_query, (quiz_id,), fetch=False)
+    try:
+        result = pg_manager.execute_query(delete_query, (quiz_id,), fetch=False)
+    except Exception as e:
+        logger.error(f"Error deleting quiz: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         global cache_initialized
@@ -184,7 +213,11 @@ def record_quiz_attempt(quiz_id, user_id, score, total_questions, correct_answer
     
     # Check if quiz exists
     check_query = "SELECT passing_score FROM jeseci_academy.quizzes WHERE quiz_id = %s"
-    quiz_result = pg_manager.execute_query(check_query, (quiz_id,))
+    try:
+        quiz_result = pg_manager.execute_query(check_query, (quiz_id,))
+    except Exception as e:
+        logger.error(f"Error checking quiz existence for attempt: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if not quiz_result:
         return {"success": False, "error": "Quiz not found"}
@@ -199,8 +232,12 @@ def record_quiz_attempt(quiz_id, user_id, score, total_questions, correct_answer
     VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
     """
     
-    result = pg_manager.execute_query(insert_query, 
-        (user_id, quiz_id, score, total_questions, correct_answers, time_taken_seconds, is_passed), fetch=False)
+    try:
+        result = pg_manager.execute_query(insert_query, 
+            (user_id, quiz_id, score, total_questions, correct_answers, time_taken_seconds, is_passed), fetch=False)
+    except Exception as e:
+        logger.error(f"Error recording quiz attempt: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         return {"success": True, "attempt_id": quiz_id, "is_passed": is_passed}
@@ -213,8 +250,12 @@ def get_quiz_analytics():
     
     # Get total quizzes
     count_query = "SELECT COUNT(*) as count FROM jeseci_academy.quizzes"
-    count_result = pg_manager.execute_query(count_query)
-    total_quizzes = count_result[0].get('count', 0) if count_result else 0
+    try:
+        count_result = pg_manager.execute_query(count_query)
+        total_quizzes = count_result[0].get('count', 0) if count_result else 0
+    except Exception as e:
+        logger.error(f"Error getting quiz count: {e}")
+        total_quizzes = 0
     
     # Get total attempts and average score
     attempts_query = """
@@ -223,7 +264,11 @@ def get_quiz_analytics():
            SUM(CASE WHEN is_passed = true THEN 1 ELSE 0 END) as passed_count
     FROM jeseci_academy.quiz_attempts
     """
-    attempts_result = pg_manager.execute_query(attempts_query)
+    try:
+        attempts_result = pg_manager.execute_query(attempts_query)
+    except Exception as e:
+        logger.error(f"Error getting quiz attempts: {e}")
+        attempts_result = None
     
     total_attempts = attempts_result[0].get('total_attempts', 0) if attempts_result else 0
     average_score = attempts_result[0].get('avg_score', 0) if attempts_result else 0

@@ -284,7 +284,7 @@ class Neo4jManager:
         Create or update a User node in Neo4j graph.
         
         Args:
-            user_id: PostgreSQL user.id (INTEGER)
+            user_id: PostgreSQL user.id (INTEGER) - converted to string for Neo4j
             username: Unique username
             email: User email
             first_name: First name
@@ -298,7 +298,7 @@ class Neo4jManager:
             True if successful, False otherwise
         """
         query = """
-        MERGE (u:User {user_id: $user_id})
+        MERGE (u:User {user_id: toString($user_id)})
         SET u.username = $username,
             u.email = $email,
             u.first_name = $first_name,
@@ -342,7 +342,7 @@ class Neo4jManager:
             True if successful, False otherwise
         """
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         MERGE (c:Concept {concept_id: $concept_id})
         MERGE (u)-[r:COMPLETED_CONCEPT]->(c)
         SET r.progress_percent = $progress_percent,
@@ -377,7 +377,7 @@ class Neo4jManager:
             True if successful, False otherwise
         """
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         MERGE (p:LearningPath {path_id: $path_id})
         MERGE (u)-[r:ENROLLED_IN]->(p)
         SET r.progress_percent = $progress_percent,
@@ -409,7 +409,7 @@ class Neo4jManager:
             True if successful, False otherwise
         """
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         MERGE (q:Quiz {quiz_id: $quiz_id})
         MERGE (u)-[r:ATTEMPTED_QUIZ]->(q)
         SET r.score = $score,
@@ -439,7 +439,7 @@ class Neo4jManager:
             True if successful, False otherwise
         """
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         MERGE (a:Achievement {achievement_id: $achievement_id})
         MERGE (u)-[r:EARNED]->(a)
         SET r.earned_at = datetime()
@@ -465,7 +465,7 @@ class Neo4jManager:
             List of similar users with similarity score
         """
         query = """
-        MATCH (target:User {user_id: $user_id})-[:COMPLETED_CONCEPT]->(c:Concept)
+        MATCH (target:User {user_id: toString($user_id)})-[:COMPLETED_CONCEPT]->(c:Concept)
         WITH target, collect(c.concept_id) AS target_concepts
         MATCH (other:User)-[:COMPLETED_CONCEPT]->(c:Concept)
         WHERE other.user_id <> target.user_id
@@ -515,7 +515,7 @@ class Neo4jManager:
             List of users in the same learning path
         """
         query = """
-        MATCH (target:User {user_id: $user_id})-[:ENROLLED_IN]->(p:LearningPath {path_id: $path_id})
+        MATCH (target:User {user_id: toString($user_id)})-[:ENROLLED_IN]->(p:LearningPath {path_id: $path_id})
         MATCH (other:User)-[:ENROLLED_IN]->(p)
         WHERE other.user_id <> target.user_id
         RETURN other.user_id AS user_id,
@@ -551,7 +551,7 @@ class Neo4jManager:
             True if successful, False otherwise
         """
         query = """
-        MATCH (u:User {user_id: $user_id})
+        MATCH (u:User {user_id: toString($user_id)})
         DETACH DELETE u
         """
         result = self.execute_query(query, {"user_id": user_id})

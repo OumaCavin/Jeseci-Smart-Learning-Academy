@@ -6,7 +6,11 @@
 import os
 import threading
 import datetime
+import logging
 from typing import Optional
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 # Import database utilities
 import sys
@@ -37,32 +41,37 @@ def initialize_courses():
             
         pg_manager = get_postgres_manager()
         
-        query = """
-        SELECT path_id, name, title, category, difficulty, 
-               estimated_duration, description, is_published, created_at, updated_at
-        FROM jeseci_academy.learning_paths
-        ORDER BY created_at DESC
-        """
-        
-        result = pg_manager.execute_query(query)
-        
-        courses_cache = {}
-        if result:
-            for row in result:
-                path_id = row.get('path_id')
-                courses_cache[path_id] = {
-                    "course_id": path_id,
-                    "title": row.get('title'),
-                    "description": row.get('description'),
-                    "domain": row.get('category') or "",
-                    "difficulty": row.get('difficulty') or "beginner",
-                    "content_type": "interactive",
-                    "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
-                    "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None
-                }
-        
-        courses_initialized = True
-        return courses_cache
+        try:
+            query = """
+            SELECT path_id, name, title, category, difficulty, 
+                   estimated_duration, description, is_published, created_at, updated_at
+            FROM jeseci_academy.learning_paths
+            ORDER BY created_at DESC
+            """
+            
+            result = pg_manager.execute_query(query)
+            
+            courses_cache = {}
+            if result:
+                for row in result:
+                    path_id = row.get('path_id')
+                    courses_cache[path_id] = {
+                        "course_id": path_id,
+                        "title": row.get('title'),
+                        "description": row.get('description'),
+                        "domain": row.get('category') or "",
+                        "difficulty": row.get('difficulty') or "beginner",
+                        "content_type": "interactive",
+                        "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+                        "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None
+                    }
+            
+            courses_initialized = True
+            return courses_cache
+        except Exception as e:
+            logger.error(f"Error initializing courses: {e}")
+            courses_initialized = False
+            return {}
 
 def get_all_courses():
     """Get all courses from PostgreSQL"""
@@ -90,8 +99,12 @@ def create_course(title, description, domain, difficulty, content_type="interact
     VALUES (%s, %s, %s, %s, %s, %s, true, NOW())
     """
     
-    result = pg_manager.execute_query(insert_query, 
-        (course_id, name, title, domain, difficulty, description), fetch=False)
+    try:
+        result = pg_manager.execute_query(insert_query, 
+            (course_id, name, title, domain, difficulty, description), fetch=False)
+    except Exception as e:
+        logger.error(f"Error creating course: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         # Invalidate cache
@@ -118,7 +131,11 @@ def update_course(course_id, title="", description="", domain="", difficulty="")
     
     # Check if course exists
     check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = %s"
-    existing = pg_manager.execute_query(check_query, (course_id,))
+    try:
+        existing = pg_manager.execute_query(check_query, (course_id,))
+    except Exception as e:
+        logger.error(f"Error checking course existence: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if not existing:
         return {"success": False, "error": "Course not found"}
@@ -152,7 +169,11 @@ def update_course(course_id, title="", description="", domain="", difficulty="")
     WHERE path_id = %s
     """
     
-    result = pg_manager.execute_query(update_query, params, fetch=False)
+    try:
+        result = pg_manager.execute_query(update_query, params, fetch=False)
+    except Exception as e:
+        logger.error(f"Error updating course: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         global courses_initialized
@@ -166,13 +187,21 @@ def delete_course(course_id):
     pg_manager = get_postgres_manager()
     
     check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = %s"
-    existing = pg_manager.execute_query(check_query, (course_id,))
+    try:
+        existing = pg_manager.execute_query(check_query, (course_id,))
+    except Exception as e:
+        logger.error(f"Error checking course existence for delete: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if not existing:
         return {"success": False, "error": "Course not found"}
     
     delete_query = "DELETE FROM jeseci_academy.learning_paths WHERE path_id = %s"
-    result = pg_manager.execute_query(delete_query, (course_id,), fetch=False)
+    try:
+        result = pg_manager.execute_query(delete_query, (course_id,), fetch=False)
+    except Exception as e:
+        logger.error(f"Error deleting course: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         global courses_initialized
@@ -189,24 +218,69 @@ def initialize_concepts():
     """Initialize concepts from Neo4j graph database"""
     neo4j_manager = get_neo4j_manager()
     
-    query = """
-    MATCH (c:Concept)
-    RETURN c.concept_id AS concept_id, c.name AS name, c.display_name AS display_name,
-           c.category AS category, c.subcategory AS subcategory, c.difficulty_level AS difficulty_level,
-           c.complexity_score AS complexity_score, c.cognitive_load AS cognitive_load,
-           c.domain AS domain, c.description AS description, c.icon AS icon,
-           c.key_terms AS key_terms, c.synonyms AS synonyms
-    ORDER BY c.name
-    """
+    try:
+        query = """
+        MATCH (c:Concept)
+        RETURN c.concept_id AS concept_id, c.name AS name, c.display_name AS display_name,
+               c.category AS category, c.subcategory AS subcategory, c.difficulty_level AS difficulty_level,
+               c.complexity_score AS complexity_score, c.cognitive_load AS cognitive_load,
+               c.domain AS domain, c.description AS description, c.icon AS icon,
+               c.key_terms AS key_terms, c.synonyms AS synonyms
+        ORDER BY c.name
+        """
+        
+        result = neo4j_manager.execute_query(query)
+        
+        concepts = {}
+        if result:
+            for row in result:
+                concept_id = row.get('concept_id')
+                concepts[concept_id] = {
+                    "concept_id": concept_id,
+                    "name": row.get('name'),
+                    "display_name": row.get('display_name') or row.get('name'),
+                    "category": row.get('category') or "",
+                    "subcategory": row.get('subcategory') or "",
+                    "difficulty_level": row.get('difficulty_level') or "beginner",
+                    "complexity_score": row.get('complexity_score') or 0,
+                    "cognitive_load": row.get('cognitive_load') or 0,
+                    "domain": row.get('domain') or "",
+                    "description": row.get('description') or "",
+                    "icon": row.get('icon') or "default",
+                    "key_terms": row.get('key_terms') or [],
+                    "synonyms": row.get('synonyms') or []
+                }
+        
+        return concepts
+    except Exception as e:
+        logger.error(f"Error initializing concepts: {e}")
+        return {}
+
+def get_all_concepts():
+    """Get all concepts from Neo4j as a list"""
+    concepts_dict = initialize_concepts()
+    return list(concepts_dict.values())
+
+def get_concept_by_id(concept_id):
+    """Get a specific concept from Neo4j"""
+    neo4j_manager = get_neo4j_manager()
     
-    result = neo4j_manager.execute_query(query)
-    
-    concepts = {}
-    if result:
-        for row in result:
-            concept_id = row.get('concept_id')
-            concepts[concept_id] = {
-                "concept_id": concept_id,
+    try:
+        query = """
+        MATCH (c:Concept {concept_id: $concept_id})
+        RETURN c.concept_id AS concept_id, c.name AS name, c.display_name AS display_name,
+               c.category AS category, c.subcategory AS subcategory, c.difficulty_level AS difficulty_level,
+               c.complexity_score AS complexity_score, c.cognitive_load AS cognitive_load,
+               c.domain AS domain, c.description AS description, c.icon AS icon,
+               c.key_terms AS key_terms, c.synonyms AS synonyms
+        """
+        
+        result = neo4j_manager.execute_query(query, {"concept_id": concept_id})
+        
+        if result and len(result) > 0:
+            row = result[0]
+            return {
+                "concept_id": row.get('concept_id'),
                 "name": row.get('name'),
                 "display_name": row.get('display_name') or row.get('name'),
                 "category": row.get('category') or "",
@@ -220,48 +294,11 @@ def initialize_concepts():
                 "key_terms": row.get('key_terms') or [],
                 "synonyms": row.get('synonyms') or []
             }
-    
-    return concepts
-
-def get_all_concepts():
-    """Get all concepts from Neo4j as a list"""
-    concepts_dict = initialize_concepts()
-    return list(concepts_dict.values())
-
-def get_concept_by_id(concept_id):
-    """Get a specific concept from Neo4j"""
-    neo4j_manager = get_neo4j_manager()
-    
-    query = """
-    MATCH (c:Concept {concept_id: $concept_id})
-    RETURN c.concept_id AS concept_id, c.name AS name, c.display_name AS display_name,
-           c.category AS category, c.subcategory AS subcategory, c.difficulty_level AS difficulty_level,
-           c.complexity_score AS complexity_score, c.cognitive_load AS cognitive_load,
-           c.domain AS domain, c.description AS description, c.icon AS icon,
-           c.key_terms AS key_terms, c.synonyms AS synonyms
-    """
-    
-    result = neo4j_manager.execute_query(query, {"concept_id": concept_id})
-    
-    if result and len(result) > 0:
-        row = result[0]
-        return {
-            "concept_id": row.get('concept_id'),
-            "name": row.get('name'),
-            "display_name": row.get('display_name') or row.get('name'),
-            "category": row.get('category') or "",
-            "subcategory": row.get('subcategory') or "",
-            "difficulty_level": row.get('difficulty_level') or "beginner",
-            "complexity_score": row.get('complexity_score') or 0,
-            "cognitive_load": row.get('cognitive_load') or 0,
-            "domain": row.get('domain') or "",
-            "description": row.get('description') or "",
-            "icon": row.get('icon') or "default",
-            "key_terms": row.get('key_terms') or [],
-            "synonyms": row.get('synonyms') or []
-        }
-    
-    return None
+        
+        return None
+    except Exception as e:
+        logger.error(f"Error getting concept by ID: {e}")
+        return None
 
 def create_concept(name, display_name, category, difficulty_level, domain, description="", icon=""):
     """Create a new concept in Neo4j"""
@@ -283,16 +320,20 @@ def create_concept(name, display_name, category, difficulty_level, domain, descr
     RETURN c.concept_id AS concept_id
     """
     
-    result = neo4j_manager.execute_write(query, {
-        "concept_id": concept_id,
-        "name": name,
-        "display_name": display_name or name,
-        "category": category,
-        "difficulty_level": difficulty_level,
-        "domain": domain,
-        "description": description,
-        "icon": icon or "default"
-    })
+    try:
+        result = neo4j_manager.execute_write(query, {
+            "concept_id": concept_id,
+            "name": name,
+            "display_name": display_name or name,
+            "category": category,
+            "difficulty_level": difficulty_level,
+            "domain": domain,
+            "description": description,
+            "icon": icon or "default"
+        })
+    except Exception as e:
+        logger.error(f"Error creating concept: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result:
         new_concept = {
@@ -313,27 +354,31 @@ def get_concept_relationships(concept_id):
     """Get all relationships for a concept from Neo4j"""
     neo4j_manager = get_neo4j_manager()
     
-    query = """
-    MATCH (c:Concept {concept_id: $concept_id})
-    OPTIONAL MATCH (c)-[r:PREREQUISITE]->(prereq:Concept)
-    OPTIONAL MATCH (c)-[:RELATED_TO]->(related:Concept)
-    OPTIONAL MATCH (c)<-[:PREREQUISITE]-(depends:Concept)
-    RETURN c,
-           collect(DISTINCT {id: prereq.concept_id, name: prereq.name, type: 'prerequisite'}) AS prerequisites,
-           collect(DISTINCT {id: related.concept_id, name: related.name, type: 'related'}) AS related,
-           collect(DISTINCT {id: depends.concept_id, name: depends.name, type: 'depends_on'}) AS depends_on
-    """
-    
-    result = neo4j_manager.execute_query(query, {"concept_id": concept_id})
-    
-    if result and len(result) > 0:
-        return {
-            "prerequisites": result[0].get('prerequisites', []),
-            "related": result[0].get('related', []),
-            "depends_on": result[0].get('depends_on', [])
-        }
-    
-    return {"prerequisites": [], "related": [], "depends_on": []}
+    try:
+        query = """
+        MATCH (c:Concept {concept_id: $concept_id})
+        OPTIONAL MATCH (c)-[r:PREREQUISITE]->(prereq:Concept)
+        OPTIONAL MATCH (c)-[:RELATED_TO]->(related:Concept)
+        OPTIONAL MATCH (c)<-[:PREREQUISITE]-(depends:Concept)
+        RETURN c,
+               collect(DISTINCT {id: prereq.concept_id, name: prereq.name, type: 'prerequisite'}) AS prerequisites,
+               collect(DISTINCT {id: related.concept_id, name: related.name, type: 'related'}) AS related,
+               collect(DISTINCT {id: depends.concept_id, name: depends.name, type: 'depends_on'}) AS depends_on
+        """
+        
+        result = neo4j_manager.execute_query(query, {"concept_id": concept_id})
+        
+        if result and len(result) > 0:
+            return {
+                "prerequisites": result[0].get('prerequisites', []),
+                "related": result[0].get('related', []),
+                "depends_on": result[0].get('depends_on', [])
+            }
+        
+        return {"prerequisites": [], "related": [], "depends_on": []}
+    except Exception as e:
+        logger.error(f"Error getting concept relationships: {e}")
+        return {"prerequisites": [], "related": [], "depends_on": []}
 
 def add_concept_relationship(source_id, target_id, relationship_type, strength=1):
     """Add a relationship between two concepts in Neo4j"""
@@ -351,11 +396,15 @@ def add_concept_relationship(source_id, target_id, relationship_type, strength=1
     RETURN a.name, type(r), b.name
     """
     
-    result = neo4j_manager.execute_write(query, {
-        "source_id": source_id,
-        "target_id": target_id,
-        "strength": strength
-    })
+    try:
+        result = neo4j_manager.execute_write(query, {
+            "source_id": source_id,
+            "target_id": target_id,
+            "strength": strength
+        })
+    except Exception as e:
+        logger.error(f"Error adding concept relationship: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result:
         return {"success": True, "message": f"Relationship {relationship_type} created"}
@@ -381,35 +430,40 @@ def initialize_paths():
         
         # Query without concept_count since it doesn't exist in the schema
         # We'll get concept_count from a separate count query if needed
-        query = """
-        SELECT path_id, name, title, category, difficulty, 
-               estimated_duration, description, created_at,
-               target_audience
-        FROM jeseci_academy.learning_paths
-        ORDER BY created_at DESC
-        """
-        
-        result = pg_manager.execute_query(query)
-        
-        paths_cache = {}
-        if result:
-            for row in result:
-                path_id = row.get('path_id')
-                paths_cache[path_id] = {
-                    "path_id": path_id,
-                    "title": row.get('title'),
-                    "description": row.get('description'),
-                    "courses": [],
-                    "concepts": [],
-                    "difficulty": row.get('difficulty') or "beginner",
-                    "total_modules": 0,  # Default since concept_count column doesn't exist
-                    "duration": str(row.get('estimated_duration') or 0) + " minutes",
-                    "target_audience": row.get('target_audience') or "",
-                    "concept_count": 0  # Default since concept_count column doesn't exist
-                }
-        
-        paths_initialized = True
-        return paths_cache
+        try:
+            query = """
+            SELECT path_id, name, title, category, difficulty, 
+                   estimated_duration, description, created_at,
+                   target_audience
+            FROM jeseci_academy.learning_paths
+            ORDER BY created_at DESC
+            """
+            
+            result = pg_manager.execute_query(query)
+            
+            paths_cache = {}
+            if result:
+                for row in result:
+                    path_id = row.get('path_id')
+                    paths_cache[path_id] = {
+                        "path_id": path_id,
+                        "title": row.get('title'),
+                        "description": row.get('description'),
+                        "courses": [],
+                        "concepts": [],
+                        "difficulty": row.get('difficulty') or "beginner",
+                        "total_modules": 0,  # Default since concept_count column doesn't exist
+                        "duration": str(row.get('estimated_duration') or 0) + " minutes",
+                        "target_audience": row.get('target_audience') or "",
+                        "concept_count": 0  # Default since concept_count column doesn't exist
+                    }
+            
+            paths_initialized = True
+            return paths_cache
+        except Exception as e:
+            logger.error(f"Error initializing paths: {e}")
+            paths_initialized = False
+            return {}
 
 def get_all_paths():
     """Get all learning paths"""
@@ -451,8 +505,12 @@ def create_path(title, description, courses, concepts, difficulty, duration):
     VALUES (%s, %s, %s, %s, %s, %s, %s, true, NOW())
     """
     
-    result = pg_manager.execute_query(insert_query, 
-        (path_id, name, title, "Learning Path", difficulty, duration_minutes, description), fetch=False)
+    try:
+        result = pg_manager.execute_query(insert_query, 
+            (path_id, name, title, "Learning Path", difficulty, duration_minutes, description), fetch=False)
+    except Exception as e:
+        logger.error(f"Error creating learning path: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         # Invalidate cache
@@ -488,10 +546,14 @@ def get_recommended_concepts(user_id, completed_concept_ids, limit=5):
     LIMIT $limit
     """
     
-    result = neo4j_manager.execute_query(query, {
-        "completed_ids": completed_concept_ids or [],
-        "limit": limit
-    })
+    try:
+        result = neo4j_manager.execute_query(query, {
+            "completed_ids": completed_concept_ids or [],
+            "limit": limit
+        })
+    except Exception as e:
+        logger.error(f"Error getting recommended concepts: {e}")
+        return []
     
     recommendations = []
     for row in result or []:

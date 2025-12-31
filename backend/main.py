@@ -817,7 +817,7 @@ async def get_graph_concepts():
     query = """
     MATCH (c:Concept)
     RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-           c.category AS category, c.difficulty AS difficulty,
+           c.category AS category, c.difficulty_level AS difficulty_level,
            c.description AS description, c.estimated_duration AS duration,
            c.prerequisites_count AS prereq_count
     ORDER BY c.name
@@ -891,14 +891,14 @@ async def get_graph_recommendations(user_id: str, limit: int = Query(default=5, 
     manager = db_module.get_neo4j_manager()
     
     query = """
-    MATCH (u:User {user_id: $user_id})
+    MATCH (u:User {user_id: toString($user_id)})
     MATCH (c:Concept)
     WHERE NOT (u)-[:Completed]->(c)
     OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
     WITH c, collect(DISTINCT prereq.concept_id) AS prereqs
     WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
     RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-           c.category AS category, c.difficulty AS difficulty,
+           c.category AS category, c.difficulty_level AS difficulty_level,
            c.estimated_duration AS duration, size(prereqs) AS prereq_count
     LIMIT $limit
     """

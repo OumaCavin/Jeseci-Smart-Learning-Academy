@@ -804,16 +804,27 @@ walker chat {
 
 walker graph_init {
     can graph_init with entry {
-        import from python { PyModule }
-        result = db_module.test_all_connections();
-        
-        report {
-            "success": True,
-            "graph_engine": "initialized",
-            "neo4j_connected": result['neo4j'],
-            "postgresql_connected": result['postgresql'],
-            "message": "Graph Knowledge Engine ready"
-        };
+        try {
+            import from python { PyModule }
+            result = db_module.test_all_connections();
+            
+            report {
+                "success": True,
+                "graph_engine": "initialized",
+                "neo4j_connected": result['neo4j'],
+                "postgresql_connected": result['postgresql'],
+                "message": "Graph Knowledge Engine ready"
+            };
+        } except as e {
+            print("Error initializing graph: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize graph engine: " + str(e),
+                "graph_engine": "error",
+                "neo4j_connected": False,
+                "postgresql_connected": False
+            };
+        }
     }
 }
 
@@ -823,25 +834,36 @@ walker graph_init {
 
 walker graph_concepts {
     can graph_concepts with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        query = """
-        MATCH (c:Concept)
-        RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-               c.category AS category, c.difficulty AS difficulty,
-               c.description AS description, c.estimated_duration AS duration,
-               c.prerequisites_count AS prereq_count
-        ORDER BY c.name
-        """;
-        
-        result = manager.execute_query(query, None);
-        
-        report {
-            "success": True,
-            "concepts": result or [],
-            "count": len(result) if result else 0,
-            "source": "graph_database"
-        };
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            query = """
+            MATCH (c:Concept)
+            RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
+                   c.category AS category, c.difficulty_level AS difficulty_level,
+                   c.description AS description, c.estimated_duration AS duration,
+                   c.prerequisites_count AS prereq_count
+            ORDER BY c.name
+            """;
+            
+            result = manager.execute_query(query, None);
+            
+            report {
+                "success": True,
+                "concepts": result or [],
+                "count": len(result) if result else 0,
+                "source": "graph_database"
+            };
+        } except as e {
+            print("Error fetching graph concepts: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to fetch concepts: " + str(e),
+                "concepts": [],
+                "count": 0,
+                "source": "graph_database"
+            };
+        }
     }
 }
 
@@ -849,44 +871,53 @@ walker graph_concept_detail {
     has concept_id: str;
     
     can graph_concept_detail with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        query = """
-        MATCH (c:Concept {concept_id: $concept_id})
-        OPTIONAL MATCH (c)-[r:PREREQUISITE]->(prereq:Concept)
-        OPTIONAL MATCH (c)-[:RELATED_TO]->(related:Concept)
-        OPTIONAL MATCH (c)<-[:PREREQUISITE]-(depends_on:Concept)
-        RETURN c,
-               collect(DISTINCT {id: prereq.concept_id, name: prereq.name, type: 'prerequisite'}) AS prerequisites,
-               collect(DISTINCT {id: related.concept_id, name: related.name, type: 'related'}) AS related,
-               collect(DISTINCT {id: depends_on.concept_id, name: depends_on.name, type: 'depends_on'}) AS depends_on
-        """;
-        
-        result = manager.execute_query(query, {"concept_id": self.concept_id});
-        
-        if result and result[0] {
-            c = result[0]['c'];
-            concept_data = {
-                "id": c['concept_id'],
-                "name": c['name'],
-                "display_name": c['display_name'],
-                "category": c['category'],
-                "difficulty": c['difficulty'],
-                "description": c['description'],
-                "duration": c['estimated_duration'],
-                "prerequisites": result[0]['prerequisites'],
-                "related": result[0]['related'],
-                "depends_on": result[0]['depends_on']
-            };
+        try {
+            manager = db_module.get_neo4j_manager();
             
-            report {
-                "success": True,
-                "concept": concept_data
-            };
-        } else {
+            query = """
+            MATCH (c:Concept {concept_id: $concept_id})
+            OPTIONAL MATCH (c)-[r:PREREQUISITE]->(prereq:Concept)
+            OPTIONAL MATCH (c)-[:RELATED_TO]->(related:Concept)
+            OPTIONAL MATCH (c)<-[:PREREQUISITE]-(depends_on:Concept)
+            RETURN c,
+                   collect(DISTINCT {id: prereq.concept_id, name: prereq.name, type: 'prerequisite'}) AS prerequisites,
+                   collect(DISTINCT {id: related.concept_id, name: related.name, type: 'related'}) AS related,
+                   collect(DISTINCT {id: depends_on.concept_id, name: depends_on.name, type: 'depends_on'}) AS depends_on
+            """;
+            
+            result = manager.execute_query(query, {"concept_id": self.concept_id});
+            
+            if result and result[0] {
+                c = result[0]['c'];
+                concept_data = {
+                    "id": c['concept_id'],
+                    "name": c['name'],
+                    "display_name": c['display_name'],
+                    "category": c['category'],
+                    "difficulty": c['difficulty_level'],
+                    "description": c['description'],
+                    "duration": c['estimated_duration'],
+                    "prerequisites": result[0]['prerequisites'],
+                    "related": result[0]['related'],
+                    "depends_on": result[0]['depends_on']
+                };
+                
+                report {
+                    "success": True,
+                    "concept": concept_data
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": "Concept not found",
+                    "concept_id": self.concept_id
+                };
+            }
+        } except as e {
+            print("Error fetching concept detail: " + str(e));
             report {
                 "success": False,
-                "error": "Concept not found",
+                "error": "Failed to fetch concept detail: " + str(e),
                 "concept_id": self.concept_id
             };
         }
@@ -899,26 +930,37 @@ walker graph_concept_detail {
 
 walker graph_paths {
     can graph_paths with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        query = """
-        MATCH (p:LearningPath)
-        OPTIONAL MATCH (p)-[:PathContains]->(c:Concept)
-        WITH p, count(c) AS concept_count
-        RETURN p.path_id AS id, p.name AS name, p.title AS title, p.description AS description,
-               p.difficulty AS difficulty, p.estimated_duration AS duration,
-               p.concept_count AS total_concepts, concept_count
-        ORDER BY p.name
-        """;
-        
-        result = manager.execute_query(query, None);
-        
-        report {
-            "success": True,
-            "paths": result or [],
-            "count": len(result) if result else 0,
-            "source": "graph_database"
-        };
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            query = """
+            MATCH (p:LearningPath)
+            OPTIONAL MATCH (p)-[:PathContains]->(c:Concept)
+            WITH p, count(c) AS concept_count
+            RETURN p.path_id AS id, p.name AS name, p.title AS title, p.description AS description,
+                   p.difficulty AS difficulty, p.estimated_duration AS duration,
+                   p.concept_count AS total_concepts, concept_count
+            ORDER BY p.name
+            """;
+            
+            result = manager.execute_query(query, None);
+            
+            report {
+                "success": True,
+                "paths": result or [],
+                "count": len(result) if result else 0,
+                "source": "graph_database"
+            };
+        } except as e {
+            print("Error fetching graph paths: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to fetch learning paths: " + str(e),
+                "paths": [],
+                "count": 0,
+                "source": "graph_database"
+            };
+        }
     }
 }
 
@@ -926,39 +968,48 @@ walker graph_path_detail {
     has path_id: str;
     
     can graph_path_detail with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        query = """
-        MATCH (p:LearningPath {path_id: $path_id})
-        OPTIONAL MATCH (p)-[r:PathContains]->(c:Concept)
-        WITH p, collect({
-            concept_id: c.concept_id,
-            name: c.name,
-            display_name: c.display_name,
-            category: c.category,
-            difficulty: c.difficulty,
-            order_index: r.order_index,
-            is_required: r.is_required
-        }) AS concepts
-        UNWIND concepts AS c
-        WITH p, c
-        ORDER BY c.order_index
-        RETURN p.path_id AS id, p.name AS name, p.title AS title, p.description AS description,
-               p.difficulty AS difficulty, p.estimated_duration AS duration,
-               collect(c) AS concept_list
-        """;
-        
-        result = manager.execute_query(query, {"path_id": self.path_id});
-        
-        if result and result[0] {
-            report {
-                "success": True,
-                "path": result[0]
-            };
-        } else {
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            query = """
+            MATCH (p:LearningPath {path_id: $path_id})
+            OPTIONAL MATCH (p)-[r:PathContains]->(c:Concept)
+            WITH p, collect({
+                concept_id: c.concept_id,
+                name: c.name,
+                display_name: c.display_name,
+                category: c.category,
+                difficulty: c.difficulty_level,
+                order_index: r.order_index,
+                is_required: r.is_required
+            }) AS concepts
+            UNWIND concepts AS c
+            WITH p, c
+            ORDER BY c.order_index
+            RETURN p.path_id AS id, p.name AS name, p.title AS title, p.description AS description,
+                   p.difficulty AS difficulty, p.estimated_duration AS duration,
+                   collect(c) AS concept_list
+            """;
+            
+            result = manager.execute_query(query, {"path_id": self.path_id});
+            
+            if result and result[0] {
+                report {
+                    "success": True,
+                    "path": result[0]
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": "Path not found",
+                    "path_id": self.path_id
+                };
+            }
+        } except as e {
+            print("Error fetching path detail: " + str(e));
             report {
                 "success": False,
-                "error": "Path not found",
+                "error": "Failed to fetch path detail: " + str(e),
                 "path_id": self.path_id
             };
         }
@@ -973,42 +1024,58 @@ walker graph_user_progress {
     has user_id: str;
     
     can graph_user_progress with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        completed_query = """
-        MATCH (u:User {user_id: $user_id})-[r:Completed]->(c:Concept)
-        RETURN c.concept_id AS id, c.name AS name, c.category AS category,
-               c.difficulty AS difficulty, r.score AS score, r.completed_at AS completed_at
-        ORDER BY r.completed_at DESC
-        """;
-        
-        enrolled_query = """
-        MATCH (u:User {user_id: $user_id})-[r:EnrolledIn]->(p:LearningPath)
-        RETURN p.path_id AS id, p.title AS title, r.progress_percent AS progress,
-               r.status AS status, r.enrolled_at AS enrolled_at
-        """;
-        
-        completed_result = manager.execute_query(completed_query, {"user_id": self.user_id});
-        enrolled_result = manager.execute_query(enrolled_query, {"user_id": self.user_id});
-        
-        stats_query = """
-        MATCH (u:User {user_id: $user_id})-[r:Completed]->(c:Concept)
-        RETURN count(c) AS total_completed, avg(r.score) AS avg_score, sum(r.time_spent) AS total_time
-        """;
-        
-        stats_result = manager.execute_query(stats_query, {"user_id": self.user_id});
-        
-        report {
-            "success": True,
-            "user_id": self.user_id,
-            "completed_concepts": completed_result or [],
-            "enrolled_paths": enrolled_result or [],
-            "statistics": {
-                "total_completed": stats_result[0]['total_completed'] if stats_result else 0,
-                "average_score": stats_result[0]['avg_score'] if stats_result else 0,
-                "total_time_minutes": stats_result[0]['total_time'] if stats_result else 0
-            }
-        };
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            completed_query = """
+            MATCH (u:User {user_id: toString($user_id)})-[r:Completed]->(c:Concept)
+            RETURN c.concept_id AS id, c.name AS name, c.category AS category,
+                   c.difficulty_level AS difficulty_level, r.score AS score, r.completed_at AS completed_at
+            ORDER BY r.completed_at DESC
+            """;
+            
+            enrolled_query = """
+            MATCH (u:User {user_id: toString($user_id)})-[r:EnrolledIn]->(p:LearningPath)
+            RETURN p.path_id AS id, p.title AS title, r.progress_percent AS progress,
+                   r.status AS status, r.enrolled_at AS enrolled_at
+            """;
+            
+            completed_result = manager.execute_query(completed_query, {"user_id": self.user_id});
+            enrolled_result = manager.execute_query(enrolled_query, {"user_id": self.user_id});
+            
+            stats_query = """
+            MATCH (u:User {user_id: toString($user_id)})-[r:Completed]->(c:Concept)
+            RETURN count(c) AS total_completed, avg(r.score) AS avg_score, sum(r.time_spent) AS total_time
+            """;
+            
+            stats_result = manager.execute_query(stats_query, {"user_id": self.user_id});
+            
+            report {
+                "success": True,
+                "user_id": self.user_id,
+                "completed_concepts": completed_result or [],
+                "enrolled_paths": enrolled_result or [],
+                "statistics": {
+                    "total_completed": stats_result[0]['total_completed'] if stats_result else 0,
+                    "average_score": stats_result[0]['avg_score'] if stats_result else 0,
+                    "total_time_minutes": stats_result[0]['total_time'] if stats_result else 0
+                }
+            };
+        } except as e {
+            print("Error fetching user progress: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to fetch user progress: " + str(e),
+                "user_id": self.user_id,
+                "completed_concepts": [],
+                "enrolled_paths": [],
+                "statistics": {
+                    "total_completed": 0,
+                    "average_score": 0,
+                    "total_time_minutes": 0
+                }
+            };
+        }
     }
 }
 
@@ -1019,41 +1086,52 @@ walker graph_complete_concept {
     has time_spent: int = 30;
     
     can graph_complete_concept with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        user_query = """
-        MERGE (u:User {user_id: $user_id})
-        ON CREATE SET u.created_at = timestamp(), u.username = $user_id
-        SET u.last_active = timestamp()
-        """;
-        manager.execute_query(user_query, {"user_id": self.user_id});
-        
-        complete_query = """
-        MATCH (u:User {user_id: $user_id})
-        MATCH (c:Concept {concept_id: $concept_id})
-        MERGE (u)-[r:Completed {
-            completed_at: timestamp(),
-            score: $score,
-            time_spent: $time_spent,
-            attempts: 1
-        }]->(c)
-        RETURN u.user_id, c.name, r.score
-        """;
-        
-        result = manager.execute_query(complete_query, {
-            "user_id": self.user_id,
-            "concept_id": self.concept_id,
-            "score": self.score,
-            "time_spent": self.time_spent
-        });
-        
-        report {
-            "success": result != None,
-            "user_id": self.user_id,
-            "concept_id": self.concept_id,
-            "score": self.score,
-            "message": "Concept marked as completed"
-        };
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            user_query = """
+            MERGE (u:User {user_id: toString($user_id)})
+            ON CREATE SET u.created_at = timestamp(), u.username = $user_id
+            SET u.last_active = timestamp()
+            """;
+            manager.execute_query(user_query, {"user_id": self.user_id});
+            
+            complete_query = """
+            MATCH (u:User {user_id: toString($user_id)})
+            MATCH (c:Concept {concept_id: $concept_id})
+            MERGE (u)-[r:Completed {
+                completed_at: timestamp(),
+                score: $score,
+                time_spent: $time_spent,
+                attempts: 1
+            }]->(c)
+            RETURN u.user_id, c.name, r.score
+            """;
+            
+            result = manager.execute_query(complete_query, {
+                "user_id": self.user_id,
+                "concept_id": self.concept_id,
+                "score": self.score,
+                "time_spent": self.time_spent
+            });
+            
+            report {
+                "success": result != None,
+                "user_id": self.user_id,
+                "concept_id": self.concept_id,
+                "score": self.score,
+                "message": "Concept marked as completed"
+            };
+        } except as e {
+            print("Error completing concept: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to mark concept as completed: " + str(e),
+                "user_id": self.user_id,
+                "concept_id": self.concept_id,
+                "score": self.score
+            };
+        }
     }
 }
 
@@ -1062,32 +1140,43 @@ walker graph_enroll_path {
     has path_id: str;
     
     can graph_enroll_path with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        enroll_query = """
-        MATCH (u:User {user_id: $user_id})
-        MATCH (p:LearningPath {path_id: $path_id})
-        MERGE (u)-[r:EnrolledIn {
-            enrolled_at: timestamp(),
-            status: 'active',
-            progress_percent: 0,
-            started_at: timestamp(),
-            last_accessed: timestamp()
-        }]->(p)
-        RETURN u.user_id, p.title
-        """;
-        
-        result = manager.execute_query(enroll_query, {
-            "user_id": self.user_id,
-            "path_id": self.path_id
-        });
-        
-        report {
-            "success": result != None,
-            "user_id": self.user_id,
-            "path_id": self.path_id,
-            "status": "enrolled"
-        };
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            enroll_query = """
+            MATCH (u:User {user_id: toString($user_id)})
+            MATCH (p:LearningPath {path_id: $path_id})
+            MERGE (u)-[r:EnrolledIn {
+                enrolled_at: timestamp(),
+                status: 'active',
+                progress_percent: 0,
+                started_at: timestamp(),
+                last_accessed: timestamp()
+            }]->(p)
+            RETURN u.user_id, p.title
+            """;
+            
+            result = manager.execute_query(enroll_query, {
+                "user_id": self.user_id,
+                "path_id": self.path_id
+            });
+            
+            report {
+                "success": result != None,
+                "user_id": self.user_id,
+                "path_id": self.path_id,
+                "status": "enrolled"
+            };
+        } except as e {
+            print("Error enrolling in path: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to enroll in learning path: " + str(e),
+                "user_id": self.user_id,
+                "path_id": self.path_id,
+                "status": "error"
+            };
+        }
     }
 }
 
@@ -1100,33 +1189,45 @@ walker graph_recommendations {
     has limit: int = 5;
     
     can graph_recommendations with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        query = """
-        MATCH (u:User {user_id: $user_id})
-        MATCH (c:Concept)
-        WHERE NOT (u)-[:Completed]->(c)
-        OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
-        WITH c, collect(DISTINCT prereq.concept_id) AS prereqs
-        WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
-        RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-               c.category AS category, c.difficulty AS difficulty,
-               c.estimated_duration AS duration, size(prereqs) AS prereq_count
-        LIMIT $limit
-        """;
-        
-        result = manager.execute_query(query, {
-            "user_id": self.user_id,
-            "limit": self.limit
-        });
-        
-        report {
-            "success": True,
-            "user_id": self.user_id,
-            "recommendations": result or [],
-            "count": len(result) if result else 0,
-            "algorithm": "prerequisite_based"
-        };
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            query = """
+            MATCH (u:User {user_id: toString($user_id)})
+            MATCH (c:Concept)
+            WHERE NOT (u)-[:Completed]->(c)
+            OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
+            WITH c, collect(DISTINCT prereq.concept_id) AS prereqs
+            WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
+            RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
+                   c.category AS category, c.difficulty_level AS difficulty_level,
+                   c.estimated_duration AS duration, size(prereqs) AS prereq_count
+            LIMIT $limit
+            """;
+            
+            result = manager.execute_query(query, {
+                "user_id": self.user_id,
+                "limit": self.limit
+            });
+            
+            report {
+                "success": True,
+                "user_id": self.user_id,
+                "recommendations": result or [],
+                "count": len(result) if result else 0,
+                "algorithm": "prerequisite_based"
+            };
+        } except as e {
+            print("Error fetching recommendations: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to fetch recommendations: " + str(e),
+                "user_id": self.user_id,
+                "recommendations": [],
+                "count": 0,
+                "algorithm": "prerequisite_based"
+            };
+        }
     }
 }
 
@@ -1135,34 +1236,45 @@ walker graph_next_concept {
     has path_id: str;
     
     can graph_next_concept with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        query = """
-        MATCH (u:User {user_id: $user_id})
-        MATCH (p:LearningPath {path_id: $path_id})
-        MATCH (p)-[r:PathContains]->(c:Concept)
-        WHERE NOT (u)-[:Completed]->(c)
-        OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
-        WITH c, r, collect(DISTINCT prereq.concept_id) AS prereqs
-        WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
-        WITH c, r
-        ORDER BY r.order_index
-        LIMIT 1
-        RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-               c.category AS category, c.difficulty AS difficulty, r.order_index AS position
-        """;
-        
-        result = manager.execute_query(query, {
-            "user_id": self.user_id,
-            "path_id": self.path_id
-        });
-        
-        report {
-            "success": result != None,
-            "user_id": self.user_id,
-            "path_id": self.path_id,
-            "next_concept": result[0] if result else None
-        };
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            query = """
+            MATCH (u:User {user_id: toString($user_id)})
+            MATCH (p:LearningPath {path_id: $path_id})
+            MATCH (p)-[r:PathContains]->(c:Concept)
+            WHERE NOT (u)-[:Completed]->(c)
+            OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
+            WITH c, r, collect(DISTINCT prereq.concept_id) AS prereqs
+            WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
+            WITH c, r
+            ORDER BY r.order_index
+            LIMIT 1
+            RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
+                   c.category AS category, c.difficulty_level AS difficulty_level, r.order_index AS position
+            """;
+            
+            result = manager.execute_query(query, {
+                "user_id": self.user_id,
+                "path_id": self.path_id
+            });
+            
+            report {
+                "success": result != None,
+                "user_id": self.user_id,
+                "path_id": self.path_id,
+                "next_concept": result[0] if result else None
+            };
+        } except as e {
+            print("Error fetching next concept: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to fetch next concept: " + str(e),
+                "user_id": self.user_id,
+                "path_id": self.path_id,
+                "next_concept": None
+            };
+        }
     }
 }
 
@@ -1174,35 +1286,47 @@ walker graph_learning_journey {
     has user_id: str;
     
     can graph_learning_journey with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        query = """
-        MATCH (u:User {user_id: $user_id})-[r:Completed]->(c:Concept)
-        WITH c, r
-        ORDER BY r.completed_at
-        RETURN c.concept_id AS id, c.name AS name, c.category AS category,
-               c.difficulty AS difficulty, r.score AS score, r.completed_at AS completed_at
-        """;
-        
-        result = manager.execute_query(query, {"user_id": self.user_id});
-        
-        categories = {};
-        for record in (result or []) {
-            cat = record['category'];
-            if cat in categories {
-                categories[cat] = categories[cat] + 1;
-            } else {
-                categories[cat] = 1;
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            query = """
+            MATCH (u:User {user_id: toString($user_id)})-[r:Completed]->(c:Concept)
+            WITH c, r
+            ORDER BY r.completed_at
+            RETURN c.concept_id AS id, c.name AS name, c.category AS category,
+                   c.difficulty_level AS difficulty_level, r.score AS score, r.completed_at AS completed_at
+            """;
+            
+            result = manager.execute_query(query, {"user_id": self.user_id});
+            
+            categories = {};
+            for record in (result or []) {
+                cat = record['category'];
+                if cat in categories {
+                    categories[cat] = categories[cat] + 1;
+                } else {
+                    categories[cat] = 1;
+                }
             }
+            
+            report {
+                "success": result != None,
+                "user_id": self.user_id,
+                "journey": result or [],
+                "count": len(result) if result else 0,
+                "category_distribution": categories
+            };
+        } except as e {
+            print("Error fetching learning journey: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to fetch learning journey: " + str(e),
+                "user_id": self.user_id,
+                "journey": [],
+                "count": 0,
+                "category_distribution": {}
+            };
         }
-        
-        report {
-            "success": result != None,
-            "user_id": self.user_id,
-            "journey": result or [],
-            "count": len(result) if result else 0,
-            "category_distribution": categories
-        };
     }
 }
 
@@ -1210,25 +1334,35 @@ walker graph_popular_concepts {
     has limit: int = 10;
     
     can graph_popular_concepts with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        query = """
-        MATCH (c:Concept)
-        OPTIONAL MATCH (u:User)-[r:Completed]->(c)
-        RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-               c.category AS category, c.difficulty AS difficulty,
-               count(r) AS completion_count, avg(r.score) AS avg_score
-        ORDER BY completion_count DESC
-        LIMIT $limit
-        """;
-        
-        result = manager.execute_query(query, {"limit": self.limit});
-        
-        report {
-            "success": True,
-            "popular_concepts": result or [],
-            "count": len(result) if result else 0
-        };
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            query = """
+            MATCH (c:Concept)
+            OPTIONAL MATCH (u:User)-[r:Completed]->(c)
+            RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
+                   c.category AS category, c.difficulty_level AS difficulty_level,
+                   count(r) AS completion_count, avg(r.score) AS avg_score
+            ORDER BY completion_count DESC
+            LIMIT $limit
+            """;
+            
+            result = manager.execute_query(query, {"limit": self.limit});
+            
+            report {
+                "success": True,
+                "popular_concepts": result or [],
+                "count": len(result) if result else 0
+            };
+        } except as e {
+            print("Error fetching popular concepts: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to fetch popular concepts: " + str(e),
+                "popular_concepts": [],
+                "count": 0
+            };
+        }
     }
 }
 
@@ -1238,110 +1372,135 @@ walker graph_popular_concepts {
 
 walker graph_seed {
     can graph_seed with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        concepts = [
-            {"id": "prog_basics", "name": "programming_basics", "display_name": "Programming Basics", "category": "Programming", "difficulty": "beginner", "duration": 30},
-            {"id": "variables", "name": "variables_data_types", "display_name": "Variables and Data Types", "category": "Programming", "difficulty": "beginner", "duration": 45},
-            {"id": "control_flow", "name": "control_flow", "display_name": "Control Flow", "category": "Programming", "difficulty": "beginner", "duration": 45},
-            {"id": "functions", "name": "functions", "display_name": "Functions", "category": "Programming", "difficulty": "intermediate", "duration": 60},
-            {"id": "data_structures", "name": "data_structures", "display_name": "Data Structures", "category": "Programming", "difficulty": "intermediate", "duration": 90},
-            {"id": "oop", "name": "oop", "display_name": "Object-Oriented Programming", "category": "Programming", "difficulty": "intermediate", "duration": 90},
-            {"id": "algorithms", "name": "algorithms", "display_name": "Algorithms", "category": "Computer Science", "difficulty": "advanced", "duration": 120},
-            {"id": "web_basics", "name": "web_basics", "display_name": "Web Development Basics", "category": "Web Dev", "difficulty": "beginner", "duration": 60},
-            {"id": "databases", "name": "databases", "display_name": "Databases", "category": "Data Management", "difficulty": "intermediate", "duration": 90},
-            {"id": "graph_concepts", "name": "graph_concepts", "display_name": "Graph Concepts", "category": "Computer Science", "difficulty": "advanced", "duration": 90}
-        ];
-        
-        for concept in concepts {
-            create_query = """
-            MERGE (c:Concept {concept_id: $id})
-            SET c.name = $name, c.display_name = $display_name, c.category = $category,
-                c.difficulty = $difficulty, c.difficulty_score = CASE $difficulty
-                    WHEN 'beginner' THEN 1 WHEN 'intermediate' THEN 2 WHEN 'advanced' THEN 3 ELSE 1 END,
-                c.estimated_duration = $duration, c.created_at = timestamp()
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            concepts = [
+                {"id": "prog_basics", "name": "programming_basics", "display_name": "Programming Basics", "category": "Programming", "difficulty_level": "beginner", "estimated_duration": 30},
+                {"id": "variables", "name": "variables_data_types", "display_name": "Variables and Data Types", "category": "Programming", "difficulty_level": "beginner", "estimated_duration": 45},
+                {"id": "control_flow", "name": "control_flow", "display_name": "Control Flow", "category": "Programming", "difficulty_level": "beginner", "estimated_duration": 45},
+                {"id": "functions", "name": "functions", "display_name": "Functions", "category": "Programming", "difficulty_level": "intermediate", "estimated_duration": 60},
+                {"id": "data_structures", "name": "data_structures", "display_name": "Data Structures", "category": "Programming", "difficulty_level": "intermediate", "estimated_duration": 90},
+                {"id": "oop", "name": "oop", "display_name": "Object-Oriented Programming", "category": "Programming", "difficulty_level": "intermediate", "estimated_duration": 90},
+                {"id": "algorithms", "name": "algorithms", "display_name": "Algorithms", "category": "Computer Science", "difficulty_level": "advanced", "estimated_duration": 120},
+                {"id": "web_basics", "name": "web_basics", "display_name": "Web Development Basics", "category": "Web Dev", "difficulty_level": "beginner", "estimated_duration": 60},
+                {"id": "databases", "name": "databases", "display_name": "Databases", "category": "Data Management", "difficulty_level": "intermediate", "estimated_duration": 90},
+                {"id": "graph_concepts", "name": "graph_concepts", "display_name": "Graph Concepts", "category": "Computer Science", "difficulty_level": "advanced", "estimated_duration": 90}
+            ];
+            
+            for concept in concepts {
+                create_query = """
+                MERGE (c:Concept {concept_id: $id})
+                SET c.name = $name, c.display_name = $display_name, c.category = $category,
+                    c.difficulty_level = $difficulty_level, c.difficulty_score = CASE $difficulty_level
+                        WHEN 'beginner' THEN 1 WHEN 'intermediate' THEN 2 WHEN 'advanced' THEN 3 ELSE 1 END,
+                    c.estimated_duration = $estimated_duration, c.created_at = timestamp()
+                """;
+                manager.execute_query(create_query, concept);
+            }
+            
+            prereqs = [
+                {"from": "prog_basics", "to": "variables"},
+                {"from": "variables", "to": "control_flow"},
+                {"from": "control_flow", "to": "functions"},
+                {"from": "functions", "to": "data_structures"},
+                {"from": "data_structures", "to": "oop"},
+                {"from": "oop", "to": "algorithms"},
+                {"from": "prog_basics", "to": "web_basics"},
+                {"from": "variables", "to": "databases"},
+                {"from": "data_structures", "to": "graph_concepts"},
+                {"from": "functions", "to": "web_basics"}
+            ];
+            
+            for prereq in prereqs {
+                rel_query = """
+                MATCH (a:Concept {concept_id: $from})
+                MATCH (b:Concept {concept_id: $to})
+                MERGE (a)-[:PREREQUISITE {strength: 1, created_at: timestamp()}]->(b)
+                """;
+                manager.execute_query(rel_query, prereq);
+            }
+            
+            path_query = """
+            MERGE (p:LearningPath {path_id: "programming_fundamentals"})
+            SET p.name = "programming_fundamentals", p.title = "Programming Fundamentals",
+                p.description = "Master the fundamentals of programming from basics to advanced concepts",
+                p.difficulty = "beginner", p.difficulty_score = 1,
+                p.estimated_duration = 480, p.concept_count = 6,
+                p.created_at = timestamp()
             """;
-            manager.execute_query(create_query, concept);
+            manager.execute_query(path_query, None);
+            
+            path_concepts = [
+                {"path": "programming_fundamentals", "concept": "prog_basics", "order": 0},
+                {"path": "programming_fundamentals", "concept": "variables", "order": 1},
+                {"path": "programming_fundamentals", "concept": "control_flow", "order": 2},
+                {"path": "programming_fundamentals", "concept": "functions", "order": 3},
+                {"path": "programming_fundamentals", "concept": "data_structures", "order": 4},
+                {"path": "programming_fundamentals", "concept": "oop", "order": 5}
+            ];
+            
+            for pc in path_concepts {
+                contain_query = """
+                MATCH (p:LearningPath {path_id: $path})
+                MATCH (c:Concept {concept_id: $concept})
+                MERGE (p)-[:PathContains {order_index: $order, is_required: True, created_at: timestamp()}]->(c)
+                """;
+                manager.execute_query(contain_query, pc);
+            }
+            
+            report {
+                "success": True,
+                "message": "Graph seeded successfully",
+                "concepts_created": len(concepts),
+                "prerequisites_created": len(prereqs),
+                "paths_created": 1
+            };
+        } except as e {
+            print("Error seeding graph: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to seed graph: " + str(e),
+                "concepts_created": 0,
+                "prerequisites_created": 0,
+                "paths_created": 0
+            };
         }
-        
-        prereqs = [
-            {"from": "prog_basics", "to": "variables"},
-            {"from": "variables", "to": "control_flow"},
-            {"from": "control_flow", "to": "functions"},
-            {"from": "functions", "to": "data_structures"},
-            {"from": "data_structures", "to": "oop"},
-            {"from": "oop", "to": "algorithms"},
-            {"from": "prog_basics", "to": "web_basics"},
-            {"from": "variables", "to": "databases"},
-            {"from": "data_structures", "to": "graph_concepts"},
-            {"from": "functions", "to": "web_basics"}
-        ];
-        
-        for prereq in prereqs {
-            rel_query = """
-            MATCH (a:Concept {concept_id: $from})
-            MATCH (b:Concept {concept_id: $to})
-            MERGE (a)-[:PREREQUISITE {strength: 1, created_at: timestamp()}]->(b)
-            """;
-            manager.execute_query(rel_query, prereq);
-        }
-        
-        path_query = """
-        MERGE (p:LearningPath {path_id: "programming_fundamentals"})
-        SET p.name = "programming_fundamentals", p.title = "Programming Fundamentals",
-            p.description = "Master the fundamentals of programming from basics to advanced concepts",
-            p.difficulty = "beginner", p.difficulty_score = 1,
-            p.estimated_duration = 480, p.concept_count = 6,
-            p.created_at = timestamp()
-        """;
-        manager.execute_query(path_query, None);
-        
-        path_concepts = [
-            {"path": "programming_fundamentals", "concept": "prog_basics", "order": 0},
-            {"path": "programming_fundamentals", "concept": "variables", "order": 1},
-            {"path": "programming_fundamentals", "concept": "control_flow", "order": 2},
-            {"path": "programming_fundamentals", "concept": "functions", "order": 3},
-            {"path": "programming_fundamentals", "concept": "data_structures", "order": 4},
-            {"path": "programming_fundamentals", "concept": "oop", "order": 5}
-        ];
-        
-        for pc in path_concepts {
-            contain_query = """
-            MATCH (p:LearningPath {path_id: $path})
-            MATCH (c:Concept {concept_id: $concept})
-            MERGE (p)-[:PathContains {order_index: $order, is_required: True, created_at: timestamp()}]->(c)
-            """;
-            manager.execute_query(contain_query, pc);
-        }
-        
-        report {
-            "success": True,
-            "message": "Graph seeded successfully",
-            "concepts_created": len(concepts),
-            "prerequisites_created": len(prereqs),
-            "paths_created": 1
-        };
     }
 }
 
 walker graph_stats {
     can graph_stats with entry {
-        manager = db_module.get_neo4j_manager();
-        
-        concept_count = manager.execute_query("MATCH (c:Concept) RETURN count(c) AS count", None);
-        user_count = manager.execute_query("MATCH (u:User) RETURN count(u) AS count", None);
-        path_count = manager.execute_query("MATCH (p:LearningPath) RETURN count(p) AS count", None);
-        rel_count = manager.execute_query("MATCH ()-[r:PREREQUISITE]->() RETURN count(r) AS count", None);
-        
-        report {
-            "success": True,
-            "graph_stats": {
-                "concepts": concept_count[0]['count'] if concept_count else 0,
-                "users": user_count[0]['count'] if user_count else 0,
-                "learning_paths": path_count[0]['count'] if path_count else 0,
-                "prerequisite_relationships": rel_count[0]['count'] if rel_count else 0
-            }
-        };
+        try {
+            manager = db_module.get_neo4j_manager();
+            
+            concept_count = manager.execute_query("MATCH (c:Concept) RETURN count(c) AS count", None);
+            user_count = manager.execute_query("MATCH (u:User) RETURN count(u) AS count", None);
+            path_count = manager.execute_query("MATCH (p:LearningPath) RETURN count(p) AS count", None);
+            rel_count = manager.execute_query("MATCH ()-[r:PREREQUISITE]->() RETURN count(r) AS count", None);
+            
+            report {
+                "success": True,
+                "graph_stats": {
+                    "concepts": concept_count[0]['count'] if concept_count else 0,
+                    "users": user_count[0]['count'] if user_count else 0,
+                    "learning_paths": path_count[0]['count'] if path_count else 0,
+                    "prerequisite_relationships": rel_count[0]['count'] if rel_count else 0
+                }
+            };
+        } except as e {
+            print("Error fetching graph stats: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to fetch graph statistics: " + str(e),
+                "graph_stats": {
+                    "concepts": 0,
+                    "users": 0,
+                    "learning_paths": 0,
+                    "prerequisite_relationships": 0
+                }
+            };
+        }
     }
 }
 
