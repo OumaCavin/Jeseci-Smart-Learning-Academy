@@ -196,11 +196,21 @@ class AdminApiService {
 
       const data = await response.json();
       
-      // Jaclang API returns response in reports array
+      // Handle Jaclang API response wrapped in reports array
       if (data?.reports && Array.isArray(data.reports) && data.reports.length > 0) {
-        return data.reports[0];
+        const result = data.reports[0];
+        console.log(`Admin API response from ${endpoint}:`, result);
+        return result;
       }
       
+      // Handle response with result field (echoed input data)
+      if (data?.result !== undefined && !data?.reports) {
+        console.log(`Admin API response from ${endpoint}:`, data);
+        return data;
+      }
+      
+      // Direct response (no wrapping)
+      console.log(`Admin API response from ${endpoint}:`, data);
       return data;
     } catch (error) {
       console.error(`Admin API request failed: ${endpoint}`, error);
