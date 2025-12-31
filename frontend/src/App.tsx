@@ -1439,56 +1439,56 @@ const AppContent: React.FC = () => {
           )}
 
           {!showSupportPage && (
-
-          <footer className="app-footer">
-            <div className="footer-content">
-              <div className="footer-section footer-brand">
-                <div className="footer-brand-header">
-                  <span className="footer-logo">🎓</span>
-                  <span className="footer-brand-name">Jeseci Academy</span>
+            <footer className="app-footer">
+              <div className="footer-content">
+                <div className="footer-section footer-brand">
+                  <div className="footer-brand-header">
+                    <span className="footer-logo">🎓</span>
+                    <span className="footer-brand-name">Jeseci Academy</span>
+                  </div>
+                  <p className="footer-brand-description">
+                    Empowering developers worldwide to master Object-Spatial Programming with Jac Language 
+                    through AI-powered personalized education.
+                  </p>
                 </div>
-                <p className="footer-brand-description">
-                  Empowering developers worldwide to master Object-Spatial Programming with Jac Language 
-                  through AI-powered personalized education.
-                </p>
+                
+                <div className="footer-section">
+                  <h5 className="footer-title">Jac Learning</h5>
+                  <ul className="footer-links">
+                    <li><button onClick={() => setActiveTab('paths')} className="footer-link-btn">Learning Paths</button></li>
+                    <li><button onClick={() => setActiveTab('ai')} className="footer-link-btn">AI Code Assistant</button></li>
+                    <li><button onClick={() => setActiveTab('progress')} className="footer-link-btn">Progress Tracking</button></li>
+                    <li><button onClick={() => setActiveTab('achievements')} className="footer-link-btn">Achievements</button></li>
+                  </ul>
+                </div>
+                
+                <div className="footer-section">
+                  <h5 className="footer-title">Jac Topics</h5>
+                  <ul className="footer-links">
+                    <li><button onClick={() => setActiveTab('concepts')} className="footer-link-btn">Jac Fundamentals</button></li>
+                    <li><button onClick={() => setActiveTab('concepts')} className="footer-link-btn">Object-Spatial Programming</button></li>
+                    <li><button onClick={() => setActiveTab('paths')} className="footer-link-btn">Nodes, Edges & Walkers</button></li>
+                    <li><button onClick={() => setActiveTab('quiz')} className="footer-link-btn">Semantic Strings</button></li>
+                  </ul>
+                </div>
+                
+                <div className="footer-section">
+                  <h5 className="footer-title">Support</h5>
+                  <ul className="footer-links">
+                    <li><button onClick={() => setShowSupportPage('help')} className="footer-link-btn">Help Center</button></li>
+                    <li><button onClick={() => setShowSupportPage('contact')} className="footer-link-btn">Contact Us</button></li>
+                    <li><button onClick={() => setShowSupportPage('privacy')} className="footer-link-btn">Privacy Policy</button></li>
+                    <li><button onClick={() => setShowSupportPage('terms')} className="footer-link-btn">Terms of Service</button></li>
+                  </ul>
+                </div>
               </div>
               
-              <div className="footer-section">
-                <h5 className="footer-title">Jac Learning</h5>
-                <ul className="footer-links">
-                  <li><button onClick={() => setActiveTab('paths')} className="footer-link-btn">Learning Paths</button></li>
-                  <li><button onClick={() => setActiveTab('ai')} className="footer-link-btn">AI Code Assistant</button></li>
-                  <li><button onClick={() => setActiveTab('progress')} className="footer-link-btn">Progress Tracking</button></li>
-                  <li><button onClick={() => setActiveTab('achievements')} className="footer-link-btn">Achievements</button></li>
-                </ul>
+              <div className="footer-bottom">
+                <p>© 2025 Jeseci Smart Learning Academy. All rights reserved.</p>
+                <p className="footer-tech">Powered by React + Jaclang + OpenAI + Object-Spatial Programming</p>
               </div>
-              
-              <div className="footer-section">
-                <h5 className="footer-title">Jac Topics</h5>
-                <ul className="footer-links">
-                  <li><button onClick={() => setActiveTab('concepts')} className="footer-link-btn">Jac Fundamentals</button></li>
-                  <li><button onClick={() => setActiveTab('concepts')} className="footer-link-btn">Object-Spatial Programming</button></li>
-                  <li><button onClick={() => setActiveTab('paths')} className="footer-link-btn">Nodes, Edges & Walkers</button></li>
-                  <li><button onClick={() => setActiveTab('quiz')} className="footer-link-btn">Semantic Strings</button></li>
-                </ul>
-              </div>
-              
-              <div className="footer-section">
-                <h5 className="footer-title">Support</h5>
-                <ul className="footer-links">
-                  <li><button onClick={() => setShowSupportPage('help')} className="footer-link-btn">Help Center</button></li>
-                  <li><button onClick={() => setShowSupportPage('contact')} className="footer-link-btn">Contact Us</button></li>
-                  <li><button onClick={() => setShowSupportPage('privacy')} className="footer-link-btn">Privacy Policy</button></li>
-                  <li><button onClick={() => setShowSupportPage('terms')} className="footer-link-btn">Terms of Service</button></li>
-                </ul>
-              </div>
-            </div>
-            
-            <div className="footer-bottom">
-              <p>© 2025 Jeseci Smart Learning Academy. All rights reserved.</p>
-              <p className="footer-tech">Powered by React + Jaclang + OpenAI + Object-Spatial Programming</p>
-            </div>
-          </footer>
+            </footer>
+          )}
         </>
       )}
     </div>
