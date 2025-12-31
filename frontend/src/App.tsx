@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { apiService, User, ProgressData, AnalyticsData, AIGeneratedContent, LearningPath, Concept, Quiz, Achievement, ChatMessage } from './services/api';
 import { AdminProvider, useAdmin } from './contexts/AdminContext';
 import { AdminLayout, DashboardOverview, UserManagement, ContentManager, QuizManager, AILab, AnalyticsReports } from './admin';
-import LandingPage from './components/LandingPage';
+import LandingPageWithNavigation, { HelpCenterPage, ContactPage, PrivacyPage, TermsPage } from './components/LandingPage';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -138,11 +138,8 @@ const AppContent: React.FC = () => {
   const [showVerifyPage, setShowVerifyPage] = useState<boolean>(false);
   const [showForgotPassword, setShowForgotPassword] = useState<boolean>(false);
   
-  // Footer navigation state
-  const [showHelpCenter, setShowHelpCenter] = useState<boolean>(false);
-  const [showContactPage, setShowContactPage] = useState<boolean>(false);
-  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState<boolean>(false);
-  const [showTermsOfService, setShowTermsOfService] = useState<boolean>(false);
+  // Support page state for authenticated users
+  const [showSupportPage, setShowSupportPage] = useState<'help' | 'contact' | 'privacy' | 'terms' | null>(null);
 
   // Additional state for new features
   const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
@@ -1347,7 +1344,7 @@ const AppContent: React.FC = () => {
 
       {/* Show Landing Page for non-authenticated users (only if not on verify page) */}
       {!isAuthenticated && showLandingPage && !showVerifyPage ? (
-        <LandingPage 
+        <LandingPageWithNavigation 
           onShowLogin={() => {
             setActiveTab('login');
             setShowLandingPage(false);
@@ -1431,6 +1428,18 @@ const AppContent: React.FC = () => {
             )}
           </main>
 
+          {/* Show Support Pages for authenticated users */}
+          {showSupportPage && (
+            <>
+              {showSupportPage === 'help' && <HelpCenterPage onBack={() => setShowSupportPage(null)} />}
+              {showSupportPage === 'contact' && <ContactPage onBack={() => setShowSupportPage(null)} />}
+              {showSupportPage === 'privacy' && <PrivacyPage onBack={() => setShowSupportPage(null)} />}
+              {showSupportPage === 'terms' && <TermsPage onBack={() => setShowSupportPage(null)} />}
+            </>
+          )}
+
+          {!showSupportPage && (
+
           <footer className="app-footer">
             <div className="footer-content">
               <div className="footer-section footer-brand">
@@ -1467,10 +1476,10 @@ const AppContent: React.FC = () => {
               <div className="footer-section">
                 <h5 className="footer-title">Support</h5>
                 <ul className="footer-links">
-                  <li><button onClick={() => setShowHelpCenter(true)} className="footer-link-btn">Help Center</button></li>
-                  <li><button onClick={() => setShowContactPage(true)} className="footer-link-btn">Contact Us</button></li>
-                  <li><button onClick={() => setShowPrivacyPolicy(true)} className="footer-link-btn">Privacy Policy</button></li>
-                  <li><button onClick={() => setShowTermsOfService(true)} className="footer-link-btn">Terms of Service</button></li>
+                  <li><button onClick={() => setShowSupportPage('help')} className="footer-link-btn">Help Center</button></li>
+                  <li><button onClick={() => setShowSupportPage('contact')} className="footer-link-btn">Contact Us</button></li>
+                  <li><button onClick={() => setShowSupportPage('privacy')} className="footer-link-btn">Privacy Policy</button></li>
+                  <li><button onClick={() => setShowSupportPage('terms')} className="footer-link-btn">Terms of Service</button></li>
                 </ul>
               </div>
             </div>
