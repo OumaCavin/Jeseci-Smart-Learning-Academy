@@ -1426,8 +1426,53 @@ const AppContent: React.FC = () => {
           </main>
 
           <footer className="app-footer">
-            <p>© 2025 Jeseci Smart Learning Academy • Pure Jaclang Backend</p>
-            <p>Powered by React + Jaclang + OpenAI</p>
+            <div className="footer-content">
+              <div className="footer-section footer-brand">
+                <div className="footer-brand-header">
+                  <span className="footer-logo">🎓</span>
+                  <span className="footer-brand-name">Jeseci Academy</span>
+                </div>
+                <p className="footer-brand-description">
+                  Empowering developers worldwide to master Object-Spatial Programming with Jac Language 
+                  through AI-powered personalized education.
+                </p>
+              </div>
+              
+              <div className="footer-section">
+                <h5 className="footer-title">Jac Learning</h5>
+                <ul className="footer-links">
+                  <li><a href="#" className="footer-link">Learning Paths</a></li>
+                  <li><a href="#" className="footer-link">AI Code Assistant</a></li>
+                  <li><a href="#" className="footer-link">Graph Programming</a></li>
+                  <li><a href="#" className="footer-link">Progress Tracking</a></li>
+                </ul>
+              </div>
+              
+              <div className="footer-section">
+                <h5 className="footer-title">Jac Topics</h5>
+                <ul className="footer-links">
+                  <li><a href="#" className="footer-link">Jac Fundamentals</a></li>
+                  <li><a href="#" className="footer-link">Object-Spatial Programming</a></li>
+                  <li><a href="#" className="footer-link">Nodes, Edges & Walkers</a></li>
+                  <li><a href="#" className="footer-link">Semantic Strings</a></li>
+                </ul>
+              </div>
+              
+              <div className="footer-section">
+                <h5 className="footer-title">Support</h5>
+                <ul className="footer-links">
+                  <li><a href="#" className="footer-link">Help Center</a></li>
+                  <li><a href="#" className="footer-link">Contact Us</a></li>
+                  <li><a href="#" className="footer-link">Privacy Policy</a></li>
+                  <li><a href="#" className="footer-link">Terms of Service</a></li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="footer-bottom">
+              <p>© 2025 Jeseci Smart Learning Academy. All rights reserved.</p>
+              <p className="footer-tech">Powered by React + Jaclang + OpenAI + Object-Spatial Programming</p>
+            </div>
           </footer>
         </>
       )}
