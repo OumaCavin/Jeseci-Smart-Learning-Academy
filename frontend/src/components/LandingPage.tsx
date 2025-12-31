@@ -41,7 +41,7 @@ interface TermsPageProps {
 }
 
 // Support Page Components
-const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack, onNavigate }) => {
+export const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack, onNavigate }) => {
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const helpTopics = [
     {
@@ -169,7 +169,7 @@ const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack, onNavigate }) =
   );
 };
 
-const ContactPage: React.FC<ContactPageProps> = ({ onBack, onNavigate }) => {
+export const ContactPage: React.FC<ContactPageProps> = ({ onBack, onNavigate }) => {
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
@@ -428,7 +428,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack, onNavigate }) => {
   );
 };
 
-const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
+export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <header className="bg-white shadow-sm">
@@ -507,7 +507,7 @@ const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
   );
 };
 
-const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
+export const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <header className="bg-white shadow-sm">
@@ -1495,9 +1495,9 @@ const LandingPageWithNavigation: React.FC<LandingPageProps> = (props) => {
     case 'contact':
       return <ContactPage onBack={handleBackToLanding} onNavigate={handlePageChange} />;
     case 'privacy':
-      return <PrivacyPage onBack={handleBackToLanding} onNavigate={handlePageChange} />;
+      return <PrivacyPage onBack={handleBackToLanding} />;
     case 'terms':
-      return <TermsPage onBack={handleBackToLanding} onNavigate={handlePageChange} />;
+      return <TermsPage onBack={handleBackToLanding} />;
     default:
       return <LandingPage {...props} onNavigate={handlePageChange} />;
   }
