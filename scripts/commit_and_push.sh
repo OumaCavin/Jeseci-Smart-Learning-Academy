@@ -16,11 +16,11 @@ git config user.email "cavin@example.com"
 git branch -M main
 
 # Make cleanup script executable
-chmod +x cleanup_project.sh
+chmod +x scripts/cleanup_project.sh
 
 # Run project cleanup
 echo "🧹 Running project cleanup..."
-bash cleanup_project.sh
+bash scripts/cleanup_project.sh
 
 # Check git status
 echo "📊 Current git status:"
@@ -38,7 +38,7 @@ git add .env.example
 # Add configuration files
 echo "🔧 Adding configuration files..."
 git add .gitignore
-git add cleanup_project.sh
+git add scripts/cleanup_project.sh
 git add PROJECT_UPDATE_COMPLETE.md
 
 # Add any frontend changes

@@ -37,8 +37,8 @@ echo ""
 echo "📝 Staging all our changes..."
 
 # Run project cleanup first
-chmod +x cleanup_project.sh 2>/dev/null || true
-./cleanup_project.sh 2>/dev/null || true
+chmod +x scripts/cleanup_project.sh 2>/dev/null || true
+./scripts/cleanup_project.sh 2>/dev/null || true
 
 # Stage all changes
 git add .
