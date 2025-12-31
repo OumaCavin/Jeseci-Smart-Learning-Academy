@@ -17,7 +17,8 @@ from database import get_postgres_manager, get_neo4j_manager
 courses_cache = {}
 paths_cache = {}
 content_lock = threading.Lock()
-cache_initialized = False
+courses_initialized = False
+paths_initialized = False
 
 # ==============================================================================
 # COURSES STORAGE (PostgreSQL - LearningPath model)
@@ -25,13 +26,13 @@ cache_initialized = False
 
 def initialize_courses():
     """Initialize courses from PostgreSQL"""
-    global courses_cache, cache_initialized
+    global courses_cache, courses_initialized
     
-    if cache_initialized:
+    if courses_initialized:
         return courses_cache
     
     with content_lock:
-        if cache_initialized:
+        if courses_initialized:
             return courses_cache
             
         pg_manager = get_postgres_manager()
@@ -60,7 +61,7 @@ def initialize_courses():
                     "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None
                 }
         
-        cache_initialized = True
+        courses_initialized = True
         return courses_cache
 
 def get_all_courses():
@@ -94,8 +95,8 @@ def create_course(title, description, domain, difficulty, content_type="interact
     
     if result or result is not None:
         # Invalidate cache
-        global cache_initialized
-        cache_initialized = False
+        global courses_initialized
+        courses_initialized = False
         
         new_course = {
             "course_id": course_id,
@@ -353,13 +354,13 @@ def add_concept_relationship(source_id, target_id, relationship_type, strength=1
 
 def initialize_paths():
     """Initialize learning paths from PostgreSQL"""
-    global paths_cache, cache_initialized
+    global paths_cache, paths_initialized
     
-    if cache_initialized:
+    if paths_initialized:
         return paths_cache
     
     with content_lock:
-        if cache_initialized:
+        if paths_initialized:
             return paths_cache
             
         pg_manager = get_postgres_manager()
@@ -388,7 +389,7 @@ def initialize_paths():
                     "duration": str(row.get('estimated_duration') or 0) + " minutes"
                 }
         
-        cache_initialized = True
+        paths_initialized = True
         return paths_cache
 
 def get_all_paths():
@@ -436,8 +437,8 @@ def create_path(title, description, courses, concepts, difficulty, duration):
     
     if result or result is not None:
         # Invalidate cache
-        global cache_initialized
-        cache_initialized = False
+        global paths_initialized
+        paths_initialized = False
         
         new_path = {
             "path_id": path_id,

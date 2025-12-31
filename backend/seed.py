@@ -321,7 +321,7 @@ def seed_concepts_to_neo4j(manager, dry_run=False, verbose=True):
             c.category = $category,
             c.subcategory = $subcategory,
             c.domain = $domain,
-            c.difficulty = $difficulty_level,
+            c.difficulty_level = $difficulty_level,
             c.complexity_score = $complexity_score,
             c.cognitive_load = $cognitive_load,
             c.description = $description,
