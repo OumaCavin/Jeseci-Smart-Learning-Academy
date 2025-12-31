@@ -1661,6 +1661,39 @@
   opacity: 1;
 }
 
+/* Footer link buttons (for navigation) */
+.footer-link-btn {
+  background: none;
+  border: none;
+  color: #a0a0a0;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  display: inline-block;
+  position: relative;
+  padding-left: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.footer-link-btn:hover {
+  color: #667eea;
+  padding-left: 8px;
+}
+
+.footer-link-btn::before {
+  content: "›";
+  position: absolute;
+  left: 0;
+  opacity: 0;
+  transition: all 0.3s ease;
+  color: #667eea;
+}
+
+.footer-link-btn:hover::before {
+  opacity: 1;
+}
+
 .footer-bottom {
   background: #16162a;
   padding: 25px 20px;
