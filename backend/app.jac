@@ -1880,13 +1880,65 @@ walker reset_password {
 
 walker admin_dashboard {
     can admin_dashboard with entry {
-        # Initialize all stores to get real statistics
-        admin_store.initialize_admin_store();
-        content_store.initialize_courses();
-        content_store.initialize_concepts();
-        content_store.initialize_paths();
-        quiz_store.initialize_quizzes();
-        analytics_store.initialize_analytics();
+        # Initialize all stores to get real statistics with error handling
+        init_error = "";
+        
+        try {
+            admin_store.initialize_admin_store();
+        } except as e {
+            print("Error initializing admin store: " + str(e));
+            init_error = "Failed to load user data";
+        }
+        
+        try {
+            content_store.initialize_courses();
+        } except as e {
+            print("Error initializing courses: " + str(e));
+            if init_error: init_error = init_error + "; ";
+            init_error = init_error + "Failed to load course data";
+        }
+        
+        try {
+            content_store.initialize_concepts();
+        } except as e {
+            print("Error initializing concepts: " + str(e));
+            if init_error: init_error = init_error + "; ";
+            init_error = init_error + "Failed to load concept data";
+        }
+        
+        try {
+            content_store.initialize_paths();
+        } except as e {
+            print("Error initializing paths: " + str(e));
+            if init_error: init_error = init_error + "; ";
+            init_error = init_error + "Failed to load learning path data";
+        }
+        
+        try {
+            quiz_store.initialize_quizzes();
+        } except as e {
+            print("Error initializing quizzes: " + str(e));
+            if init_error: init_error = init_error + "; ";
+            init_error = init_error + "Failed to load quiz data";
+        }
+        
+        try {
+            analytics_store.initialize_analytics();
+        } except as e {
+            print("Error initializing analytics: " + str(e));
+            if init_error: init_error = init_error + "; ";
+            init_error = init_error + "Failed to load analytics data";
+        }
+        
+        # If there were initialization errors, return them gracefully
+        if init_error {
+            import datetime;
+            report {
+                "success": False,
+                "error": init_error,
+                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            };
+        }
         
         # Get real counts from stores
         all_users = admin_store.get_all_users();
@@ -1908,6 +1960,21 @@ walker admin_dashboard {
         active_count = len([u for u in all_users if u.get('is_active', True)]);
         admin_count = len([u for u in all_users if u.get('is_admin', False)]);
         
+        # Get content counts with fallback to 0
+        total_concepts = 0;
+        try {
+            total_concepts = len(content_store.get_all_concepts());
+        } catch {
+            total_concepts = 0;
+        }
+        
+        total_paths = 0;
+        try {
+            total_paths = len(content_store.get_all_paths());
+        } catch {
+            total_paths = 0;
+        }
+        
         stats = {
             "user_statistics": {
                 "total_users": len(all_users),
@@ -1922,8 +1989,8 @@ walker admin_dashboard {
             },
             "content_statistics": {
                 "total_courses": len(all_courses),
-                "total_concepts": len(content_store.get_all_concepts()),
-                "total_paths": len(content_store.get_all_paths()),
+                "total_concepts": total_concepts,
+                "total_paths": total_paths,
                 "total_quizzes": len(all_quizzes)
             },
             "system_health": {
