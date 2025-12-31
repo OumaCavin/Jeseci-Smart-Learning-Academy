@@ -155,8 +155,8 @@ def update_course(course_id, title="", description="", domain="", difficulty="")
     result = pg_manager.execute_query(update_query, params, fetch=False)
     
     if result or result is not None:
-        global cache_initialized
-        cache_initialized = False
+        global courses_initialized
+        courses_initialized = False
         return {"success": True, "course_id": course_id}
     
     return {"success": False, "error": "Failed to update course"}
@@ -175,8 +175,8 @@ def delete_course(course_id):
     result = pg_manager.execute_query(delete_query, (course_id,), fetch=False)
     
     if result or result is not None:
-        global cache_initialized
-        cache_initialized = False
+        global courses_initialized
+        courses_initialized = False
         return {"success": True, "course_id": course_id}
     
     return {"success": False, "error": "Failed to delete course"}
