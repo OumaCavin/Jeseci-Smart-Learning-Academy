@@ -137,6 +137,12 @@ const AppContent: React.FC = () => {
   const [unverifiedEmail, setUnverifiedEmail] = useState<string>('');
   const [showVerifyPage, setShowVerifyPage] = useState<boolean>(false);
   const [showForgotPassword, setShowForgotPassword] = useState<boolean>(false);
+  
+  // Footer navigation state
+  const [showHelpCenter, setShowHelpCenter] = useState<boolean>(false);
+  const [showContactPage, setShowContactPage] = useState<boolean>(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState<boolean>(false);
+  const [showTermsOfService, setShowTermsOfService] = useState<boolean>(false);
 
   // Additional state for new features
   const [learningPaths, setLearningPaths] = useState<LearningPath[]>([]);
@@ -1441,30 +1447,30 @@ const AppContent: React.FC = () => {
               <div className="footer-section">
                 <h5 className="footer-title">Jac Learning</h5>
                 <ul className="footer-links">
-                  <li><a href="#" className="footer-link">Learning Paths</a></li>
-                  <li><a href="#" className="footer-link">AI Code Assistant</a></li>
-                  <li><a href="#" className="footer-link">Graph Programming</a></li>
-                  <li><a href="#" className="footer-link">Progress Tracking</a></li>
+                  <li><button onClick={() => setActiveTab('paths')} className="footer-link-btn">Learning Paths</button></li>
+                  <li><button onClick={() => setActiveTab('ai')} className="footer-link-btn">AI Code Assistant</button></li>
+                  <li><button onClick={() => setActiveTab('progress')} className="footer-link-btn">Progress Tracking</button></li>
+                  <li><button onClick={() => setActiveTab('achievements')} className="footer-link-btn">Achievements</button></li>
                 </ul>
               </div>
               
               <div className="footer-section">
                 <h5 className="footer-title">Jac Topics</h5>
                 <ul className="footer-links">
-                  <li><a href="#" className="footer-link">Jac Fundamentals</a></li>
-                  <li><a href="#" className="footer-link">Object-Spatial Programming</a></li>
-                  <li><a href="#" className="footer-link">Nodes, Edges & Walkers</a></li>
-                  <li><a href="#" className="footer-link">Semantic Strings</a></li>
+                  <li><button onClick={() => setActiveTab('concepts')} className="footer-link-btn">Jac Fundamentals</button></li>
+                  <li><button onClick={() => setActiveTab('concepts')} className="footer-link-btn">Object-Spatial Programming</button></li>
+                  <li><button onClick={() => setActiveTab('paths')} className="footer-link-btn">Nodes, Edges & Walkers</button></li>
+                  <li><button onClick={() => setActiveTab('quiz')} className="footer-link-btn">Semantic Strings</button></li>
                 </ul>
               </div>
               
               <div className="footer-section">
                 <h5 className="footer-title">Support</h5>
                 <ul className="footer-links">
-                  <li><a href="#" className="footer-link">Help Center</a></li>
-                  <li><a href="#" className="footer-link">Contact Us</a></li>
-                  <li><a href="#" className="footer-link">Privacy Policy</a></li>
-                  <li><a href="#" className="footer-link">Terms of Service</a></li>
+                  <li><button onClick={() => setShowHelpCenter(true)} className="footer-link-btn">Help Center</button></li>
+                  <li><button onClick={() => setShowContactPage(true)} className="footer-link-btn">Contact Us</button></li>
+                  <li><button onClick={() => setShowPrivacyPolicy(true)} className="footer-link-btn">Privacy Policy</button></li>
+                  <li><button onClick={() => setShowTermsOfService(true)} className="footer-link-btn">Terms of Service</button></li>
                 </ul>
               </div>
             </div>
