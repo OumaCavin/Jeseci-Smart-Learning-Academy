@@ -342,11 +342,17 @@ const CreateAdminModal: React.FC<{ onClose: () => void; onCreated: () => void }>
       const response = await adminApi.createAdminUser(formData);
       console.log('Admin creation response:', response);
       console.log('Response success type:', typeof response.success, 'Value:', response.success);
-      if (response.success) {
+      
+      // Defensive check: ensure we're checking the right success field
+      // Handle both boolean and string "True"/"False" values
+      const isSuccess = response.success === true || response.success === 'true' || response.success === 'True';
+      
+      if (isSuccess) {
         alert('Admin created successfully!');
         onCreated();
       } else {
-        setError(response.message || 'Failed to create admin');
+        console.error('Admin creation failed. Full response:', response);
+        setError(response.message || response.error || 'Failed to create admin');
       }
     } catch (err: any) {
       console.error('Admin creation error:', err);
