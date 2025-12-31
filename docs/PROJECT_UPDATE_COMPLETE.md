@@ -48,13 +48,13 @@ Since I cannot execute git commands directly, please run these commands to compl
 
 ### Step 1: Make Scripts Executable
 ```bash
-chmod +x docs/scripts/cleanup_project.sh
-chmod +x docs/scripts/commit_and_push.sh
+chmod +x cleanup_project.sh
+chmod +x commit_and_push.sh
 ```
 
 ### Step 2: Run Project Cleanup
 ```bash
-./docs/scripts/cleanup_project.sh
+./cleanup_project.sh
 ```
 
 ### Step 3: Review Changes
@@ -71,7 +71,8 @@ git add .env.example
 
 # Stage configuration updates
 git add .gitignore
-git add docs/scripts/
+git add cleanup_project.sh
+git add commit_and_push.sh
 
 # Stage any other changes
 git add frontend/src/App.tsx  # If there were any final changes
@@ -148,21 +149,21 @@ git push origin main
 
 ## 📁 Key Files Updated
 
-`README.md` - Updated project overview and architecture documentation
+<filepath>README.md</filepath> - Updated project overview and architecture documentation
 
-`docs/architecture/architecture_overview.md` - Hybrid React + JAC architecture
+<filepath>docs/architecture/architecture_overview.md</filepath> - Hybrid React + JAC architecture
 
-`docs/architecture/FRONTEND_DEFENSIVE_PATTERNS_GUIDE.md` - Complete implementation guide
+<filepath>docs/architecture/FRONTEND_DEFENSIVE_PATTERNS_GUIDE.md</filepath> - Complete implementation guide
 
-`docs/DOCUMENTATION_UPDATE_SUMMARY.md` - Documentation index
+<filepath>docs/DOCUMENTATION_UPDATE_SUMMARY.md</filepath> - Documentation index
 
-`.gitignore` - Comprehensive ignore patterns
+<filepath>.gitignore</filepath> - Comprehensive ignore patterns
 
-`.env.example` - Environment variable template
+<filepath>.env.example</filepath> - Environment variable template
 
-`docs/scripts/cleanup_project.sh` - Automated project cleanup
+<filepath>cleanup_project.sh</filepath> - Automated project cleanup
 
-`docs/scripts/commit_and_push.sh` - Automated commit and push script
+<filepath>commit_and_push.sh</filepath> - Automated commit and push script
 
 ---
 
