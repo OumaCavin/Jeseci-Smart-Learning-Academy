@@ -379,10 +379,12 @@ def initialize_paths():
             
         pg_manager = get_postgres_manager()
         
+        # Query without concept_count since it doesn't exist in the schema
+        # We'll get concept_count from a separate count query if needed
         query = """
         SELECT path_id, name, title, category, difficulty, 
                estimated_duration, description, created_at,
-               target_audience, concept_count
+               target_audience
         FROM jeseci_academy.learning_paths
         ORDER BY created_at DESC
         """
@@ -400,10 +402,10 @@ def initialize_paths():
                     "courses": [],
                     "concepts": [],
                     "difficulty": row.get('difficulty') or "beginner",
-                    "total_modules": row.get('concept_count') or 0,
+                    "total_modules": 0,  # Default since concept_count column doesn't exist
                     "duration": str(row.get('estimated_duration') or 0) + " minutes",
                     "target_audience": row.get('target_audience') or "",
-                    "concept_count": row.get('concept_count') or 0
+                    "concept_count": 0  # Default since concept_count column doesn't exist
                 }
         
         paths_initialized = True
