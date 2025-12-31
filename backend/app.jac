@@ -2053,7 +2053,9 @@ walker admin_dashboard {
             content_store.initialize_courses();
         } except Exception as e {
             print("Error initializing courses: " + str(e));
-            if init_error: init_error = init_error + "; ";
+            if init_error {
+                init_error = init_error + "; ";
+            }
             init_error = init_error + "Failed to load course data";
         }
         
@@ -2061,7 +2063,9 @@ walker admin_dashboard {
             content_store.initialize_concepts();
         } except Exception as e {
             print("Error initializing concepts: " + str(e));
-            if init_error: init_error = init_error + "; ";
+            if init_error {
+                init_error = init_error + "; ";
+            }
             init_error = init_error + "Failed to load concept data";
         }
         
@@ -2069,7 +2073,9 @@ walker admin_dashboard {
             content_store.initialize_paths();
         } except Exception as e {
             print("Error initializing paths: " + str(e));
-            if init_error: init_error = init_error + "; ";
+            if init_error {
+                init_error = init_error + "; ";
+            }
             init_error = init_error + "Failed to load learning path data";
         }
         
@@ -2077,7 +2083,9 @@ walker admin_dashboard {
             quiz_store.initialize_quizzes();
         } except Exception as e {
             print("Error initializing quizzes: " + str(e));
-            if init_error: init_error = init_error + "; ";
+            if init_error {
+                init_error = init_error + "; ";
+            }
             init_error = init_error + "Failed to load quiz data";
         }
         
@@ -2085,7 +2093,9 @@ walker admin_dashboard {
             analytics_store.initialize_analytics();
         } except Exception as e {
             print("Error initializing analytics: " + str(e));
-            if init_error: init_error = init_error + "; ";
+            if init_error {
+                init_error = init_error + "; ";
+            }
             init_error = init_error + "Failed to load analytics data";
         }
         
