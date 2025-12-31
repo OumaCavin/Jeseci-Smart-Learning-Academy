@@ -34,6 +34,7 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
     try {
       if (contentType === 'courses') {
         const response = await adminApi.getCourses();
+        console.log('Get courses response:', response);
         if (response.success) {
           setCourses(response.courses || []);
         } else {
@@ -41,6 +42,7 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
         }
       } else if (contentType === 'concepts') {
         const response = await adminApi.getConcepts();
+        console.log('Get concepts response:', response);
         if (response.success) {
           setConcepts(response.concepts || []);
         } else {
@@ -48,6 +50,7 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
         }
       } else if (contentType === 'paths') {
         const response = await adminApi.getLearningPaths();
+        console.log('Get learning paths response:', response);
         if (response.success) {
           setPaths(response.paths || []);
         } else {
@@ -55,6 +58,7 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
         }
       }
     } catch (err: any) {
+      console.error('Load content error:', err);
       setError(err.message || 'Failed to load content');
     } finally {
       setLoading(false);

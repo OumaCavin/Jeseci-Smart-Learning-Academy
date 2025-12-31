@@ -30,12 +30,14 @@ const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
     setLoading(true);
     try {
       const response = await adminApi.getQuizzes();
+      console.log('Get quizzes response:', response);
       if (response.success) {
         setQuizzes(response.quizzes || []);
       } else {
         setError('Failed to load quizzes');
       }
     } catch (err: any) {
+      console.error('Load quizzes error:', err);
       setError(err.message || 'Failed to load quizzes');
     } finally {
       setLoading(false);
@@ -227,6 +229,7 @@ const CreateQuizModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
 
     try {
       const response = await adminApi.createQuiz(formData);
+      console.log('Create quiz response:', response);
       if (response.success) {
         alert('Quiz created successfully!');
         onCreated();
@@ -234,6 +237,7 @@ const CreateQuizModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
         setError(response.message || 'Failed to create quiz');
       }
     } catch (err: any) {
+      console.error('Create quiz error:', err);
       setError(err.message || 'Failed to create quiz');
     } finally {
       setLoading(false);
