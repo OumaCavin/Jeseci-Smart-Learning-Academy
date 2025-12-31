@@ -199,8 +199,12 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
               <tr>
                 <th>Concept</th>
                 <th>Category</th>
+                <th>Subcategory</th>
                 <th>Difficulty</th>
+                <th>Complexity</th>
+                <th>Cognitive Load</th>
                 <th>Domain</th>
+                <th>Key Terms</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -217,6 +221,7 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
                     </div>
                   </td>
                   <td>{concept.category}</td>
+                  <td>{concept.subcategory || '-'}</td>
                   <td>
                     <span className={`badge ${
                       concept.difficulty_level === 'beginner' ? 'badge-success' :
@@ -225,7 +230,29 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
                       {concept.difficulty_level}
                     </span>
                   </td>
+                  <td>{concept.complexity_score?.toFixed(1) || '0.0'}</td>
+                  <td>{concept.cognitive_load?.toFixed(1) || '0.0'}</td>
                   <td><span className="badge badge-info">{concept.domain}</span></td>
+                  <td>
+                    <div style={{ maxWidth: '150px' }}>
+                      {concept.key_terms && concept.key_terms.length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {concept.key_terms.slice(0, 3).map((term: string, idx: number) => (
+                            <span key={idx} className="badge badge-secondary" style={{ fontSize: '11px' }}>
+                              {term}
+                            </span>
+                          ))}
+                          {concept.key_terms.length > 3 && (
+                            <span className="badge badge-secondary" style={{ fontSize: '11px' }}>
+                              +{concept.key_terms.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#9ca3af', fontSize: '13px' }}>No terms</span>
+                      )}
+                    </div>
+                  </td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button className="btn btn-sm btn-secondary">Edit</button>
@@ -270,6 +297,7 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
                 <th>Courses</th>
                 <th>Modules</th>
                 <th>Duration</th>
+                <th>Target Audience</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -295,6 +323,7 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
                   <td>{path.courses?.length || 0} courses</td>
                   <td>{path.total_modules} modules</td>
                   <td>{path.duration}</td>
+                  <td>{path.target_audience || '-'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button className="btn btn-sm btn-secondary">Edit</button>
