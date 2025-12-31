@@ -80,10 +80,15 @@ export interface AdminConcept {
   name: string;
   display_name: string;
   category: string;
+  subcategory: string;
   difficulty_level: string;
+  complexity_score: number;
+  cognitive_load: number;
   domain: string;
   description?: string;
   icon?: string;
+  key_terms: string[];
+  synonyms: string[];
 }
 
 export interface AdminLearningPath {
@@ -95,6 +100,8 @@ export interface AdminLearningPath {
   difficulty: string;
   total_modules: number;
   duration: string;
+  target_audience: string;
+  concept_count: number;
 }
 
 // Quiz types for admin

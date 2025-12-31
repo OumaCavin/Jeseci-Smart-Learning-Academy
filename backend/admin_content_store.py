@@ -192,8 +192,10 @@ def initialize_concepts():
     query = """
     MATCH (c:Concept)
     RETURN c.concept_id AS concept_id, c.name AS name, c.display_name AS display_name,
-           c.category AS category, c.difficulty_level AS difficulty_level,
-           c.domain AS domain, c.description AS description, c.icon AS icon
+           c.category AS category, c.subcategory AS subcategory, c.difficulty_level AS difficulty_level,
+           c.complexity_score AS complexity_score, c.cognitive_load AS cognitive_load,
+           c.domain AS domain, c.description AS description, c.icon AS icon,
+           c.key_terms AS key_terms, c.synonyms AS synonyms
     ORDER BY c.name
     """
     
@@ -208,10 +210,15 @@ def initialize_concepts():
                 "name": row.get('name'),
                 "display_name": row.get('display_name') or row.get('name'),
                 "category": row.get('category') or "",
+                "subcategory": row.get('subcategory') or "",
                 "difficulty_level": row.get('difficulty_level') or "beginner",
+                "complexity_score": row.get('complexity_score') or 0,
+                "cognitive_load": row.get('cognitive_load') or 0,
                 "domain": row.get('domain') or "",
                 "description": row.get('description') or "",
-                "icon": row.get('icon') or "default"
+                "icon": row.get('icon') or "default",
+                "key_terms": row.get('key_terms') or [],
+                "synonyms": row.get('synonyms') or []
             }
     
     return concepts
@@ -228,8 +235,10 @@ def get_concept_by_id(concept_id):
     query = """
     MATCH (c:Concept {concept_id: $concept_id})
     RETURN c.concept_id AS concept_id, c.name AS name, c.display_name AS display_name,
-           c.category AS category, c.difficulty_level AS difficulty_level,
-           c.domain AS domain, c.description AS description, c.icon AS icon
+           c.category AS category, c.subcategory AS subcategory, c.difficulty_level AS difficulty_level,
+           c.complexity_score AS complexity_score, c.cognitive_load AS cognitive_load,
+           c.domain AS domain, c.description AS description, c.icon AS icon,
+           c.key_terms AS key_terms, c.synonyms AS synonyms
     """
     
     result = neo4j_manager.execute_query(query, {"concept_id": concept_id})
@@ -241,10 +250,15 @@ def get_concept_by_id(concept_id):
             "name": row.get('name'),
             "display_name": row.get('display_name') or row.get('name'),
             "category": row.get('category') or "",
+            "subcategory": row.get('subcategory') or "",
             "difficulty_level": row.get('difficulty_level') or "beginner",
+            "complexity_score": row.get('complexity_score') or 0,
+            "cognitive_load": row.get('cognitive_load') or 0,
             "domain": row.get('domain') or "",
             "description": row.get('description') or "",
-            "icon": row.get('icon') or "default"
+            "icon": row.get('icon') or "default",
+            "key_terms": row.get('key_terms') or [],
+            "synonyms": row.get('synonyms') or []
         }
     
     return None
@@ -367,7 +381,8 @@ def initialize_paths():
         
         query = """
         SELECT path_id, name, title, category, difficulty, 
-               estimated_duration, description, created_at
+               estimated_duration, description, created_at,
+               target_audience, concept_count
         FROM jeseci_academy.learning_paths
         ORDER BY created_at DESC
         """
@@ -385,8 +400,10 @@ def initialize_paths():
                     "courses": [],
                     "concepts": [],
                     "difficulty": row.get('difficulty') or "beginner",
-                    "total_modules": 0,
-                    "duration": str(row.get('estimated_duration') or 0) + " minutes"
+                    "total_modules": row.get('concept_count') or 0,
+                    "duration": str(row.get('estimated_duration') or 0) + " minutes",
+                    "target_audience": row.get('target_audience') or "",
+                    "concept_count": row.get('concept_count') or 0
                 }
         
         paths_initialized = True
