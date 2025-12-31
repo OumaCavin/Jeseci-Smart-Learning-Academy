@@ -16,7 +16,7 @@ git pull --rebase origin main
 
 # Clean project
 echo "Cleaning project structure..."
-./cleanup_project.sh 2>/dev/null || true
+./scripts/cleanup_project.sh 2>/dev/null || true
 
 # Stage changes
 echo "Staging changes..."

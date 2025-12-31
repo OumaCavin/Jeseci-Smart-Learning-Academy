@@ -64,7 +64,7 @@ git clone https://github.com/YourUsername/Jeseci-Smart-Learning-Academy.git
 cd Jeseci-Smart-Learning-Academy
 
 # 2. Run main setup script
-bash ./setup.sh
+bash ./scripts/setup.sh
 
 # 3. Set up databases
 bash backend/database/cleanup_databases.sh
@@ -74,7 +74,7 @@ bash backend/database/setup_databases.sh
 jac run backend/seed.py
 
 # 5. Create super admin user
-bash create_super_admin.sh
+bash ./scripts/create_super_admin.sh
 ```
 
 ### Starting the Application
@@ -85,7 +85,7 @@ bash create_super_admin.sh
 source .venv/bin/activate
 
 # Start the API server
-bash ./jacserve
+bash ./scripts/jacserve
 ```
 
 **Terminal 2 - Frontend (React Production Build):**
@@ -117,7 +117,7 @@ For development with hot reload:
 ```bash
 # Terminal 1: Backend
 source .venv/bin/activate
-bash ./jacserve
+bash ./scripts/jacserve
 
 # Terminal 2: Frontend Development
 cd frontend
@@ -341,7 +341,7 @@ SMTP_FROM=noreply@yourdomain.com
 
 4. **Restart the backend server:**
    ```bash
-   bash ./jacserve
+   bash ./scripts/jacserve
    ```
 
 **Email Delivery Methods:**
@@ -405,7 +405,11 @@ Jeseci-Smart-Learning-Academy/
 ├── 🔧 Configuration Files
 │   ├── .gitignore                # Git ignore patterns
 │   ├── .env.example             # Environment template
-│   ├── setup.sh                 # Environment setup script
+│   ├── scripts/                  # Utility and setup scripts
+│   │   ├── setup.sh             # Environment setup script
+│   │   ├── create_super_admin.sh # Admin user creation
+│   │   ├── jacserve             # Backend server launcher
+│   │   └── ...
 │   └── README.md               # This file
 │
 └── 🗂️ Additional Directories
@@ -560,7 +564,7 @@ pnpm run build
 ### Backend Development
 ```bash
 # Run JAC backend
-bash ./jacserve
+bash ./scripts/jacserve
 
 # Run with debug mode
 jac serve backend/app.jac --debug
@@ -593,7 +597,7 @@ pnpm run build
 pnpm run preview
 
 # Backend production mode
-bash ./jacserve
+bash ./scripts/jacserve
 ```
 
 ### Environment Variables
