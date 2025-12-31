@@ -2133,14 +2133,14 @@ walker admin_dashboard {
         total_concepts = 0;
         try {
             total_concepts = len(content_store.get_all_concepts());
-        } catch {
+        } except Exception as e {
             total_concepts = 0;
         }
         
         total_paths = 0;
         try {
             total_paths = len(content_store.get_all_paths());
-        } catch {
+        } except Exception as e {
             total_paths = 0;
         }
         
