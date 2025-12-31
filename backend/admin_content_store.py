@@ -482,7 +482,7 @@ def get_recommended_concepts(user_id, completed_concept_ids, limit=5):
     WITH c, COUNT(prereq) as prereq_count
     WHERE prereq_count = 0 OR prereq_count <= 2
     RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-           c.category AS category, c.difficulty_level AS difficulty, c.description AS description
+           c.category AS category, c.difficulty_level AS difficulty_level, c.description AS description
     LIMIT $limit
     """
     
