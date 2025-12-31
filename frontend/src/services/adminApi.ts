@@ -196,9 +196,9 @@ class AdminApiService {
 
       const data = await response.json();
       
-      // Handle Jaclang API response with result/reports structure
-      if (data?.result !== undefined) {
-        return data.result;
+      // Jaclang API returns response in reports array
+      if (data?.reports && Array.isArray(data.reports) && data.reports.length > 0) {
+        return data.reports[0];
       }
       
       return data;
