@@ -11,7 +11,7 @@ Features:
 - Maintain aggregated summary tables for fast analytics queries
 - Support for both authenticated and anonymous views
 
-Author: MiniMax Agent
+Author: Cavin Otieno
 License: MIT License
 """
 
