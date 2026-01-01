@@ -9,6 +9,12 @@
 5. [Backend Authorization](#backend-authorization)
 6. [Frontend Role Display](#frontend-role-display)
 7. [Database Schema](#database-schema)
+8. [API Endpoints Reference](#api-endpoints-reference)
+9. [Content Generation Flow](#content-generation-flow)
+10. [Security Considerations](#security-considerations)
+11. [Development Notes](#development-notes)
+12. [Related Documentation](#related-documentation-1)
+13. [User Views, Access, and User Flow](#user-views-access-and-user-flow)
 
 ---
 
@@ -416,6 +422,389 @@ CREATE TABLE jeseci_academy.user_learning_preferences (
 
 ---
 
+## Content Generation Flow
+
+The Jeseci Smart Learning Academy includes an AI-powered content generation system that automatically creates educational materials based on specified topics, domains, and difficulty levels. This section documents the complete flow from user request to content storage and delivery.
+
+### Overview
+
+The content generation system leverages OpenAI's language models to produce high-quality educational content in markdown format. The system handles the complete lifecycle of content generation including prompt construction, API communication, response parsing, and persistent storage. This enables content administrators to rapidly expand the educational library with consistent, well-structured materials covering various programming concepts and technical topics.
+
+### Architecture Components
+
+The content generation architecture consists of three primary layers that work together to transform simple topic descriptions into comprehensive educational materials. The frontend layer provides an interface for content administrators to specify generation parameters and view results. The backend layer manages communication with external AI services and enforces access controls. The persistence layer ensures that generated content remains available for future retrieval and management operations.
+
+**Frontend Layer**: The React-based admin dashboard includes a dedicated AI Lab section where authorized administrators can initiate content generation requests. The interface presents form fields for concept name, domain selection, difficulty level, and optional related concepts. Upon submission, the frontend constructs a structured request payload and sends it to the appropriate backend endpoint. The response displays generated content in a formatted preview along with metadata including content ID, generation timestamp, and model information.
+
+**Backend Layer**: The backend implements Jaclang walkers that handle content generation requests with proper authentication and authorization checks. The primary walker `admin_ai_generate` receives request parameters, constructs detailed prompts for the AI model, communicates with OpenAI's API, parses the response, and stores the result in the database. Error handling ensures graceful degradation when AI services are unavailable or when prompt generation fails.
+
+**Persistence Layer**: Generated content persists in the PostgreSQL database within the `ai_generated_content` table. Each content entry includes a unique identifier, the original concept name, domain classification, difficulty level, full markdown content, related concepts list, generation metadata, and timestamps. The storage layer also maintains usage statistics in the `ai_usage_stats` table for analytics and monitoring purposes.
+
+### Request Flow
+
+The content generation process follows a well-defined sequence of steps that transform user input into stored educational content. Understanding this flow helps in debugging issues and extending functionality.
+
+```
+Content Administrator
+        │
+        ▼
+Frontend AI Lab Form
+  - Concept Name: "Object Spatial Programming"
+  - Domain: "Jac Language"
+  - Difficulty: "intermediate"
+  - Related Concepts: ["Node", "Walker"]
+        │
+        ▼
+POST /walker/admin_ai_generate
+  Headers: Authorization: Bearer {JWT}
+  Body: {
+    "concept_name": "Object Spatial Programming",
+    "domain": "Jac Language",
+    "difficulty": "intermediate",
+    "related_concepts": ["Node", "Walker"]
+  }
+        │
+        ▼
+Backend Authorization Check
+  - Verify JWT token
+  - Check content_admin permission
+        │
+        ├─── Unauthorized → Return 403
+        │
+        └─── Authorized → Continue
+                  │
+                  ▼
+         Prompt Construction
+  - Build system prompt with content guidelines
+  - Insert user parameters (concept, domain, difficulty)
+  - Include related concepts for context
+        │
+                  ▼
+         OpenAI API Call
+  - Endpoint: https://api.openai.com/v1/chat/completions
+  - Model: gpt-3.5-turbo or configured model
+  - Max tokens: 2000
+  - Temperature: 0.7
+        │
+                  ▼
+         Response Processing
+  - Parse markdown from AI response
+  - Extract generated content
+  - Generate unique content_id
+        │
+                  ▼
+         Database Storage
+  - INSERT INTO ai_generated_content
+  - Update ai_usage_stats
+  - Return generated content
+        │
+                  ▼
+         Frontend Display
+  - Show generated markdown
+  - Display content metadata
+  - Enable edit/delete actions
+```
+
+### Frontend Implementation
+
+The frontend implementation resides in the admin dashboard's AI Lab section, providing a user-friendly interface for content generation requests. The implementation uses React hooks for state management and the centralized admin API service for backend communication.
+
+```typescript
+// From frontend/src/admin/pages/AIManager.tsx
+const handleGenerate = async (formData: GenerateRequest) => {
+  setLoading(true);
+  setError(null);
+  
+  try {
+    const response = await adminApi.generateAIContent({
+      concept_name: formData.conceptName,
+      domain: formData.domain,
+      difficulty: formData.difficulty,
+      related_concepts: formData.relatedConcepts
+    });
+    
+    if (response.success) {
+      setGeneratedContent(response.content);
+      // Refresh content list
+      loadAIContent();
+    } else {
+      setError(response.message || 'Generation failed');
+    }
+  } catch (err: any) {
+    setError(err.message || 'Failed to generate content');
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+The frontend service method constructs the API request and handles the response unwrapping required by the Jaclang API architecture:
+
+```typescript
+// From frontend/src/services/adminApi.ts
+async generateAIContent(request: {
+  concept_name: string;
+  domain: string;
+  difficulty: string;
+  related_concepts?: string[];
+}): Promise<{ success: boolean; content: AIGeneratedContentAdmin; message: string }> {
+  return this.makeRequest('/walker/admin_ai_generate', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+```
+
+### Backend Implementation
+
+The backend implementation consists of two primary components: the Jaclang walker that handles the HTTP endpoint and the Python module that manages AI interactions and database operations.
+
+**Jaclang Walker (app.jac)**:
+
+The walker receives requests, validates permissions, and orchestrates the content generation process:
+
+```jac
+walker admin_ai_generate {
+    can admin_ai_generate with entry {
+        # Initialize store and get content with error handling
+        content = {};
+        try {
+            ai_store.initialize_ai_content();
+            content = ai_store.generate_ai_content(
+                concept_name,
+                domain,
+                difficulty,
+                related_concepts,
+                generated_by
+            );
+        } except Exception as e {
+            print("Error generating AI content: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to generate AI content: " + str(e),
+                "content": null
+            }
+        }
+        
+        if content {
+            report {
+                "success": True,
+                "content": content,
+                "message": "AI content generated successfully"
+            }
+        }
+    }
+}
+```
+
+**Python Module (backend/admin_ai_store.py)**:
+
+The Python module contains the core logic for generating content through OpenAI and storing results:
+
+```python
+# From backend/admin_ai_store.py
+def generate_ai_content(concept_name: str, domain: str, difficulty: str,
+                        related_concepts: Optional[List[str]] = None,
+                        generated_by: str = "admin") -> Dict[str, Any]:
+    """Generate AI content using OpenAI API"""
+    # Get OpenAI API key from environment
+    api_key = os.environ.get("OPENAI_API_KEY")
+    
+    if not api_key:
+        return {"success": False, "error": "OpenAI API key not configured"}
+    
+    # Construct prompt based on parameters
+    prompt = construct_content_prompt(concept_name, domain, difficulty, related_concepts)
+    
+    # Call OpenAI API
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=2000,
+            temperature=0.7
+        )
+        content = response.choices[0].message.content
+    except Exception as e:
+        logger.error(f"OpenAI API error: {e}")
+        return {"success": False, "error": str(e)}
+    
+    # Calculate token usage
+    tokens_used = response.usage.total_tokens if hasattr(response, 'usage') else None
+    
+    # Store in database
+    result = save_ai_content(
+        concept_name=concept_name,
+        domain=domain,
+        difficulty=difficulty,
+        content=content,
+        generated_by=generated_by,
+        related_concepts=related_concepts,
+        tokens_used=tokens_used
+    )
+    
+    return result
+```
+
+### Prompt Construction
+
+The prompt construction process transforms basic parameters into detailed instructions for the AI model. The system uses a multi-part prompt structure that ensures consistent output format and educational quality.
+
+**System Prompt Components**:
+
+The system prompt establishes the AI's role as an educational content creator and specifies the expected output format. Key components include role definition, output structure requirements, tone guidelines, and formatting standards. The prompt instructs the AI to produce markdown-formatted content with specific sections including overview, key concepts, examples, practice exercises, and summary.
+
+**User Prompt Template**:
+
+The user prompt incorporates the specific parameters from the content generation request:
+
+```
+Generate educational content about the following topic:
+
+Topic: {concept_name}
+Domain: {domain}
+Difficulty Level: {difficulty}
+
+{fmt:Related Concepts: {related_concepts} if provided}
+
+Please create comprehensive educational content including:
+1. Overview/Introduction
+2. Key Concepts (numbered list)
+3. Code examples where applicable
+4. Practice Exercises
+5. Summary
+
+Format the content in markdown.
+```
+
+### Database Storage
+
+Generated content persists in the PostgreSQL database through the `ai_generated_content` table. The storage implementation ensures data integrity and enables efficient retrieval for later viewing or editing.
+
+```sql
+-- From backend/database/initialize_database.py
+CREATE TABLE jeseci_academy.ai_generated_content (
+    content_id VARCHAR(50) PRIMARY KEY,
+    concept_name VARCHAR(200) NOT NULL,
+    domain VARCHAR(100) NOT NULL,
+    difficulty VARCHAR(50) NOT NULL,
+    content TEXT NOT NULL,
+    related_concepts JSONB,
+    generated_by VARCHAR(100),
+    model VARCHAR(50) DEFAULT 'openai',
+    tokens_used INTEGER,
+    generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE jeseci_academy.ai_usage_stats (
+    id SERIAL PRIMARY KEY,
+    stat_type VARCHAR(50) NOT NULL,
+    stat_key VARCHAR(100),
+    stat_value INTEGER DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Response Structure
+
+The API returns content in a structured format that includes both the generated material and metadata useful for management operations. The Jaclang response wrapper follows the standard pattern used throughout the platform.
+
+```json
+{
+  "result": {
+    "_jac_type": "admin_ai_generate",
+    "_jac_id": "aadaaa8c96604c42b27dce8eb139b89b",
+    "_jac_archetype": "walker",
+    "concept_name": "Object Spatial Programming",
+    "difficulty": "intermediate",
+    "domain": "Jac Language",
+    "generated_by": "admin",
+    "related_concepts": ["Node"]
+  },
+  "reports": [
+    {
+      "success": true,
+      "content": {
+        "content_id": "ai_1767262252",
+        "concept_name": "Object Spatial Programming",
+        "domain": "Jac Language",
+        "difficulty": "intermediate",
+        "content": "# Object Spatial Programming\n\n## Overview\n...",
+        "related_concepts": ["Node"],
+        "generated_at": "2026-01-01T13:10:52Z",
+        "generated_by": "admin",
+        "source": "ai_generator",
+        "model": "openai"
+      },
+      "message": "AI content generated successfully"
+    }
+  ]
+}
+```
+
+### AI Content Management
+
+Beyond generation, the system provides comprehensive management capabilities for viewing, editing, and deleting AI-generated content. These operations support the content administrator's workflow for quality assurance and content curation.
+
+**Viewing Generated Content**: The admin panel displays all generated content in a searchable, filterable table. Each entry shows the concept name, domain, difficulty, generation date, and a content preview. Administrators can click any entry to view the full markdown content in a modal dialog.
+
+**Editing Content**: Generated content can be modified after creation to correct errors, add platform-specific information, or improve clarity. Edit operations update the content field in the database while preserving the original generation metadata for audit purposes.
+
+**Deleting Content**: Content administrators can remove inappropriate or obsolete generated content. Deletion removes the entry from the database and updates the associated statistics counters. The system records deletion actions in the audit log for accountability.
+
+### Configuration Requirements
+
+The content generation feature requires proper configuration of external service credentials and system parameters. Missing or incorrect configuration results in generation failures.
+
+**Required Environment Variables**:
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `OPENAI_API_KEY` | OpenAI API key for GPT access | Yes |
+| `OPENAI_MODEL` | Model name (default: gpt-3.5-turbo) | No |
+| `MAX_TOKENS` | Maximum response tokens (default: 2000) | No |
+| `TEMPERATURE` | Model temperature (default: 0.7) | No |
+
+**Configuration File Location**:
+
+Environment variables can be set in the backend configuration file located at `backend/config/.env`. The application loads these variables during startup and makes them available to the content generation module.
+
+```bash
+# Example backend/config/.env
+OPENAI_API_KEY=sk-your-api-key-here
+OPENAI_MODEL=gpt-3.5-turbo
+MAX_TOKENS=2000
+TEMPERATURE=0.7
+```
+
+### Error Handling
+
+The content generation system implements comprehensive error handling to provide meaningful feedback and maintain system stability. Errors can occur at multiple stages of the generation process.
+
+**Authentication Errors**: Invalid or missing JWT tokens result in 401 Unauthorized responses. Content administrators must have valid sessions with appropriate permissions (content_admin or higher) to generate content.
+
+**Configuration Errors**: Missing OpenAI API key results in immediate failure with a clear error message. The system logs configuration errors to assist with debugging.
+
+**API Errors**: OpenAI API failures (rate limits, network issues, invalid requests) propagate to the user with descriptive error messages. The system implements retry logic for transient failures.
+
+**Database Errors**: Storage failures prevent content persistence but do not lose generated content. The system returns the generated content in the error response, allowing manual storage if needed.
+
+### Related API Endpoints
+
+The content generation feature integrates with several related API endpoints for complete content management functionality.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/admin_ai_generate` | POST | Generate new AI content |
+| `/walker/admin_ai_content` | GET | List all generated content |
+| `/walker/admin_ai_domains` | GET | List available domains |
+| `/walker/admin_ai_stats` | GET | Get usage statistics |
+
+---
+
 ## Security Considerations
 
 ### Role-Based Access Control (RBAC)
@@ -687,7 +1076,7 @@ The platform supports seamless transitions between student and admin views for u
 
 | Property | Value |
 |----------|-------|
-| **Last Updated** | 2025-12-31 |
+| **Last Updated** | 2026-01-01 |
 | **Author** | Development Team |
 | **Version** | 1.0 |
 | **Status** | Active |
