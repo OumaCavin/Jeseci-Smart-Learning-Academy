@@ -11,7 +11,7 @@ interface DashboardOverviewProps {
   onNavigate: (section: string) => void;
 }
 
-const DashboardOverview: React.FC<DashboardOverviewProps> = ({ activeSection }) => {
+const DashboardOverview: React.FC<DashboardOverviewProps> = ({ activeSection, onNavigate }) => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
