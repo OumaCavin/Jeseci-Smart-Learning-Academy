@@ -544,6 +544,55 @@ def create_content_views_table(cursor):
     logger.info("✓ Content views tables created: content_views, content_views_summary")
 
 
+def create_domains_table(cursor):
+    """Create domains table for content categorization"""
+    logger.info("Creating domains table...")
+
+    cursor.execute(f"""
+    CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.domains (
+        id SERIAL PRIMARY KEY,
+        domain_id VARCHAR(64) UNIQUE NOT NULL,
+        name VARCHAR(200) NOT NULL,
+        slug VARCHAR(200) UNIQUE NOT NULL,
+        description TEXT,
+        icon VARCHAR(50) DEFAULT '📚',
+        color VARCHAR(20) DEFAULT '#2563eb',
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # Create index on name and slug for fast lookups
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_domains_name
+        ON {DB_SCHEMA}.domains(name)
+    """)
+
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_domains_active
+        ON {DB_SCHEMA}.domains(is_active)
+    """)
+
+    # Insert default domains if table is empty
+    cursor.execute(f"SELECT COUNT(*) FROM {DB_SCHEMA}.domains")
+    if cursor.fetchone()[0] == 0:
+        default_domains = [
+            ('Computer Science', 'computer-science', 'Programming and computational thinking', '💻', '#2563eb'),
+            ('Object-Spatial Programming', 'object-spatial-programming', 'JAC language and OSP concepts', '🔷', '#7c3aed'),
+            ('Data Science', 'data-science', 'Data analysis and machine learning', '📊', '#059669'),
+            ('Web Development', 'web-development', 'Frontend and backend web technologies', '🌐', '#0891b2'),
+            ('Mathematics', 'mathematics', 'Mathematical foundations', '🔢', '#dc2626'),
+        ]
+        for name, slug, desc, icon, color in default_domains:
+            cursor.execute(f"""
+                INSERT INTO {DB_SCHEMA}.domains (domain_id, name, slug, description, icon, color)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (f"domain_{slug}", name, slug, desc, icon, color))
+
+    logger.info("✓ Domains table created with default data")
+
+
 def create_sync_engine_tables(cursor):
     """Create sync engine tables for PostgreSQL-Neo4j synchronization"""
     logger.info("Creating sync engine tables...")
@@ -805,6 +854,7 @@ def initialize_database():
         create_system_tables(cursor)
         create_ai_tables(cursor)
         create_content_views_table(cursor)
+        create_domains_table(cursor)
         create_sync_engine_tables(cursor)
         create_sync_engine_indexes(cursor)
         create_indexes(cursor)
