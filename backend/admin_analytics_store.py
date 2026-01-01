@@ -28,11 +28,12 @@ def get_user_analytics():
         data = analytics_store.get("users", {})
         
         # Return placeholder data - for real user counts, query database
+        # Provide default values to prevent IndexError in dashboard
         return {
             "total_users": 0,
             "active_users": 0,
-            "new_users": [],
-            "user_growth": [],
+            "new_users": [0, 0, 0, 0, 0, 0, 0],  # 7 days of data for weekly chart
+            "user_growth": [0, 0, 0, 0, 0, 0, 0],
             "note": "For real user statistics, query the database directly"
         }
 

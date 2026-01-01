@@ -415,8 +415,9 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
 };
 
 // Relationships View Component
-const RelationshipsView: React.FC<{ concepts: AdminConcept[] }> = ({ concepts }) => {
+const RelationshipsView: React.FC<{ concepts: AdminConcept[] }> = ({ concepts: parentConcepts }) => {
   const [relationships, setRelationships] = useState<any[]>([]);
+  const [concepts, setConcepts] = useState<AdminConcept[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
@@ -427,8 +428,13 @@ const RelationshipsView: React.FC<{ concepts: AdminConcept[] }> = ({ concepts })
   const loadData = async () => {
     setLoading(true);
     try {
-      const relsRes = await adminApi.getConceptRelationships();
+      // Load both relationships and concepts in parallel
+      const [relsRes, conceptsRes] = await Promise.all([
+        adminApi.getConceptRelationships(),
+        adminApi.getConcepts()
+      ]);
       if (relsRes.success) setRelationships(relsRes.relationships || []);
+      if (conceptsRes.success) setConcepts(conceptsRes.concepts || []);
     } catch (err) {
       console.error('Error loading relationships:', err);
     } finally {
