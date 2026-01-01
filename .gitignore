@@ -900,21 +900,6 @@
 **/.claude/debug/**
 
 # ==============================================================================
-# PROJECT ROOT IGNORES
-# ==============================================================================
-# Browser automation and testing tools
-browser/
-
-# Temporary files directory
-tmp/
-
-# Workspace configuration (user-specific)
-workspace.json
-
-# User input files (read-only directory)
-user_input_files/
-
-# ==============================================================================
 # NESTED GIT REPOSITORIES
 # ==============================================================================
 # Temporarily renamed .git directories (used by WorkspaceGitManager)
