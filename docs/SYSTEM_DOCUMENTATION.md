@@ -371,6 +371,80 @@ CREATE TABLE jeseci_academy.user_learning_preferences (
 
 ---
 
+### Database Sync Behavior
+
+The Jeseci Smart Learning Academy uses a **hybrid database architecture** with PostgreSQL for relational data and Neo4j for graph relationships. Each database serves a distinct purpose, and content created from the admin panel may sync to one or both databases depending on its nature.
+
+#### Architecture Overview
+
+| Database | Purpose | Use Cases |
+|----------|---------|-----------|
+| **PostgreSQL** | Relational data storage and admin management | Courses, Quizzes, User progress, Analytics, Learning Path metadata |
+| **Neo4j** | Graph-based learning experience | Concepts, Learning Paths (as nodes), Concept relationships (prerequisites, related_to) |
+
+#### Current Sync Behavior
+
+When content is created from the admin panel, the following sync behavior applies:
+
+| Item | Created from Admin Panel | Syncs to PostgreSQL | Syncs to Neo4j | Rationale |
+|------|-------------------------|---------------------|----------------|-----------|
+| **Concepts** | ✓ Yes | ✗ No | ✓ Yes | Concepts are purely graph nodes used for learning paths and prerequisites |
+| **Learning Paths** | ✓ Yes | ✓ Yes | ✓ Yes | Metadata needed for admin panel, nodes needed for student learning graph |
+| **Courses** | ✓ Yes | ✓ Yes | ✗ No | Courses are operational data, not part of the learning graph |
+| **Quizzes** | ✓ Yes | ✓ Yes | ✗ No | Quizzes are assessment data, not part of the learning graph |
+| **Relationships** | ✓ Yes | ✗ No | ✓ Yes | Graph relationships only exist in Neo4j |
+
+#### Sync Behavior Details
+
+**Concepts (Neo4j only)**
+- Concepts are created directly in Neo4j as `:Concept` nodes
+- The admin panel queries Neo4j directly for concept listing
+- Each concept has properties: `concept_id`, `name`, `display_name`, `category`, `difficulty_level`, `domain`, `key_terms`, etc.
+
+**Learning Paths (Both databases)**
+- **PostgreSQL**: Stores path metadata (path_id, title, description, difficulty, duration)
+- **Neo4j**: Creates `:LearningPath` node with `PathContains` relationships to associated concepts
+- When created from admin panel, both writes happen in a single operation
+
+**Courses and Quizzes (PostgreSQL only)**
+- These are operational/transactional data types
+- Used for admin management and user tracking
+- Not involved in the learning graph navigation
+
+**Relationships (Neo4j only)**
+- Concept-to-concept relationships (PREREQUISITE, RELATED_TO, PART_OF, BUILDS_UPON)
+- Stored as edge types in Neo4j
+- Used for learning recommendations and prerequisite checking
+
+#### Implementation Notes
+
+The sync behavior is implemented in `backend/admin_content_store.py`:
+
+```python
+# Learning path creation syncs to both databases
+def create_path(title, description, courses, concepts, difficulty, duration):
+    # ... PostgreSQL insert ...
+    pg_manager.execute_query(insert_query, ...)
+    
+    # ... Neo4j node creation ...
+    neo4j_manager.execute_query(create_path_query, ...)
+    
+    # ... Concept linking in Neo4j ...
+    for concept in concepts:
+        neo4j_manager.execute_query(link_query, ...)
+```
+
+#### Admin Panel vs Seeder Comparison
+
+| Item | Seeded by `seed.py` | Can Create via Admin Panel |
+|------|---------------------|---------------------------|
+| Concepts | ✓ Yes (11 concepts) | ✓ Yes |
+| Learning Paths | ✓ Yes (4 paths) | ✓ Yes |
+| Courses | ✓ Yes (5 courses) | ✓ Yes |
+| Relationships | ✓ Yes (prerequisites, related_to) | ✓ Yes (via Relationships tab) |
+
+---
+
 ## API Endpoints Reference
 
 ### User Management Endpoints
