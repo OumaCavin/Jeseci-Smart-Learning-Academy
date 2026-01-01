@@ -7,7 +7,7 @@ import { useAdmin } from '../contexts/AdminContext';
 import './Admin.css';
 
 interface AdminLayoutProps {
-  children: (props: { activeSection: string }) => React.ReactNode;
+  children: (props: { activeSection: string; onNavigate: (section: string) => void }) => React.ReactNode;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
@@ -98,7 +98,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </header>
 
         <div className="admin-content">
-          {children({ activeSection })}
+          {children({ activeSection, onNavigate: setActiveSection })}
         </div>
       </main>
     </div>
