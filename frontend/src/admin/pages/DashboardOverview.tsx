@@ -8,6 +8,7 @@ import '../Admin.css';
 
 interface DashboardOverviewProps {
   activeSection: string;
+  onNavigate: (section: string) => void;
 }
 
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ activeSection }) => {
@@ -137,19 +138,34 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ activeSection }) 
         </div>
         <div className="admin-card-body">
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <button className="btn btn-primary">
+            <button
+              className="btn btn-primary"
+              onClick={() => onNavigate('users')}
+            >
               👤 Create Admin User
             </button>
-            <button className="btn btn-secondary">
+            <button
+              className="btn btn-secondary"
+              onClick={() => onNavigate('content')}
+            >
               📚 Add New Course
             </button>
-            <button className="btn btn-secondary">
+            <button
+              className="btn btn-secondary"
+              onClick={() => onNavigate('quizzes')}
+            >
               📝 Create Quiz
             </button>
-            <button className="btn btn-secondary">
+            <button
+              className="btn btn-secondary"
+              onClick={() => onNavigate('ai')}
+            >
               🤖 Generate AI Content
             </button>
-            <button className="btn btn-secondary">
+            <button
+              className="btn btn-secondary"
+              onClick={() => onNavigate('analytics')}
+            >
               📊 View Full Analytics
             </button>
           </div>
