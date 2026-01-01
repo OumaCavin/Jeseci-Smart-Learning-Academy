@@ -501,6 +501,88 @@ def seed_relationships_to_neo4j(manager, dry_run=False, verbose=True):
 
 
 # ==============================================================================
+# PostgreSQL Seeding Functions
+# ==============================================================================
+
+def seed_paths_to_postgres(dry_run=False, verbose=True):
+    """Seed learning paths to PostgreSQL"""
+    if dry_run:
+        print("Dry run - paths not seeded to PostgreSQL")
+        return {"success": True, "paths_created": 0}
+    
+    try:
+        pg_manager = db_module.get_postgres_manager()
+    except Exception as e:
+        if verbose:
+            print(f"PostgreSQL not available: {e}")
+        return {"success": False, "error": str(e)}
+    
+    paths_created = 0
+    
+    for path_data in jac_learning_paths:
+        path_id = path_data.get("path_id", "")
+        name = path_data.get("name", "")
+        title = path_data.get("title", "")
+        description = path_data.get("description", "")
+        category = path_data.get("category", "")
+        difficulty_level = path_data.get("difficulty_level", "")
+        estimated_duration = path_data.get("estimated_duration", 0)
+        target_audience = path_data.get("target_audience", "")
+        concepts = path_data.get("concepts", [])
+        
+        # Check if path already exists
+        check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = %s"
+        try:
+            existing = pg_manager.execute_query(check_query, (path_id,))
+            if existing:
+                if verbose:
+                    print(f"Path already exists: {title}")
+                continue
+        except Exception as e:
+            if verbose:
+                print(f"Check query warning: {e}")
+        
+        # Insert new path
+        insert_query = """
+        INSERT INTO jeseci_academy.learning_paths 
+        (path_id, name, title, category, difficulty, estimated_duration, 
+         target_audience, description, is_published, created_at, updated_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, true, NOW(), NOW())
+        """
+        
+        try:
+            pg_manager.execute_query(insert_query, (
+                path_id, name, title, category, difficulty_level,
+                estimated_duration, target_audience, description
+            ), fetch=False)
+            paths_created += 1
+            if verbose:
+                print(f"Created path in PostgreSQL: {title}")
+            
+            # Link concepts to path in the junction table
+            for i, concept_name in enumerate(concepts):
+                concept_id = f"jac_{concept_name}"
+                link_query = """
+                INSERT INTO jeseci_academy.learning_path_concepts 
+                (path_id, concept_id, order_index, is_required)
+                VALUES (%s, %s, %s, true)
+                ON CONFLICT (path_id, concept_id) DO NOTHING
+                """
+                try:
+                    pg_manager.execute_query(link_query, (path_id, concept_id, i + 1), fetch=False)
+                except Exception as e:
+                    if verbose:
+                        print(f"Failed to link concept: {concept_name} - {e}")
+        except Exception as e:
+            if verbose:
+                print(f"Failed to create path: {title} - {e}")
+    
+    if verbose:
+        print(f"PostgreSQL paths created: {paths_created}")
+    return {"success": True, "paths_created": paths_created}
+
+
+# ==============================================================================
 # Main Entry Point
 # ==============================================================================
 
@@ -532,6 +614,9 @@ def run_seeder(mode="all", dry_run=False, verbose=True):
         print("\nSeeding Learning Paths...")
         print("-" * 50)
         seed_paths_to_neo4j(manager, dry_run, verbose)
+        print("\nSeeding Learning Paths to PostgreSQL...")
+        print("-" * 50)
+        seed_paths_to_postgres(dry_run, verbose)
     
     if mode == "all" or mode == "relationships":
         print("\nSeeding Relationships...")
