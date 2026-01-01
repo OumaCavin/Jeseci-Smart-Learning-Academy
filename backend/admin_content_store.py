@@ -411,6 +411,74 @@ def add_concept_relationship(source_id, target_id, relationship_type, strength=1
     
     return {"success": False, "error": "Failed to create relationship"}
 
+
+def delete_concept_relationship(source_id, target_id, relationship_type):
+    """Delete a relationship between two concepts in Neo4j"""
+    neo4j_manager = get_neo4j_manager()
+    
+    valid_types = ['PREREQUISITE', 'RELATED_TO', 'PART_OF', 'BUILDS_UPON']
+    if relationship_type.upper() not in valid_types:
+        return {"success": False, "error": f"Invalid relationship type. Valid types: {valid_types}"}
+    
+    query = f"""
+    MATCH (a:Concept {{concept_id: $source_id}})-[r:{relationship_type.upper()}]->(b:Concept {{concept_id: $target_id}})
+    DELETE r
+    RETURN COUNT(r) as deleted_count
+    """
+    
+    try:
+        result = neo4j_manager.execute_write(query, {
+            "source_id": source_id,
+            "target_id": target_id
+        })
+        
+        deleted = result[0].get('deleted_count', 0) if result else 0
+        
+        if deleted > 0:
+            return {"success": True, "message": f"Relationship deleted"}
+        else:
+            return {"success": False, "error": "Relationship not found"}
+            
+    except Exception as e:
+        logger.error(f"Error deleting concept relationship: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
+
+
+def get_all_concept_relationships():
+    """Get all concept relationships from Neo4j"""
+    neo4j_manager = get_neo4j_manager()
+    
+    query = """
+    MATCH (a:Concept)-[r:PREREQUISITE|RELATED_TO|PART_OF|BUILDS_UPON]->(b:Concept)
+    RETURN a.concept_id as source_id, a.name as source_name, a.display_name as source_display,
+           b.concept_id as target_id, b.name as target_name, b.display_name as target_display,
+           type(r) as relationship_type, r.strength as strength
+    ORDER BY a.name, type(r)
+    """
+    
+    try:
+        result = neo4j_manager.execute_query(query)
+        
+        relationships = []
+        for row in result or []:
+            relationships.append({
+                "source_id": row.get('source_id'),
+                "source_name": row.get('source_name'),
+                "source_display": row.get('source_display') or row.get('source_name'),
+                "target_id": row.get('target_id'),
+                "target_name": row.get('target_name'),
+                "target_display": row.get('target_display') or row.get('target_name'),
+                "relationship_type": row.get('relationship_type'),
+                "strength": row.get('strength', 1)
+            })
+        
+        return {"success": True, "relationships": relationships}
+        
+    except Exception as e:
+        logger.error(f"Error getting all relationships: {e}")
+        return {"success": False, "error": str(e), "relationships": []}
+
+
 # ==============================================================================
 # LEARNING PATHS STORAGE (PostgreSQL + Neo4j)
 # ==============================================================================
