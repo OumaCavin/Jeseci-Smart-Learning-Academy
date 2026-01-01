@@ -21,38 +21,31 @@ def initialize_analytics():
 def get_user_analytics():
     """
     Get user analytics data.
-    Note: For real user statistics, query the database directly.
-    This function provides a placeholder structure.
     """
     with analytics_lock:
         data = analytics_store.get("users", {})
         
-        # Return placeholder data - for real user counts, query database
-        # Provide default values to prevent IndexError in dashboard
+        # Return placeholder data
         return {
             "total_users": 0,
             "active_users": 0,
-            "new_users": [0, 0, 0, 0, 0, 0, 0],  # 7 days of data for weekly chart
-            "user_growth": [0, 0, 0, 0, 0, 0, 0],
-            "note": "For real user statistics, query the database directly"
+            "new_users": [0, 0, 0, 0, 0, 0, 0],
+            "user_growth": []
         }
 
 def get_learning_analytics():
     """
     Get learning analytics data.
-    Note: For real learning statistics, query the database directly.
-    This function provides a placeholder structure.
     """
     with analytics_lock:
         data = analytics_store.get("learning", {})
         
-        # Return placeholder data - for real learning stats, query database
+        # Return placeholder data
         return {
             "total_sessions": 0,
             "completed_courses": 0,
             "average_progress": 0,
-            "learning_trends": [],
-            "note": "For real learning statistics, query the database directly"
+            "learning_trends": []
         }
 
 def get_content_analytics():
