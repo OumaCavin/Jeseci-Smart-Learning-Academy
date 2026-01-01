@@ -260,7 +260,7 @@ const AnalyticsReports: React.FC<AnalyticsReportsProps> = ({ activeSection }) =>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '32px', fontWeight: '700', color: '#1f2937' }}>
-                {userAnalytics?.new_users?.length || 0}
+                {userAnalytics?.new_users?.reduce((a: number, b: number) => a + b, 0) || 0}
               </div>
               <div style={{ fontSize: '14px', color: '#6b7280' }}>New Users (Period)</div>
             </div>
