@@ -79,7 +79,7 @@ An intelligent learning platform featuring a robust React frontend with defensiv
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/YourUsername/Jeseci-Smart-Learning-Academy.git
+git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
 cd Jeseci-Smart-Learning-Academy
 
 # 2. Run main setup script
