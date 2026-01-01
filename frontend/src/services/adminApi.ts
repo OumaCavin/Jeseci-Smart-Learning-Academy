@@ -195,22 +195,23 @@ class AdminApiService {
       }
 
       const data = await response.json();
+      console.log(`Raw Admin API response from ${endpoint}:`, JSON.stringify(data, null, 2));
       
       // Handle Jaclang API response wrapped in reports array
       if (data?.reports && Array.isArray(data.reports) && data.reports.length > 0) {
         const result = data.reports[0];
-        console.log(`Admin API response from ${endpoint}:`, result);
+        console.log(`Admin API extracted from reports:`, result);
         return result;
       }
       
       // Handle response with result field (echoed input data)
       if (data?.result !== undefined && !data?.reports) {
-        console.log(`Admin API response from ${endpoint}:`, data);
-        return data;
+        console.log(`Admin API using result field:`, data.result);
+        return data.result;
       }
       
-      // Direct response (no wrapping)
-      console.log(`Admin API response from ${endpoint}:`, data);
+      // Direct response (walker metadata or unwrapped data) - return as-is
+      console.log(`Admin API direct response:`, data);
       return data;
     } catch (error) {
       console.error(`Admin API request failed: ${endpoint}`, error);
