@@ -342,6 +342,21 @@ class AdminApiService {
     });
   }
 
+  async createLearningPath(pathData: {
+    title: string;
+    description: string;
+    courses: string[];
+    concepts: string[];
+    difficulty: string;
+    duration: string;
+    target_audience?: string;
+  }): Promise<{ success: boolean; path_id: string; message: string }> {
+    return this.makeRequest('/walker/admin_content_path_create', {
+      method: 'POST',
+      body: JSON.stringify(pathData),
+    });
+  }
+
   // Quiz Management
   async getQuizzes(): Promise<{ success: boolean; quizzes: AdminQuiz[] }> {
     return this.makeRequest('/walker/admin_quizzes', {
