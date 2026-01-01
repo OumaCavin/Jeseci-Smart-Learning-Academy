@@ -7,11 +7,11 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Author:** Cavin Otieno  
-**Updated:** December 26, 2025  
-**Version:** 2.1.0  
-**Architecture:** Hybrid React + JAC Backend
+**Updated:** January 1, 2026  
+**Version:** 2.2.0  
+**Architecture:** Hybrid React + JAC Backend + PostgreSQL + Neo4j
 
-An intelligent learning platform featuring a robust React frontend with defensive programming patterns and a powerful JAC backend with AI-powered content generation, personalized learning paths, and comprehensive progress tracking.
+An intelligent learning platform featuring a robust React frontend with defensive programming patterns, a powerful JAC backend with AI-powered content generation, personalized learning paths, comprehensive progress tracking, real-time analytics dashboard, relationship management UI, and AI-powered quiz generation for administrators.
 
 ---
 
@@ -24,11 +24,12 @@ An intelligent learning platform featuring a robust React frontend with defensiv
 - **Type Safety**: Enhanced TypeScript integration with generic helpers
 - **Modern UI**: Responsive design with Tailwind CSS and intuitive navigation
 
-### 🚀 Backend Architecture (JAC Language)
+### 🚀 Backend Architecture (JAC Language + Hybrid Database)
 - **Object-Spatial Programming (OSP)**: Graph-based data modeling with native persistence
 - **Walker-based APIs**: Automatically generated REST endpoints from JAC walkers
 - **byLLM AI Integration**: Native OpenAI integration for content generation
-- **JAC Native Graph DB**: No external database dependencies required
+- **Hybrid Database Layer**: PostgreSQL for transactional data, Neo4j for relationship graphs
+- **Real-time Analytics Engine**: Live data aggregation with intelligent caching
 
 ### 🎯 Learning Features
 - **Personalized Learning Paths**: AI-driven recommendations based on progress
@@ -36,10 +37,28 @@ An intelligent learning platform featuring a robust React frontend with defensiv
 - **Real-time Progress Tracking**: Comprehensive analytics and achievement system
 - **AI Content Generation**: Dynamic lesson creation using OpenAI
 - **Adaptive Assessments**: Intelligent quizzes with AI-powered feedback
+- **Interactive Concepts Graph**: Visual exploration of learning concepts and their relationships
+
+### 🔐 Admin Panel & Management
+- **Comprehensive Dashboard**: Real-time analytics with live data from PostgreSQL and Neo4j
+- **Quick Actions Navigation**: Seamless access to user management, content creation, and analytics
+- **User Management**: Complete user administration with activity tracking
+- **AI Quiz Generator**: Create AI-powered quizzes with intelligent question generation
+- **Content Management**: Full course, lesson, and concept management capabilities
+- **Relationship Visualization**: Neo4j-powered visualization of learning content relationships
+
+### 🎯 Learning Features
+- **Personalized Learning Paths**: AI-driven recommendations based on progress
+- **Interactive Courses**: Multi-domain course catalog with difficulty levels
+- **Real-time Progress Tracking**: Live analytics dashboard with user engagement metrics
+- **AI Content Generation**: Dynamic lesson creation using OpenAI
+- **Adaptive Assessments**: Intelligent quizzes with AI-powered feedback
+- **Interactive Concepts Graph**: Visual exploration of learning concepts and their relationships
 
 ### 🔐 Core Functionality
 - **Secure Authentication**: JWT-based user management with proper session handling
 - **Multi-tab Dashboard**: Dashboard, Courses, Learning Paths, Concepts, Progress, Analytics
+- **Admin Management Panel**: Comprehensive dashboard with real-time analytics, user management, AI quiz generation, and content administration
 - **Achievement System**: Gamification with badges, streaks, and milestone tracking
 - **AI Chat Assistant**: Interactive learning support with conversational AI
 
@@ -52,9 +71,9 @@ An intelligent learning platform featuring a robust React frontend with defensiv
 - **Python 3.12+** - For JAC runtime and backend services
 - **Node.js 18+** - For React frontend development
 - **pnpm** - Package manager for frontend dependencies
-- **PostgreSQL** - Database for sync engine (see Database Setup below)
+- **PostgreSQL** - Primary database for transactional data and analytics (see Database Setup below)
 - **Redis** - Message queue for sync engine (uses DB=1 for isolation)
-- **Neo4j** - Graph database (optional, for enhanced features)
+- **Neo4j** - Graph database for learning content relationships and analytics
 
 ### Installation (Alternative Manual Setup)
 
@@ -134,9 +153,9 @@ Ensure the following databases are running:
 
 | Database   | Default Port     | Purpose                                |
 |------------|------------------|----------------------------------------|
-| PostgreSQL | 5432             | Sync engine event storage              |
+| PostgreSQL | 5432             | User data, sync events, analytics      |
 | Redis      | 6379 (DB 1)      | Message queue for sync events          |
-| Neo4j      | 7687             | Graph database for relationships       |
+| Neo4j      | 7687             | Graph database for content relationships and learning analytics |
 
 ### Database Configuration
 
@@ -192,6 +211,47 @@ The following tables are created by `initialize_database.py` (called by `setup_d
 **Note:** The migration script (`001_create_sync_engine_tables.py`) is only needed for **existing** installations that were set up before these tables were added to the centralized initialization. Fresh installations get all tables automatically.
 
 See `docs/sync-engine.md` for complete sync engine documentation.
+
+---
+
+## Real-Time Analytics System
+
+### Overview
+
+The platform features a comprehensive real-time analytics system that aggregates live data from both PostgreSQL and Neo4j to provide administrators with up-to-the-minute insights into platform usage, user engagement, and learning progress.
+
+### Analytics Features
+
+- **Live User Statistics**: Real-time user counts, active sessions, and registration trends
+- **Learning Metrics**: Course completion rates, concept mastery tracking, and learning path analytics
+- **Content Analytics**: Content usage patterns, popular courses, and engagement metrics
+- **Relationship Insights**: Neo4j-powered visualization of learning content relationships and concept connections
+
+### Analytics Architecture
+
+The analytics system uses a multi-layered architecture:
+
+1. **Data Collection Layer**: Queries PostgreSQL for transactional data and Neo4j for relationship data
+2. **Aggregation Layer**: Combines data from multiple sources into unified statistics
+3. **Caching Layer**: Intelligent 5-minute caching with thread-safe access for optimal performance
+4. **Presentation Layer**: Real-time dashboard updates with live data visualization
+
+### Analytics Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/get_analytics` | POST | Retrieve comprehensive platform analytics |
+| `/walker/get_user_stats` | POST | Get user statistics and activity metrics |
+| `/walker/get_learning_stats` | POST | Get learning progress and completion data |
+| `/walker/get_content_stats` | POST | Get content usage and engagement metrics |
+
+### Cache Configuration
+
+The analytics system implements intelligent caching to minimize database load:
+
+- **Cache TTL**: 5 minutes (300 seconds)
+- **Thread-safe**: Concurrent access protection
+- **Manual Refresh**: Available via force_refresh parameter
 
 ---
 
@@ -478,13 +538,25 @@ if (Array.isArray(dataArray)) {
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/walker/get_user_progress` | POST | Retrieve user progress data |
-| `/walker/get_analytics` | POST | Get learning analytics |
+| `/walker/get_analytics` | POST | Get comprehensive learning analytics |
+| `/walker/get_user_stats` | POST | Get real-time user statistics |
+| `/walker/get_learning_stats` | POST | Get learning progress metrics |
+| `/walker/get_content_stats` | POST | Get content engagement analytics |
 | `/walker/get_achievements` | POST | List user achievements |
+
+### Admin Management
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/admin_get_users` | POST | List and manage platform users |
+| `/walker/admin_create_quiz` | POST | Create AI-powered quiz with intelligent question generation |
+| `/walker/admin_get_dashboard` | POST | Get admin dashboard data with real-time metrics |
+| `/walker/admin_manage_content` | POST | Manage courses, lessons, and concepts |
 
 ### AI Features
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/walker/ai_generate_content` | POST | Generate AI-powered content |
+| `/walker/ai_generate_quiz` | POST | Generate intelligent quiz questions |
 | `/walker/chat_message` | POST | AI chat assistant |
 
 **📖 Complete API documentation**: [`docs/architecture/api_reference.md`](docs/architecture/api_reference.md)
@@ -508,9 +580,11 @@ if (Array.isArray(dataArray)) {
 |-----------|------------|---------|
 | **Language** | JAC (Jaclang) | 0.9.3+ |
 | **Runtime** | Python | 3.12+ |
-| **Database** | JAC Native Graph | Built-in |
+| **Primary Database** | PostgreSQL | 13+ |
+| **Graph Database** | Neo4j | 4.4+ |
 | **AI Integration** | OpenAI API | GPT-4 |
 | **Authentication** | JWT | - |
+| **Analytics Engine** | Hybrid PostgreSQL + Neo4j | Real-time |
 
 ### Development & DevOps
 | Component | Technology |
@@ -618,8 +692,11 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES=5  # Session timeout (5 minutes for security)
 
 ### ✅ Implementation Status
 - **Frontend Stability**: Zero runtime crashes achieved through defensive programming
+- **Real-Time Analytics**: Live data aggregation from PostgreSQL and Neo4j with intelligent caching
+- **Admin Management Panel**: Comprehensive dashboard with Quick Actions navigation, user management, and AI quiz generation
+- **Hybrid Database Architecture**: PostgreSQL for transactional data, Neo4j for relationship graphs and analytics
 - **Error Handling**: Comprehensive validation and fallback systems
-- **Type Safety**: Full TypeScript integration with generic helpers  
+- **Type Safety**: Full TypeScript integration with generic helpers
 - **User Experience**: Seamless loading and graceful degradation
 - **Documentation**: Complete architecture and implementation guides
 - **Code Quality**: Conventional commit messages and clean git history
@@ -676,6 +753,7 @@ For support, questions, or contributions:
 
 ---
 
-**🏆 Status: Production Ready with Zero Runtime Errors**  
-**📈 Architecture: Fully Documented and Validated**  
-**🔒 Quality: Defensive Programming Patterns Implemented**
+**🏆 Status: Production Ready with Real-Time Analytics and Admin Management**  
+**📈 Architecture: Hybrid PostgreSQL + Neo4j with Intelligent Caching**  
+**🔒 Quality: Defensive Programming Patterns Implemented**  
+**🤖 AI Features: Content Generation and Quiz Creation Enabled**
