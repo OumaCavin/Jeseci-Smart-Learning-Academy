@@ -20,6 +20,7 @@ import admin_content_store as content_store;
 import admin_quiz_store as quiz_store;
 import admin_ai_store as ai_store;
 import admin_analytics_store as analytics_store;
+import content_views_store as content_views_module;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -3117,13 +3118,37 @@ walker admin_analytics_content {
             content_store.initialize_paths();
             paths = content_store.get_all_paths();
             total_paths = len(paths);
-            
-            # Get some popular content (mocked for now based on available data)
-            if courses {
-                for course in courses[:3] {
+
+            # Get real popular content with actual view counts from database
+            popular_content = [];
+            course_views = content_views_module.get_popular_content("course", limit=5, period="all_time");
+            for view_data in course_views {
+                # Get course title from content store
+                course_title = "Unknown Course";
+                for course in courses {
+                    if course.get('course_id') == view_data['content_id'] {
+                        course_title = course.get('title', 'Unknown Course');
+                        break;
+                    }
+                }
+                popular_content.append({
+                    "content_id": view_data['content_id'],
+                    "title": course_title,
+                    "views": view_data['views'],
+                    "unique_views": view_data['unique_views'],
+                    "content_type": "course"
+                });
+            }
+
+            # If no views recorded yet, show courses with 0 views
+            if len(popular_content) == 0 {
+                for course in courses {
                     popular_content.append({
+                        "content_id": course.get('course_id'),
                         "title": course.get('title', 'Unknown'),
-                        "views": 100 + (len(courses) * 50)
+                        "views": 0,
+                        "unique_views": 0,
+                        "content_type": "course"
                     });
                 }
             }
@@ -3141,6 +3166,102 @@ walker admin_analytics_content {
                 "content_by_difficulty": content_by_difficulty
             }
         };
+    }
+}
+
+# ==============================================================================
+# Content View Tracking Endpoints
+# ==============================================================================
+
+walker record_content_view {
+    has content_id: str = "";
+    has content_type: str = "course";
+    has user_id: str = "";
+    has session_id: str = "";
+    has view_duration: int = 0;
+    has ip_address: str = "";
+    has user_agent: str = "";
+    has referrer_url: str = "";
+    has device_type: str = "desktop";
+    has browser: str = "";
+    has country_code: str = "";
+
+    can record_content_view with entry {
+        # Record a content view event
+        result = content_views_module.record_content_view(
+            content_id=self.content_id,
+            content_type=self.content_type,
+            user_id=self.user_id if self.user_id else null,
+            session_id=self.session_id if self.session_id else null,
+            view_duration=self.view_duration,
+            ip_address=self.ip_address if self.ip_address else null,
+            user_agent=self.user_agent if self.user_agent else null,
+            referrer_url=self.referrer_url if self.referrer_url else null,
+            device_type=self.device_type,
+            browser=self.browser if self.browser else null,
+            country_code=self.country_code if self.country_code else null
+        );
+
+        if result['success'] {
+            report {
+                "success": True,
+                "message": "View recorded successfully",
+                "view_id": result.get('view_id', ''),
+                "is_unique_view": result.get('is_unique_view', False)
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to record view')
+            };
+        }
+    }
+}
+
+walker get_content_view_analytics {
+    has content_id: str = "";
+    has content_type: str = "";
+    has period: str = "all_time";
+    has limit: int = 10;
+
+    can get_content_view_analytics with entry {
+        # Get view analytics for content
+        if self.content_id and self.content_type {
+            # Get stats for specific content
+            stats = content_views_module.content_views_store.get_content_view_stats(
+                content_id=self.content_id,
+                content_type=self.content_type
+            );
+
+            report {
+                "success": True,
+                "content_id": self.content_id,
+                "content_type": self.content_type,
+                "statistics": stats
+            };
+        } elif self.content_type {
+            # Get popular content for specific type
+            popular = content_views_module.get_popular_content(
+                content_type=self.content_type,
+                limit=self.limit,
+                period=self.period
+            );
+
+            report {
+                "success": True,
+                "content_type": self.content_type,
+                "period": self.period,
+                "popular_content": popular
+            };
+        } else {
+            # Get all content view summary
+            all_summary = content_views_module.get_all_views_summary();
+
+            report {
+                "success": True,
+                "all_content_views": all_summary
+            };
+        }
     }
 }
 

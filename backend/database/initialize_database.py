@@ -471,6 +471,79 @@ def create_ai_tables(cursor):
     logger.info("✓ AI tables created: ai_agents, ai_generated_content, ai_usage_stats")
 
 
+def create_content_views_table(cursor):
+    """Create content views tracking table for analytics"""
+    logger.info("Creating content views tracking table...")
+
+    # Content views table - tracks all content views for analytics
+    cursor.execute(f"""
+    CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.content_views (
+        id SERIAL PRIMARY KEY,
+        view_id VARCHAR(64) UNIQUE NOT NULL,
+        content_id VARCHAR(100) NOT NULL,
+        content_type VARCHAR(50) NOT NULL,
+        user_id VARCHAR(64),
+        session_id VARCHAR(100),
+        ip_address INET,
+        user_agent TEXT,
+        viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        view_duration INTEGER DEFAULT 0,
+        referrer_url TEXT,
+        device_type VARCHAR(20) DEFAULT 'desktop',
+        browser VARCHAR(50),
+        country_code VARCHAR(10),
+        is_unique_view BOOLEAN DEFAULT FALSE
+    )
+    """)
+
+    # Create indexes for efficient querying
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_content_views_content_id
+        ON {DB_SCHEMA}.content_views(content_id)
+    """)
+
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_content_views_content_type
+        ON {DB_SCHEMA}.content_views(content_type)
+    """)
+
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_content_views_user_id
+        ON {DB_SCHEMA}.content_views(user_id)
+    """)
+
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_content_views_viewed_at
+        ON {DB_SCHEMA}.content_views(viewed_at)
+    """)
+
+    # Aggregated content views summary table for fast analytics queries
+    cursor.execute(f"""
+    CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.content_views_summary (
+        id SERIAL PRIMARY KEY,
+        content_id VARCHAR(100) NOT NULL,
+        content_type VARCHAR(50) NOT NULL,
+        total_views INTEGER DEFAULT 0,
+        unique_views INTEGER DEFAULT 0,
+        total_view_duration INTEGER DEFAULT 0,
+        last_viewed_at TIMESTAMP,
+        views_today INTEGER DEFAULT 0,
+        views_this_week INTEGER DEFAULT 0,
+        views_this_month INTEGER DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(content_id, content_type)
+    )
+    """)
+
+    # Create index on content_views_summary
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_content_views_summary_total
+        ON {DB_SCHEMA}.content_views_summary(total_views DESC)
+    """)
+
+    logger.info("✓ Content views tables created: content_views, content_views_summary")
+
+
 def create_sync_engine_tables(cursor):
     """Create sync engine tables for PostgreSQL-Neo4j synchronization"""
     logger.info("Creating sync engine tables...")
@@ -731,6 +804,7 @@ def initialize_database():
         create_gamification_tables(cursor)
         create_system_tables(cursor)
         create_ai_tables(cursor)
+        create_content_views_table(cursor)
         create_sync_engine_tables(cursor)
         create_sync_engine_indexes(cursor)
         create_indexes(cursor)
