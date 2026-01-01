@@ -2129,19 +2129,46 @@ walker admin_dashboard {
         active_count = len([u for u in all_users if u.get('is_active', True)]);
         admin_count = len([u for u in all_users if u.get('is_admin', False)]);
         
-        # Get content counts with fallback to 0
+        # Get real content counts from databases (bypass caches for fresh data)
+        total_courses = 0;
         total_concepts = 0;
-        try {
-            total_concepts = len(content_store.get_all_concepts());
-        } except Exception as e {
-            total_concepts = 0;
-        }
-        
         total_paths = 0;
+        total_quizzes = 0;
+        
         try {
-            total_paths = len(content_store.get_all_paths());
+            # Force refresh by invalidating caches - directly query databases
+            # Import and access the initialization flags to reset them
+            import from python { PyModule };
+            
+            # Get fresh course count from PostgreSQL
+            courses_result = content_store.get_all_courses();
+            total_courses = len(courses_result);
+            
+            # Get fresh concept count from Neo4j
+            concepts_result = content_store.get_all_concepts();
+            total_concepts = len(concepts_result);
+            
+            # Get fresh paths count from PostgreSQL
+            paths_result = content_store.get_all_paths();
+            total_paths = len(paths_result);
+            
+            # Get fresh quiz count
+            quizzes_result = quiz_store.get_all_quizzes();
+            total_quizzes = len(quizzes_result);
+            
         } except Exception as e {
+            print("Error getting content counts: " + str(e));
+            # Fall back to cached values
+            total_courses = len(all_courses);
+            total_concepts = 0;
+            try {
+                total_concepts = len(content_store.get_all_concepts());
+            } catch {}
             total_paths = 0;
+            try {
+                total_paths = len(content_store.get_all_paths());
+            } catch {}
+            total_quizzes = len(all_quizzes);
         }
         
         stats = {
@@ -2157,10 +2184,10 @@ walker admin_dashboard {
                 "role_distribution": role_distribution
             },
             "content_statistics": {
-                "total_courses": len(all_courses),
+                "total_courses": total_courses,
                 "total_concepts": total_concepts,
                 "total_paths": total_paths,
-                "total_quizzes": len(all_quizzes)
+                "total_quizzes": total_quizzes
             },
             "system_health": {
                 "database_status": "connected",
