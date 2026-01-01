@@ -2161,13 +2161,7 @@ walker admin_dashboard {
             # Fall back to cached values
             total_courses = len(all_courses);
             total_concepts = 0;
-            try {
-                total_concepts = len(content_store.get_all_concepts());
-            } catch {}
             total_paths = 0;
-            try {
-                total_paths = len(content_store.get_all_paths());
-            } catch {}
             total_quizzes = len(all_quizzes);
         }
         
