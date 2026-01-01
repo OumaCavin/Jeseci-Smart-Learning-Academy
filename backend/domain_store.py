@@ -12,7 +12,7 @@ Features:
 - Bulk domain operations
 - Domain statistics and content counts
 
-Author: MiniMax Agent
+Author: Cavin Otieno
 License: MIT License
 """
 
