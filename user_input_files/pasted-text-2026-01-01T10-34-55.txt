@@ -1,0 +1,767 @@
+Raw Admin API response from /walker/admin_analytics_users: {
+  "result": {
+    "_jac_type": "admin_analytics_users",
+    "_jac_id": "676004e477174bea855d226acbb08481",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "analytics": {
+        "total_users": 156,
+        "active_users": 142,
+        "new_users": [
+          12,
+          15,
+          18,
+          22,
+          19,
+          25,
+          30
+        ],
+        "user_growth": [
+          {
+            "date": "2025-12-26",
+            "count": 27
+          },
+          {
+            "date": "2025-12-27",
+            "count": 42
+          },
+          {
+            "date": "2025-12-28",
+            "count": 60
+          },
+          {
+            "date": "2025-12-29",
+            "count": 82
+          },
+          {
+            "date": "2025-12-30",
+            "count": 101
+          },
+          {
+            "date": "2025-12-31",
+            "count": 126
+          },
+          {
+            "date": "2026-01-01",
+            "count": 156
+          }
+        ]
+      }
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, analytics: {…}}
+analytics
+: 
+{total_users: 156, active_users: 142, new_users: Array(7), user_growth: Array(7)}
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_analytics_learning: {
+  "result": {
+    "_jac_type": "admin_analytics_learning",
+    "_jac_id": "d3186329e37a49bd983daa9a9519eccf",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "analytics": {
+        "total_sessions": 1250,
+        "completed_courses": 89,
+        "average_progress": 72.5,
+        "learning_trends": [
+          {
+            "date": "2025-12-26",
+            "sessions": 1215
+          },
+          {
+            "date": "2025-12-27",
+            "sessions": 1223
+          },
+          {
+            "date": "2025-12-28",
+            "sessions": 1234
+          },
+          {
+            "date": "2025-12-29",
+            "sessions": 1248
+          },
+          {
+            "date": "2025-12-30",
+            "sessions": 1265
+          },
+          {
+            "date": "2025-12-31",
+            "sessions": 1285
+          },
+          {
+            "date": "2026-01-01",
+            "sessions": 1308
+          }
+        ]
+      }
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, analytics: {…}}
+analytics
+: 
+{total_sessions: 1250, completed_courses: 89, average_progress: 72.5, learning_trends: Array(7)}
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_analytics_content: {
+  "result": {
+    "_jac_type": "admin_analytics_content",
+    "_jac_id": "67f24fc9680647cd8a5e178f1121bf23",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "analytics": {
+        "total_courses": 12,
+        "total_concepts": 48,
+        "popular_content": [
+          {
+            "title": "Variables and Data Types",
+            "views": 1250
+          },
+          {
+            "title": "Object-Spatial Programming",
+            "views": 980
+          },
+          {
+            "title": "Walker Functions",
+            "views": 875
+          }
+        ],
+        "content_by_difficulty": {
+          "beginner": 15,
+          "intermediate": 25,
+          "advanced": 8
+        }
+      }
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, analytics: {…}}
+analytics
+: 
+{total_courses: 12, total_concepts: 48, popular_content: Array(3), content_by_difficulty: {…}}
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_quizzes: {
+  "result": {
+    "_jac_type": "admin_quizzes",
+    "_jac_id": "b2400e916657484ba10e5c9f933261ea",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "quizzes": []
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, quizzes: Array(0)}
+quizzes
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Get quizzes response: 
+{success: true, quizzes: Array(0)}
+quizzes
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_quizzes_analytics: {
+  "result": {
+    "_jac_type": "admin_quizzes_analytics",
+    "_jac_id": "0e01faccb9174f009b8cdef335fb9a94",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "analytics": {
+        "total_quizzes": 0,
+        "total_attempts": 0,
+        "average_score": 0,
+        "pass_rate": 0
+      }
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, analytics: {…}}
+analytics
+: 
+{total_quizzes: 0, total_attempts: 0, average_score: 0, pass_rate: 0}
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_ai_domains: {
+  "result": {
+    "_jac_type": "admin_ai_domains",
+    "_jac_id": "67599b52ed514eef991f3079786e7768",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "domains": [
+        {
+          "id": "cs",
+          "name": "Computer Science",
+          "description": "CS fundamentals",
+          "course_count": 5
+        },
+        {
+          "id": "math",
+          "name": "Mathematics",
+          "description": "Math topics",
+          "course_count": 3
+        },
+        {
+          "id": "physics",
+          "name": "Physics",
+          "description": "Physics concepts",
+          "course_count": 4
+        },
+        {
+          "id": "jac",
+          "name": "Jac Language",
+          "description": "Jac programming language",
+          "course_count": 6
+        },
+        {
+          "id": "programming",
+          "name": "General Programming",
+          "description": "Programming concepts",
+          "course_count": 8
+        }
+      ]
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, domains: Array(5)}
+domains
+: 
+(5) [{…}, {…}, {…}, {…}, {…}]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_ai_stats: {
+  "result": {
+    "_jac_type": "admin_ai_stats",
+    "_jac_id": "a414f29df4b249edb334cacd5952fe3f",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "stats": {
+        "total_generations": 0,
+        "total_tokens_used": 0,
+        "domains_used": {},
+        "recent_generations": []
+      }
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, stats: {…}}
+stats
+: 
+{total_generations: 0, total_tokens_used: 0, domains_used: {…}, recent_generations: Array(0)}
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_content_courses: {
+  "result": {
+    "_jac_type": "admin_content_courses",
+    "_jac_id": "75848acc404f4bc2865ee7ad126fc678",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "courses": []
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, courses: Array(0)}
+courses
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Get courses response: 
+{success: true, courses: Array(0)}
+courses
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_content_concepts: {
+  "result": {
+    "_jac_type": "admin_content_concepts",
+    "_jac_id": "7bc1635852b348f69f3b84b70dc77285",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "concepts": [
+        {
+          "concept_id": "jac_jac_ai_integration",
+          "name": "jac_ai_integration",
+          "display_name": "JAC AI Integration with byLLM",
+          "category": "JAC Programming",
+          "subcategory": "Expert",
+          "difficulty_level": "expert",
+          "complexity_score": 9,
+          "cognitive_load": 9.5,
+          "domain": "Computer Science",
+          "description": "Integrating LLMs into JAC apps",
+          "icon": "default",
+          "key_terms": [
+            "byLLM",
+            "AI",
+            "LLM"
+          ],
+          "synonyms": [
+            "AI integration"
+          ]
+        },
+        {
+          "concept_id": "jac_jac_collections",
+          "name": "jac_collections",
+          "display_name": "JAC Collections",
+          "category": "JAC Programming",
+          "subcategory": "Intermediate",
+          "difficulty_level": "intermediate",
+          "complexity_score": 6.5,
+          "cognitive_load": 7,
+          "domain": "Computer Science",
+          "description": "Working with lists and dictionaries",
+          "icon": "default",
+          "key_terms": [
+            "list",
+            "dict",
+            "collection"
+          ],
+          "synonyms": [
+            "data structures"
+          ]
+        },
+        {
+          "concept_id": "jac_jac_control_flow",
+          "name": "jac_control_flow",
+          "display_name": "JAC Control Flow",
+          "category": "JAC Programming",
+          "subcategory": "Fundamentals",
+          "difficulty_level": "beginner",
+          "complexity_score": 5,
+          "cognitive_load": 5.5,
+          "domain": "Computer Science",
+          "description": "Mastering conditionals and loops",
+          "icon": "default",
+          "key_terms": [
+            "if",
+            "else",
+            "while",
+            "for"
+          ],
+          "synonyms": [
+            "conditionals",
+            "loops"
+          ]
+        },
+        {
+          "concept_id": "jac_jac_functions",
+          "name": "jac_functions",
+          "display_name": "JAC Functions",
+          "category": "JAC Programming",
+          "subcategory": "Fundamentals",
+          "difficulty_level": "beginner",
+          "complexity_score": 5.5,
+          "cognitive_load": 6,
+          "domain": "Computer Science",
+          "description": "Creating reusable code blocks",
+          "icon": "default",
+          "key_terms": [
+            "function",
+            "parameter",
+            "return"
+          ],
+          "synonyms": [
+            "method",
+            "procedure"
+          ]
+        },
+        {
+          "concept_id": "jac_jac_nodes_edges",
+          "name": "jac_nodes_edges",
+          "display_name": "JAC Nodes and Edges",
+          "category": "JAC Programming",
+          "subcategory": "Advanced",
+          "difficulty_level": "advanced",
+          "complexity_score": 8,
+          "cognitive_load": 8.5,
+          "domain": "Computer Science",
+          "description": "Creating nodes and edges",
+          "icon": "default",
+          "key_terms": [
+            "node",
+            "edge",
+            "graph"
+          ],
+          "synonyms": [
+            "vertices",
+            "links"
+          ]
+        },
+        {
+          "concept_id": "jac_jac_object_spatial_programming",
+          "name": "jac_object_spatial_programming",
+          "display_name": "JAC Object-Spatial Programming",
+          "category": "JAC Programming",
+          "subcategory": "Advanced",
+          "difficulty_level": "advanced",
+          "complexity_score": 8.5,
+          "cognitive_load": 9,
+          "domain": "Computer Science",
+          "description": "Understanding OSP paradigm",
+          "icon": "default",
+          "key_terms": [
+            "OSP",
+            "node",
+            "edge",
+            "walker"
+          ],
+          "synonyms": [
+            "graph programming"
+          ]
+        },
+        {
+          "concept_id": "jac_jac_oop",
+          "name": "jac_oop",
+          "display_name": "JAC Object-Oriented Programming",
+          "category": "JAC Programming",
+          "subcategory": "Intermediate",
+          "difficulty_level": "intermediate",
+          "complexity_score": 7,
+          "cognitive_load": 7.5,
+          "domain": "Computer Science",
+          "description": "Implementing classes and objects",
+          "icon": "default",
+          "key_terms": [
+            "object",
+            "class",
+            "method",
+            "obj"
+          ],
+          "synonyms": [
+            "OOP"
+          ]
+        },
+        {
+          "concept_id": "jac_jac_programming_fundamentals",
+          "name": "jac_programming_fundamentals",
+          "display_name": "JAC Programming Fundamentals",
+          "category": "JAC Programming",
+          "subcategory": "Introduction",
+          "difficulty_level": "beginner",
+          "complexity_score": 6,
+          "cognitive_load": 6.5,
+          "domain": "Computer Science",
+          "description": "Introduction to JAC programming language",
+          "icon": "default",
+          "key_terms": [
+            "JAC",
+            "OSP",
+            "nodes",
+            "walkers"
+          ],
+          "synonyms": [
+            "JAC Language"
+          ]
+        },
+        {
+          "concept_id": "jac_jac_scale_agnostic_programming",
+          "name": "jac_scale_agnostic_programming",
+          "display_name": "JAC Scale-Agnostic Programming",
+          "category": "JAC Programming",
+          "subcategory": "Expert",
+          "difficulty_level": "expert",
+          "complexity_score": 9,
+          "cognitive_load": 9,
+          "domain": "Computer Science",
+          "description": "Building scalable applications",
+          "icon": "default",
+          "key_terms": [
+            "scale",
+            "distributed",
+            "persistence"
+          ],
+          "synonyms": [
+            "elastic programming"
+          ]
+        },
+        {
+          "concept_id": "jac_jac_variables_data_types",
+          "name": "jac_variables_data_types",
+          "display_name": "JAC Variables and Data Types",
+          "category": "JAC Programming",
+          "subcategory": "Fundamentals",
+          "difficulty_level": "beginner",
+          "complexity_score": 4,
+          "cognitive_load": 4.5,
+          "domain": "Computer Science",
+          "description": "Understanding JAC type system",
+          "icon": "default",
+          "key_terms": [
+            "variable",
+            "type",
+            "annotation"
+          ],
+          "synonyms": [
+            "data types"
+          ]
+        },
+        {
+          "concept_id": "jac_jac_walkers",
+          "name": "jac_walkers",
+          "display_name": "JAC Walkers and Graph Traversal",
+          "category": "JAC Programming",
+          "subcategory": "Advanced",
+          "difficulty_level": "advanced",
+          "complexity_score": 8.5,
+          "cognitive_load": 9,
+          "domain": "Computer Science",
+          "description": "Implementing walkers for traversal",
+          "icon": "default",
+          "key_terms": [
+            "walker",
+            "spawn",
+            "visit"
+          ],
+          "synonyms": [
+            "mobile agents"
+          ]
+        }
+      ]
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, concepts: Array(11)}
+concepts
+: 
+(11) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Get concepts response: 
+{success: true, concepts: Array(11)}
+concepts
+: 
+(11) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_content_paths: {
+  "result": {
+    "_jac_type": "admin_content_paths",
+    "_jac_id": "17d9d01fe5a94bada66711a12d96ca27",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "paths": []
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, paths: Array(0)}
+paths
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Get learning paths response: 
+{success: true, paths: Array(0)}
+paths
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_content_paths: {
+  "result": {
+    "_jac_type": "admin_content_paths",
+    "_jac_id": "aa325a9fb9e5409e8a8d4e267cb6abf4",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "paths": []
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, paths: Array(0)}
+paths
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Get learning paths response: 
+{success: true, paths: Array(0)}
+paths
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_content_paths: {
+  "result": {
+    "_jac_type": "admin_content_paths",
+    "_jac_id": "46a9cc2547744076be2cabd6b52a63a3",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "paths": []
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, paths: Array(0)}
+paths
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Get learning paths response: 
+{success: true, paths: Array(0)}
+paths
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Raw Admin API response from /walker/admin_content_courses: {
+  "result": {
+    "_jac_type": "admin_content_courses",
+    "_jac_id": "62814a02d68d4e87ad315fd4eb105da1",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "courses": []
+    }
+  ]
+}
+index-CLD6lFcV.js:68 Admin API extracted from reports: 
+{success: true, courses: Array(0)}
+courses
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
+index-CLD6lFcV.js:68 Get courses response: 
+{success: true, courses: Array(0)}
+courses
+: 
+[]
+success
+: 
+true
+[[Prototype]]
+: 
+Object
