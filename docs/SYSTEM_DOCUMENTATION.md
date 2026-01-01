@@ -879,6 +879,420 @@ The content generation feature integrates with several related API endpoints for
 
 ---
 
+## Content View Tracking
+
+The Jeseci Smart Learning Academy includes a comprehensive content view tracking system that records when users view courses, concepts, and learning paths, providing accurate analytics data for the admin dashboard. This section documents the complete view tracking architecture including database schema, API endpoints, and integration with existing analytics.
+
+### Overview
+
+The content view tracking system replaces the previous mock view data with real statistics derived from actual user interactions. The system captures every content view event with rich metadata including user information, session data, device type, view duration, and geographic information. This data powers the popular content analytics in the admin panel and enables data-driven decisions about content development and promotion.
+
+The tracking architecture consists of three primary components that work together to capture, store, and aggregate view data. The API layer receives view events from client applications through dedicated endpoints and forwards them to the storage layer. The storage layer records individual events in the content_views table and maintains running aggregations in the content_views_summary table for efficient analytics queries. The analytics layer exposes aggregated statistics through the admin_analytics_content endpoint, replacing the previous mock calculations with real view counts.
+
+### Database Schema
+
+The view tracking system uses two PostgreSQL tables to store and aggregate view data. These tables are created automatically when running the database initialization script and include appropriate indexes for efficient querying.
+
+**Content Views Table**: The content_views table records individual view events with comprehensive metadata for analytics and security purposes. Each record captures the viewed content identifier, viewer information, device details, and temporal data enabling detailed analysis of content consumption patterns.
+
+```sql
+-- From backend/database/initialize_database.py
+CREATE TABLE jeseci_academy.content_views (
+    id SERIAL PRIMARY KEY,
+    view_id VARCHAR(64) UNIQUE NOT NULL,
+    content_id VARCHAR(100) NOT NULL,
+    content_type VARCHAR(50) NOT NULL,
+    user_id VARCHAR(64),
+    session_id VARCHAR(100),
+    ip_address INET,
+    user_agent TEXT,
+    viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    view_duration INTEGER DEFAULT 0,
+    referrer_url TEXT,
+    device_type VARCHAR(20) DEFAULT 'desktop',
+    browser VARCHAR(50),
+    country_code VARCHAR(10),
+    is_unique_view BOOLEAN DEFAULT FALSE
+);
+```
+
+**Content Views Summary Table**: The content_views_summary table maintains running aggregations of view data for efficient analytics queries. Rather than counting individual events for each dashboard request, the system updates these aggregations incrementally as views are recorded, providing fast response times for the admin analytics endpoints.
+
+```sql
+CREATE TABLE jeseci_academy.content_views_summary (
+    id SERIAL PRIMARY KEY,
+    content_id VARCHAR(100) NOT NULL,
+    content_type VARCHAR(50) NOT NULL,
+    total_views INTEGER DEFAULT 0,
+    unique_views INTEGER DEFAULT 0,
+    total_view_duration INTEGER DEFAULT 0,
+    last_viewed_at TIMESTAMP,
+    views_today INTEGER DEFAULT 0,
+    views_this_week INTEGER DEFAULT 0,
+    views_this_month INTEGER DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(content_id, content_type)
+);
+```
+
+**Indexes**: The system creates several indexes to optimize query performance for common analytics patterns. The content_id index supports lookups for specific content statistics, while the content_type index enables filtering by content type. The viewed_at index facilitates time-based queries for period-specific analytics.
+
+```sql
+CREATE INDEX idx_content_views_content_id ON jeseci_academy.content_views(content_id);
+CREATE INDEX idx_content_views_content_type ON jeseci_academy.content_views(content_type);
+CREATE INDEX idx_content_views_user_id ON jeseci_academy.content_views(user_id);
+CREATE INDEX idx_content_views_viewed_at ON jeseci_academy.content_views(viewed_at);
+CREATE INDEX idx_content_views_summary_total ON jeseci_academy.content_views_summary(total_views DESC);
+```
+
+### Python Module
+
+The content_views_store.py module provides the core functionality for recording views and retrieving analytics data. This module implements thread-safe operations using reentrant locks, automatic connection management, and smart aggregation updates that reset period counters on schedule.
+
+**ContentViewsStore Class**: The main class manages all view tracking operations including recording individual views, retrieving popular content, and generating aggregated statistics. The class maintains a persistent database connection and handles reconnection automatically if the connection is lost.
+
+```python
+# From backend/content_views_store.py
+class ContentViewsStore:
+    """Manages content view tracking and analytics data storage."""
+
+    def __init__(self):
+        self._lock = threading.RLock()
+        self._connection = None
+        self._init_connection()
+
+    def record_view(self, content_id: str, content_type: str, user_id: Optional[str] = None,
+                   session_id: Optional[str] = None, view_duration: int = 0, **kwargs) -> Dict[str, Any]:
+        """Record a content view event with full metadata."""
+        # Generates unique view_id, checks for unique views,
+        # inserts into content_views and updates content_views_summary atomically
+
+    def get_popular_content(self, content_type: str, limit: int = 10, period: str = "all_time") -> List[Dict[str, Any]]:
+        """Get the most popular content based on views for a specific period."""
+
+    def get_content_view_stats(self, content_id: str, content_type: str) -> Dict[str, Any]:
+        """Get detailed view statistics for a specific content item."""
+
+    def get_all_content_view_summary(self) -> List[Dict[str, Any]]:
+        """Get aggregated view summary for all content."""
+```
+
+**Unique View Detection**: The system tracks unique views by detecting when a user or session views the same content for the first time within a 24-hour period. This prevents inflated view counts from repeated refreshes while accurately capturing genuine user engagement. The is_unique_view flag is set during record_view operations based on whether an existing view from the same user or session exists within the tracking window.
+
+**Period Aggregation**: The content_views_summary table maintains counters for different time periods including daily, weekly, and monthly views. The _update_period_aggregations method resets these counters when the period changes, ensuring accurate period-specific statistics without requiring expensive recomputation of all historical data.
+
+**Convenience Functions**: The module exports several convenience functions that provide simple access to common operations without requiring direct instantiation of the ContentViewsStore class.
+
+```python
+# Convenience functions exported from content_views_store.py
+def record_content_view(content_id: str, content_type: str, user_id: Optional[str] = None,
+                       session_id: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+    """Record a content view event."""
+    return content_views_store.record_view(...)
+
+def get_popular_content(content_type: str, limit: int = 10, period: str = "all_time") -> List[Dict[str, Any]]:
+    """Get popular content based on view counts."""
+    return content_views_store.get_popular_content(...)
+
+def get_all_views_summary() -> List[Dict[str, Any]]:
+    """Get view summary for all content."""
+    return content_views_store.get_all_content_view_summary()
+```
+
+### API Endpoints
+
+The view tracking system exposes three API endpoints for recording views and retrieving analytics data. These endpoints integrate with the existing admin authentication system and respect role-based permissions.
+
+**Record Content View Endpoint**: The record_content_view endpoint receives view events from client applications and stores them in the database. This endpoint accepts comprehensive view metadata and returns a view_id for tracking purposes.
+
+| Endpoint | Method | Required Role | Description |
+|----------|--------|---------------|-------------|
+| `/walker/record_content_view` | POST | any | Record a content view event |
+
+**Request Parameters**:
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| content_id | string | Yes | The unique identifier of the content being viewed |
+| content_type | string | Yes | Type of content (course, concept, learning_path) |
+| user_id | string | No | User ID if authenticated, null for anonymous views |
+| session_id | string | No | Session ID for tracking anonymous users |
+| view_duration | integer | No | Duration of view in seconds |
+| ip_address | string | No | Client IP address |
+| user_agent | string | No | Client user agent string |
+| referrer_url | string | No | URL that referred to this content |
+| device_type | string | No | Device type (desktop, mobile, tablet) |
+| browser | string | No | Browser name |
+| country_code | string | No | Country code from IP |
+
+**Example Request**:
+
+```bash
+curl -X POST http://localhost:8000/walker/record_content_view \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content_id": "course_jac_fundamentals",
+    "content_type": "course",
+    "user_id": "user123",
+    "session_id": null,
+    "view_duration": 300,
+    "device_type": "desktop",
+    "browser": "Chrome"
+  }'
+```
+
+**Example Response**:
+
+```json
+{
+  "result": {
+    "_jac_type": "record_content_view",
+    "_jac_id": "abc123def456",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "message": "View recorded successfully",
+      "view_id": "550e8400-e29b-41d4-a716-446655440000",
+      "is_unique_view": true
+    }
+  ]
+}
+```
+
+**Get Content View Analytics Endpoint**: The get_content_view_analytics endpoint provides flexible access to view statistics supporting filtering by content, content type, and time period. This endpoint powers the popular content sections of the admin analytics dashboard.
+
+| Endpoint | Method | Required Role | Description |
+|----------|--------|---------------|-------------|
+| `/walker/get_content_view_analytics` | POST | admin | Get view analytics data |
+
+**Request Parameters**:
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| content_id | string | No | Specific content ID to get stats for |
+| content_type | string | No | Filter by type (course, concept, learning_path) |
+| period | string | No | Time period (all_time, today, week, month) |
+| limit | integer | No | Maximum results (default 10) |
+
+**Example Request**:
+
+```bash
+curl -X POST http://localhost:8000/walker/get_content_view_analytics \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content_type": "course",
+    "period": "all_time",
+    "limit": 10
+  }'
+```
+
+**Example Response**:
+
+```json
+{
+  "result": {
+    "_jac_type": "get_content_view_analytics",
+    "_jac_id": "xyz789abc123",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "content_type": "course",
+      "period": "all_time",
+      "popular_content": [
+        {
+          "content_id": "course_jac_fundamentals",
+          "content_type": "course",
+          "views": 150,
+          "unique_views": 89,
+          "last_viewed_at": "2026-01-02T01:15:00Z"
+        },
+        {
+          "content_id": "course_jac_osp",
+          "content_type": "course",
+          "views": 120,
+          "unique_views": 75,
+          "last_viewed_at": "2026-01-02T00:45:00Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Updated Admin Analytics Content Endpoint**: The existing admin_analytics_content endpoint has been updated to use real view data instead of mock calculations. The popular_content section now displays actual view counts from the content_views_summary table, providing accurate analytics for content performance assessment.
+
+| Endpoint | Method | Required Role | Description |
+|----------|--------|---------------|-------------|
+| `/walker/admin_analytics_content` | GET | admin | Get content analytics with real view data |
+
+**Example Response**:
+
+```json
+{
+  "result": {
+    "_jac_type": "admin_analytics_content",
+    "_jac_id": "def456ghi789",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "analytics": {
+        "total_courses": 4,
+        "total_concepts": 11,
+        "popular_content": [
+          {
+            "content_id": "course_jac_fundamentals",
+            "title": "JAC Programming Fundamentals",
+            "views": 150,
+            "unique_views": 89,
+            "content_type": "course"
+          },
+          {
+            "content_id": "course_jac_osp",
+            "title": "JAC OSP Expert",
+            "views": 120,
+            "unique_views": 75,
+            "content_type": "course"
+          }
+        ],
+        "content_by_difficulty": {
+          "beginner": 4,
+          "intermediate": 2,
+          "advanced": 3
+        }
+      }
+    }
+  ]
+}
+```
+
+### Integration with Admin Analytics
+
+The view tracking system integrates seamlessly with the existing admin analytics infrastructure, replacing mock view data with accurate statistics while maintaining backward compatibility with the established API response structure.
+
+**Admin Analytics Walker Integration**: The admin_analytics_content walker in app.jac now queries the content_views_store module for real view data. The walker retrieves the top five courses by total views and enriches each entry with course metadata from the content store, presenting a comprehensive view of content performance in the analytics response.
+
+```jac
+# From backend/app.jac
+# Get real popular content with actual view counts from database
+popular_content = [];
+course_views = content_views_module.get_popular_content("course", limit=5, period="all_time");
+for view_data in course_views {
+    # Get course title from content store
+    course_title = "Unknown Course";
+    for course in courses {
+        if course.get('course_id') == view_data['content_id'] {
+            course_title = course.get('title', 'Unknown Course');
+            break;
+        }
+    }
+    popular_content.append({
+        "content_id": view_data['content_id'],
+        "title": course_title,
+        "views": view_data['views'],
+        "unique_views": view_data['unique_views'],
+        "content_type": "course"
+    });
+}
+```
+
+**Graceful Degradation**: The system handles scenarios where no views have been recorded yet by displaying courses with zero views rather than mock data. This ensures administrators can see the content inventory even before tracking data accumulates, while future views will populate the statistics naturally.
+
+### Frontend Integration
+
+Client applications should record views when users access content to build the analytics dataset over time. The recommended integration pattern is to call the record_content_view endpoint when a user navigates to a content detail page or begins consuming content.
+
+**Recording Views on Content Access**: When a user clicks on a course, concept, or learning path, the frontend should fire a view recording request in the background. This can be done in the useEffect hook of the content detail component or in the navigation handler before content loads.
+
+```typescript
+// Example: Recording a view when accessing course content
+const recordCourseView = async (courseId: string, userId?: string) => {
+  try {
+    await fetch('/walker/record_content_view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content_id: courseId,
+        content_type: 'course',
+        user_id: userId || null,
+        session_id: getSessionId(), // Generate or retrieve session ID
+        view_duration: 0, // Will be updated when user leaves
+        device_type: getDeviceType(),
+        browser: getBrowserName()
+      })
+    });
+  } catch (error) {
+    console.error('Failed to record view:', error);
+    // Non-critical failure - continue with content display
+  }
+};
+```
+
+**Updating View Duration**: For more accurate engagement metrics, applications can update the view duration when users navigate away from content. This requires storing the view_id from the initial recording and making a follow-up request to update the record.
+
+```typescript
+// Example: Updating view duration on content exit
+const updateViewDuration = async (viewId: string, totalDuration: number) => {
+  try {
+    await fetch('/walker/update_content_view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        view_id: viewId,
+        view_duration: Math.round(totalDuration)
+      })
+    });
+  } catch (error) {
+    console.error('Failed to update view duration:', error);
+  }
+};
+```
+
+### Setup and Initialization
+
+To enable content view tracking, administrators must initialize the database tables and ensure the backend module is properly loaded during application startup.
+
+**Database Table Creation**: Run the database initialization script to create the content_views and content_views_summary tables along with their indexes.
+
+```bash
+# Initialize database tables
+python -m database.initialize_database
+```
+
+**Backend Module Loading**: The content_views_store module is automatically imported when the backend application starts. The module initializes its database connection on first use and maintains connection health through automatic reconnection.
+
+**Verification**: After initialization, verify the system is working by checking the admin analytics endpoint:
+
+```bash
+curl http://localhost:8000/walker/admin_analytics_content
+```
+
+If no views have been recorded yet, the response will show courses with zero views. After recording some views using the record_content_view endpoint, the popular_content section will reflect the actual view counts.
+
+### Analytics Data Retention
+
+The view tracking system maintains individual view records indefinitely for detailed historical analysis, while aggregated summary data provides fast access to current statistics. The activity log within the analytics store maintains a rolling window of the most recent 1000 activity records for lightweight tracking needs.
+
+**Data Retention Policies**: Individual view records persist in the content_views table without automatic deletion, supporting long-term trend analysis and audit requirements. The content_views_summary table maintains running aggregations that update incrementally as new views are recorded, providing efficient access to cumulative statistics without historical truncation.
+
+**Privacy Considerations**: The system captures minimal personal information, storing only user_id when available and session_id for anonymous tracking. IP addresses are stored in INET format enabling geographic aggregation without exposing full addresses. These practices comply with standard privacy requirements while providing sufficient data for analytics purposes.
+
+### Related API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/record_content_view` | POST | Record a content view event |
+| `/walker/get_content_view_analytics` | POST | Get view analytics data |
+| `/walker/admin_analytics_content` | GET | Get content analytics with real views |
+| `/walker/admin_clear_content_cache` | POST | Clear analytics cache |
+
+---
+
 ## Security Considerations
 
 ### Role-Based Access Control (RBAC)
@@ -1150,10 +1564,11 @@ The platform supports seamless transitions between student and admin views for u
 
 | Property | Value |
 |----------|-------|
-| **Last Updated** | 2026-01-01 |
+| **Last Updated** | 2026-01-02 |
 | **Author** | Development Team |
-| **Version** | 1.0 |
+| **Version** | 1.1 |
 | **Status** | Active |
+| **Changes** | Added Content View Tracking documentation section |
 
 ---
 
