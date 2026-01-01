@@ -478,8 +478,9 @@ def get_path_by_id(path_id):
         return paths_cache.get(path_id)
 
 def create_path(title, description, courses, concepts, difficulty, duration):
-    """Create a new learning path in PostgreSQL"""
+    """Create a new learning path in both PostgreSQL and Neo4j"""
     pg_manager = get_postgres_manager()
+    neo4j_manager = get_neo4j_manager()
     
     # Generate path ID
     path_id = "path_" + title.lower().replace(" ", "_").replace("-", "_")[0:15] + "_" + str(int(datetime.datetime.now().timestamp()))[0:8]
@@ -499,20 +500,70 @@ def create_path(title, description, courses, concepts, difficulty, duration):
     except:
         duration_minutes = 480  # Default 8 hours
     
+    # Insert into PostgreSQL
     insert_query = """
     INSERT INTO jeseci_academy.learning_paths 
     (path_id, name, title, category, difficulty, estimated_duration, description, is_published, created_at)
     VALUES (%s, %s, %s, %s, %s, %s, %s, true, NOW())
     """
     
+    pg_result = None
     try:
-        result = pg_manager.execute_query(insert_query, 
+        pg_result = pg_manager.execute_query(insert_query, 
             (path_id, name, title, "Learning Path", difficulty, duration_minutes, description), fetch=False)
     except Exception as e:
-        logger.error(f"Error creating learning path: {e}")
+        logger.error(f"Error creating learning path in PostgreSQL: {e}")
         return {"success": False, "error": f"Database error: {str(e)}"}
     
-    if result or result is not None:
+    # Also create node in Neo4j for graph relationships
+    neo4j_success = True
+    try:
+        create_path_query = """
+        MERGE (p:LearningPath {path_id: $path_id})
+        SET p.name = $name,
+            p.title = $title,
+            p.description = $description,
+            p.category = 'Learning Path',
+            p.difficulty = $difficulty,
+            p.estimated_duration = $estimated_duration,
+            p.target_audience = $target_audience,
+            p.created_at = datetime()
+        """
+        
+        neo4j_manager.execute_query(create_path_query, {
+            "path_id": path_id,
+            "name": name,
+            "title": title,
+            "description": description,
+            "difficulty": difficulty,
+            "estimated_duration": duration_minutes,
+            "target_audience": ""
+        })
+        
+        # Link concepts to path in Neo4j
+        for i, concept_name in enumerate(concepts or []):
+            concept_id = f"jac_{concept_name}" if not concept_name.startswith("jac_") else concept_name
+            
+            link_query = """
+            MATCH (p:LearningPath {path_id: $path_id})
+            MATCH (c:Concept {name: $concept_name})
+            MERGE (p)-[r:PathContains {order_index: $order, is_required: true, created_at: datetime()}]->(c)
+            """
+            
+            try:
+                neo4j_manager.execute_query(link_query, {
+                    "path_id": path_id,
+                    "concept_name": concept_name,
+                    "order": i + 1
+                })
+            except Exception as e:
+                logger.warning(f"Could not link concept {concept_name} to path: {e}")
+                
+    except Exception as e:
+        logger.error(f"Error creating learning path in Neo4j: {e}")
+        neo4j_success = False
+    
+    if pg_result or pg_result is not None:
         # Invalidate cache
         global paths_initialized
         paths_initialized = False
@@ -524,8 +575,9 @@ def create_path(title, description, courses, concepts, difficulty, duration):
             "courses": courses,
             "concepts": concepts,
             "difficulty": difficulty,
-            "total_modules": len(courses) + len(concepts),
-            "duration": duration
+            "total_modules": len(courses or []) + len(concepts or []),
+            "duration": duration,
+            "neo4j_synced": neo4j_success
         }
         return {"success": True, "path_id": path_id, "path": new_path}
     

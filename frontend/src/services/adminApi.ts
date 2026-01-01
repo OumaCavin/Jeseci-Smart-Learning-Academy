@@ -388,6 +388,50 @@ class AdminApiService {
     return this.makeRequest(`/walker/admin_quizzes/${quizId}`, { method: 'DELETE' });
   }
 
+  async generateAIQuiz(request: {
+    topic: string;
+    difficulty: string;
+    question_count?: number;
+  }): Promise<{
+    success: boolean;
+    quiz?: {
+      title: string;
+      description: string;
+      questions: Array<{
+        question: string;
+        options: string[];
+        correct_answer: number;
+        explanation: string;
+      }>;
+    };
+    topic: string;
+    difficulty: string;
+    question_count: number;
+    is_sample?: boolean;
+    message: string;
+  }> {
+    return this.makeRequest('/walker/admin_quizzes_generate_ai', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async saveAIQuiz(quizData: {
+    title: string;
+    description: string;
+    questions: Array<{
+      question: string;
+      options: string[];
+      correct_answer: number;
+      explanation: string;
+    }>;
+  }, topic: string, difficulty: string): Promise<{ success: boolean; quiz_id: string; message: string }> {
+    return this.makeRequest('/walker/admin_quizzes_save_ai', {
+      method: 'POST',
+      body: JSON.stringify({ quiz: quizData, topic, difficulty }),
+    });
+  }
+
   async getQuizAnalytics(): Promise<{
     success: boolean;
     analytics: {

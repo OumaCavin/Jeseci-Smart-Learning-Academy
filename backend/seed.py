@@ -230,6 +230,64 @@ jac_learning_paths = [
 
 
 # ==============================================================================
+# Course Data
+# ==============================================================================
+
+jac_courses_data = [
+    {
+        "course_id": "jac_fundamentals_course",
+        "title": "JAC Programming Fundamentals",
+        "description": "Master the basics of JAC programming including variables, data types, control flow, functions, and collections. Perfect for beginners starting their JAC journey.",
+        "domain": "JAC Programming",
+        "difficulty_level": "beginner",
+        "estimated_duration": 240,
+        "content_type": "interactive",
+        "concepts": ["jac_programming_fundamentals", "jac_variables_data_types", "jac_control_flow", "jac_functions", "jac_collections"]
+    },
+    {
+        "course_id": "jac_oop_course",
+        "title": "JAC Object-Oriented Programming",
+        "description": "Deep dive into JAC's object-oriented programming features including classes, objects, methods, and inheritance patterns.",
+        "domain": "JAC Programming",
+        "difficulty_level": "intermediate",
+        "estimated_duration": 180,
+        "content_type": "interactive",
+        "concepts": ["jac_oop"]
+    },
+    {
+        "course_id": "jac_osp_course",
+        "title": "JAC Object-Spatial Programming (OSP)",
+        "description": "Learn the revolutionary Object-Spatial Programming paradigm with nodes, edges, walkers, and graph traversal techniques.",
+        "domain": "JAC Programming",
+        "difficulty_level": "advanced",
+        "estimated_duration": 300,
+        "content_type": "interactive",
+        "concepts": ["jac_object_spatial_programming", "jac_nodes_edges", "jac_walkers"]
+    },
+    {
+        "course_id": "jac_ai_course",
+        "title": "JAC AI Integration with byLLM",
+        "description": "Integrate Large Language Models into your JAC applications using the byLLM module for AI-powered functionality.",
+        "domain": "JAC Programming",
+        "difficulty_level": "advanced",
+        "estimated_duration": 240,
+        "content_type": "interactive",
+        "concepts": ["jac_ai_integration"]
+    },
+    {
+        "course_id": "jac_scale_course",
+        "title": "JAC Scale-Agnostic Programming",
+        "description": "Build scalable, production-ready applications using JAC's scale-agnostic programming features and distributed computing concepts.",
+        "domain": "JAC Programming",
+        "difficulty_level": "expert",
+        "estimated_duration": 270,
+        "content_type": "interactive",
+        "concepts": ["jac_scale_agnostic_programming"]
+    }
+]
+
+
+# ==============================================================================
 # Relationship Data
 # ==============================================================================
 
@@ -582,6 +640,103 @@ def seed_paths_to_postgres(dry_run=False, verbose=True):
     return {"success": True, "paths_created": paths_created}
 
 
+def seed_courses_to_postgres(dry_run=False, verbose=True):
+    """Seed courses to PostgreSQL"""
+    if dry_run:
+        print("Dry run - courses not seeded to PostgreSQL")
+        return {"success": True, "courses_created": 0}
+    
+    try:
+        pg_manager = db_module.get_postgres_manager()
+    except Exception as e:
+        if verbose:
+            print(f"PostgreSQL not available: {e}")
+        return {"success": False, "error": str(e)}
+    
+    courses_created = 0
+    
+    for course_data in jac_courses_data:
+        course_id = course_data.get("course_id", "")
+        title = course_data.get("title", "")
+        description = course_data.get("description", "")
+        domain = course_data.get("domain", "")
+        difficulty_level = course_data.get("difficulty_level", "")
+        estimated_duration = course_data.get("estimated_duration", 0)
+        content_type = course_data.get("content_type", "interactive")
+        concepts = course_data.get("concepts", [])
+        
+        # Check if course already exists
+        check_query = "SELECT course_id FROM jeseci_academy.courses WHERE course_id = %s"
+        try:
+            existing = pg_manager.execute_query(check_query, (course_id,))
+            if existing:
+                if verbose:
+                    print(f"Course already exists: {title}")
+                continue
+        except Exception as e:
+            if verbose:
+                print(f"Check query warning (courses table may not exist): {e}")
+            # Try creating the table if it doesn't exist
+            try:
+                create_table_query = """
+                CREATE TABLE IF NOT EXISTS jeseci_academy.courses (
+                    course_id VARCHAR(100) PRIMARY KEY,
+                    title VARCHAR(255) NOT NULL,
+                    description TEXT,
+                    domain VARCHAR(100),
+                    difficulty VARCHAR(50),
+                    estimated_duration INTEGER,
+                    content_type VARCHAR(50),
+                    is_published BOOLEAN DEFAULT true,
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    updated_at TIMESTAMP DEFAULT NOW()
+                )
+                """
+                pg_manager.execute_query(create_table_query, (), fetch=False)
+                if verbose:
+                    print("Created courses table")
+            except Exception as table_error:
+                if verbose:
+                    print(f"Could not create courses table: {table_error}")
+        
+        # Insert new course
+        insert_query = """
+        INSERT INTO jeseci_academy.courses 
+        (course_id, title, description, domain, difficulty, estimated_duration, content_type, is_published, created_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, true, NOW())
+        """
+        
+        try:
+            pg_manager.execute_query(insert_query, (
+                course_id, title, description, domain, difficulty_level,
+                estimated_duration, content_type
+            ), fetch=False)
+            courses_created += 1
+            if verbose:
+                print(f"Created course in PostgreSQL: {title}")
+            
+            # Link concepts to course if course_concepts table exists
+            for i, concept_name in enumerate(concepts):
+                concept_id = f"jac_{concept_name}" if not concept_name.startswith("jac_") else concept_name
+                try:
+                    link_query = """
+                    INSERT INTO jeseci_academy.course_concepts 
+                    (course_id, concept_id, order_index)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (course_id, concept_id) DO NOTHING
+                    """
+                    pg_manager.execute_query(link_query, (course_id, concept_id, i + 1), fetch=False)
+                except Exception:
+                    pass  # Junction table may not exist yet
+        except Exception as e:
+            if verbose:
+                print(f"Failed to create course: {title} - {e}")
+    
+    if verbose:
+        print(f"PostgreSQL courses created: {courses_created}")
+    return {"success": True, "courses_created": courses_created}
+
+
 # ==============================================================================
 # Main Entry Point
 # ==============================================================================
@@ -617,6 +772,11 @@ def run_seeder(mode="all", dry_run=False, verbose=True):
         print("\nSeeding Learning Paths to PostgreSQL...")
         print("-" * 50)
         seed_paths_to_postgres(dry_run, verbose)
+    
+    if mode == "all" or mode == "courses":
+        print("\nSeeding Courses to PostgreSQL...")
+        print("-" * 50)
+        seed_courses_to_postgres(dry_run, verbose)
     
     if mode == "all" or mode == "relationships":
         print("\nSeeding Relationships...")

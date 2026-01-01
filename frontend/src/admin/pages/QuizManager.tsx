@@ -13,18 +13,32 @@ interface QuizManagerProps {
 
 const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
   const [quizzes, setQuizzes] = useState<AdminQuiz[]>([]);
+  const [concepts, setConcepts] = useState<any[]>([]);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showAIGenerateModal, setShowAIGenerateModal] = useState(false);
 
   useEffect(() => {
     if (activeSection === 'quizzes') {
       loadQuizzes();
       loadAnalytics();
+      loadConcepts();
     }
   }, [activeSection]);
+
+  const loadConcepts = async () => {
+    try {
+      const response = await adminApi.getConcepts();
+      if (response.success) {
+        setConcepts(response.concepts || []);
+      }
+    } catch (err) {
+      console.log('Could not load concepts');
+    }
+  };
 
   const loadQuizzes = async () => {
     setLoading(true);
@@ -130,6 +144,13 @@ const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
             >
               📊 Analytics
             </button>
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setShowAIGenerateModal(true)}
+              style={{ background: '#8b5cf6', color: 'white' }}
+            >
+              🤖 AI Generate
+            </button>
             <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
               ➕ Create Quiz
             </button>
@@ -207,6 +228,286 @@ const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
           }}
         />
       )}
+
+      {/* AI Generate Quiz Modal */}
+      {showAIGenerateModal && (
+        <AIGenerateQuizModal
+          concepts={concepts}
+          onClose={() => setShowAIGenerateModal(false)}
+          onGenerated={() => {
+            setShowAIGenerateModal(false);
+            loadQuizzes();
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+// AI Generate Quiz Modal
+const AIGenerateQuizModal: React.FC<{
+  concepts: any[];
+  onClose: () => void;
+  onGenerated: () => void;
+}> = ({ concepts, onClose, onGenerated }) => {
+  const [formData, setFormData] = useState({
+    topic: '',
+    difficulty: 'beginner',
+    question_count: 5,
+  });
+  const [generatedQuiz, setGeneratedQuiz] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Sample topics for JAC programming
+  const sampleTopics = [
+    { value: 'jac_programming_fundamentals', label: 'JAC Programming Fundamentals' },
+    { value: 'jac_variables_data_types', label: 'JAC Variables and Data Types' },
+    { value: 'jac_control_flow', label: 'JAC Control Flow' },
+    { value: 'jac_functions', label: 'JAC Functions' },
+    { value: 'jac_collections', label: 'JAC Collections' },
+    { value: 'jac_oop', label: 'JAC Object-Oriented Programming' },
+    { value: 'jac_object_spatial_programming', label: 'JAC Object-Spatial Programming' },
+    { value: 'jac_nodes_edges', label: 'JAC Nodes and Edges' },
+    { value: 'jac_walkers', label: 'JAC Walkers and Graph Traversal' },
+    { value: 'jac_ai_integration', label: 'JAC AI Integration with byLLM' },
+    { value: 'jac_scale_agnostic_programming', label: 'JAC Scale-Agnostic Programming' },
+  ];
+
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGenerating(true);
+    setError(null);
+
+    try {
+      const response = await adminApi.generateAIQuiz({
+        topic: formData.topic,
+        difficulty: formData.difficulty,
+        question_count: formData.question_count,
+      });
+      console.log('AI Generate quiz response:', response);
+      if (response.success) {
+        setGeneratedQuiz(response.quiz);
+      } else {
+        setError(response.message || 'Failed to generate quiz');
+      }
+    } catch (err: any) {
+      console.error('AI generate quiz error:', err);
+      setError(err.message || 'Failed to generate quiz');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!generatedQuiz) return;
+    
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await adminApi.saveAIQuiz(generatedQuiz, formData.topic, formData.difficulty);
+      console.log('Save AI quiz response:', response);
+      if (response.success) {
+        alert('Quiz saved successfully!');
+        onGenerated();
+      } else {
+        setError(response.message || 'Failed to save quiz');
+      }
+    } catch (err: any) {
+      console.error('Save AI quiz error:', err);
+      setError(err.message || 'Failed to save quiz');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+    }}>
+      <div className="modal-content" style={{
+        background: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        width: '100%',
+        maxWidth: generatedQuiz ? '700px' : '480px',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ margin: 0 }}>🤖 AI Quiz Generator</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+        </div>
+
+        {error && (
+          <div style={{ padding: '12px', background: '#fee2e2', color: '#dc2626', borderRadius: '8px', marginBottom: '16px' }}>
+            {error}
+          </div>
+        )}
+
+        {!generatedQuiz ? (
+          <form onSubmit={handleGenerate}>
+            <div className="form-group">
+              <label className="form-label">Quiz Topic *</label>
+              <select
+                className="form-select"
+                value={formData.topic}
+                onChange={(e) => setFormData(f => ({ ...f, topic: e.target.value }))}
+                required
+              >
+                <option value="">Select a topic...</option>
+                {sampleTopics.map(topic => (
+                  <option key={topic.value} value={topic.value}>{topic.label}</option>
+                ))}
+              </select>
+              <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                Or enter a custom topic: <input
+                  type="text"
+                  className="form-input"
+                  style={{ marginTop: '4px', padding: '8px' }}
+                  placeholder="Custom topic..."
+                  onChange={(e) => {
+                    if (!sampleTopics.find(t => t.value === e.target.value)) {
+                      setFormData(f => ({ ...f, topic: e.target.value }));
+                    }
+                  }}
+                />
+              </p>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Difficulty *</label>
+              <select
+                className="form-select"
+                value={formData.difficulty}
+                onChange={(e) => setFormData(f => ({ ...f, difficulty: e.target.value }))}
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+                <option value="expert">Expert</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Number of Questions *</label>
+              <input
+                type="number"
+                className="form-input"
+                min={1}
+                max={20}
+                value={formData.question_count}
+                onChange={(e) => setFormData(f => ({ ...f, question_count: parseInt(e.target.value) || 5 }))}
+                required
+              />
+            </div>
+
+            <div style={{ 
+              padding: '16px', 
+              background: '#f0f9ff', 
+              borderRadius: '8px', 
+              marginBottom: '16px',
+              border: '1px solid #bae6fd'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '20px' }}>💡</span>
+                <strong style={{ color: '#0369a1' }}>AI Quiz Generation</strong>
+              </div>
+              <p style={{ fontSize: '13px', color: '#0c4a6e', margin: 0 }}>
+                The AI will generate multiple-choice questions based on your selected topic and difficulty level.
+                Each question will include the correct answer and an explanation.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+              <button type="submit" className="btn btn-primary" disabled={generating} style={{ background: '#8b5cf6' }}>
+                {generating ? 'Generating...' : '🤖 Generate Quiz'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div>
+            <div style={{ 
+              padding: '16px', 
+              background: '#f0fdf4', 
+              borderRadius: '8px', 
+              marginBottom: '16px',
+              border: '1px solid #86efac'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '20px' }}>✅</span>
+                <strong style={{ color: '#166534' }}>Quiz Generated Successfully!</strong>
+              </div>
+              <p style={{ fontSize: '13px', color: '#166534', margin: 0 }}>
+                {generatedQuiz.questions.length} questions generated for "{formData.topic}" at {formData.difficulty} level.
+              </p>
+            </div>
+
+            <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '16px' }}>
+              {generatedQuiz.questions.map((q: any, idx: number) => (
+                <div key={idx} style={{ 
+                  padding: '12px', 
+                  background: '#f9fafb', 
+                  borderRadius: '8px', 
+                  marginBottom: '8px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <div style={{ fontWeight: '500', marginBottom: '8px' }}>
+                    {idx + 1}. {q.question}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '13px' }}>
+                    {q.options.map((opt: string, optIdx: number) => (
+                      <div key={optIdx} style={{ 
+                        padding: '6px 10px',
+                        background: optIdx === q.correct_answer ? '#dcfce7' : 'white',
+                        border: optIdx === q.correct_answer ? '1px solid #86efac' : '1px solid #e5e7eb',
+                        borderRadius: '4px',
+                        color: optIdx === q.correct_answer ? '#166534' : '#374151'
+                      }}>
+                        {String.fromCharCode(65 + optIdx)}. {opt}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px', fontStyle: 'italic' }}>
+                    💡 {q.explanation}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button 
+                type="button" 
+                className="btn btn-secondary" 
+                onClick={() => setGeneratedQuiz(null)}
+              >
+                ← Generate Again
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-primary" 
+                onClick={handleSave}
+                disabled={loading}
+                style={{ background: '#8b5cf6' }}
+              >
+                {loading ? 'Saving...' : '💾 Save Quiz'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
