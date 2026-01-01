@@ -11,16 +11,18 @@ interface ContentManagerProps {
   activeSection: string;
 }
 
-type ContentType = 'courses' | 'concepts' | 'paths';
+type ContentType = 'courses' | 'concepts' | 'paths' | 'relationships';
 
 const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
   const [contentType, setContentType] = useState<ContentType>('courses');
   const [courses, setCourses] = useState<AdminCourse[]>([]);
   const [concepts, setConcepts] = useState<AdminConcept[]>([]);
   const [paths, setPaths] = useState<AdminLearningPath[]>([]);
+  const [relationships, setRelationships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showRelationshipModal, setShowRelationshipModal] = useState(false);
 
   useEffect(() => {
     if (activeSection === 'content') {
@@ -55,6 +57,14 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
           setPaths(response.paths || []);
         } else {
           setError('Failed to load learning paths');
+        }
+      } else if (contentType === 'relationships') {
+        const response = await adminApi.getConceptRelationships();
+        console.log('Get relationships response:', response);
+        if (response.success) {
+          setRelationships(response.relationships || []);
+        } else {
+          setError('Failed to load relationships');
         }
       }
     } catch (err: any) {
@@ -114,6 +124,8 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
         return renderConcepts();
       case 'paths':
         return renderPaths();
+      case 'relationships':
+        return renderRelationships();
       default:
         return null;
     }
@@ -357,8 +369,8 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
   return (
     <div className="content-manager">
       {/* Content Type Tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-        {(['courses', 'concepts', 'paths'] as ContentType[]).map((type) => (
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        {(['courses', 'concepts', 'paths', 'relationships'] as ContentType[]).map((type) => (
           <button
             key={type}
             className={`btn ${contentType === type ? 'btn-primary' : 'btn-secondary'}`}
@@ -366,7 +378,8 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
           >
             {type === 'courses' && '📚 Courses'}
             {type === 'concepts' && '📌 Concepts'}
-            {type === 'paths' && '🛤️ Learning Paths'}
+            {type === 'paths' && '🛤️ Paths'}
+            {type === 'relationships' && '🔗 Relationships'}
           </button>
         ))}
       </div>
@@ -385,6 +398,320 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
           }}
         />
       )}
+
+      {/* Relationship Modal */}
+      {showRelationshipModal && (
+        <CreateRelationshipModal
+          concepts={concepts}
+          onClose={() => setShowRelationshipModal(false)}
+          onCreated={() => {
+            setShowRelationshipModal(false);
+            loadContent();
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+// Render Relationships
+const renderRelationships = () => {
+  const [relationships, setRelationships] = useState<any[]>([]);
+  const [concepts, setConcepts] = useState<AdminConcept[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [relsRes, conceptsRes] = await Promise.all([
+        adminApi.getConceptRelationships(),
+        adminApi.getConcepts()
+      ]);
+      if (relsRes.success) setRelationships(relsRes.relationships || []);
+      if (conceptsRes.success) setConcepts(conceptsRes.concepts || []);
+    } catch (err) {
+      console.error('Error loading relationships:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (sourceId: string, targetId: string, type: string) => {
+    if (!confirm(`Delete ${type} relationship from ${sourceId} to ${targetId}?`)) return;
+    
+    try {
+      const response = await adminApi.deleteConceptRelationship({
+        source_id: sourceId,
+        target_id: targetId,
+        relationship_type: type
+      });
+      if (response.success) {
+        loadData();
+      } else {
+        alert('Failed to delete: ' + response.message);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
+  };
+
+  const getRelationshipBadge = (type: string) => {
+    switch (type) {
+      case 'PREREQUISITE':
+        return 'badge-danger';
+      case 'RELATED_TO':
+        return 'badge-info';
+      case 'PART_OF':
+        return 'badge-warning';
+      case 'BUILDS_UPON':
+        return 'badge-success';
+      default:
+        return 'badge-secondary';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="admin-loading">
+        <div className="spinner"></div>
+        <span>Loading relationships...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="admin-card">
+      <div className="admin-card-header">
+        <h2>Concept Relationships ({relationships.length})</h2>
+        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+          ➕ Add Relationship
+        </button>
+      </div>
+      <div className="admin-card-body" style={{ padding: 0 }}>
+        {relationships.length > 0 ? (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Source Concept</th>
+                <th>Relationship</th>
+                <th>Target Concept</th>
+                <th>Strength</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {relationships.map((rel, idx) => (
+                <tr key={idx}>
+                  <td>
+                    <div style={{ fontWeight: '500' }}>{rel.source_display}</div>
+                    <div style={{ fontSize: '12px', color: '#6b7280' }}>{rel.source_name}</div>
+                  </td>
+                  <td>
+                    <span className={`badge ${getRelationshipBadge(rel.relationship_type)}`}>
+                      {rel.relationship_type.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: '500' }}>{rel.target_display}</div>
+                    <div style={{ fontSize: '12px', color: '#6b7280' }}>{rel.target_name}</div>
+                  </td>
+                  <td>{rel.strength}</td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDelete(rel.source_id, rel.target_id, rel.relationship_type)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="empty-state">
+            <div className="empty-icon">🔗</div>
+            <h3>No Relationships Yet</h3>
+            <p>Connect concepts to show how they relate to each other</p>
+          </div>
+        )}
+      </div>
+
+      {showModal && (
+        <CreateRelationshipModal
+          concepts={concepts}
+          onClose={() => setShowModal(false)}
+          onCreated={() => {
+            setShowModal(false);
+            loadData();
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+// Create Relationship Modal
+const CreateRelationshipModal: React.FC<{
+  concepts: AdminConcept[];
+  onClose: () => void;
+  onCreated: () => void;
+}> = ({ concepts, onClose, onCreated }) => {
+  const [formData, setFormData] = useState({
+    source_id: '',
+    target_id: '',
+    relationship_type: 'PREREQUISITE',
+    strength: 1
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await adminApi.addConceptRelationship(formData);
+      if (response.success) {
+        alert('Relationship created successfully!');
+        onCreated();
+      } else {
+        setError(response.message || 'Failed to create relationship');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to create relationship');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+    }}>
+      <div className="modal-content" style={{
+        background: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        width: '100%',
+        maxWidth: '480px',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ margin: 0 }}>Add Concept Relationship</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+        </div>
+
+        {error && (
+          <div style={{ padding: '12px', background: '#fee2e2', color: '#dc2626', borderRadius: '8px', marginBottom: '16px' }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Source Concept *</label>
+            <select
+              className="form-select"
+              value={formData.source_id}
+              onChange={(e) => setFormData(f => ({ ...f, source_id: e.target.value }))}
+              required
+            >
+              <option value="">Select source concept...</option>
+              {concepts.map(c => (
+                <option key={c.concept_id} value={c.concept_id}>
+                  {c.display_name || c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Relationship Type *</label>
+            <select
+              className="form-select"
+              value={formData.relationship_type}
+              onChange={(e) => setFormData(f => ({ ...f, relationship_type: e.target.value }))}
+            >
+              <option value="PREREQUISITE">Prerequisite (must learn first)</option>
+              <option value="RELATED_TO">Related To (helpful to know)</option>
+              <option value="PART_OF">Part Of (is a component of)</option>
+              <option value="BUILDS_UPON">Builds Upon (extends)</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Target Concept *</label>
+            <select
+              className="form-select"
+              value={formData.target_id}
+              onChange={(e) => setFormData(f => ({ ...f, target_id: e.target.value }))}
+              required
+            >
+              <option value="">Select target concept...</option>
+              {concepts.filter(c => c.concept_id !== formData.source_id).map(c => (
+                <option key={c.concept_id} value={c.concept_id}>
+                  {c.display_name || c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Strength (1-10)</label>
+            <input
+              type="number"
+              className="form-input"
+              min={1}
+              max={10}
+              value={formData.strength}
+              onChange={(e) => setFormData(f => ({ ...f, strength: parseInt(e.target.value) || 1 }))}
+            />
+          </div>
+
+          <div style={{ 
+            padding: '12px', 
+            background: '#f3f4f6', 
+            borderRadius: '8px', 
+            marginBottom: '16px',
+            fontSize: '13px',
+            color: '#6b7280'
+          }}>
+            <strong>Preview:</strong> {formData.source_id ? 'Source' : '[Select]'} 
+            {' → '}
+            <span className={`badge ${
+              formData.relationship_type === 'PREREQUISITE' ? 'badge-danger' :
+              formData.relationship_type === 'RELATED_TO' ? 'badge-info' :
+              formData.relationship_type === 'PART_OF' ? 'badge-warning' : 'badge-success'
+            }`}>
+              {formData.relationship_type.replace('_', ' ')}
+            </span>
+            {' → '}
+            {formData.target_id ? 'Target' : '[Select]'}
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Creating...' : 'Create Relationship'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

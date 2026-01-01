@@ -320,6 +320,48 @@ class AdminApiService {
     });
   }
 
+  async getConceptRelationships(): Promise<{
+    success: boolean;
+    relationships: Array<{
+      source_id: string;
+      source_name: string;
+      source_display: string;
+      target_id: string;
+      target_name: string;
+      target_display: string;
+      relationship_type: string;
+      strength: number;
+    }>;
+  }> {
+    return this.makeRequest('/walker/admin_content_relationships', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async addConceptRelationship(data: {
+    source_id: string;
+    target_id: string;
+    relationship_type: string;
+    strength?: number;
+  }): Promise<{ success: boolean; message: string }> {
+    return this.makeRequest('/walker/admin_content_relationships_create', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteConceptRelationship(data: {
+    source_id: string;
+    target_id: string;
+    relationship_type: string;
+  }): Promise<{ success: boolean; message: string }> {
+    return this.makeRequest('/walker/admin_content_relationships_delete', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async createConcept(conceptData: {
     name: string;
     display_name: string;

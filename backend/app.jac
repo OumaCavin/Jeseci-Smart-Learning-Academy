@@ -2545,6 +2545,73 @@ walker admin_content_concepts {
     }
 }
 
+walker admin_content_relationships {
+    can admin_content_relationships with entry {
+        # Get all concept relationships with error handling
+        result = content_store.get_all_concept_relationships();
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "relationships": result['relationships']
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to load relationships'),
+                "relationships": []
+            };
+        }
+    }
+}
+
+walker admin_content_relationships_create {
+    has source_id: str;
+    has target_id: str;
+    has relationship_type: str;
+    has strength: int = 1;
+    
+    can admin_content_relationships_create with entry {
+        # Add relationship with error handling
+        result = content_store.add_concept_relationship(self.source_id, self.target_id, self.relationship_type, self.strength);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "message": result.get('message', 'Relationship created')
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to create relationship')
+            };
+        }
+    }
+}
+
+walker admin_content_relationships_delete {
+    has source_id: str;
+    has target_id: str;
+    has relationship_type: str;
+    
+    can admin_content_relationships_delete with entry {
+        # Delete relationship with error handling
+        result = content_store.delete_concept_relationship(self.source_id, self.target_id, self.relationship_type);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "message": result.get('message', 'Relationship deleted')
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to delete relationship')
+            };
+        }
+    }
+}
+
 walker admin_content_concept_create {
     has name: str;
     has category: str;
