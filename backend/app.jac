@@ -3173,3 +3173,27 @@ walker admin_analytics_refresh {
         };
     }
 }
+
+# ==============================================================================
+# Admin Cache Management API Endpoints
+# ==============================================================================
+
+walker admin_clear_content_cache {
+    can admin_clear_content_cache with entry {
+        # Clear all content caches to force fresh database queries
+        result = content_store.clear_content_cache();
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "message": "Content cache cleared successfully. Next request will query databases directly.",
+                "cleared_at": result.get('message', '')
+            };
+        } else {
+            report {
+                "success": False,
+                "error": "Failed to clear content cache"
+            };
+        }
+    }
+}
