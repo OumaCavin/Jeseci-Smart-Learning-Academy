@@ -410,8 +410,10 @@ const CreateContentModal: React.FC<{
         response = await adminApi.createCourse(formData);
       } else if (contentType === 'concepts') {
         response = await adminApi.createConcept(formData);
+      } else if (contentType === 'paths') {
+        response = await adminApi.createLearningPath(formData);
       } else {
-        response = { success: true, message: 'Created successfully' };
+        response = { success: false, message: 'Unknown content type' };
       }
 
       if (response.success) {
@@ -533,6 +535,90 @@ const CreateContentModal: React.FC<{
                 <option value="Jac Programming">Jac Programming</option>
                 <option value="Object-Spatial Programming">Object-Spatial Programming</option>
               </select>
+            </div>
+          </>
+        );
+      case 'paths':
+        return (
+          <>
+            <div className="form-group">
+              <label className="form-label">Title *</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.title || ''}
+                onChange={(e) => setFormData(f => ({ ...f, title: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Description *</label>
+              <textarea
+                className="form-input"
+                rows={3}
+                value={formData.description || ''}
+                onChange={(e) => setFormData(f => ({ ...f, description: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Courses (comma-separated IDs)</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.courses || ''}
+                onChange={(e) => setFormData(f => ({ 
+                  ...f, 
+                  courses: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) 
+                }))}
+                placeholder="e.g., course_1, course_2, course_3"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Concepts (comma-separated names)</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.concepts || ''}
+                onChange={(e) => setFormData(f => ({ 
+                  ...f, 
+                  concepts: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) 
+                }))}
+                placeholder="e.g., jac_variables, jac_functions, jac_control_flow"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Difficulty *</label>
+              <select
+                className="form-select"
+                value={formData.difficulty || 'beginner'}
+                onChange={(e) => setFormData(f => ({ ...f, difficulty: e.target.value }))}
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Duration *</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.duration || ''}
+                onChange={(e) => setFormData(f => ({ ...f, duration: e.target.value }))}
+                placeholder="e.g., 4 weeks"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Target Audience</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.target_audience || ''}
+                onChange={(e) => setFormData(f => ({ ...f, target_audience: e.target.value }))}
+                placeholder="e.g., Beginners, Developers, Data Scientists"
+              />
             </div>
           </>
         );
