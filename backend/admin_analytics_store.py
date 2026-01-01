@@ -42,33 +42,12 @@ def save_json_store(filepath, data):
 # ==============================================================================
 
 def initialize_analytics():
-    """Initialize analytics store with default data"""
+    """Initialize analytics store with minimal default data"""
     global analytics_store
+    # Minimal defaults - content analytics now query databases directly
     default_analytics = {
-        "users": {
-            "total_users": 156,
-            "active_users": 142,
-            "new_users_by_day": [12, 15, 18, 22, 19, 25, 30]
-        },
-        "learning": {
-            "total_sessions": 1250,
-            "completed_courses": 89,
-            "average_progress": 72.5
-        },
-        "content": {
-            "total_courses": 12,
-            "total_concepts": 48,
-            "popular_content": [
-                {"title": "Variables and Data Types", "views": 1250},
-                {"title": "Object-Spatial Programming", "views": 980},
-                {"title": "Walker Functions", "views": 875}
-            ],
-            "content_by_difficulty": {
-                "beginner": 15,
-                "intermediate": 25,
-                "advanced": 8
-            }
-        },
+        "users": {},
+        "learning": {},
         "last_refreshed": None
     }
     analytics_store = load_json_store(ANALYTICS_FILE, default_analytics)
@@ -84,7 +63,7 @@ def get_user_analytics():
         
         # Generate growth trend
         user_growth = []
-        base_count = total - sum(new_users)
+        base_count = total - sum(new_users) if new_users else 0
         for i, daily_new in enumerate(new_users):
             base_count += daily_new
             date = (datetime.datetime.now() - datetime.timedelta(days=len(new_users) - i - 1)).strftime("%Y-%m-%d")
@@ -107,7 +86,7 @@ def get_learning_analytics():
         
         # Generate learning trends
         learning_trends = []
-        base_sessions = total_sessions - 40
+        base_sessions = max(0, total_sessions - 40)
         for i in range(7):
             base_sessions += 5 + (i * 3)
             date = (datetime.datetime.now() - datetime.timedelta(days=6 - i)).strftime("%Y-%m-%d")
@@ -121,15 +100,19 @@ def get_learning_analytics():
         }
 
 def get_content_analytics():
-    """Get content analytics data"""
+    """
+    DEPRECATED: Content analytics now query databases directly.
+    This function is kept for backwards compatibility but returns empty data.
+    Use admin_analytics_content walker instead for real content statistics.
+    """
     with analytics_lock:
-        data = analytics_store.get("content", {})
-        
         return {
-            "total_courses": data.get("total_courses", 0),
-            "total_concepts": data.get("total_concepts", 0),
-            "popular_content": data.get("popular_content", []),
-            "content_by_difficulty": data.get("content_by_difficulty", {})
+            "total_courses": 0,
+            "total_concepts": 0,
+            "popular_content": [],
+            "content_by_difficulty": {},
+            "deprecated": True,
+            "message": "Use /walker/admin_analytics_content endpoint for real content statistics"
         }
 
 def refresh_analytics():
