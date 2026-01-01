@@ -239,7 +239,7 @@ def update_ai_stats(domain: Optional[str], tokens_used: Optional[int]) -> None:
                 logger.error(f"Error inserting AI domain stats: {e}")
 
 
-def initialize_ai_store() -> Dict[str, Any]:
+def initialize_ai_content() -> Dict[str, Any]:
     """Initialize AI store with default data if needed"""
     # Check if there are any existing AI generated content
     pg_manager = get_postgres_manager()
