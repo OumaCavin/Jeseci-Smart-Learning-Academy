@@ -24,6 +24,18 @@ content_lock = threading.Lock()
 courses_initialized = False
 paths_initialized = False
 
+def clear_content_cache():
+    """Clear all content caches to force fresh database queries"""
+    global courses_cache, paths_cache, courses_initialized, paths_initialized
+    
+    with content_lock:
+        courses_cache = {}
+        paths_cache = {}
+        courses_initialized = False
+        paths_initialized = False
+    
+    return {"success": True, "message": "Content caches cleared"}
+
 # ==============================================================================
 # COURSES STORAGE (PostgreSQL - LearningPath model)
 # ==============================================================================
