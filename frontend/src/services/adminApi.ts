@@ -222,7 +222,8 @@ class AdminApiService {
   // Dashboard
   async getDashboardStats(): Promise<AdminStatsResponse> {
     return this.makeRequest<AdminStatsResponse>('/walker/admin_dashboard', {
-      method: 'GET',
+      method: 'POST',
+      body: JSON.stringify({}),
     });
   }
 
@@ -234,15 +235,9 @@ class AdminApiService {
     admin_only?: boolean;
     search?: string;
   } = {}): Promise<AdminUserListResponse> {
-    const queryParams = new URLSearchParams();
-    if (params.limit) queryParams.append('limit', params.limit.toString());
-    if (params.offset) queryParams.append('offset', params.offset.toString());
-    if (params.include_inactive) queryParams.append('include_inactive', 'true');
-    if (params.admin_only) queryParams.append('admin_only', 'true');
-    if (params.search) queryParams.append('search', params.search);
-
-    return this.makeRequest<AdminUserListResponse>(`/walker/admin_users?${queryParams}`, {
-      method: 'GET',
+    return this.makeRequest<AdminUserListResponse>('/walker/admin_users', {
+      method: 'POST',
+      body: JSON.stringify(params),
     });
   }
 
@@ -288,7 +283,10 @@ class AdminApiService {
 
   // Content Management
   async getCourses(): Promise<{ success: boolean; courses: AdminCourse[] }> {
-    return this.makeRequest('/walker/admin_content_courses', { method: 'GET' });
+    return this.makeRequest('/walker/admin_content_courses', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   async createCourse(courseData: {
@@ -316,7 +314,10 @@ class AdminApiService {
   }
 
   async getConcepts(): Promise<{ success: boolean; concepts: AdminConcept[] }> {
-    return this.makeRequest('/walker/admin_content_concepts', { method: 'GET' });
+    return this.makeRequest('/walker/admin_content_concepts', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   async createConcept(conceptData: {
@@ -335,12 +336,18 @@ class AdminApiService {
   }
 
   async getLearningPaths(): Promise<{ success: boolean; paths: AdminLearningPath[] }> {
-    return this.makeRequest('/walker/admin_content_paths', { method: 'GET' });
+    return this.makeRequest('/walker/admin_content_paths', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   // Quiz Management
   async getQuizzes(): Promise<{ success: boolean; quizzes: AdminQuiz[] }> {
-    return this.makeRequest('/walker/admin_quizzes', { method: 'GET' });
+    return this.makeRequest('/walker/admin_quizzes', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   async createQuiz(quizData: {
@@ -375,12 +382,18 @@ class AdminApiService {
       pass_rate: number;
     };
   }> {
-    return this.makeRequest('/walker/admin_quizzes_analytics', { method: 'GET' });
+    return this.makeRequest('/walker/admin_quizzes_analytics', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   // AI Content Management
   async getAIContent(): Promise<{ success: boolean; content: AIGeneratedContentAdmin[] }> {
-    return this.makeRequest('/walker/admin_ai_content', { method: 'GET' });
+    return this.makeRequest('/walker/admin_ai_content', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   async generateAIContent(request: {
@@ -396,11 +409,17 @@ class AdminApiService {
   }
 
   async getAIUsageStats(): Promise<{ success: boolean; stats: AIUsageStats }> {
-    return this.makeRequest('/walker/admin_ai_stats', { method: 'GET' });
+    return this.makeRequest('/walker/admin_ai_stats', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   async getDomains(): Promise<{ success: boolean; domains: Domain[] }> {
-    return this.makeRequest('/walker/admin_ai_domains', { method: 'GET' });
+    return this.makeRequest('/walker/admin_ai_domains', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   // Analytics
@@ -413,7 +432,10 @@ class AdminApiService {
       user_growth: { date: string; count: number }[];
     };
   }> {
-    return this.makeRequest('/walker/admin_analytics_users', { method: 'GET' });
+    return this.makeRequest('/walker/admin_analytics_users', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   async getLearningAnalytics(): Promise<{
@@ -425,7 +447,10 @@ class AdminApiService {
       learning_trends: { date: string; sessions: number }[];
     };
   }> {
-    return this.makeRequest('/walker/admin_analytics_learning', { method: 'GET' });
+    return this.makeRequest('/walker/admin_analytics_learning', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   async getContentAnalytics(): Promise<{
@@ -437,7 +462,10 @@ class AdminApiService {
       content_by_difficulty: Record<string, number>;
     };
   }> {
-    return this.makeRequest('/walker/admin_analytics_content', { method: 'GET' });
+    return this.makeRequest('/walker/admin_analytics_content', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   }
 
   async refreshAnalytics(): Promise<{ success: boolean; message: string }> {
