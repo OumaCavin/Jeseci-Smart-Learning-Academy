@@ -316,7 +316,7 @@ def update_admin_user(user_id, updates):
     
     return {"success": True, "message": "User updated successfully"}
 
-def bulk_admin_action(user_ids, action, reason="", deleted_by=None):
+def bulk_admin_action(user_ids, action, reason="", deleted_by=None, ip_address=None):
     """Perform bulk action on admin users in PostgreSQL
     
     Args:
@@ -324,6 +324,7 @@ def bulk_admin_action(user_ids, action, reason="", deleted_by=None):
         action: Action to perform ('delete', 'suspend', 'activate')
         reason: Optional reason for the action
         deleted_by: Username of the admin performing the delete (for soft delete tracking)
+        ip_address: IP address of the request for geolocation tracking
     """
     pg_manager = get_postgres_manager()
     
@@ -381,6 +382,7 @@ def bulk_admin_action(user_ids, action, reason="", deleted_by=None):
                     old_values=old_vals,
                     performed_by=deleted_by,
                     reason=reason,
+                    ip_address=ip_address,
                     additional_context={"action": "bulk_delete", "users_affected": len(user_ids)}
                 )
     elif action == 'suspend':
@@ -417,12 +419,13 @@ def bulk_admin_action(user_ids, action, reason="", deleted_by=None):
     
     return {"success": False, "error": "Failed to perform action", "code": "ACTION_ERROR"}
 
-def restore_users(user_ids, restored_by):
+def restore_users(user_ids, restored_by, ip_address=None):
     """Restore soft-deleted users by setting is_deleted = false
     
     Args:
         user_ids: List of user_id strings to restore
         restored_by: Username of the admin performing the restore
+        ip_address: IP address of the request for geolocation tracking
     """
     pg_manager = get_postgres_manager()
     
@@ -475,6 +478,7 @@ def restore_users(user_ids, restored_by):
                 record_id=user_id,
                 old_values=old_vals,
                 performed_by=restored_by,
+                ip_address=ip_address,
                 additional_context={"action": "bulk_restore", "users_affected": len(user_ids)}
             )
     

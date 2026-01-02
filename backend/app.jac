@@ -2388,6 +2388,7 @@ walker admin_users_bulk_action {
     has action: str;
     has reason: str = "";
     has deleted_by: str = "";
+    has ip_address: str = "";
     
     can admin_users_bulk_action with entry {
         # Initialize store with error handling
@@ -2401,7 +2402,7 @@ walker admin_users_bulk_action {
             };
         }
         
-        result = admin_store.bulk_admin_action(self.user_ids, self.action, self.reason, self.deleted_by);
+        result = admin_store.bulk_admin_action(self.user_ids, self.action, self.reason, self.deleted_by, self.ip_address);
         
         import datetime;
         report {
@@ -2417,6 +2418,7 @@ walker admin_users_bulk_action {
 walker admin_users_restore {
     has user_ids: list;
     has restored_by: str = "";
+    has ip_address: str = "";
     
     can admin_users_restore with entry {
         # Initialize store with error handling
@@ -2430,7 +2432,7 @@ walker admin_users_restore {
             };
         }
         
-        result = admin_store.restore_users(self.user_ids, self.restored_by);
+        result = admin_store.restore_users(self.user_ids, self.restored_by, self.ip_address);
         
         import datetime;
         report {
@@ -2577,6 +2579,7 @@ walker admin_content_course_update {
 walker admin_content_course_delete {
     has course_id: str;
     has deleted_by: str = "";
+    has ip_address: str = "";
     
     can admin_content_course_delete with entry {
         # Initialize store with error handling
@@ -2590,7 +2593,7 @@ walker admin_content_course_delete {
             };
         }
         
-        result = content_store.delete_course(self.course_id, self.deleted_by);
+        result = content_store.delete_course(self.course_id, self.deleted_by, self.ip_address);
         
         if result['success'] {
             report {
@@ -2610,6 +2613,7 @@ walker admin_content_course_delete {
 walker admin_content_course_restore {
     has course_id: str;
     has restored_by: str = "";
+    has ip_address: str = "";
     
     can admin_content_course_restore with entry {
         # Initialize store with error handling
@@ -2623,7 +2627,7 @@ walker admin_content_course_restore {
             };
         }
         
-        result = content_store.restore_course(self.course_id, self.restored_by);
+        result = content_store.restore_course(self.course_id, self.restored_by, self.ip_address);
         
         if result['success'] {
             report {
