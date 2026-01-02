@@ -198,6 +198,40 @@ def create_content_tables(cursor):
     logger.info("✓ Content tables created: concepts, concept_content, learning_paths, lessons, learning_path_concepts, lesson_concepts")
 
 
+def create_courses_table(cursor):
+    """Create courses table"""
+    logger.info("Creating courses table...")
+    
+    cursor.execute(f"""
+    CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.courses (
+        id SERIAL PRIMARY KEY,
+        course_id VARCHAR(100) UNIQUE NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        domain VARCHAR(100),
+        difficulty VARCHAR(50),
+        estimated_duration INTEGER,
+        content_type VARCHAR(50) DEFAULT 'interactive',
+        is_published BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    
+    # Also create course_concepts junction table
+    cursor.execute(f"""
+    CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.course_concepts (
+        id SERIAL PRIMARY KEY,
+        course_id VARCHAR(100) NOT NULL,
+        concept_id VARCHAR(100) NOT NULL,
+        order_index INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    
+    logger.info("✓ Courses tables created: courses, course_concepts")
+
+
 def create_progress_tables(cursor):
     """Create progress tracking tables"""
     logger.info("Creating progress tracking tables...")
@@ -848,6 +882,7 @@ def initialize_database():
         # Create all tables
         create_users_tables(cursor)
         create_content_tables(cursor)
+        create_courses_table(cursor)
         create_progress_tables(cursor)
         create_assessment_tables(cursor)
         create_gamification_tables(cursor)
