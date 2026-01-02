@@ -112,6 +112,15 @@ class PasswordResetManager:
                     )
                 """)
                 
+                # Add is_used column if it doesn't exist (for existing tables)
+                try:
+                    cursor.execute(f"""
+                        ALTER TABLE {schema}.password_reset_tokens
+                        ADD COLUMN IF NOT EXISTS is_used BOOLEAN DEFAULT FALSE
+                    """)
+                except Exception as e:
+                    logger.debug(f"is_used column might already exist: {e}")
+                
                 # Create index for faster token lookups
                 cursor.execute(f"""
                     CREATE INDEX IF NOT EXISTS idx_password_reset_token
