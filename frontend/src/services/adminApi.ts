@@ -456,7 +456,7 @@ class AdminApiService {
     course_id?: string;
     difficulty: string;
   }): Promise<{ success: boolean; quiz_id: string; message: string }> {
-    return this.makeRequest('/walker/admin_quizzes', {
+    return this.makeRequest('/walker/admin_quizzes_create', {
       method: 'POST',
       body: JSON.stringify(quizData),
     });
