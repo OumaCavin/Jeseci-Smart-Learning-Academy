@@ -622,7 +622,7 @@ def seed_paths_to_postgres(dry_run=False, verbose=True):
                 concept_id = f"jac_{concept_name}"
                 link_query = """
                 INSERT INTO jeseci_academy.learning_path_concepts 
-                (path_id, concept_id, order_index, is_required)
+                (path_id, concept_id, sequence_order, is_required)
                 VALUES (%s, %s, %s, true)
                 ON CONFLICT (path_id, concept_id) DO NOTHING
                 """
