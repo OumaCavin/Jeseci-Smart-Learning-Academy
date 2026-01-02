@@ -24,7 +24,10 @@ jac_server.ResponseBuilder._add_cors_headers = staticmethod(patched_add_cors_hea
 
 # Now spawn jac serve as a subprocess
 if __name__ == "__main__":
-    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    # Get the project root directory (parent of backend/)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    backend_dir = script_dir
     jac_file = os.path.join(backend_dir, "app.jac")
     
     print("🚀 Starting Jeseci Smart Learning Academy Backend Server...")
@@ -40,9 +43,13 @@ if __name__ == "__main__":
     print("🔧 CORS methods: GET, POST, PUT, DELETE, OPTIONS")
     print("")
     
-    # Run jac serve
+    # Run jac serve from PROJECT ROOT (not backend directory)
+    # This ensures imports like 'import backend.database' work correctly
     try:
-        result = os.system(f'cd "{backend_dir}" && jac serve app.jac --port 8000')
+        # Change to project root and run jac serve with backend/app.jac
+        cmd = f'cd "{project_root}" && jac serve backend/app.jac --port 8000'
+        print(f"Running: {cmd}")
+        result = os.system(cmd)
         sys.exit(result)
     except KeyboardInterrupt:
         print("\n🛑 Server stopped by user")
