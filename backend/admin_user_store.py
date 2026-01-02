@@ -44,6 +44,7 @@ def initialize_admin_store():
                    p.first_name, p.last_name
             FROM jeseci_academy.users u
             LEFT JOIN jeseci_academy.user_profile p ON u.id = p.user_id
+            WHERE u.is_deleted = false
             ORDER BY u.created_at DESC
             """
             
@@ -112,6 +113,8 @@ def search_admin_users(query, include_inactive=False, admin_only=False):
     
     params = []
     
+    # Always filter out soft-deleted users
+    sql_conditions.append("u.is_deleted = false")
     if not include_inactive:
         sql_conditions.append("u.is_active = true")
     if query:
@@ -312,41 +315,44 @@ def update_admin_user(user_id, updates):
     
     return {"success": True, "message": "User updated successfully"}
 
-def bulk_admin_action(user_ids, action, reason=""):
-    """Perform bulk action on admin users in PostgreSQL"""
+def bulk_admin_action(user_ids, action, reason="", deleted_by=None):
+    """Perform bulk action on admin users in PostgreSQL
+    
+    Args:
+        user_ids: List of user_id strings to act on
+        action: Action to perform ('delete', 'suspend', 'activate')
+        reason: Optional reason for the action
+        deleted_by: Username of the admin performing the delete (for soft delete tracking)
+    """
     pg_manager = get_postgres_manager()
     
-    # For delete action, we need INTEGER ids for user_profile deletion
+    # For delete action, perform soft delete instead of hard delete
     if action == 'delete':
-        # Look up INTEGER ids from the VARCHAR user_ids
-        lookup_query = "SELECT id FROM jeseci_academy.users WHERE user_id = ANY(%s)"
-        try:
-            lookup_result = pg_manager.execute_query(lookup_query, (user_ids,))
-        except Exception as e:
-            logger.error(f"Error looking up user IDs for bulk delete: {e}")
-            return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
-        
-        integer_ids = [row['id'] for row in lookup_result] if lookup_result else []
-        
-        # Delete from profile first (foreign key uses INTEGER id)
-        if integer_ids:
-            delete_profile = "DELETE FROM jeseci_academy.user_profile WHERE user_id = ANY(%s)"
-            try:
-                pg_manager.execute_query(delete_profile, (integer_ids,), fetch=False)
-            except Exception as e:
-                logger.error(f"Error deleting user profiles: {e}")
-                return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
-        
-        # Delete from users table using VARCHAR user_id
+        # Soft delete - update is_deleted, deleted_at, deleted_by instead of deleting
+        current_time = datetime.datetime.now()
         update_query = """
-        DELETE FROM jeseci_academy.users 
+        UPDATE jeseci_academy.users 
+        SET is_deleted = true, deleted_at = %s, deleted_by = %s, updated_at = NOW()
         WHERE user_id = ANY(%s)
         """
         try:
-            result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
+            result = pg_manager.execute_query(update_query, (current_time, deleted_by, user_ids,), fetch=False)
         except Exception as e:
-            logger.error(f"Error deleting users: {e}")
+            logger.error(f"Error soft deleting users: {e}")
             return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
+        
+        # Also soft delete the user profile
+        if result or result is not None:
+            profile_query = """
+            UPDATE jeseci_academy.user_profile 
+            SET is_deleted = true, deleted_at = %s, deleted_by = %s, updated_at = NOW()
+            WHERE user_id IN (SELECT id FROM jeseci_academy.users WHERE user_id = ANY(%s))
+            """
+            try:
+                pg_manager.execute_query(profile_query, (current_time, deleted_by, user_ids,), fetch=False)
+            except Exception as e:
+                logger.warning(f"Error soft deleting user profiles: {e}")
+                # Continue even if profile update fails - main user record is deleted
     elif action == 'suspend':
         update_query = """
         UPDATE jeseci_academy.users 
