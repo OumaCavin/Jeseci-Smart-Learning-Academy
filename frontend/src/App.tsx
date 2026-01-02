@@ -155,9 +155,8 @@ const AppContent: React.FC = () => {
     if (window.location.pathname.includes('verify-email') || urlParams.has('token')) {
       setShowVerifyPage(true);
     }
-    if (window.location.pathname.includes('reset-password') || urlParams.has('reset_token')) {
-      setShowForgotPassword(true);
-    }
+    // Note: We don't set showForgotPassword here for reset-password
+    // The ResetPassword component is shown based on window.location.pathname.includes('reset-password')
   }, []);
 
   // Check backend health on mount
