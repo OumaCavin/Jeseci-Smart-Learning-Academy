@@ -11,10 +11,11 @@
 7. [Database Schema](#database-schema)
 8. [API Endpoints Reference](#api-endpoints-reference)
 9. [Content Generation Flow](#content-generation-flow)
-10. [Security Considerations](#security-considerations)
-11. [Development Notes](#development-notes)
-12. [Related Documentation](#related-documentation-1)
-13. [User Views, Access, and User Flow](#user-views-access-and-user-flow)
+10. [AI Quiz Generation Flow](#ai-quiz-generation-flow)
+11. [Security Considerations](#security-considerations)
+12. [Development Notes](#development-notes)
+13. [Related Documentation](#related-documentation-1)
+14. [User Views, Access, and User Flow](#user-views-access-and-user-flow)
 
 ---
 
@@ -879,6 +880,499 @@ The content generation feature integrates with several related API endpoints for
 
 ---
 
+## AI Quiz Generation Flow
+
+The Jeseci Smart Learning Academy includes an AI-powered quiz generation system that automatically creates multiple-choice quizzes based on specified topics and difficulty levels. This section documents the complete flow from user request to quiz creation and storage.
+
+### Overview
+
+The quiz generation system leverages OpenAI's language models to produce high-quality educational quizzes with questions, answer options, correct answers, and explanatory notes. The system handles the complete lifecycle of quiz generation including prompt construction, API communication, response parsing, and persistent storage. This enables content administrators to rapidly expand the quiz inventory with consistent, well-structured assessments covering various programming concepts and technical topics.
+
+### Architecture Components
+
+The quiz generation architecture consists of three primary layers that work together to transform simple topic descriptions into comprehensive educational assessments. The frontend layer provides an interface for content administrators to specify generation parameters and view results. The backend layer manages communication with external AI services and enforces access controls. The persistence layer ensures that generated quizzes remain available for future retrieval and management operations.
+
+**Frontend Layer**: The React-based admin dashboard includes a dedicated Quiz Manager section where authorized administrators can initiate quiz generation requests. The interface presents form fields for topic, difficulty level, and number of questions. Upon submission, the frontend constructs a structured request payload and sends it to the appropriate backend endpoint. The response displays generated quiz content including questions, options, and explanations.
+
+**Backend Layer**: The backend implements a Jaclang walker that handles quiz generation requests with proper authentication and authorization checks. The primary walker `admin_quizzes_generate_ai` receives request parameters, constructs detailed prompts for the AI model, communicates with OpenAI's API, parses the response, and stores the result in the database. Error handling ensures graceful degradation when AI services are unavailable or when prompt generation fails.
+
+**Persistence Layer**: Generated quizzes persist in the PostgreSQL database within the `quizzes` and `quiz_questions` tables. Each quiz entry includes a unique identifier, title, description, associated concept, difficulty level, and metadata. Questions are stored in the `quiz_questions` table with proper associations to their parent quiz.
+
+### Request Flow
+
+The quiz generation process follows a well-defined sequence of steps that transform user input into stored quiz content. Understanding this flow helps in debugging issues and extending functionality.
+
+```
+Content Administrator
+        │
+        ▼
+Frontend Quiz Manager Form
+  - Topic: "JAC Variables"
+  - Difficulty: "beginner"
+  - Question Count: 5
+        │
+        ▼
+POST /walker/admin_quizzes_generate_ai
+  Headers: Authorization: Bearer {JWT}
+  Body: {
+    "topic": "JAC Variables",
+    "difficulty": "beginner",
+    "question_count": 5
+  }
+        │
+        ▼
+Backend Authorization Check
+  - Verify JWT token
+  - Check content_admin permission
+        │
+        ├─── Unauthorized → Return 403
+        │
+        └─── Authorized → Continue
+                  │
+                  ▼
+         Prompt Construction
+  - Build system prompt with quiz guidelines
+  - Insert user parameters (topic, difficulty, question_count)
+  - Specify output format (JSON with questions and answers)
+        │
+                  ▼
+         OpenAI API Call
+  - Endpoint: https://api.openai.com/v1/chat/completions
+  - Model: gpt-4o-mini
+  - Max tokens: 2000
+  - Temperature: 0.7
+        │
+                  ▼
+         Response Processing
+  - Parse JSON from AI response
+  - Extract questions, options, correct answers
+  - Generate unique quiz_id
+        │
+                  ▼
+         Database Storage
+  - INSERT INTO quizzes
+  - INSERT INTO quiz_questions (for each question)
+  - Return generated quiz
+        │
+                  ▼
+         Frontend Display
+  - Show generated questions
+  - Display options and explanations
+  - Enable save/edit actions
+```
+
+### Frontend Implementation
+
+The frontend implementation resides in the admin dashboard's Quiz Manager section, providing a user-friendly interface for quiz generation requests. The implementation uses React hooks for state management and the centralized admin API service for backend communication.
+
+```typescript
+// From frontend/src/admin/pages/QuizManager.tsx
+const handleGenerateQuiz = async (formData: GenerateQuizRequest) => {
+  setLoading(true);
+  setError(null);
+  
+  try {
+    const response = await adminApi.generateAIQuiz({
+      topic: formData.topic,
+      difficulty: formData.difficulty,
+      question_count: formData.questionCount
+    });
+    
+    if (response.success) {
+      setGeneratedQuiz(response.quiz);
+      // Display quiz preview
+    } else {
+      setError(response.message || 'Generation failed');
+    }
+  } catch (err: any) {
+    setError(err.message || 'Failed to generate quiz');
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+The frontend service method constructs the API request and handles the response unwrapping required by the Jaclang API architecture:
+
+```typescript
+// From frontend/src/services/adminApi.ts
+async generateAIQuiz(request: {
+  topic: string;
+  difficulty: string;
+  question_count?: number;
+}): Promise<{
+  success: boolean;
+  quiz?: {...};
+  message: string;
+}> {
+  return this.makeRequest('/walker/admin_quizzes_generate_ai', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+```
+
+### Backend Implementation
+
+The backend implementation consists of two primary components: the Jaclang walker that handles the HTTP endpoint and the Python module that manages AI interactions and database operations.
+
+**Jaclang Walker (app.jac)**:
+
+The walker receives requests, validates permissions, and orchestrates the quiz generation process:
+
+```jac
+walker admin_quizzes_generate_ai {
+    has topic: str;
+    has difficulty: str;
+    has question_count: int = 5;
+    
+    can admin_quizzes_generate_ai with entry {
+        result = quiz_store.generate_ai_quiz(self.topic, self.difficulty, self.question_count);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "quiz": result.get('quiz', {}),
+                "topic": self.topic,
+                "difficulty": self.difficulty,
+                "question_count": self.question_count,
+                "message": result.get('message', 'Quiz generated successfully')
+            };
+        } else {
+            report {"success": False, "error": result.get('error', 'Failed to generate quiz')};
+        }
+    }
+}
+```
+
+**Python Module (backend/admin_quiz_store.py)**:
+
+The Python module contains the core logic for generating quizzes through OpenAI and storing results:
+
+```python
+# From backend/admin_quiz_store.py
+def generate_ai_quiz(topic: str, difficulty: str, question_count: int = 5) -> Dict[str, Any]:
+    """Generate a quiz using OpenAI API"""
+    # Get OpenAI API key from environment
+    api_key = os.environ.get("OPENAI_API_KEY")
+    
+    if not api_key or api_key.startswith("sk-proj-placeholder"):
+        # Return sample quiz for demo purposes
+        return _generate_sample_quiz(topic, difficulty, question_count)
+    
+    # Construct prompt based on parameters
+    prompt = construct_quiz_prompt(topic, difficulty, question_count)
+    
+    # Call OpenAI API
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=2000,
+            temperature=0.7
+        )
+        content = response.choices[0].message.content
+        quiz_data = json.loads(content)
+    except Exception as e:
+        logger.error(f"OpenAI API error: {e}")
+        return {"success": False, "error": str(e)}
+    
+    # Store quiz in database
+    result = save_ai_quiz(
+        topic=topic,
+        difficulty=difficulty,
+        quiz_data=quiz_data
+    )
+    
+    return result
+```
+
+### Prompt Construction
+
+The prompt construction process transforms basic parameters into detailed instructions for the AI model. The system uses a multi-part prompt structure that ensures consistent output format and educational quality.
+
+**System Prompt Components**:
+
+The system prompt establishes the AI's role as an educational quiz creator and specifies the expected output format. Key components include role definition, output structure requirements, question guidelines, and answer formatting standards. The prompt instructs the AI to produce JSON-formatted quizzes with specific fields including question text, answer options, correct answer index, and explanatory notes.
+
+**User Prompt Template**:
+
+The user prompt incorporates the specific parameters from the quiz generation request:
+
+```
+Create a multiple-choice quiz about the following topic:
+
+Topic: {topic}
+Difficulty Level: {difficulty}
+Number of Questions: {question_count}
+
+Requirements:
+1. Each question should have 4 answer options (A, B, C, D)
+2. Include the correct answer index (0-3)
+3. Provide a brief explanation for why each answer is correct or incorrect
+4. Make questions challenging but fair for {difficulty} level
+5. Focus on practical knowledge and understanding
+
+Format the response as valid JSON with this structure:
+{
+    "title": "Quiz title",
+    "description": "Brief description",
+    "questions": [
+        {
+            "question": "Question text",
+            "options": ["Option A", "Option B", "Option C", "Option D"],
+            "correct_answer": 0,
+            "explanation": "Why this is the correct answer"
+        }
+    ]
+}
+```
+
+### Sample Quiz Generation (Fallback)
+
+When no OpenAI API key is configured, the system generates a sample quiz for demonstration purposes. This allows administrators to preview the quiz generation workflow without requiring API credentials.
+
+```python
+# From backend/admin_quiz_store.py
+def _generate_sample_quiz(topic: str, difficulty: str, question_count: int = 5) -> Dict[str, Any]:
+    """Generate a sample quiz for demonstration when no API key is available"""
+    # Create sample questions based on topic
+    # Returns structured quiz with questions, options, and answers
+    
+    sample_questions = [
+        {
+            "question": f"What is a key concept related to {topic}?",
+            "options": [
+                f"Understanding {topic} fundamentals",
+                f"Advanced {topic} techniques",
+                f"{topic} best practices",
+                f"All of the above"
+            ],
+            "correct_answer": 3,
+            "explanation": f"All these aspects are important for mastering {topic}"
+        }
+    ]
+    
+    return {
+        "success": True,
+        "quiz": {
+            "title": f"{topic} Quiz",
+            "description": f"Sample quiz about {topic} at {difficulty} level",
+            "questions": sample_questions[:question_count]
+        },
+        "is_sample": True,
+        "message": "Sample quiz generated (API key not configured)"
+    }
+```
+
+### Database Storage
+
+Generated quizzes persist in the PostgreSQL database through the `quizzes` and `quiz_questions` tables. The storage implementation ensures data integrity and enables efficient retrieval for quiz-taking operations.
+
+**Quizzes Table**:
+
+```sql
+-- From backend/database/initialize_database.py
+CREATE TABLE jeseci_academy.quizzes (
+    quiz_id VARCHAR(100) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    concept_id VARCHAR(100),
+    passing_score INTEGER DEFAULT 70,
+    time_limit_minutes INTEGER,
+    max_attempts INTEGER DEFAULT 3,
+    is_published BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_by VARCHAR(64),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(64),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Quiz Questions Table**:
+
+```sql
+CREATE TABLE jeseci_academy.quiz_questions (
+    id SERIAL PRIMARY KEY,
+    question_id VARCHAR(100) UNIQUE NOT NULL,
+    quiz_id VARCHAR(100) REFERENCES jeseci_academy.quizzes(quiz_id),
+    question TEXT NOT NULL,
+    options JSONB NOT NULL,
+    correct_answer INTEGER NOT NULL,
+    explanation TEXT,
+    order_index INTEGER DEFAULT 0,
+    points INTEGER DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Response Structure
+
+The API returns quiz data in a structured format that includes both the generated assessment and metadata useful for management operations. The Jaclang response wrapper follows the standard pattern used throughout the platform.
+
+```json
+{
+  "result": {
+    "_jac_type": "admin_quizzes_generate_ai",
+    "_jac_id": "abc123def456",
+    "_jac_archetype": "walker",
+    "topic": "JAC Variables",
+    "difficulty": "beginner",
+    "question_count": 5
+  },
+  "reports": [
+    {
+      "success": true,
+      "quiz": {
+        "title": "JAC Variables Quiz",
+        "description": "Test your knowledge of JAC variables",
+        "questions": [
+          {
+            "question": "What is the correct way to declare a variable in JAC?",
+            "options": ["var x: int = 5", "int x = 5", "let x = 5", "x: int = 5"],
+            "correct_answer": 0,
+            "explanation": "In JAC, variables are declared using 'var' keyword with type annotation"
+          }
+        ]
+      },
+      "topic": "JAC Variables",
+      "difficulty": "beginner",
+      "question_count": 5,
+      "message": "Quiz generated successfully"
+    }
+  ]
+}
+```
+
+### API Endpoints
+
+The quiz generation feature integrates with several related API endpoints for complete quiz management functionality.
+
+| Endpoint | Method | Required Role | Description |
+|----------|--------|---------------|-------------|
+| `/walker/admin_quizzes_generate_ai` | POST | content_admin | Generate new AI quiz |
+| `/walker/admin_quizzes` | GET | admin | List all quizzes |
+| `/walker/admin_quizzes_create` | POST | content_admin | Create new quiz manually |
+| `/walker/admin_quizzes_update` | PUT | content_admin | Update existing quiz |
+| `/walker/admin_quizzes_delete` | DELETE | content_admin | Delete quiz |
+| `/walker/admin_quizzes_analytics` | GET | admin | Get quiz analytics |
+
+### Configuration Requirements
+
+The quiz generation feature requires proper configuration of external service credentials and system parameters. Missing or incorrect configuration results in generation failures or fallback to sample mode.
+
+**Required Environment Variables**:
+
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `OPENAI_API_KEY` | OpenAI API key for GPT access | No | None |
+| `OPENAI_MODEL` | Model name | No | gpt-4o-mini |
+| `MAX_TOKENS` | Maximum response tokens | No | 2000 |
+| `TEMPERATURE` | Model temperature | No | 0.7 |
+
+**Configuration File Location**:
+
+Environment variables can be set in the backend configuration file located at `backend/config/.env`. The application loads these variables during startup and makes them available to the quiz generation module.
+
+```bash
+# Example backend/config/.env
+OPENAI_API_KEY=sk-your-api-key-here
+OPENAI_MODEL=gpt-4o-mini
+MAX_TOKENS=2000
+TEMPERATURE=0.7
+```
+
+### Error Handling
+
+The quiz generation system implements comprehensive error handling to provide meaningful feedback and maintain system stability. Errors can occur at multiple stages of the generation process.
+
+**Authentication Errors**: Invalid or missing JWT tokens result in 401 Unauthorized responses. Content administrators must have valid sessions with appropriate permissions (content_admin or higher) to generate quizzes.
+
+**Configuration Errors**: Missing or placeholder OpenAI API key results in automatic fallback to sample quiz generation. The system logs configuration warnings to assist with debugging.
+
+**API Errors**: OpenAI API failures (rate limits, network issues, invalid requests) propagate to the user with descriptive error messages. The system implements retry logic for transient failures.
+
+**Database Errors**: Storage failures prevent quiz persistence but do not lose generated content. The system returns the generated content in the error response, allowing manual storage if needed.
+
+### Frontend Integration
+
+Client applications integrate with the quiz generation feature through the admin API service. The following example demonstrates the complete integration pattern.
+
+**Quiz Generation Form**:
+
+```typescript
+// Example: Quiz generation form component
+const QuizGenerationForm = () => {
+  const [topic, setTopic] = useState('');
+  const [difficulty, setDifficulty] = useState('beginner');
+  const [questionCount, setQuestionCount] = useState(5);
+  const [generatedQuiz, setGeneratedQuiz] = useState(null);
+  
+  const handleGenerate = async () => {
+    const response = await adminApi.generateAIQuiz({
+      topic,
+      difficulty,
+      question_count: questionCount
+    });
+    
+    if (response.success) {
+      setGeneratedQuiz(response.quiz);
+    }
+  };
+  
+  return (
+    <div>
+      <input 
+        value={topic}
+        onChange={(e) => setTopic(e.target.value)}
+        placeholder="Quiz topic"
+      />
+      <select 
+        value={difficulty}
+        onChange={(e) => setDifficulty(e.target.value)}
+      >
+        <option value="beginner">Beginner</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="advanced">Advanced</option>
+        <option value="expert">Expert</option>
+      </select>
+      <input 
+        type="number"
+        value={questionCount}
+        onChange={(e) => setQuestionCount(parseInt(e.target.value))}
+        min="1"
+        max="20"
+      />
+      <button onClick={handleGenerate}>Generate Quiz</button>
+      
+      {generatedQuiz && (
+        <QuizPreview quiz={generatedQuiz} />
+      )}
+    </div>
+  );
+};
+```
+
+### Related API Endpoints
+
+The quiz generation feature integrates with the broader quiz management ecosystem for complete assessment lifecycle support.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/admin_quizzes_generate_ai` | POST | Generate new AI quiz |
+| `/walker/admin_quizzes` | GET | List all quizzes |
+| `/walker/admin_quizzes_create` | POST | Create quiz manually |
+| `/walker/admin_quizzes_update` | PUT | Update quiz |
+| `/walker/admin_quizzes_delete` | DELETE | Delete quiz |
+| `/walker/admin_quizzes_analytics` | GET | Quiz analytics |
+| `/walker/submit_quiz_attempt` | POST | Submit quiz answers |
+
+---
+
 ## Content View Tracking
 
 The Jeseci Smart Learning Academy includes a comprehensive content view tracking system that records when users view courses, concepts, and learning paths, providing accurate analytics data for the admin dashboard. This section documents the complete view tracking architecture including database schema, API endpoints, and integration with existing analytics.
@@ -1564,11 +2058,11 @@ The platform supports seamless transitions between student and admin views for u
 
 | Property | Value |
 |----------|-------|
-| **Last Updated** | 2026-01-02 |
+| **Last Updated** | 2026-01-03 |
 | **Author** | Development Team |
-| **Version** | 1.1 |
+| **Version** | 1.2 |
 | **Status** | Active |
-| **Changes** | Added Content View Tracking documentation section |
+| **Changes** | Added AI Quiz Generation Flow documentation section |
 
 ---
 
