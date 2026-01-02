@@ -3431,3 +3431,180 @@ walker admin_clear_content_cache {
         }
     }
 }
+
+# ==============================================================================
+# Audit Log API Endpoints
+# ==============================================================================
+
+walker admin_audit_logs {
+    has table_name: str = "";
+    has action_type: str = "";
+    has performed_by: str = "";
+    has start_date: str = "";
+    has end_date: str = "";
+    has limit: int = 100;
+    has offset: int = 0;
+    
+    can admin_audit_logs with entry {
+        # Import audit logger module
+        import audit_logger as audit_module;
+        
+        # Parse dates if provided
+        import datetime;
+        start_dt = null;
+        end_dt = null;
+        
+        if self.start_date {
+            try {
+                start_dt = datetime.datetime.fromisoformat(self.start_date.replace('Z', '+00:00'));
+            } except Exception as e {
+                print("Error parsing start_date: " + str(e));
+            }
+        }
+        
+        if self.end_date {
+            try {
+                end_dt = datetime.datetime.fromisoformat(self.end_date.replace('Z', '+00:00'));
+            } except Exception as e {
+                print("Error parsing end_date: " + str(e));
+            }
+        }
+        
+        # Search audit logs
+        result = audit_module.search_audit_logs(
+            table_name=self.table_name if self.table_name else null,
+            action_type=self.action_type if self.action_type else null,
+            performed_by=self.performed_by if self.performed_by else null,
+            start_date=start_dt,
+            end_date=end_dt,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        if result.get('success') {
+            report {
+                "success": True,
+                "logs": result.get('logs', []),
+                "total": result.get('total', 0),
+                "limit": result.get('limit', 100),
+                "offset": result.get('offset', 0),
+                "has_more": result.get('has_more', False),
+                "filters": {
+                    "table_name": self.table_name,
+                    "action_type": self.action_type,
+                    "performed_by": self.performed_by,
+                    "start_date": self.start_date,
+                    "end_date": self.end_date
+                }
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to fetch audit logs'),
+                "logs": [],
+                "total": 0
+            };
+        }
+    }
+}
+
+walker admin_audit_history {
+    has table_name: str;
+    has record_id: str;
+    has limit: int = 100;
+    
+    can admin_audit_history with entry {
+        # Import audit logger module
+        import audit_logger as audit_module;
+        
+        if not self.table_name or not self.record_id {
+            report {
+                "success": False,
+                "error": "table_name and record_id are required"
+            };
+            return;
+        }
+        
+        # Get audit history for specific record
+        history = audit_module.get_audit_history(
+            table_name=self.table_name,
+            record_id=self.record_id,
+            limit=self.limit
+        );
+        
+        report {
+            "success": True,
+            "table_name": self.table_name,
+            "record_id": self.record_id,
+            "history": history,
+            "total": len(history)
+        };
+    }
+}
+
+walker admin_user_activity {
+    has performed_by: str;
+    has limit: int = 100;
+    
+    can admin_user_activity with entry {
+        # Import audit logger module
+        import audit_logger as audit_module;
+        
+        if not self.performed_by {
+            report {
+                "success": False,
+                "error": "performed_by is required"
+            };
+            return;
+        }
+        
+        # Get user activity log
+        activity = audit_module.get_user_activity_log(
+            performed_by=self.performed_by,
+            limit=self.limit
+        );
+        
+        report {
+            "success": True,
+            "performed_by": self.performed_by,
+            "activity": activity,
+            "total": len(activity)
+        };
+    }
+}
+
+walker admin_table_activity {
+    has table_name: str;
+    has days: int = 7;
+    
+    can admin_table_activity with entry {
+        # Import audit logger module
+        import audit_logger as audit_module;
+        
+        if not self.table_name {
+            report {
+                "success": False,
+                "error": "table_name is required"
+            };
+            return;
+        }
+        
+        # Get table activity summary
+        summary = audit_module.get_table_activity_summary(
+            table_name=self.table_name,
+            days=self.days
+        );
+        
+        if summary.get('error') {
+            report {
+                "success": False,
+                "error": summary.get('error')
+            };
+        } else {
+            report {
+                "success": True,
+                "summary": summary
+            };
+        }
+    }
+}
