@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from database import get_postgres_manager, get_neo4j_manager
+import audit_logger as audit_module
 
 # In-memory cache for PostgreSQL data
 courses_cache = {}
@@ -204,7 +205,8 @@ def delete_course(course_id, deleted_by=None):
     """
     pg_manager = get_postgres_manager()
     
-    check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = %s"
+    # Get old values before updating for audit log
+    check_query = "SELECT path_id, title, description, category, difficulty, is_deleted FROM jeseci_academy.learning_paths WHERE path_id = %s"
     try:
         existing = pg_manager.execute_query(check_query, (course_id,))
     except Exception as e:
@@ -213,6 +215,15 @@ def delete_course(course_id, deleted_by=None):
     
     if not existing:
         return {"success": False, "error": "Course not found"}
+    
+    old_values = {
+        'path_id': existing[0]['path_id'],
+        'title': existing[0]['title'],
+        'description': existing[0]['description'],
+        'category': existing[0]['category'],
+        'difficulty': existing[0]['difficulty'],
+        'is_deleted': existing[0]['is_deleted']
+    }
     
     # Perform soft delete instead of hard delete
     current_time = datetime.datetime.now()
@@ -228,6 +239,15 @@ def delete_course(course_id, deleted_by=None):
         return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
+        # Log audit entry
+        audit_module.log_soft_delete(
+            table_name="learning_paths",
+            record_id=course_id,
+            old_values=old_values,
+            performed_by=deleted_by,
+            additional_context={"action": "delete_course", "course_title": old_values.get('title')}
+        )
+        
         global courses_initialized
         courses_initialized = False
         return {"success": True, "course_id": course_id, "message": "Course deleted successfully (soft delete)"}
@@ -243,7 +263,8 @@ def restore_course(course_id, restored_by=None):
     """
     pg_manager = get_postgres_manager()
     
-    check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = %s AND is_deleted = true"
+    # Get old values before updating for audit log
+    check_query = "SELECT path_id, title, description, category, difficulty, is_deleted FROM jeseci_academy.learning_paths WHERE path_id = %s AND is_deleted = true"
     try:
         existing = pg_manager.execute_query(check_query, (course_id,))
     except Exception as e:
@@ -252,6 +273,15 @@ def restore_course(course_id, restored_by=None):
     
     if not existing:
         return {"success": False, "error": "Course not found or not deleted"}
+    
+    old_values = {
+        'path_id': existing[0]['path_id'],
+        'title': existing[0]['title'],
+        'description': existing[0]['description'],
+        'category': existing[0]['category'],
+        'difficulty': existing[0]['difficulty'],
+        'is_deleted': existing[0]['is_deleted']
+    }
     
     # Restore the course
     restore_query = """
@@ -266,6 +296,15 @@ def restore_course(course_id, restored_by=None):
         return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
+        # Log audit entry
+        audit_module.log_restore(
+            table_name="learning_paths",
+            record_id=course_id,
+            old_values=old_values,
+            performed_by=restored_by,
+            additional_context={"action": "restore_course", "course_title": old_values.get('title')}
+        )
+        
         global courses_initialized
         courses_initialized = False
         return {"success": True, "course_id": course_id, "message": "Course restored successfully"}
