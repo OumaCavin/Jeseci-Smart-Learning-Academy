@@ -749,7 +749,12 @@ const CreateContentModal: React.FC<{
       } else if (contentType === 'concepts') {
         response = await adminApi.createConcept(formData);
       } else if (contentType === 'paths') {
-        response = await adminApi.createLearningPath(formData);
+        // Ensure difficulty is always included with a default value
+        const pathData = {
+          ...formData,
+          difficulty: formData.difficulty || 'beginner'
+        };
+        response = await adminApi.createLearningPath(pathData);
       } else {
         response = { success: false, message: 'Unknown content type' };
       }
