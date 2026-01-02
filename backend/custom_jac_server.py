@@ -43,14 +43,28 @@ if __name__ == "__main__":
     print("🔧 CORS methods: GET, POST, PUT, DELETE, OPTIONS")
     print("")
     
-    # Run jac serve from PROJECT ROOT (not backend directory)
-    # This ensures imports like 'import backend.database' work correctly
+    # Run jac serve from PROJECT ROOT with correct PYTHONPATH
+    # This ensures Python imports like 'from backend.xxx' work correctly
     try:
-        # Change to project root and run jac serve with backend/app.jac
-        cmd = f'cd "{project_root}" && jac serve backend/app.jac --port 8000'
-        print(f"Running: {cmd}")
-        result = os.system(cmd)
-        sys.exit(result)
+        # Set PYTHONPATH to include project root so backend.xxx imports work
+        env = os.environ.copy()
+        env["PYTHONPATH"] = project_root
+        
+        # Change to project root and run jac serve with correct Python path
+        cmd = f'jac serve backend/app.jac --port 8000'
+        print(f"Running: cd "{project_root}" && {cmd}")
+        print(f"PYTHONPATH set to: {project_root}")
+        print("")
+        
+        # Use subprocess with proper environment
+        import subprocess
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            cwd=project_root,
+            env=env
+        )
+        sys.exit(result.returncode)
     except KeyboardInterrupt:
         print("\n🛑 Server stopped by user")
         sys.exit(0)
