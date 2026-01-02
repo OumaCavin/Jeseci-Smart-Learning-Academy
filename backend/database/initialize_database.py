@@ -477,7 +477,56 @@ def create_system_tables(cursor):
     )
     """)
     
-    logger.info("✓ System tables created: system_logs, system_health")
+    # Comprehensive Audit Log Table - captures all database changes without overwriting
+    cursor.execute(f"""
+    CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.audit_log (
+        id SERIAL PRIMARY KEY,
+        audit_id VARCHAR(64) UNIQUE NOT NULL,
+        table_name VARCHAR(100) NOT NULL,
+        record_id VARCHAR(100) NOT NULL,
+        action_type VARCHAR(20) NOT NULL,
+        old_values JSONB,
+        new_values JSONB,
+        changed_fields JSONB,
+        performed_by VARCHAR(64),
+        performed_by_id INTEGER,
+        ip_address INET,
+        user_agent TEXT,
+        request_id VARCHAR(100),
+        session_id VARCHAR(100),
+        application_source VARCHAR(50) DEFAULT 'admin_panel',
+        additional_context JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    
+    # Create indexes for efficient audit log querying
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_audit_log_table_record 
+        ON {DB_SCHEMA}.audit_log(table_name, record_id)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_audit_log_action 
+        ON {DB_SCHEMA}.audit_log(action_type)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_audit_log_performed_by 
+        ON {DB_SCHEMA}.audit_log(performed_by)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_audit_log_created_at 
+        ON {DB_SCHEMA}.audit_log(created_at DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_audit_log_table_action 
+        ON {DB_SCHEMA}.audit_log(table_name, action_type, created_at DESC)
+    """)
+    
+    logger.info("✓ System tables created: system_logs, system_health, audit_log")
 
 
 def create_ai_tables(cursor):
