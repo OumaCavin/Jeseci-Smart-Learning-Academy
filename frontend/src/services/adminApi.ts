@@ -303,14 +303,17 @@ class AdminApiService {
   }
 
   async updateCourse(courseId: string, updates: Partial<AdminCourse>): Promise<{ success: boolean; message: string }> {
-    return this.makeRequest(`/walker/admin_content_courses/${courseId}`, {
-      method: 'PUT',
-      body: JSON.stringify(updates),
+    return this.makeRequest('/walker/admin_content_course_update', {
+      method: 'POST',
+      body: JSON.stringify({ course_id: courseId, ...updates }),
     });
   }
 
   async deleteCourse(courseId: string): Promise<{ success: boolean; message: string }> {
-    return this.makeRequest(`/walker/admin_content_courses/${courseId}`, { method: 'DELETE' });
+    return this.makeRequest('/walker/admin_content_course_delete', {
+      method: 'POST',
+      body: JSON.stringify({ course_id: courseId }),
+    });
   }
 
   async getConcepts(): Promise<{ success: boolean; concepts: AdminConcept[] }> {
@@ -420,14 +423,17 @@ class AdminApiService {
   }
 
   async updateQuiz(quizId: string, updates: Partial<AdminQuiz>): Promise<{ success: boolean; message: string }> {
-    return this.makeRequest(`/walker/admin_quizzes/${quizId}`, {
-      method: 'PUT',
-      body: JSON.stringify(updates),
+    return this.makeRequest('/walker/admin_quizzes_update', {
+      method: 'POST',
+      body: JSON.stringify({ quiz_id: quizId, ...updates }),
     });
   }
 
   async deleteQuiz(quizId: string): Promise<{ success: boolean; message: string }> {
-    return this.makeRequest(`/walker/admin_quizzes/${quizId}`, { method: 'DELETE' });
+    return this.makeRequest('/walker/admin_quizzes_delete', {
+      method: 'POST',
+      body: JSON.stringify({ quiz_id: quizId }),
+    });
   }
 
   async generateAIQuiz(request: {
