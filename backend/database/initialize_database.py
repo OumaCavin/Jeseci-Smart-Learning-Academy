@@ -99,13 +99,41 @@ def create_users_tables(cursor):
     cursor.execute(f"""
     CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.password_reset_tokens (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        token VARCHAR(255) UNIQUE NOT NULL,
-        expires_at TIMESTAMP NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        used_at TIMESTAMP
+        user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+        token VARCHAR(128) NOT NULL UNIQUE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        is_used BOOLEAN DEFAULT FALSE,
+        ip_address VARCHAR(50),
+        user_agent TEXT
     )
     """)
+    
+    # Add is_used column if table exists with old schema (using used_at)
+    try:
+        cursor.execute(f"""
+            ALTER TABLE {DB_SCHEMA}.password_reset_tokens
+            ADD COLUMN IF NOT EXISTS is_used BOOLEAN DEFAULT FALSE
+        """)
+    except Exception as e:
+        logger.debug(f"is_used column might already exist: {e}")
+    
+    # Add missing columns if they don't exist
+    try:
+        cursor.execute(f"""
+            ALTER TABLE {DB_SCHEMA}.password_reset_tokens
+            ADD COLUMN IF NOT EXISTS ip_address VARCHAR(50)
+        """)
+    except Exception as e:
+        logger.debug(f"ip_address column might already exist: {e}")
+    
+    try:
+        cursor.execute(f"""
+            ALTER TABLE {DB_SCHEMA}.password_reset_tokens
+            ADD COLUMN IF NOT EXISTS user_agent TEXT
+        """)
+    except Exception as e:
+        logger.debug(f"user_agent column might already exist: {e}")
     
     logger.info("✓ User tables created: users, user_profile, user_learning_preferences, password_reset_tokens")
 
