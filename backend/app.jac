@@ -2387,6 +2387,7 @@ walker admin_users_bulk_action {
     has user_ids: list;
     has action: str;
     has reason: str = "";
+    has deleted_by: str = "";
     
     can admin_users_bulk_action with entry {
         # Initialize store with error handling
@@ -2400,7 +2401,7 @@ walker admin_users_bulk_action {
             };
         }
         
-        result = admin_store.bulk_admin_action(self.user_ids, self.action, self.reason);
+        result = admin_store.bulk_admin_action(self.user_ids, self.action, self.reason, self.deleted_by);
         
         import datetime;
         report {
@@ -2409,6 +2410,68 @@ walker admin_users_bulk_action {
             "action": result.get('action', self.action),
             "message": "Bulk action completed successfully",
             "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        };
+    }
+}
+
+walker admin_users_restore {
+    has user_ids: list;
+    has restored_by: str = "";
+    
+    can admin_users_restore with entry {
+        # Initialize store with error handling
+        try {
+            admin_store.initialize_admin_store();
+        } except Exception as e {
+            print("Error initializing admin store: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize user store: " + str(e)
+            };
+        }
+        
+        result = admin_store.restore_users(self.user_ids, self.restored_by);
+        
+        import datetime;
+        report {
+            "success": result['success'],
+            "users_affected": result.get('users_affected', 0),
+            "restored_by": result.get('restored_by', self.restored_by),
+            "message": "Users restored successfully",
+            "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        };
+    }
+}
+
+walker admin_users_deleted {
+    can admin_users_deleted with entry {
+        # Initialize store with error handling
+        try {
+            admin_store.initialize_admin_store();
+        } except Exception as e {
+            print("Error initializing admin store: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize user store: " + str(e)
+            };
+        }
+        
+        # Get deleted users from storage
+        deleted_users = [];
+        try {
+            deleted_users = admin_store.get_deleted_users();
+        } except Exception as e {
+            print("Error fetching deleted users: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to fetch deleted users: " + str(e)
+            };
+        }
+        
+        report {
+            "success": True,
+            "users": deleted_users,
+            "total": len(deleted_users)
         };
     }
 }
@@ -2513,6 +2576,7 @@ walker admin_content_course_update {
 
 walker admin_content_course_delete {
     has course_id: str;
+    has deleted_by: str = "";
     
     can admin_content_course_delete with entry {
         # Initialize store with error handling
@@ -2526,7 +2590,7 @@ walker admin_content_course_delete {
             };
         }
         
-        result = content_store.delete_course(self.course_id);
+        result = content_store.delete_course(self.course_id, self.deleted_by);
         
         if result['success'] {
             report {
@@ -2540,6 +2604,62 @@ walker admin_content_course_delete {
                 "error": result.get('error', 'Failed to delete course')
             };
         }
+    }
+}
+
+walker admin_content_course_restore {
+    has course_id: str;
+    has restored_by: str = "";
+    
+    can admin_content_course_restore with entry {
+        # Initialize store with error handling
+        try {
+            content_store.initialize_courses();
+        } except Exception as e {
+            print("Error initializing courses: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to initialize course store: " + str(e)
+            };
+        }
+        
+        result = content_store.restore_course(self.course_id, self.restored_by);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "course_id": self.course_id,
+                "message": "Course restored successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to restore course')
+            };
+        }
+    }
+}
+
+walker admin_content_courses_deleted {
+    can admin_content_courses_deleted with entry {
+        # Initialize store and get deleted courses with error handling
+        deleted_courses = [];
+        try {
+            content_store.initialize_courses();
+            deleted_courses = content_store.get_deleted_courses();
+        } except Exception as e {
+            print("Error initializing courses: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to load deleted courses: " + str(e)
+            };
+        }
+        
+        report {
+            "success": True,
+            "courses": deleted_courses,
+            "total": len(deleted_courses)
+        };
     }
 }
 
