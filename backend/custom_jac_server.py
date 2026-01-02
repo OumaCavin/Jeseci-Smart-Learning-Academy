@@ -30,17 +30,17 @@ if __name__ == "__main__":
     backend_dir = script_dir
     jac_file = os.path.join(backend_dir, "app.jac")
     
-    print("🚀 Starting Jeseci Smart Learning Academy Backend Server...")
-    print("📋 Using CORS fix for PUT/DELETE method support")
+    print("Starting Jeseci Smart Learning Academy Backend Server...")
+    print("Using CORS fix for PUT/DELETE method support")
     print("")
     
     # Verify the jac file exists
     if not os.path.exists(jac_file):
-        print(f"❌ Error: {jac_file} not found!")
+        print(f"Error: {jac_file} not found!")
         sys.exit(1)
     
-    print("🌐 Starting Jaclang server...")
-    print("🔧 CORS methods: GET, POST, PUT, DELETE, OPTIONS")
+    print("Starting Jaclang server...")
+    print("CORS methods: GET, POST, PUT, DELETE, OPTIONS")
     print("")
     
     # Run jac serve from PROJECT ROOT with correct PYTHONPATH
@@ -51,8 +51,8 @@ if __name__ == "__main__":
         env["PYTHONPATH"] = project_root
         
         # Change to project root and run jac serve with correct Python path
-        cmd = f'jac serve backend/app.jac --port 8000'
-        print(f"Running: cd "{project_root}" && {cmd}")
+        cmd = 'jac serve backend/app.jac --port 8000'
+        print(f'Running: cd "{project_root}" && {cmd}')
         print(f"PYTHONPATH set to: {project_root}")
         print("")
         
@@ -66,8 +66,8 @@ if __name__ == "__main__":
         )
         sys.exit(result.returncode)
     except KeyboardInterrupt:
-        print("\n🛑 Server stopped by user")
+        print("\nServer stopped by user")
         sys.exit(0)
     except Exception as e:
-        print(f"❌ Error starting server: {e}")
+        print(f"Error starting server: {e}")
         sys.exit(1)
