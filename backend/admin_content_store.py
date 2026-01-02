@@ -557,7 +557,7 @@ def get_path_by_id(path_id):
     with content_lock:
         return paths_cache.get(path_id)
 
-def create_path(title, description, courses, concepts, difficulty, duration):
+def create_path(title, description, courses, concepts, difficulty, duration, target_audience=""):
     """Create a new learning path in both PostgreSQL and Neo4j"""
     pg_manager = get_postgres_manager()
     neo4j_manager = get_neo4j_manager()
@@ -583,14 +583,14 @@ def create_path(title, description, courses, concepts, difficulty, duration):
     # Insert into PostgreSQL
     insert_query = """
     INSERT INTO jeseci_academy.learning_paths 
-    (path_id, name, title, category, difficulty, estimated_duration, description, is_published, created_at)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, true, NOW())
+    (path_id, name, title, category, difficulty, estimated_duration, description, target_audience, is_published, created_at)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, true, NOW())
     """
     
     pg_result = None
     try:
         pg_result = pg_manager.execute_query(insert_query, 
-            (path_id, name, title, "Learning Path", difficulty, duration_minutes, description), fetch=False)
+            (path_id, name, title, "Learning Path", difficulty, duration_minutes, description, target_audience), fetch=False)
     except Exception as e:
         logger.error(f"Error creating learning path in PostgreSQL: {e}")
         return {"success": False, "error": f"Database error: {str(e)}"}
@@ -617,7 +617,7 @@ def create_path(title, description, courses, concepts, difficulty, duration):
             "description": description,
             "difficulty": difficulty,
             "estimated_duration": duration_minutes,
-            "target_audience": ""
+            "target_audience": target_audience
         })
         
         # Link concepts to path in Neo4j
@@ -657,6 +657,7 @@ def create_path(title, description, courses, concepts, difficulty, duration):
             "difficulty": difficulty,
             "total_modules": len(courses or []) + len(concepts or []),
             "duration": duration,
+            "target_audience": target_audience,
             "neo4j_synced": neo4j_success
         }
         return {"success": True, "path_id": path_id, "path": new_path}
