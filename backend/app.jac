@@ -2701,6 +2701,7 @@ walker admin_content_path_create {
     has concepts: list;
     has difficulty: str;
     has duration: str;
+    has target_audience: str = "";
     
     can admin_content_path_create with entry {
         # Initialize store with error handling
@@ -2714,7 +2715,7 @@ walker admin_content_path_create {
             };
         }
         
-        result = content_store.create_path(self.title, self.description, self.courses, self.concepts, self.difficulty, self.duration);
+        result = content_store.create_path(self.title, self.description, self.courses, self.concepts, self.difficulty, self.duration, self.target_audience);
         
         if result['success'] {
             report {
