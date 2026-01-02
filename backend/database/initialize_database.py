@@ -48,7 +48,10 @@ def create_users_tables(cursor):
         token_expires_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        last_login_at TIMESTAMP
+        last_login_at TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64)
     )
     """)
     
@@ -64,7 +67,10 @@ def create_users_tables(cursor):
         timezone VARCHAR(50),
         language VARCHAR(10) DEFAULT 'en',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64)
     )
     """)
     
@@ -152,7 +158,10 @@ def create_content_tables(cursor):
         is_published BOOLEAN DEFAULT FALSE,
         thumbnail_url VARCHAR(500),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64)
     )
     """)
     
@@ -333,7 +342,10 @@ def create_assessment_tables(cursor):
         max_attempts INTEGER DEFAULT 3,
         is_published BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64)
     )
     """)
     
