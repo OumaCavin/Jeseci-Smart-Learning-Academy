@@ -201,9 +201,14 @@ class PasswordResetManager:
             conn.commit()
             cursor.close()
             
-            # Send reset email
+            # Send reset email (best effort - email failure should not fail the request)
             reset_link = f"{FRONTEND_URL}/reset-password?token={token}"
-            send_password_reset_email(email, username, reset_link)
+            try:
+                send_password_reset_email(email, username, reset_link)
+            except Exception as email_error:
+                # Log email failure but don't fail the request
+                logger.error(f"Failed to send password reset email: {email_error}")
+                logger.info(f"Password reset link for {email}: {reset_link}")
             
             logger.info(f"Password reset token created for user {username} (ID: {user_id})")
             
@@ -214,7 +219,7 @@ class PasswordResetManager:
             
         except Exception as e:
             logger.error(f"Failed to create password reset request: {e}")
-            return {"success": False, "error": "Failed to process request"}
+            return {"success": False, "error": "Failed to process request: " + str(e)}
         finally:
             self._return_connection(conn)
     
