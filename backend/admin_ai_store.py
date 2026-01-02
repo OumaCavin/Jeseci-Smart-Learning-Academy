@@ -86,8 +86,8 @@ def save_ai_content(concept_name: str, domain: str, difficulty: str, content: st
     insert_query = """
     INSERT INTO jeseci_academy.ai_generated_content 
     (content_id, concept_name, domain, difficulty, content, related_concepts, 
-     generated_by, model, tokens_used, generated_at)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+     generated_by, model, tokens_used, is_deleted, created_by, created_at, updated_by, updated_at)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, false, 'system', NOW(), 'system', NOW())
     """
     
     try:
@@ -230,8 +230,8 @@ def update_ai_stats(domain: Optional[str], tokens_used: Optional[int]) -> None:
         else:
             # Insert new entry
             insert_query = """
-            INSERT INTO jeseci_academy.ai_usage_stats (stat_type, stat_key, stat_value, updated_at)
-            VALUES ('domain_usage', %s, 1, NOW())
+            INSERT INTO jeseci_academy.ai_usage_stats (stat_type, stat_key, stat_value, is_deleted, created_by, created_at, updated_by, updated_at)
+            VALUES ('domain_usage', %s, 1, false, 'system', NOW(), 'system', NOW())
             """
             try:
                 pg_manager.execute_query(insert_query, (domain,), fetch=False)
@@ -273,8 +273,8 @@ def initialize_ai_content() -> Dict[str, Any]:
             insert_query = """
             INSERT INTO jeseci_academy.ai_generated_content 
             (content_id, concept_name, domain, difficulty, content, related_concepts, 
-             generated_by, model, tokens_used, generated_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+             generated_by, model, tokens_used, is_deleted, created_by, created_at, updated_by, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, false, 'system', NOW(), 'system', NOW())
             """
             
             try:
