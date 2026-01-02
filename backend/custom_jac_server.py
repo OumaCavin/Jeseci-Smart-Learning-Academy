@@ -1,25 +1,20 @@
 #!/usr/bin/env python3
 """
 Custom Jaclang Server with CORS Fix for PUT Method
-This script patches the Jaclang server to include PUT in allowed CORS methods.
+This script patches the Jaclang server CORS headers before starting with jac serve.
 """
 
 import sys
 import os
 
-# Get the directory where this script is located
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Add backend to path
-sys.path.insert(0, SCRIPT_DIR)
-
-# Patch CORS headers BEFORE importing Jaclang server modules
+# Patch CORS headers BEFORE jac serve imports anything
 from jaclang.runtimelib import server as jac_server
 
 # Store original method
 original_add_cors_headers = jac_server.ResponseBuilder._add_cors_headers
 
 def patched_add_cors_headers(handler):
-    """Patched CORS headers that include PUT method."""
+    """Patched CORS headers that include PUT/DELETE methods."""
     handler.send_header("Access-Control-Allow-Origin", "*")
     handler.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
     handler.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
@@ -27,24 +22,31 @@ def patched_add_cors_headers(handler):
 # Apply the patch
 jac_server.ResponseBuilder._add_cors_headers = staticmethod(patched_add_cors_headers)
 
-# Now import and run the server
-from jaclang.runtimelib.server import JacAPIServer
-
+# Now spawn jac serve as a subprocess
 if __name__ == "__main__":
-    # Configuration
-    port = int(os.environ.get("PORT", 8000))
-    module_name = "backend.app"
-    session_path = os.path.join(SCRIPT_DIR, "sessions")
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    jac_file = os.path.join(backend_dir, "app.jac")
     
-    print(f"Starting Jaclang server with CORS fix on port {port}")
-    print("CORS methods now include: GET, POST, PUT, DELETE, OPTIONS")
+    print("🚀 Starting Jeseci Smart Learning Academy Backend Server...")
+    print("📋 Using CORS fix for PUT/DELETE method support")
+    print("")
     
-    # Create and start the server
-    server = JacAPIServer(
-        module_name=module_name,
-        session_path=session_path,
-        port=port
-    )
+    # Verify the jac file exists
+    if not os.path.exists(jac_file):
+        print(f"❌ Error: {jac_file} not found!")
+        sys.exit(1)
     
-    # Start the server
-    server.start()
+    print("🌐 Starting Jaclang server...")
+    print("🔧 CORS methods: GET, POST, PUT, DELETE, OPTIONS")
+    print("")
+    
+    # Run jac serve
+    try:
+        result = os.system(f'cd "{backend_dir}" && jac serve app.jac --port 8000')
+        sys.exit(result)
+    except KeyboardInterrupt:
+        print("\n🛑 Server stopped by user")
+        sys.exit(0)
+    except Exception as e:
+        print(f"❌ Error starting server: {e}")
+        sys.exit(1)
