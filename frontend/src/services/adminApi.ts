@@ -269,7 +269,7 @@ class AdminApiService {
     is_active?: boolean;
   }): Promise<AdminActionResponse> {
     return this.makeRequest<AdminActionResponse>('/walker/admin_users_update', {
-      method: 'PUT',
+      method: 'POST',
       body: JSON.stringify({ user_id: userId, ...updates }),
     });
   }
