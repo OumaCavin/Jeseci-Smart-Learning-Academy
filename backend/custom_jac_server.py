@@ -7,8 +7,10 @@ This script patches the Jaclang server to include PUT in allowed CORS methods.
 import sys
 import os
 
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Add backend to path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, SCRIPT_DIR)
 
 # Patch CORS headers BEFORE importing Jaclang server modules
 from jaclang.runtimelib import server as jac_server
@@ -26,15 +28,23 @@ def patched_add_cors_headers(handler):
 jac_server.ResponseBuilder._add_cors_headers = staticmethod(patched_add_cors_headers)
 
 # Now import and run the server
-from jaclang.runtimelib.server import spawn_server
+from jaclang.runtimelib.server import JacAPIServer
 
 if __name__ == "__main__":
-    # Set environment variables if needed
+    # Configuration
     port = int(os.environ.get("PORT", 8000))
-    host = os.environ.get("HOST", "0.0.0.0")
+    module_name = "backend.app"
+    session_path = os.path.join(SCRIPT_DIR, "sessions")
     
-    print(f"Starting Jaclang server with CORS fix on {host}:{port}")
+    print(f"Starting Jaclang server with CORS fix on port {port}")
     print("CORS methods now include: GET, POST, PUT, DELETE, OPTIONS")
     
+    # Create and start the server
+    server = JacAPIServer(
+        module_name=module_name,
+        session_path=session_path,
+        port=port
+    )
+    
     # Start the server
-    spawn_server(host=host, port=port)
+    server.start()
