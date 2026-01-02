@@ -15,6 +15,10 @@ export interface AdminUser {
   is_active: boolean;
   created_at: string;
   last_login?: string;
+  // Soft delete fields
+  is_deleted?: boolean;
+  deleted_at?: string;
+  deleted_by?: string;
 }
 
 export interface AdminDashboardStats {
@@ -73,6 +77,10 @@ export interface AdminCourse {
   content_type: string;
   created_at: string;
   updated_at?: string;
+  // Soft delete fields
+  is_deleted?: boolean;
+  deleted_at?: string;
+  deleted_by?: string;
 }
 
 export interface AdminConcept {
@@ -274,10 +282,26 @@ class AdminApiService {
     });
   }
 
-  async bulkUserAction(userIds: string[], action: 'suspend' | 'activate' | 'delete', reason?: string): Promise<AdminActionResponse> {
+  async bulkUserAction(userIds: string[], action: 'suspend' | 'activate' | 'delete', reason?: string, deletedBy?: string): Promise<AdminActionResponse> {
     return this.makeRequest<AdminActionResponse>('/walker/admin_users_bulk_action', {
       method: 'POST',
-      body: JSON.stringify({ user_ids: userIds, action, reason }),
+      body: JSON.stringify({ user_ids: userIds, action, reason, deleted_by: deletedBy }),
+    });
+  }
+
+  // Restore soft-deleted users
+  async restoreUsers(userIds: string[], restoredBy?: string): Promise<AdminActionResponse> {
+    return this.makeRequest<AdminActionResponse>('/walker/admin_users_restore', {
+      method: 'POST',
+      body: JSON.stringify({ user_ids: userIds, restored_by: restoredBy }),
+    });
+  }
+
+  // Get deleted users (trash view)
+  async getDeletedUsers(): Promise<{ success: boolean; users: AdminUser[]; total: number }> {
+    return this.makeRequest('/walker/admin_users_deleted', {
+      method: 'POST',
+      body: JSON.stringify({}),
     });
   }
 
@@ -309,10 +333,26 @@ class AdminApiService {
     });
   }
 
-  async deleteCourse(courseId: string): Promise<{ success: boolean; message: string }> {
+  async deleteCourse(courseId: string, deletedBy?: string): Promise<{ success: boolean; message: string }> {
     return this.makeRequest('/walker/admin_content_course_delete', {
       method: 'POST',
-      body: JSON.stringify({ course_id: courseId }),
+      body: JSON.stringify({ course_id: courseId, deleted_by: deletedBy }),
+    });
+  }
+
+  // Restore soft-deleted course
+  async restoreCourse(courseId: string, restoredBy?: string): Promise<{ success: boolean; message: string }> {
+    return this.makeRequest('/walker/admin_content_course_restore', {
+      method: 'POST',
+      body: JSON.stringify({ course_id: courseId, restored_by: restoredBy }),
+    });
+  }
+
+  // Get deleted courses (trash view)
+  async getDeletedCourses(): Promise<{ success: boolean; courses: AdminCourse[]; total: number }> {
+    return this.makeRequest('/walker/admin_content_courses_deleted', {
+      method: 'POST',
+      body: JSON.stringify({}),
     });
   }
 
