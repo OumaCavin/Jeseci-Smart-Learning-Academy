@@ -2138,8 +2138,6 @@ walker admin_dashboard {
         
         try {
             # Force refresh by invalidating caches - directly query databases
-            # Import and access the initialization flags to reset them
-            import from python { PyModule };
             
             # Get fresh course count from PostgreSQL
             courses_result = content_store.get_all_courses();
