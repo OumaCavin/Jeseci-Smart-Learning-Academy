@@ -1,0 +1,385 @@
+index-BtuOw_9x.js:238 Concepts API response: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+index-BtuOw_9x.js:238 Learning Paths API response: (3) [{…}, {…}, {…}]
+index-BtuOw_9x.js:238 Courses API response: (6) [{…}, {…}, {…}, {…}, {…}, {…}]
+index-BtuOw_9x.js:238 Achievements API response: (5) [{…}, {…}, {…}, {…}, {…}]
+index-BtuOw_9x.js:238 Quizzes API response: (2) [{…}, {…}]
+index-BtuOw_9x.js:238 Analytics API response: {user_id: 'user_admin_6017bfc6', learning_analytics: {…}, recommendations: Array(3), strengths: Array(2), areas_for_improvement: Array(2)}
+index-BtuOw_9x.js:238 User data loaded successfully
+index-BtuOw_9x.js:68 Raw Admin API response from /walker/admin_dashboard: {
+  "result": {
+    "_jac_type": "admin_dashboard",
+    "_jac_id": "9e42acc4675e4a2294eef3eff89d7830",
+    "_jac_archetype": "walker"
+  },
+  "reports": [
+    {
+      "success": true,
+      "stats": {
+        "user_statistics": {
+          "total_users": 2,
+          "active_users": 2,
+          "inactive_users": 0,
+          "total_admins": 2,
+          "new_users_this_week": 0
+        },
+        "admin_statistics": {
+          "total_admins": 2,
+          "role_distribution": {
+            "content_admin": 1,
+            "super_admin": 1
+          }
+        },
+        "content_statistics": {
+          "total_courses": 4,
+          "total_concepts": 11,
+          "total_paths": 4,
+          "total_quizzes": 0
+        },
+        "system_health": {
+          "database_status": "connected",
+          "api_status": "healthy",
+          "auth_system": "operational"
+        }
+      },
+      "generated_at": "2026-01-02T20:42:06Z"
+    }
+  ]
+}
+index-BtuOw_9x.js:68 Admin API extracted from reports: {success: true, stats: {…}, generated_at: '2026-01-02T20:42:06Z'}
+index-BtuOw_9x.js:68 Raw Admin API response from /walker/admin_users: {
+  "result": {
+    "_jac_type": "admin_users",
+    "_jac_id": "296082bec77c4930acdb2e6c2466649b",
+    "_jac_archetype": "walker",
+    "admin_only": false,
+    "include_inactive": false,
+    "limit": 100,
+    "offset": 0,
+    "search": ""
+  },
+  "reports": [
+    {
+      "success": true,
+      "users": [
+        {
+          "user_id": "user_cavin21_9b10c0fe",
+          "username": "cavin21",
+          "email": "otenocavin2021@gmail.com",
+          "first_name": "Cavin",
+          "last_name": "Admin21",
+          "is_admin": true,
+          "admin_role": "content_admin",
+          "is_active": true,
+          "created_at": "2026-01-02T16:30:20.482804",
+          "updated_at": "2026-01-02T16:30:20.482804",
+          "last_login": null
+        },
+        {
+          "user_id": "user_admin_6017bfc6",
+          "username": "admin",
+          "email": "otienocavin2025@gmail.com",
+          "first_name": "",
+          "last_name": "",
+          "is_admin": true,
+          "admin_role": "super_admin",
+          "is_active": true,
+          "created_at": "2026-01-02T14:58:03.963172",
+          "updated_at": "2026-01-02T20:39:38.300648",
+          "last_login": "2026-01-02T20:42:05.712326"
+        }
+      ],
+      "total": 2,
+      "limit": 100,
+      "offset": 0,
+      "filters": {
+        "include_inactive": false,
+        "admin_only": false,
+        "search": ""
+      }
+    }
+  ]
+}
+index-BtuOw_9x.js:68 Admin API extracted from reports: {success: true, users: Array(2), total: 2, limit: 100, offset: 0, …}
+(index):1 Access to fetch at 'http://localhost:8000/walker/admin_users_update' from origin 'http://localhost:3000' has been blocked by CORS policy: Method PUT is not allowed by Access-Control-Allow-Methods in preflight response.
+index-BtuOw_9x.js:68  PUT http://localhost:8000/walker/admin_users_update net::ERR_FAILED
+makeRequest @ index-BtuOw_9x.js:68
+updateUser @ index-BtuOw_9x.js:68
+B @ index-BtuOw_9x.js:68
+onClick @ index-BtuOw_9x.js:68
+Hm @ index-BtuOw_9x.js:37
+Gm @ index-BtuOw_9x.js:37
+Km @ index-BtuOw_9x.js:37
+hd @ index-BtuOw_9x.js:37
+fd @ index-BtuOw_9x.js:37
+(anonymous) @ index-BtuOw_9x.js:37
+ar @ index-BtuOw_9x.js:40
+Nr @ index-BtuOw_9x.js:37
+ai @ index-BtuOw_9x.js:37
+zs @ index-BtuOw_9x.js:37
+l2 @ index-BtuOw_9x.js:37
+index-BtuOw_9x.js:68 Admin API request failed: /walker/admin_users_update TypeError: Failed to fetch
+    at Ul.makeRequest (index-BtuOw_9x.js:68:26308)
+    at Ul.updateUser (index-BtuOw_9x.js:68:27361)
+    at B (index-BtuOw_9x.js:68:51082)
+    at onClick (index-BtuOw_9x.js:68:72312)
+    at Object.Hm (index-BtuOw_9x.js:37:9842)
+    at Gm (index-BtuOw_9x.js:37:9996)
+    at Km (index-BtuOw_9x.js:37:10053)
+    at hd (index-BtuOw_9x.js:37:31419)
+    at fd (index-BtuOw_9x.js:37:31836)
+    at index-BtuOw_9x.js:37:36803
+makeRequest @ index-BtuOw_9x.js:68
+await in makeRequest
+updateUser @ index-BtuOw_9x.js:68
+B @ index-BtuOw_9x.js:68
+onClick @ index-BtuOw_9x.js:68
+Hm @ index-BtuOw_9x.js:37
+Gm @ index-BtuOw_9x.js:37
+Km @ index-BtuOw_9x.js:37
+hd @ index-BtuOw_9x.js:37
+fd @ index-BtuOw_9x.js:37
+(anonymous) @ index-BtuOw_9x.js:37
+ar @ index-BtuOw_9x.js:40
+Nr @ index-BtuOw_9x.js:37
+ai @ index-BtuOw_9x.js:37
+zs @ index-BtuOw_9x.js:37
+l2 @ index-BtuOw_9x.js:37
+(index):1 Access to fetch at 'http://localhost:8000/walker/admin_users_update' from origin 'http://localhost:3000' has been blocked by CORS policy: Method PUT is not allowed by Access-Control-Allow-Methods in preflight response.
+index-BtuOw_9x.js:68  PUT http://localhost:8000/walker/admin_users_update net::ERR_FAILED
+makeRequest @ index-BtuOw_9x.js:68
+updateUser @ index-BtuOw_9x.js:68
+B @ index-BtuOw_9x.js:68
+onClick @ index-BtuOw_9x.js:68
+Hm @ index-BtuOw_9x.js:37
+Gm @ index-BtuOw_9x.js:37
+Km @ index-BtuOw_9x.js:37
+hd @ index-BtuOw_9x.js:37
+fd @ index-BtuOw_9x.js:37
+(anonymous) @ index-BtuOw_9x.js:37
+ar @ index-BtuOw_9x.js:40
+Nr @ index-BtuOw_9x.js:37
+ai @ index-BtuOw_9x.js:37
+zs @ index-BtuOw_9x.js:37
+l2 @ index-BtuOw_9x.js:37
+index-BtuOw_9x.js:68 Admin API request failed: /walker/admin_users_update TypeError: Failed to fetch
+    at Ul.makeRequest (index-BtuOw_9x.js:68:26308)
+    at Ul.updateUser (index-BtuOw_9x.js:68:27361)
+    at B (index-BtuOw_9x.js:68:51082)
+    at onClick (index-BtuOw_9x.js:68:72312)
+    at Object.Hm (index-BtuOw_9x.js:37:9842)
+    at Gm (index-BtuOw_9x.js:37:9996)
+    at Km (index-BtuOw_9x.js:37:10053)
+    at hd (index-BtuOw_9x.js:37:31419)
+    at fd (index-BtuOw_9x.js:37:31836)
+    at index-BtuOw_9x.js:37:36803
+makeRequest @ index-BtuOw_9x.js:68
+await in makeRequest
+updateUser @ index-BtuOw_9x.js:68
+B @ index-BtuOw_9x.js:68
+onClick @ index-BtuOw_9x.js:68
+Hm @ index-BtuOw_9x.js:37
+Gm @ index-BtuOw_9x.js:37
+Km @ index-BtuOw_9x.js:37
+hd @ index-BtuOw_9x.js:37
+fd @ index-BtuOw_9x.js:37
+(anonymous) @ index-BtuOw_9x.js:37
+ar @ index-BtuOw_9x.js:40
+Nr @ index-BtuOw_9x.js:37
+ai @ index-BtuOw_9x.js:37
+zs @ index-BtuOw_9x.js:37
+l2 @ index-BtuOw_9x.js:37
+(index):1 Access to fetch at 'http://localhost:8000/walker/admin_users_update' from origin 'http://localhost:3000' has been blocked by CORS policy: Method PUT is not allowed by Access-Control-Allow-Methods in preflight response.
+index-BtuOw_9x.js:68  PUT http://localhost:8000/walker/admin_users_update net::ERR_FAILED
+makeRequest @ index-BtuOw_9x.js:68
+updateUser @ index-BtuOw_9x.js:68
+R @ index-BtuOw_9x.js:68
+onClick @ index-BtuOw_9x.js:68
+Hm @ index-BtuOw_9x.js:37
+Gm @ index-BtuOw_9x.js:37
+Km @ index-BtuOw_9x.js:37
+hd @ index-BtuOw_9x.js:37
+fd @ index-BtuOw_9x.js:37
+(anonymous) @ index-BtuOw_9x.js:37
+ar @ index-BtuOw_9x.js:40
+Nr @ index-BtuOw_9x.js:37
+ai @ index-BtuOw_9x.js:37
+zs @ index-BtuOw_9x.js:37
+l2 @ index-BtuOw_9x.js:37
+index-BtuOw_9x.js:68 Admin API request failed: /walker/admin_users_update TypeError: Failed to fetch
+    at Ul.makeRequest (index-BtuOw_9x.js:68:26308)
+    at Ul.updateUser (index-BtuOw_9x.js:68:27361)
+    at R (index-BtuOw_9x.js:68:51246)
+    at onClick (index-BtuOw_9x.js:68:72918)
+    at Object.Hm (index-BtuOw_9x.js:37:9842)
+    at Gm (index-BtuOw_9x.js:37:9996)
+    at Km (index-BtuOw_9x.js:37:10053)
+    at hd (index-BtuOw_9x.js:37:31419)
+    at fd (index-BtuOw_9x.js:37:31836)
+    at index-BtuOw_9x.js:37:36803
+makeRequest @ index-BtuOw_9x.js:68
+await in makeRequest
+updateUser @ index-BtuOw_9x.js:68
+R @ index-BtuOw_9x.js:68
+onClick @ index-BtuOw_9x.js:68
+Hm @ index-BtuOw_9x.js:37
+Gm @ index-BtuOw_9x.js:37
+Km @ index-BtuOw_9x.js:37
+hd @ index-BtuOw_9x.js:37
+fd @ index-BtuOw_9x.js:37
+(anonymous) @ index-BtuOw_9x.js:37
+ar @ index-BtuOw_9x.js:40
+Nr @ index-BtuOw_9x.js:37
+ai @ index-BtuOw_9x.js:37
+zs @ index-BtuOw_9x.js:37
+l2 @ index-BtuOw_9x.js:37
+index-BtuOw_9x.js:68 Raw Admin API response from /walker/admin_users_bulk_action: {
+  "result": {
+    "_jac_type": "admin_users_bulk_action",
+    "_jac_id": "5d00a727494d46d38dd3234fecc7ed26",
+    "_jac_archetype": "walker",
+    "action": "suspend",
+    "reason": "",
+    "user_ids": [
+      "user_cavin21_9b10c0fe"
+    ]
+  },
+  "reports": [
+    {
+      "success": true,
+      "users_affected": 1,
+      "action": "suspend",
+      "message": "Bulk action completed successfully",
+      "timestamp": "2026-01-02T20:42:50Z"
+    }
+  ]
+}
+index-BtuOw_9x.js:68 Admin API extracted from reports: {success: true, users_affected: 1, action: 'suspend', message: 'Bulk action completed successfully', timestamp: '2026-01-02T20:42:50Z'}
+index-BtuOw_9x.js:68 Raw Admin API response from /walker/admin_users: {
+  "result": {
+    "_jac_type": "admin_users",
+    "_jac_id": "2ea78bcaa68d4ee7bd48e9587d726a43",
+    "_jac_archetype": "walker",
+    "admin_only": false,
+    "include_inactive": false,
+    "limit": 100,
+    "offset": 0,
+    "search": ""
+  },
+  "reports": [
+    {
+      "success": true,
+      "users": [
+        {
+          "user_id": "user_admin_6017bfc6",
+          "username": "admin",
+          "email": "otienocavin2025@gmail.com",
+          "first_name": "",
+          "last_name": "",
+          "is_admin": true,
+          "admin_role": "super_admin",
+          "is_active": true,
+          "created_at": "2026-01-02T14:58:03.963172",
+          "updated_at": "2026-01-02T20:39:38.300648",
+          "last_login": "2026-01-02T20:42:05.712326"
+        }
+      ],
+      "total": 1,
+      "limit": 100,
+      "offset": 0,
+      "filters": {
+        "include_inactive": false,
+        "admin_only": false,
+        "search": ""
+      }
+    }
+  ]
+}
+index-BtuOw_9x.js:68 Admin API extracted from reports: {success: true, users: Array(1), total: 1, limit: 100, offset: 0, …}
+(index):1 Access to fetch at 'http://localhost:8000/walker/admin_users_update' from origin 'http://localhost:3000' has been blocked by CORS policy: Method PUT is not allowed by Access-Control-Allow-Methods in preflight response.
+index-BtuOw_9x.js:68  PUT http://localhost:8000/walker/admin_users_update net::ERR_FAILED
+makeRequest @ index-BtuOw_9x.js:68
+updateUser @ index-BtuOw_9x.js:68
+B @ index-BtuOw_9x.js:68
+onClick @ index-BtuOw_9x.js:68
+Hm @ index-BtuOw_9x.js:37
+Gm @ index-BtuOw_9x.js:37
+Km @ index-BtuOw_9x.js:37
+hd @ index-BtuOw_9x.js:37
+fd @ index-BtuOw_9x.js:37
+(anonymous) @ index-BtuOw_9x.js:37
+ar @ index-BtuOw_9x.js:40
+Nr @ index-BtuOw_9x.js:37
+ai @ index-BtuOw_9x.js:37
+zs @ index-BtuOw_9x.js:37
+l2 @ index-BtuOw_9x.js:37
+index-BtuOw_9x.js:68 Admin API request failed: /walker/admin_users_update TypeError: Failed to fetch
+    at Ul.makeRequest (index-BtuOw_9x.js:68:26308)
+    at Ul.updateUser (index-BtuOw_9x.js:68:27361)
+    at B (index-BtuOw_9x.js:68:51082)
+    at onClick (index-BtuOw_9x.js:68:72312)
+    at Object.Hm (index-BtuOw_9x.js:37:9842)
+    at Gm (index-BtuOw_9x.js:37:9996)
+    at Km (index-BtuOw_9x.js:37:10053)
+    at hd (index-BtuOw_9x.js:37:31419)
+    at fd (index-BtuOw_9x.js:37:31836)
+    at index-BtuOw_9x.js:37:36803
+makeRequest @ index-BtuOw_9x.js:68
+await in makeRequest
+updateUser @ index-BtuOw_9x.js:68
+B @ index-BtuOw_9x.js:68
+onClick @ index-BtuOw_9x.js:68
+Hm @ index-BtuOw_9x.js:37
+Gm @ index-BtuOw_9x.js:37
+Km @ index-BtuOw_9x.js:37
+hd @ index-BtuOw_9x.js:37
+fd @ index-BtuOw_9x.js:37
+(anonymous) @ index-BtuOw_9x.js:37
+ar @ index-BtuOw_9x.js:40
+Nr @ index-BtuOw_9x.js:37
+ai @ index-BtuOw_9x.js:37
+zs @ index-BtuOw_9x.js:37
+l2 @ index-BtuOw_9x.js:37
+(index):1 Access to fetch at 'http://localhost:8000/walker/admin_users_update' from origin 'http://localhost:3000' has been blocked by CORS policy: Method PUT is not allowed by Access-Control-Allow-Methods in preflight response.
+index-BtuOw_9x.js:68  PUT http://localhost:8000/walker/admin_users_update net::ERR_FAILED
+makeRequest @ index-BtuOw_9x.js:68
+updateUser @ index-BtuOw_9x.js:68
+R @ index-BtuOw_9x.js:68
+onClick @ index-BtuOw_9x.js:68
+Hm @ index-BtuOw_9x.js:37
+Gm @ index-BtuOw_9x.js:37
+Km @ index-BtuOw_9x.js:37
+hd @ index-BtuOw_9x.js:37
+fd @ index-BtuOw_9x.js:37
+(anonymous) @ index-BtuOw_9x.js:37
+ar @ index-BtuOw_9x.js:40
+Nr @ index-BtuOw_9x.js:37
+ai @ index-BtuOw_9x.js:37
+zs @ index-BtuOw_9x.js:37
+l2 @ index-BtuOw_9x.js:37
+index-BtuOw_9x.js:68 Admin API request failed: /walker/admin_users_update TypeError: Failed to fetch
+    at Ul.makeRequest (index-BtuOw_9x.js:68:26308)
+    at Ul.updateUser (index-BtuOw_9x.js:68:27361)
+    at R (index-BtuOw_9x.js:68:51246)
+    at onClick (index-BtuOw_9x.js:68:72918)
+    at Object.Hm (index-BtuOw_9x.js:37:9842)
+    at Gm (index-BtuOw_9x.js:37:9996)
+    at Km (index-BtuOw_9x.js:37:10053)
+    at hd (index-BtuOw_9x.js:37:31419)
+    at fd (index-BtuOw_9x.js:37:31836)
+    at index-BtuOw_9x.js:37:36803
+makeRequest @ index-BtuOw_9x.js:68
+await in makeRequest
+updateUser @ index-BtuOw_9x.js:68
+R @ index-BtuOw_9x.js:68
+onClick @ index-BtuOw_9x.js:68
+Hm @ index-BtuOw_9x.js:37
+Gm @ index-BtuOw_9x.js:37
+Km @ index-BtuOw_9x.js:37
+hd @ index-BtuOw_9x.js:37
+fd @ index-BtuOw_9x.js:37
+(anonymous) @ index-BtuOw_9x.js:37
+ar @ index-BtuOw_9x.js:40
+Nr @ index-BtuOw_9x.js:37
+ai @ index-BtuOw_9x.js:37
+zs @ index-BtuOw_9x.js:37
+l2 @ index-BtuOw_9x.js:37
