@@ -196,12 +196,13 @@ def update_course(course_id, title="", description="", domain="", difficulty="")
     
     return {"success": False, "error": "Failed to update course"}
 
-def delete_course(course_id, deleted_by=None):
+def delete_course(course_id, deleted_by=None, ip_address=None):
     """Soft delete a course from PostgreSQL instead of hard delete
     
     Args:
         course_id: The path_id of the course to delete
         deleted_by: Username of the admin performing the deletion (for tracking)
+        ip_address: IP address of the request for geolocation tracking
     """
     pg_manager = get_postgres_manager()
     
@@ -245,6 +246,7 @@ def delete_course(course_id, deleted_by=None):
             record_id=course_id,
             old_values=old_values,
             performed_by=deleted_by,
+            ip_address=ip_address,
             additional_context={"action": "delete_course", "course_title": old_values.get('title')}
         )
         
@@ -254,12 +256,13 @@ def delete_course(course_id, deleted_by=None):
     
     return {"success": False, "error": "Failed to delete course"}
 
-def restore_course(course_id, restored_by=None):
+def restore_course(course_id, restored_by=None, ip_address=None):
     """Restore a soft-deleted course
     
     Args:
         course_id: The path_id of the course to restore
         restored_by: Username of the admin performing the restore (for tracking)
+        ip_address: IP address of the request for geolocation tracking
     """
     pg_manager = get_postgres_manager()
     
@@ -302,6 +305,7 @@ def restore_course(course_id, restored_by=None):
             record_id=course_id,
             old_values=old_values,
             performed_by=restored_by,
+            ip_address=ip_address,
             additional_context={"action": "restore_course", "course_title": old_values.get('title')}
         )
         
