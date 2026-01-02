@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from database import get_postgres_manager
+import audit_logger as audit_module
 
 # Import user auth module for proper user registration (handles bcrypt, preferences, Neo4j sync)
 import user_auth as auth_module
@@ -328,6 +329,23 @@ def bulk_admin_action(user_ids, action, reason="", deleted_by=None):
     
     # For delete action, perform soft delete instead of hard delete
     if action == 'delete':
+        # Get old values before updating for audit log
+        audit_old_values = {}
+        try:
+            fetch_query = "SELECT user_id, username, email, is_active, is_admin, is_deleted FROM jeseci_academy.users WHERE user_id = ANY(%s)"
+            old_records = pg_manager.execute_query(fetch_query, (user_ids,))
+            for row in old_records or []:
+                audit_old_values[row['user_id']] = {
+                    'user_id': row['user_id'],
+                    'username': row['username'],
+                    'email': row['email'],
+                    'is_active': row['is_active'],
+                    'is_admin': row['is_admin'],
+                    'is_deleted': row['is_deleted']
+                }
+        except Exception as e:
+            logger.warning(f"Error fetching old values for audit: {e}")
+        
         # Soft delete - update is_deleted, deleted_at, deleted_by instead of deleting
         current_time = datetime.datetime.now()
         update_query = """
@@ -341,7 +359,7 @@ def bulk_admin_action(user_ids, action, reason="", deleted_by=None):
             logger.error(f"Error soft deleting users: {e}")
             return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
         
-        # Also soft delete the user profile
+        # Also soft delete the user profile and log audit
         if result or result is not None:
             profile_query = """
             UPDATE jeseci_academy.user_profile 
@@ -353,6 +371,18 @@ def bulk_admin_action(user_ids, action, reason="", deleted_by=None):
             except Exception as e:
                 logger.warning(f"Error soft deleting user profiles: {e}")
                 # Continue even if profile update fails - main user record is deleted
+            
+            # Log audit entries for each user
+            for user_id in user_ids:
+                old_vals = audit_old_values.get(user_id, {})
+                audit_module.log_soft_delete(
+                    table_name="users",
+                    record_id=user_id,
+                    old_values=old_vals,
+                    performed_by=deleted_by,
+                    reason=reason,
+                    additional_context={"action": "bulk_delete", "users_affected": len(user_ids)}
+                )
     elif action == 'suspend':
         update_query = """
         UPDATE jeseci_academy.users 
@@ -396,6 +426,23 @@ def restore_users(user_ids, restored_by):
     """
     pg_manager = get_postgres_manager()
     
+    # Get old values before updating for audit log
+    audit_old_values = {}
+    try:
+        fetch_query = "SELECT user_id, username, email, is_active, is_admin, is_deleted FROM jeseci_academy.users WHERE user_id = ANY(%s)"
+        old_records = pg_manager.execute_query(fetch_query, (user_ids,))
+        for row in old_records or []:
+            audit_old_values[row['user_id']] = {
+                'user_id': row['user_id'],
+                'username': row['username'],
+                'email': row['email'],
+                'is_active': row['is_active'],
+                'is_admin': row['is_admin'],
+                'is_deleted': row['is_deleted']
+            }
+    except Exception as e:
+        logger.warning(f"Error fetching old values for audit: {e}")
+    
     # Restore users
     update_query = """
     UPDATE jeseci_academy.users 
@@ -419,6 +466,17 @@ def restore_users(user_ids, restored_by):
             pg_manager.execute_query(profile_query, (user_ids,), fetch=False)
         except Exception as e:
             logger.warning(f"Error restoring user profiles: {e}")
+        
+        # Log audit entries for each restored user
+        for user_id in user_ids:
+            old_vals = audit_old_values.get(user_id, {})
+            audit_module.log_restore(
+                table_name="users",
+                record_id=user_id,
+                old_values=old_vals,
+                performed_by=restored_by,
+                additional_context={"action": "bulk_restore", "users_affected": len(user_ids)}
+            )
     
     if result or result is not None:
         global cache_initialized
