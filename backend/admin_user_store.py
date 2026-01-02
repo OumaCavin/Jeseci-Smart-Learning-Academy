@@ -386,3 +386,86 @@ def bulk_admin_action(user_ids, action, reason="", deleted_by=None):
         return {"success": True, "users_affected": len(user_ids), "action": action}
     
     return {"success": False, "error": "Failed to perform action", "code": "ACTION_ERROR"}
+
+def restore_users(user_ids, restored_by):
+    """Restore soft-deleted users by setting is_deleted = false
+    
+    Args:
+        user_ids: List of user_id strings to restore
+        restored_by: Username of the admin performing the restore
+    """
+    pg_manager = get_postgres_manager()
+    
+    # Restore users
+    update_query = """
+    UPDATE jeseci_academy.users 
+    SET is_deleted = false, deleted_at = null, deleted_by = null, updated_at = NOW()
+    WHERE user_id = ANY(%s)
+    """
+    try:
+        result = pg_manager.execute_query(update_query, (user_ids,), fetch=False)
+    except Exception as e:
+        logger.error(f"Error restoring users: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}", "code": "DATABASE_ERROR"}
+    
+    # Also restore the user profile
+    if result or result is not None:
+        profile_query = """
+        UPDATE jeseci_academy.user_profile 
+        SET is_deleted = false, deleted_at = null, deleted_by = null, updated_at = NOW()
+        WHERE user_id IN (SELECT id FROM jeseci_academy.users WHERE user_id = ANY(%s))
+        """
+        try:
+            pg_manager.execute_query(profile_query, (user_ids,), fetch=False)
+        except Exception as e:
+            logger.warning(f"Error restoring user profiles: {e}")
+    
+    if result or result is not None:
+        global cache_initialized
+        cache_initialized = False
+        return {"success": True, "users_affected": len(user_ids), "restored_by": restored_by}
+    
+    return {"success": False, "error": "Failed to restore users", "code": "ACTION_ERROR"}
+
+def get_deleted_users():
+    """Get all soft-deleted users (for trash view)
+    
+    Returns:
+        List of soft-deleted user objects with deletion metadata
+    """
+    pg_manager = get_postgres_manager()
+    
+    query = """
+    SELECT u.id, u.user_id, u.username, u.email, u.is_admin, u.admin_role, 
+           u.is_active, u.created_at, u.deleted_at, u.deleted_by, u.updated_at,
+           p.first_name, p.last_name
+    FROM jeseci_academy.users u
+    LEFT JOIN jeseci_academy.user_profile p ON u.id = p.user_id
+    WHERE u.is_deleted = true
+    ORDER BY u.deleted_at DESC
+    """
+    
+    try:
+        result = pg_manager.execute_query(query)
+    except Exception as e:
+        logger.error(f"Error getting deleted users: {e}")
+        return []
+    
+    users = []
+    for row in result or []:
+        users.append({
+            "user_id": row.get('user_id'),
+            "username": row.get('username'),
+            "email": row.get('email'),
+            "first_name": row.get('first_name') or "",
+            "last_name": row.get('last_name') or "",
+            "is_admin": row.get('is_admin'),
+            "admin_role": row.get('admin_role') or "",
+            "is_active": row.get('is_active'),
+            "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+            "deleted_at": row.get('deleted_at').isoformat() if row.get('deleted_at') else None,
+            "deleted_by": row.get('deleted_by'),
+            "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None
+        })
+    
+    return users

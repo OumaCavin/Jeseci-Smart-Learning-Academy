@@ -234,6 +234,84 @@ def delete_course(course_id, deleted_by=None):
     
     return {"success": False, "error": "Failed to delete course"}
 
+def restore_course(course_id, restored_by=None):
+    """Restore a soft-deleted course
+    
+    Args:
+        course_id: The path_id of the course to restore
+        restored_by: Username of the admin performing the restore (for tracking)
+    """
+    pg_manager = get_postgres_manager()
+    
+    check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = %s AND is_deleted = true"
+    try:
+        existing = pg_manager.execute_query(check_query, (course_id,))
+    except Exception as e:
+        logger.error(f"Error checking course existence for restore: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
+    
+    if not existing:
+        return {"success": False, "error": "Course not found or not deleted"}
+    
+    # Restore the course
+    restore_query = """
+    UPDATE jeseci_academy.learning_paths 
+    SET is_deleted = false, deleted_at = null, deleted_by = null, updated_at = NOW()
+    WHERE path_id = %s
+    """
+    try:
+        result = pg_manager.execute_query(restore_query, (course_id,), fetch=False)
+    except Exception as e:
+        logger.error(f"Error restoring course: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
+    
+    if result or result is not None:
+        global courses_initialized
+        courses_initialized = False
+        return {"success": True, "course_id": course_id, "message": "Course restored successfully"}
+    
+    return {"success": False, "error": "Failed to restore course"}
+
+def get_deleted_courses():
+    """Get all soft-deleted courses (for trash view)
+    
+    Returns:
+        List of soft-deleted course objects with deletion metadata
+    """
+    pg_manager = get_postgres_manager()
+    
+    query = """
+    SELECT path_id, name, title, category, difficulty, 
+           estimated_duration, description, is_published, created_at, 
+           updated_at, deleted_at, deleted_by
+    FROM jeseci_academy.learning_paths
+    WHERE is_deleted = true
+    ORDER BY deleted_at DESC
+    """
+    
+    try:
+        result = pg_manager.execute_query(query)
+    except Exception as e:
+        logger.error(f"Error getting deleted courses: {e}")
+        return []
+    
+    courses = []
+    for row in result or []:
+        courses.append({
+            "course_id": row.get('path_id'),
+            "title": row.get('title'),
+            "description": row.get('description'),
+            "domain": row.get('category') or "",
+            "difficulty": row.get('difficulty') or "beginner",
+            "content_type": "interactive",
+            "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+            "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None,
+            "deleted_at": row.get('deleted_at').isoformat() if row.get('deleted_at') else None,
+            "deleted_by": row.get('deleted_by')
+        })
+    
+    return courses
+
 # ==============================================================================
 # CONCEPTS STORAGE (Neo4j - Graph relationships)
 # ==============================================================================
