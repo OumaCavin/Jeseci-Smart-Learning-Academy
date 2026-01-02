@@ -2880,6 +2880,41 @@ walker admin_quizzes {
     }
 }
 
+walker admin_quizzes_generate_ai {
+    has topic: str;
+    has difficulty: str;
+    has question_count: int = 5;
+    
+    can admin_quizzes_generate_ai with entry {
+        # Generate AI quiz with error handling
+        try {
+            result = quiz_store.generate_ai_quiz(self.topic, self.difficulty, self.question_count);
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "quiz": result.get('quiz', {}),
+                    "topic": self.topic,
+                    "difficulty": self.difficulty,
+                    "question_count": self.question_count,
+                    "message": result.get('message', 'Quiz generated successfully')
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to generate quiz')
+                };
+            }
+        } except Exception as e {
+            print("Error generating AI quiz: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to generate AI quiz: " + str(e)
+            };
+        }
+    }
+}
+
 walker admin_quizzes_analytics {
     can admin_quizzes_analytics with entry {
         # Initialize store with error handling
