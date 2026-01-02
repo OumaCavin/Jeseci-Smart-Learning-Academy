@@ -47,7 +47,9 @@ def create_users_tables(cursor):
         verification_token VARCHAR(255),
         token_expires_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(64),
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_by VARCHAR(64),
         last_login_at TIMESTAMP,
         is_deleted BOOLEAN DEFAULT FALSE,
         deleted_at TIMESTAMP,
@@ -67,7 +69,9 @@ def create_users_tables(cursor):
         timezone VARCHAR(50),
         language VARCHAR(10) DEFAULT 'en',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(64),
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_by VARCHAR(64),
         is_deleted BOOLEAN DEFAULT FALSE,
         deleted_at TIMESTAMP,
         deleted_by VARCHAR(64)
@@ -158,7 +162,9 @@ def create_content_tables(cursor):
         is_published BOOLEAN DEFAULT FALSE,
         thumbnail_url VARCHAR(500),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(64),
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_by VARCHAR(64),
         is_deleted BOOLEAN DEFAULT FALSE,
         deleted_at TIMESTAMP,
         deleted_by VARCHAR(64)
@@ -225,7 +231,12 @@ def create_courses_table(cursor):
         content_type VARCHAR(50) DEFAULT 'interactive',
         is_published BOOLEAN DEFAULT true,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_by VARCHAR(64),
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_by VARCHAR(64),
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64)
     )
     """)
     
@@ -342,7 +353,9 @@ def create_assessment_tables(cursor):
         max_attempts INTEGER DEFAULT 3,
         is_published BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(64),
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_by VARCHAR(64),
         is_deleted BOOLEAN DEFAULT FALSE,
         deleted_at TIMESTAMP,
         deleted_by VARCHAR(64)
