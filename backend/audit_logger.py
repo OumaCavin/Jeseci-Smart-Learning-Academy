@@ -41,6 +41,7 @@ import uuid
 import json
 import datetime
 import logging
+import requests
 from typing import Optional, Dict, Any, List
 
 # Set up logging
@@ -99,6 +100,98 @@ def get_current_timestamp() -> datetime.datetime:
     return datetime.datetime.now()
 
 
+def get_geolocation_from_ip(ip_address: Optional[str]) -> Optional[Dict[str, Any]]:
+    """Get geolocation data for an IP address
+    
+    Args:
+        ip_address: The IP address to look up
+    
+    Returns:
+        Dict with geolocation data or None if lookup fails
+    """
+    if not ip_address:
+        return None
+    
+    # Skip private/local IP addresses
+    private_prefixes = ['10.', '192.168.', '172.16.', '172.17.', '172.18.',
+                        '172.19.', '172.20.', '172.21.', '172.22.', '172.23.',
+                        '172.24.', '172.25.', '172.26.', '172.27.', '172.28.',
+                        '172.29.', '172.30.', '172.31.', '127.', '::1', 'fe80::',
+                        'fc00::']
+    
+    for prefix in private_prefixes:
+        if ip_address.startswith(prefix):
+            return {
+                "ip": ip_address,
+                "type": "private",
+                "is_private": True,
+                "country_code": None,
+                "country_name": None,
+                "region": None,
+                "city": None,
+                "latitude": None,
+                "longitude": None,
+                "isp": None,
+                "timezone": None
+            }
+    
+    try:
+        # Using ip-api.com (free tier - 45 requests/minute)
+        response = requests.get(
+            f"http://ip-api.com/json/{ip_address}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,query",
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('status') == 'success':
+                return {
+                    "ip": data.get('query'),
+                    "type": "public",
+                    "is_private": False,
+                    "country_code": data.get('countryCode'),
+                    "country_name": data.get('country'),
+                    "region": data.get('regionName'),
+                    "city": data.get('city'),
+                    "zip": data.get('zip'),
+                    "latitude": data.get('lat'),
+                    "longitude": data.get('lon'),
+                    "timezone": data.get('timezone'),
+                    "isp": data.get('isp')
+                }
+            else:
+                return {
+                    "ip": ip_address,
+                    "type": "unknown",
+                    "is_private": False,
+                    "error": data.get('message', 'Lookup failed'),
+                    "country_code": None,
+                    "country_name": None,
+                    "region": None,
+                    "city": None,
+                    "latitude": None,
+                    "longitude": None,
+                    "isp": None,
+                    "timezone": None
+                }
+    except Exception as e:
+        logger.warning(f"Failed to get geolocation for IP {ip_address}: {e}")
+        return {
+            "ip": ip_address,
+            "type": "error",
+            "is_private": False,
+            "error": str(e),
+            "country_code": None,
+            "country_name": None,
+            "region": None,
+            "city": None,
+            "latitude": None,
+            "longitude": None,
+            "isp": None,
+            "timezone": None
+        }
+
+
 def should_audit_table(table_name: str) -> bool:
     """Check if a table should be audited"""
     # Extract just the table name from full path
@@ -154,7 +247,9 @@ def log_action(
     request_id: Optional[str] = None,
     session_id: Optional[str] = None,
     application_source: str = "admin_panel",
-    additional_context: Optional[Dict[str, Any]] = None
+    additional_context: Optional[Dict[str, Any]] = None,
+    geolocation: Optional[Dict[str, Any]] = None,
+    lookup_geolocation: bool = True
 ) -> Dict[str, Any]:
     """Log a database action to the audit_log table
     
@@ -172,6 +267,8 @@ def log_action(
         session_id: Optional session ID
         application_source: Source of the action (admin_panel, api, system, etc.)
         additional_context: Any additional context information
+        geolocation: Pre-fetched geolocation data dict
+        lookup_geolocation: Whether to auto-lookup geolocation from IP address
     
     Returns:
         Dict with success status and audit_id
@@ -185,6 +282,13 @@ def log_action(
     # Generate audit ID and timestamp
     audit_id = generate_audit_id()
     created_at = get_current_timestamp()
+    
+    # Get geolocation if not provided and lookup is enabled
+    if geolocation is None and lookup_geolocation and ip_address:
+        geolocation = get_geolocation_from_ip(ip_address)
+    
+    # Convert geolocation to JSON
+    geolocation_json = json.dumps(geolocation) if geolocation else None
     
     # Calculate changed fields for UPDATE operations
     changed_fields = None
@@ -212,6 +316,7 @@ def log_action(
         performed_by,
         performed_by_id,
         ip_address,
+        geolocation,
         user_agent,
         request_id,
         session_id,
@@ -219,7 +324,7 @@ def log_action(
         additional_context,
         created_at
     ) VALUES (
-        %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s
+        %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb, %s, %s, %s, %s::jsonb, %s, %s, %s, %s::jsonb, %s
     )
     """
     
@@ -237,6 +342,7 @@ def log_action(
                 performed_by,
                 performed_by_id,
                 ip_address,
+                geolocation_json,
                 user_agent,
                 request_id,
                 session_id,
@@ -275,6 +381,7 @@ def log_create(
     new_values: Dict[str, Any],
     performed_by: Optional[str] = None,
     performed_by_id: Optional[int] = None,
+    ip_address: Optional[str] = None,
     **kwargs
 ) -> Dict[str, Any]:
     """Log a CREATE operation"""
@@ -286,6 +393,7 @@ def log_create(
         new_values=new_values,
         performed_by=performed_by,
         performed_by_id=performed_by_id,
+        ip_address=ip_address,
         **kwargs
     )
 
@@ -297,6 +405,7 @@ def log_update(
     new_values: Dict[str, Any],
     performed_by: Optional[str] = None,
     performed_by_id: Optional[int] = None,
+    ip_address: Optional[str] = None,
     **kwargs
 ) -> Dict[str, Any]:
     """Log an UPDATE operation - only logs if fields actually changed"""
@@ -308,6 +417,7 @@ def log_update(
         new_values=new_values,
         performed_by=performed_by,
         performed_by_id=performed_by_id,
+        ip_address=ip_address,
         **kwargs
     )
 
@@ -318,6 +428,7 @@ def log_delete(
     old_values: Dict[str, Any],
     performed_by: Optional[str] = None,
     performed_by_id: Optional[int] = None,
+    ip_address: Optional[str] = None,
     **kwargs
 ) -> Dict[str, Any]:
     """Log a DELETE operation"""
@@ -329,6 +440,7 @@ def log_delete(
         new_values=None,
         performed_by=performed_by,
         performed_by_id=performed_by_id,
+        ip_address=ip_address,
         **kwargs
     )
 
@@ -362,6 +474,7 @@ def get_audit_history(
         performed_by,
         performed_by_id,
         ip_address,
+        geolocation,
         created_at,
         application_source
     FROM {pg_manager.schema}.audit_log
@@ -381,6 +494,7 @@ def get_audit_history(
                 "performed_by": row.get('performed_by'),
                 "performed_by_id": row.get('performed_by_id'),
                 "ip_address": str(row.get('ip_address')) if row.get('ip_address') else None,
+                "geolocation": row.get('geolocation'),
                 "old_values": row.get('old_values'),
                 "new_values": row.get('new_values'),
                 "changed_fields": row.get('changed_fields'),
@@ -418,7 +532,9 @@ def get_user_activity_log(
         action_type,
         changed_fields,
         performed_by,
+        performed_by_id,
         ip_address,
+        geolocation,
         created_at,
         application_source
     FROM {pg_manager.schema}.audit_log
@@ -438,7 +554,9 @@ def get_user_activity_log(
                 "record_id": row.get('record_id'),
                 "action": row.get('action_type'),
                 "changed_fields": row.get('changed_fields'),
+                "performed_by_id": row.get('performed_by_id'),
                 "ip_address": str(row.get('ip_address')) if row.get('ip_address') else None,
+                "geolocation": row.get('geolocation'),
                 "source": row.get('application_source'),
                 "timestamp": row.get('created_at').isoformat() if row.get('created_at') else None
             })
@@ -577,6 +695,7 @@ def search_audit_logs(
         performed_by,
         performed_by_id,
         ip_address,
+        geolocation,
         created_at,
         application_source
     FROM {pg_manager.schema}.audit_log
@@ -606,6 +725,7 @@ def search_audit_logs(
                 "performed_by": row.get('performed_by'),
                 "performed_by_id": row.get('performed_by_id'),
                 "ip_address": str(row.get('ip_address')) if row.get('ip_address') else None,
+                "geolocation": row.get('geolocation'),
                 "source": row.get('application_source'),
                 "timestamp": row.get('created_at').isoformat() if row.get('created_at') else None
             })
@@ -631,6 +751,7 @@ def log_soft_delete(
     old_values: Dict[str, Any],
     performed_by: str,
     reason: Optional[str] = None,
+    ip_address: Optional[str] = None,
     **kwargs
 ) -> Dict[str, Any]:
     """Log a soft delete operation (UPDATE with is_deleted=true)
@@ -655,6 +776,7 @@ def log_soft_delete(
         old_values=old_values,
         new_values=new_values,
         performed_by=performed_by,
+        ip_address=ip_address,
         **kwargs
     )
 
@@ -665,6 +787,7 @@ def log_restore(
     record_id: str,
     old_values: Dict[str, Any],
     performed_by: str,
+    ip_address: Optional[str] = None,
     **kwargs
 ) -> Dict[str, Any]:
     """Log a restore operation (UPDATE with is_deleted=false)"""
@@ -684,5 +807,6 @@ def log_restore(
         old_values=old_values,
         new_values=new_values,
         performed_by=performed_by,
+        ip_address=ip_address,
         **kwargs
     )

@@ -282,18 +282,18 @@ class AdminApiService {
     });
   }
 
-  async bulkUserAction(userIds: string[], action: 'suspend' | 'activate' | 'delete', reason?: string, deletedBy?: string): Promise<AdminActionResponse> {
+  async bulkUserAction(userIds: string[], action: 'suspend' | 'activate' | 'delete', reason?: string, deletedBy?: string, ipAddress?: string): Promise<AdminActionResponse> {
     return this.makeRequest<AdminActionResponse>('/walker/admin_users_bulk_action', {
       method: 'POST',
-      body: JSON.stringify({ user_ids: userIds, action, reason, deleted_by: deletedBy }),
+      body: JSON.stringify({ user_ids: userIds, action, reason, deleted_by: deletedBy, ip_address: ipAddress }),
     });
   }
 
   // Restore soft-deleted users
-  async restoreUsers(userIds: string[], restoredBy?: string): Promise<AdminActionResponse> {
+  async restoreUsers(userIds: string[], restoredBy?: string, ipAddress?: string): Promise<AdminActionResponse> {
     return this.makeRequest<AdminActionResponse>('/walker/admin_users_restore', {
       method: 'POST',
-      body: JSON.stringify({ user_ids: userIds, restored_by: restoredBy }),
+      body: JSON.stringify({ user_ids: userIds, restored_by: restoredBy, ip_address: ipAddress }),
     });
   }
 
@@ -333,18 +333,18 @@ class AdminApiService {
     });
   }
 
-  async deleteCourse(courseId: string, deletedBy?: string): Promise<{ success: boolean; message: string }> {
+  async deleteCourse(courseId: string, deletedBy?: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
     return this.makeRequest('/walker/admin_content_course_delete', {
       method: 'POST',
-      body: JSON.stringify({ course_id: courseId, deleted_by: deletedBy }),
+      body: JSON.stringify({ course_id: courseId, deleted_by: deletedBy, ip_address: ipAddress }),
     });
   }
 
   // Restore soft-deleted course
-  async restoreCourse(courseId: string, restoredBy?: string): Promise<{ success: boolean; message: string }> {
+  async restoreCourse(courseId: string, restoredBy?: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
     return this.makeRequest('/walker/admin_content_course_restore', {
       method: 'POST',
-      body: JSON.stringify({ course_id: courseId, restored_by: restoredBy }),
+      body: JSON.stringify({ course_id: courseId, restored_by: restoredBy, ip_address: ipAddress }),
     });
   }
 

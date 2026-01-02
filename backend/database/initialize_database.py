@@ -495,6 +495,17 @@ def create_system_tables(cursor):
         request_id VARCHAR(100),
         session_id VARCHAR(100),
         application_source VARCHAR(50) DEFAULT 'admin_panel',
+        -- Geolocation data derived from IP address
+        country_code VARCHAR(10),
+        country_name VARCHAR(100),
+        region VARCHAR(100),
+        city VARCHAR(100),
+        latitude DECIMAL(10, 8),
+        longitude DECIMAL(11, 8),
+        timezone VARCHAR(50),
+        isp_name VARCHAR(200),
+        is_proxy BOOLEAN,
+        -- Additional context
         additional_context JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
@@ -524,6 +535,17 @@ def create_system_tables(cursor):
     cursor.execute(f"""
         CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_audit_log_table_action 
         ON {DB_SCHEMA}.audit_log(table_name, action_type, created_at DESC)
+    """)
+    
+    # Indexes for geolocation queries
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_audit_log_country 
+        ON {DB_SCHEMA}.audit_log(country_code)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_audit_log_city 
+        ON {DB_SCHEMA}.audit_log(city)
     """)
     
     logger.info("✓ System tables created: system_logs, system_health, audit_log")
