@@ -109,8 +109,8 @@ def create_course(title, description, domain, difficulty, content_type="interact
     
     insert_query = """
     INSERT INTO jeseci_academy.learning_paths 
-    (path_id, name, title, category, difficulty, description, is_published, created_at)
-    VALUES (%s, %s, %s, %s, %s, %s, true, NOW())
+    (path_id, name, title, category, difficulty, description, is_published, is_deleted, created_by, created_at, updated_by, updated_at)
+    VALUES (%s, %s, %s, %s, %s, %s, true, false, 'system', NOW(), 'system', NOW())
     """
     
     try:
@@ -717,8 +717,9 @@ def create_path(title, description, courses, concepts, difficulty, duration, tar
     # Insert into PostgreSQL
     insert_query = """
     INSERT INTO jeseci_academy.learning_paths 
-    (path_id, name, title, category, difficulty, estimated_duration, description, target_audience, is_published, created_at)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, true, NOW())
+    (path_id, name, title, category, difficulty, estimated_duration, description, target_audience, 
+     is_published, is_deleted, created_by, created_at, updated_by, updated_at)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, true, false, 'system', NOW(), 'system', NOW())
     """
     
     pg_result = None

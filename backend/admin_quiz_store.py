@@ -94,8 +94,9 @@ def create_quiz(title, description, course_id, difficulty):
     
     insert_query = """
     INSERT INTO jeseci_academy.quizzes 
-    (quiz_id, title, description, concept_id, lesson_id, passing_score, max_attempts, is_published, time_limit_minutes, created_at)
-    VALUES (%s, %s, %s, %s, %s, %s, 3, true, %s, NOW())
+    (quiz_id, title, description, concept_id, lesson_id, passing_score, max_attempts, is_published, 
+     time_limit_minutes, is_deleted, created_by, created_at, updated_by, updated_at)
+    VALUES (%s, %s, %s, %s, %s, %s, 3, true, %s, false, 'system', NOW(), 'system', NOW())
     """
     
     try:
@@ -559,8 +560,9 @@ def save_ai_generated_quiz(quiz_data: Dict[str, Any], topic: str, difficulty: st
     # Insert quiz
     insert_query = """
     INSERT INTO jeseci_academy.quizzes 
-    (quiz_id, title, description, concept_id, passing_score, max_attempts, is_published, time_limit_minutes, created_at)
-    VALUES (%s, %s, %s, %s, %s, 3, true, 30, NOW())
+    (quiz_id, title, description, concept_id, passing_score, max_attempts, is_published, 
+     time_limit_minutes, is_deleted, created_by, created_at, updated_by, updated_at)
+    VALUES (%s, %s, %s, %s, %s, 3, true, 30, false, 'system', NOW(), 'system', NOW())
     """
     
     try:

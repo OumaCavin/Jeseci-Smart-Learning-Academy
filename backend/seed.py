@@ -604,8 +604,8 @@ def seed_paths_to_postgres(dry_run=False, verbose=True):
         insert_query = """
         INSERT INTO jeseci_academy.learning_paths 
         (path_id, name, title, category, difficulty, estimated_duration, 
-         target_audience, description, is_published, created_at, updated_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, true, NOW(), NOW())
+         target_audience, description, is_published, is_deleted, created_by, created_at, updated_by, updated_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, true, false, 'system', NOW(), 'system', NOW())
         """
         
         try:
@@ -676,34 +676,14 @@ def seed_courses_to_postgres(dry_run=False, verbose=True):
         except Exception as e:
             if verbose:
                 print(f"Check query warning (courses table may not exist): {e}")
-            # Try creating the table if it doesn't exist
-            try:
-                create_table_query = """
-                CREATE TABLE IF NOT EXISTS jeseci_academy.courses (
-                    course_id VARCHAR(100) PRIMARY KEY,
-                    title VARCHAR(255) NOT NULL,
-                    description TEXT,
-                    domain VARCHAR(100),
-                    difficulty VARCHAR(50),
-                    estimated_duration INTEGER,
-                    content_type VARCHAR(50),
-                    is_published BOOLEAN DEFAULT true,
-                    created_at TIMESTAMP DEFAULT NOW(),
-                    updated_at TIMESTAMP DEFAULT NOW()
-                )
-                """
-                pg_manager.execute_query(create_table_query, (), fetch=False)
-                if verbose:
-                    print("Created courses table")
-            except Exception as table_error:
-                if verbose:
-                    print(f"Could not create courses table: {table_error}")
+            return {"success": False, "error": str(e)}
         
         # Insert new course
         insert_query = """
         INSERT INTO jeseci_academy.courses 
-        (course_id, title, description, domain, difficulty, estimated_duration, content_type, is_published, created_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, true, NOW())
+        (course_id, title, description, domain, difficulty, estimated_duration, content_type, 
+         is_published, is_deleted, created_by, created_at, updated_by, updated_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, true, false, 'system', NOW(), 'system', NOW())
         """
         
         try:
