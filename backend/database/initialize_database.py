@@ -180,7 +180,8 @@ def create_content_tables(cursor):
         concept_id VARCHAR(100) NOT NULL,
         sequence_order INTEGER DEFAULT 0,
         is_required BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(path_id, concept_id)
     )
     """)
     
@@ -191,7 +192,8 @@ def create_content_tables(cursor):
         lesson_id VARCHAR(50) NOT NULL,
         concept_id VARCHAR(100) NOT NULL,
         sequence_order INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(lesson_id, concept_id)
     )
     """)
     
@@ -225,7 +227,8 @@ def create_courses_table(cursor):
         course_id VARCHAR(100) NOT NULL,
         concept_id VARCHAR(100) NOT NULL,
         order_index INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(course_id, concept_id)
     )
     """)
     
