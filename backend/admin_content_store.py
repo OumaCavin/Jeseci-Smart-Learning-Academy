@@ -58,6 +58,7 @@ def initialize_courses():
             SELECT path_id, name, title, category, difficulty, 
                    estimated_duration, description, is_published, created_at, updated_at
             FROM jeseci_academy.learning_paths
+            WHERE is_deleted = false
             ORDER BY created_at DESC
             """
             
@@ -194,8 +195,13 @@ def update_course(course_id, title="", description="", domain="", difficulty="")
     
     return {"success": False, "error": "Failed to update course"}
 
-def delete_course(course_id):
-    """Delete a course from PostgreSQL"""
+def delete_course(course_id, deleted_by=None):
+    """Soft delete a course from PostgreSQL instead of hard delete
+    
+    Args:
+        course_id: The path_id of the course to delete
+        deleted_by: Username of the admin performing the deletion (for tracking)
+    """
     pg_manager = get_postgres_manager()
     
     check_query = "SELECT path_id FROM jeseci_academy.learning_paths WHERE path_id = %s"
@@ -208,17 +214,23 @@ def delete_course(course_id):
     if not existing:
         return {"success": False, "error": "Course not found"}
     
-    delete_query = "DELETE FROM jeseci_academy.learning_paths WHERE path_id = %s"
+    # Perform soft delete instead of hard delete
+    current_time = datetime.datetime.now()
+    soft_delete_query = """
+    UPDATE jeseci_academy.learning_paths 
+    SET is_deleted = true, deleted_at = %s, deleted_by = %s, updated_at = NOW()
+    WHERE path_id = %s
+    """
     try:
-        result = pg_manager.execute_query(delete_query, (course_id,), fetch=False)
+        result = pg_manager.execute_query(soft_delete_query, (current_time, deleted_by, course_id,), fetch=False)
     except Exception as e:
-        logger.error(f"Error deleting course: {e}")
+        logger.error(f"Error soft deleting course: {e}")
         return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         global courses_initialized
         courses_initialized = False
-        return {"success": True, "course_id": course_id}
+        return {"success": True, "course_id": course_id, "message": "Course deleted successfully (soft delete)"}
     
     return {"success": False, "error": "Failed to delete course"}
 
@@ -516,6 +528,7 @@ def initialize_paths():
                    estimated_duration, description, created_at,
                    target_audience
             FROM jeseci_academy.learning_paths
+            WHERE is_deleted = false
             ORDER BY created_at DESC
             """
             
