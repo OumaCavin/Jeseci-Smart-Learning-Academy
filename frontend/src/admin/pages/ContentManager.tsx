@@ -59,12 +59,22 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
           setError('Failed to load learning paths');
         }
       } else if (contentType === 'relationships') {
-        const response = await adminApi.getConceptRelationships();
-        console.log('Get relationships response:', response);
-        if (response.success) {
-          setRelationships(response.relationships || []);
+        // Load both relationships and concepts in parallel for the relationship modal dropdowns
+        const [relsRes, conceptsRes] = await Promise.all([
+          adminApi.getConceptRelationships(),
+          adminApi.getConcepts()
+        ]);
+        console.log('Get relationships response:', relsRes);
+        console.log('Get concepts response:', conceptsRes);
+        if (relsRes.success) {
+          setRelationships(relsRes.relationships || []);
         } else {
           setError('Failed to load relationships');
+        }
+        if (conceptsRes.success) {
+          setConcepts(conceptsRes.concepts || []);
+        } else {
+          setError('Failed to load concepts');
         }
       }
     } catch (err: any) {
