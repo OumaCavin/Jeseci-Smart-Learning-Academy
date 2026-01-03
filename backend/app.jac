@@ -5814,3 +5814,378 @@ walker peer_review_get_feedback {
         };
     }
 }
+
+# ==============================================================================
+# JAC CODE EXECUTION ENGINE ENDPOINTS
+# ==============================================================================
+
+walker execute_code {
+    has code: str = "";
+    has entry_point: str = "init";
+    has snippet_id: str = "";
+    
+    can execute_code with entry {
+        import code_execution as code_exec_module;
+        import code_execution_store as code_store_module;
+        
+        user_id = ctx().get('user_id');
+        
+        if not self.code or not self.code.strip() {
+            report {
+                "success": False,
+                "error": "No code provided",
+                "error_type": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        # Execute code
+        result = code_exec_module.execute_jac_code(
+            code=self.code,
+            entry_point=self.entry_point
+        );
+        
+        # Record execution if user is authenticated
+        if user_id {
+            code_store_module.record_execution(
+                user_id=user_id,
+                code_content=self.code,
+                status=result['status'],
+                output=result.get('stdout', ''),
+                error_message=result.get('stderr'),
+                execution_time_ms=result.get('execution_time_ms', 0),
+                entry_point=self.entry_point,
+                snippet_id=self.snippet_id if self.snippet_id else null
+            );
+            
+            # Update snippet execution count
+            if self.snippet_id {
+                code_store_module.increment_execution_count(snippet_id=self.snippet_id);
+            }
+        }
+        
+        report result;
+    }
+}
+
+walker compile_code {
+    has code: str = "";
+    
+    can compile_code with entry {
+        import code_execution as code_exec_module;
+        
+        if not self.code or not self.code.strip() {
+            report {
+                "success": False,
+                "error": "No code provided"
+            };
+            return;
+        }
+        
+        success, ir_output, error = code_exec_module.compile_to_ir(code=self.code);
+        
+        report {
+            "success": success,
+            "ir_output": ir_output,
+            "error": error
+        };
+    }
+}
+
+walker save_snippet {
+    has title: str = "";
+    has code: str = "";
+    has description: str = "";
+    has is_public: bool = False;
+    has folder_id: str = "";
+    has snippet_id: str = "";
+    
+    can save_snippet with entry {
+        import code_execution_store as code_store_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.title or not self.title.strip() {
+            report {
+                "success": False,
+                "error": "Title is required"
+            };
+            return;
+        }
+        
+        if not self.code or not self.code.strip() {
+            report {
+                "success": False,
+                "error": "Code content is required"
+            };
+            return;
+        }
+        
+        try {
+            if self.snippet_id {
+                # Update existing snippet
+                updated = code_store_module.update_snippet(
+                    snippet_id=self.snippet_id,
+                    user_id=user_id,
+                    title=self.title,
+                    code_content=self.code,
+                    description=self.description if self.description else null,
+                    is_public=self.is_public,
+                    folder_id=self.folder_id if self.folder_id else null
+                );
+                
+                if updated {
+                    snippet = code_store_module.get_snippet(
+                        snippet_id=self.snippet_id,
+                        user_id=user_id
+                    );
+                    
+                    report {
+                        "success": True,
+                        "message": "Snippet updated successfully",
+                        "snippet": snippet
+                    };
+                } else {
+                    report {
+                        "success": False,
+                        "error": "Snippet not found or access denied"
+                    };
+                }
+            } else {
+                # Create new snippet
+                new_snippet_id = code_store_module.create_snippet(
+                    user_id=user_id,
+                    title=self.title,
+                    code_content=self.code,
+                    language="jac",
+                    description=self.description if self.description else null,
+                    is_public=self.is_public,
+                    folder_id=self.folder_id if self.folder_id else null
+                );
+                
+                snippet = code_store_module.get_snippet(
+                    snippet_id=new_snippet_id,
+                    user_id=user_id
+                );
+                
+                report {
+                    "success": True,
+                    "message": "Snippet created successfully",
+                    "snippet": snippet
+                };
+            }
+        } except Exception as e {
+            report {
+                "success": False,
+                "error": str(e)
+            };
+        }
+    }
+}
+
+walker get_snippets {
+    has folder_id: str = "";
+    has limit: int = 50;
+    has offset: int = 0;
+    
+    can get_snippets with entry {
+        import code_execution_store as code_store_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        snippets = code_store_module.get_user_snippets(
+            user_id=user_id,
+            folder_id=self.folder_id if self.folder_id else null,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report {
+            "success": True,
+            "snippets": snippets,
+            "total": len(snippets)
+        };
+    }
+}
+
+walker get_snippet {
+    has snippet_id: str = "";
+    
+    can get_snippet with entry {
+        import code_execution_store as code_store_module;
+        
+        user_id = ctx().get('user_id');
+        
+        snippet = code_store_module.get_snippet(
+            snippet_id=self.snippet_id,
+            user_id=user_id
+        );
+        
+        if snippet {
+            report {
+                "success": True,
+                "snippet": snippet
+            };
+        } else {
+            report {
+                "success": False,
+                "error": "Snippet not found"
+            };
+        }
+    }
+}
+
+walker delete_snippet {
+    has snippet_id: str = "";
+    
+    can delete_snippet with entry {
+        import code_execution_store as code_store_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        deleted = code_store_module.delete_snippet(
+            snippet_id=self.snippet_id,
+            user_id=user_id
+        );
+        
+        if deleted {
+            report {
+                "success": True,
+                "message": "Snippet deleted successfully"
+            };
+        } else {
+            report {
+                "success": False,
+                "error": "Snippet not found or access denied"
+            };
+        }
+    }
+}
+
+walker get_execution_history {
+    has limit: int = 20;
+    has offset: int = 0;
+    
+    can get_execution_history with entry {
+        import code_execution_store as code_store_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        history = code_store_module.get_execution_history(
+            user_id=user_id,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report {
+            "success": True,
+            "history": history,
+            "total": len(history)
+        };
+    }
+}
+
+walker create_folder {
+    has name: str = "";
+    has description: str = "";
+    has parent_folder_id: str = "";
+    has color: str = "#3b82f6";
+    
+    can create_folder with entry {
+        import code_execution_store as code_store_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.name or not self.name.strip() {
+            report {
+                "success": False,
+                "error": "Folder name is required"
+            };
+            return;
+        }
+        
+        try {
+            folder_id = code_store_module.create_folder(
+                user_id=user_id,
+                name=self.name,
+                description=self.description if self.description else null,
+                parent_folder_id=self.parent_folder_id if self.parent_folder_id else null,
+                color=self.color
+            );
+            
+            report {
+                "success": True,
+                "folder_id": folder_id,
+                "message": "Folder created successfully"
+            };
+        } except Exception as e {
+            report {
+                "success": False,
+                "error": str(e)
+            };
+        }
+    }
+}
+
+walker get_folders {
+    has parent_folder_id: str = "";
+    
+    can get_folders with entry {
+        import code_execution_store as code_store_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        folders = code_store_module.get_user_folders(
+            user_id=user_id,
+            parent_folder_id=self.parent_folder_id if self.parent_folder_id else null
+        );
+        
+        report {
+            "success": True,
+            "folders": folders,
+            "total": len(folders)
+        };
+    }
+}

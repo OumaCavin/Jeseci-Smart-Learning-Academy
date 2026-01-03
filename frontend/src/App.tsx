@@ -9,6 +9,7 @@ import LandingPageWithNavigation, { HelpCenterPage, ContactPage, PrivacyPage, Te
 import { NotificationBell, NotificationDropdown, NotificationCenter, NotificationSettings } from './components/notifications';
 import { RecentActivityFeed } from './components/activity';
 import { CommunityDashboard } from './components/community';
+import CodeEditor from './components/CodeEditor';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -924,6 +925,9 @@ const AppContent: React.FC = () => {
         <button className={activeTab === 'community' ? 'active' : ''} onClick={() => setActiveTab('community')}>
           Community
         </button>
+        <button className={activeTab === 'code' ? 'active' : ''} onClick={() => setActiveTab('code')}>
+          Code Editor
+        </button>
       </div>
 
       <div className="dashboard-content">
@@ -1418,6 +1422,19 @@ const AppContent: React.FC = () => {
         {activeTab === 'community' && (
           <div className="community-section">
             <CommunityDashboard />
+          </div>
+        )}
+
+        {/* CODE EDITOR */}
+        {activeTab === 'code' && (
+          <div className="code-editor-section">
+            <div className="section-header">
+              <h2>JAC Code Editor</h2>
+              <p>Write, execute, and save Jac code snippets</p>
+            </div>
+            <div className="code-editor-container" style={{ height: 'calc(100vh - 300px)', minHeight: '500px' }}>
+              <CodeEditor />
+            </div>
           </div>
         )}
       </div>
