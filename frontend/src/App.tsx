@@ -148,6 +148,9 @@ const AppContent: React.FC = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
+  const [showExportModal, setShowExportModal] = useState<boolean>(false);
+  const [exportEmail, setExportEmail] = useState<string>('');
+  const [exportStatus, setExportStatus] = useState<string>('');
 
   // Check for verification and reset pages on mount
   useEffect(() => {
@@ -441,6 +444,34 @@ const AppContent: React.FC = () => {
       setChatMessages(prev => [...prev, botMsg]);
     } catch (error) {
       console.error('Chat error:', error);
+    }
+  };
+
+  const handleExportChat = async () => {
+    if (!exportEmail.trim() || chatMessages.length === 0) return;
+    
+    setExportStatus('Sending...');
+    
+    try {
+      const response = await apiService.exportChatToEmail(
+        exportEmail,
+        chatMessages,
+        user?.full_name || 'User'
+      );
+      
+      if (response.success) {
+        setExportStatus(`Chat transcript sent successfully to ${exportEmail}`);
+        setTimeout(() => {
+          setShowExportModal(false);
+          setExportEmail('');
+          setExportStatus('');
+        }, 2000);
+      } else {
+        setExportStatus(response.error || 'Failed to send chat transcript');
+      }
+    } catch (error) {
+      setExportStatus('Failed to send chat transcript. Please try again.');
+      console.error('Export error:', error);
     }
   };
 
@@ -1223,6 +1254,18 @@ const AppContent: React.FC = () => {
           <div className="chat-section">
             <h2>AI Learning Assistant</h2>
             <p>Chat with your AI tutor for personalized help</p>
+            
+            {chatMessages.length > 0 && (
+              <div className="chat-actions">
+                <button 
+                  className="export-chat-btn"
+                  onClick={() => setShowExportModal(true)}
+                >
+                  Export Chat to Email
+                </button>
+              </div>
+            )}
+            
             <div className="chat-container">
               <div className="chat-messages">
                 {chatMessages.length === 0 ? (
@@ -1253,6 +1296,68 @@ const AppContent: React.FC = () => {
                 <button onClick={sendChatMessage}>Send</button>
               </div>
             </div>
+            
+            {/* Chat Export Modal */}
+            {showExportModal && (
+              <div className="modal-overlay">
+                <div className="modal-content export-modal">
+                  <div className="modal-header">
+                    <h3>Export Chat Transcript</h3>
+                    <button 
+                      className="close-btn"
+                      onClick={() => {
+                        setShowExportModal(false);
+                        setExportEmail('');
+                        setExportStatus('');
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="modal-body">
+                    <p>Send your chat transcript to your email address.</p>
+                    <div className="form-group">
+                      <label htmlFor="export-email">Email Address:</label>
+                      <input
+                        id="export-email"
+                        type="email"
+                        value={exportEmail}
+                        onChange={(e) => setExportEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        required
+                      />
+                    </div>
+                    <p className="chat-summary">
+                      <strong>{chatMessages.length}</strong> messages in this conversation
+                    </p>
+                    {exportStatus && (
+                      <div className={`export-status ${exportStatus.includes('successfully') ? 'success' : 'error'}`}>
+                        {exportStatus}
+                      </div>
+                    )}
+                  </div>
+                  <div className="modal-footer">
+                    <button 
+                      className="cancel-btn"
+                      onClick={() => {
+                        setShowExportModal(false);
+                        setExportEmail('');
+                        setExportStatus('');
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      className="confirm-btn"
+                      onClick={handleExportChat}
+                      disabled={!exportEmail || exportStatus?.includes('Sending...')}
+                    >
+                      {exportStatus?.includes('Sending...') ? 'Sending...' : 'Send to Email'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
