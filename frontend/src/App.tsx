@@ -8,6 +8,7 @@ import { AdminLayout, DashboardOverview, UserManagement, ContentManager, QuizMan
 import LandingPageWithNavigation, { HelpCenterPage, ContactPage, PrivacyPage, TermsPage } from './components/LandingPage';
 import { NotificationBell, NotificationDropdown, NotificationCenter, NotificationSettings } from './components/notifications';
 import { RecentActivityFeed } from './components/activity';
+import { CommunityDashboard } from './components/community';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -920,6 +921,9 @@ const AppContent: React.FC = () => {
         <button className={activeTab === 'analytics' ? 'active' : ''} onClick={() => setActiveTab('analytics')}>
           Analytics
         </button>
+        <button className={activeTab === 'community' ? 'active' : ''} onClick={() => setActiveTab('community')}>
+          Community
+        </button>
       </div>
 
       <div className="dashboard-content">
@@ -1406,6 +1410,13 @@ const AppContent: React.FC = () => {
                 ))}
               </ul>
             </div>
+          </div>
+        )}
+
+        {/* COMMUNITY */}
+        {activeTab === 'community' && (
+          <div className="community-section">
+            <CommunityDashboard />
           </div>
         )}
       </div>

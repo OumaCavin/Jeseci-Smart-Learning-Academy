@@ -23,6 +23,7 @@ import admin_analytics_store as analytics_store;
 import content_views_store as content_views_module;
 import notification_store as notification_module;
 import activity_store as activity_module;
+import collaboration_store as collaboration_module;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -4376,5 +4377,465 @@ walker admin_table_activity {
                 "summary": summary
             };
         }
+    }
+}
+
+# ==============================================================================
+# Collaboration & Community API Endpoints
+# ==============================================================================
+
+# User Connections
+
+walker connection_create {
+    has target_user_id: int;
+    
+    can connection_create with entry {
+        # Import collaboration store
+        import collaboration_store as collab_module;
+        
+        # Get current user from context
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.target_user_id or self.target_user_id == user_id {
+            report {
+                "success": False,
+                "error": "Invalid target user"
+            };
+            return;
+        }
+        
+        result = collab_module.collaboration_store.create_connection(
+            user_id=user_id,
+            connected_user_id=self.target_user_id
+        );
+        
+        report result;
+    }
+}
+
+walker connection_respond {
+    has connection_id: str;
+    has action: str = "accept";
+    
+    can connection_respond with entry {
+        import collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.connection_id or self.action not in ["accept", "reject"] {
+            report {
+                "success": False,
+                "error": "Invalid parameters"
+            };
+            return;
+        }
+        
+        result = collab_module.collaboration_store.respond_to_connection(
+            connection_id=self.connection_id,
+            user_id=user_id,
+            action=self.action
+        );
+        
+        report result;
+    }
+}
+
+walker connections_list {
+    has status: str = "";
+    has limit: int = 50;
+    has offset: int = 0;
+    
+    can connections_list with entry {
+        import collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        connections = collab_module.collaboration_store.get_user_connections(
+            user_id=user_id,
+            status=self.status if self.status else null
+        );
+        
+        report {
+            "success": True,
+            "connections": connections,
+            "total": len(connections)
+        };
+    }
+}
+
+walker connection_requests {
+    can connection_requests with entry {
+        import collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        requests = collab_module.collaboration_store.get_connection_requests(
+            user_id=user_id
+        );
+        
+        report {
+            "success": True,
+            "requests": requests,
+            "total": len(requests)
+        };
+    }
+}
+
+walker connection_remove {
+    has connection_id: str;
+    
+    can connection_remove with entry {
+        import collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = collab_module.collaboration_store.remove_connection(
+            connection_id=self.connection_id,
+            user_id=user_id
+        );
+        
+        report result;
+    }
+}
+
+walker users_search {
+    has query: str;
+    has limit: int = 10;
+    
+    can users_search with entry {
+        import collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.query or len(self.query) < 2 {
+            report {
+                "success": False,
+                "error": "Search query must be at least 2 characters"
+            };
+            return;
+        }
+        
+        users = collab_module.collaboration_store.search_users(
+            user_id=user_id,
+            query=self.query,
+            limit=self.limit
+        );
+        
+        report {
+            "success": True,
+            "users": users,
+            "total": len(users)
+        };
+    }
+}
+
+# Forums
+
+walker forums_list {
+    can forums_list with entry {
+        import collaboration_store as collab_module;
+        
+        forums = collab_module.collaboration_store.get_forums();
+        
+        report {
+            "success": True,
+            "forums": forums,
+            "total": len(forums)
+        };
+    }
+}
+
+walker forum_thread_create {
+    has forum_id: str;
+    has title: str;
+    has content: str;
+    
+    can forum_thread_create with entry {
+        import collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.forum_id or not self.title or not self.content {
+            report {
+                "success": False,
+                "error": "forum_id, title, and content are required"
+            };
+            return;
+        }
+        
+        if len(self.title) < 5 {
+            report {
+                "success": False,
+                "error": "Title must be at least 5 characters"
+            };
+            return;
+        }
+        
+        result = collab_module.collaboration_store.create_thread(
+            forum_id=self.forum_id,
+            user_id=user_id,
+            title=self.title,
+            content=self.content
+        );
+        
+        report result;
+    }
+}
+
+walker forum_threads {
+    has forum_id: str;
+    has page: int = 1;
+    has limit: int = 20;
+    
+    can forum_threads with entry {
+        import collaboration_store as collab_module;
+        
+        if not self.forum_id {
+            report {
+                "success": False,
+                "error": "forum_id is required"
+            };
+            return;
+        }
+        
+        result = collab_module.collaboration_store.get_threads(
+            forum_id=self.forum_id,
+            page=self.page,
+            limit=self.limit
+        );
+        
+        report result;
+    }
+}
+
+walker forum_thread {
+    has thread_id: str;
+    
+    can forum_thread with entry {
+        import collaboration_store as collab_module;
+        
+        if not self.thread_id {
+            report {
+                "success": False,
+                "error": "thread_id is required"
+            };
+            return;
+        }
+        
+        thread = collab_module.collaboration_store.get_thread(
+            thread_id=self.thread_id
+        );
+        
+        if thread {
+            report {
+                "success": True,
+                "thread": thread
+            };
+        } else {
+            report {
+                "success": False,
+                "error": "Thread not found"
+            };
+        }
+    }
+}
+
+walker forum_post_create {
+    has thread_id: str;
+    has content: str;
+    has parent_post_id: str = "";
+    
+    can forum_post_create with entry {
+        import collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.thread_id or not self.content {
+            report {
+                "success": False,
+                "error": "thread_id and content are required"
+            };
+            return;
+        }
+        
+        result = collab_module.collaboration_store.create_post(
+            thread_id=self.thread_id,
+            user_id=user_id,
+            content=self.content,
+            parent_post_id=self.parent_post_id if self.parent_post_id else null
+        );
+        
+        report result;
+    }
+}
+
+walker forum_post_like {
+    has post_id: str;
+    
+    can forum_post_like with entry {
+        import collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = collab_module.collaboration_store.like_post(
+            post_id=self.post_id,
+            user_id=user_id
+        );
+        
+        report result;
+    }
+}
+
+# Content Comments
+
+walker content_comment_add {
+    has content_id: str;
+    has content_type: str;
+    has content: str;
+    has parent_comment_id: str = "";
+    
+    can content_comment_add with entry {
+        import collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.content_id or not self.content_type or not self.content {
+            report {
+                "success": False,
+                "error": "content_id, content_type, and content are required"
+            };
+            return;
+        }
+        
+        result = collab_module.collaboration_store.add_comment(
+            user_id=user_id,
+            content_id=self.content_id,
+            content_type=self.content_type,
+            content=self.content,
+            parent_comment_id=self.parent_comment_id if self.parent_comment_id else null
+        );
+        
+        report result;
+    }
+}
+
+walker content_comments {
+    has content_id: str;
+    has content_type: str;
+    has page: int = 1;
+    has limit: int = 50;
+    
+    can content_comments with entry {
+        import collaboration_store as collab_module;
+        
+        if not self.content_id or not self.content_type {
+            report {
+                "success": False,
+                "error": "content_id and content_type are required"
+            };
+            return;
+        }
+        
+        result = collab_module.collaboration_store.get_content_comments(
+            content_id=self.content_id,
+            content_type=self.content_type,
+            page=self.page,
+            limit=self.limit
+        );
+        
+        report result;
+    }
+}
+
+walker content_comment_like {
+    has comment_id: str;
+    
+    can content_comment_like with entry {
+        import collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = collab_module.collaboration_store.like_comment(
+            comment_id=self.comment_id
+        );
+        
+        report result;
     }
 }
