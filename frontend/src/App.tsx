@@ -952,6 +952,7 @@ const AppContent: React.FC = () => {
             <div className="recent-activity-section">
               <h3>Recent Activity</h3>
               <RecentActivityFeed 
+                userId={user?.user_id || ''}
                 limit={5}
                 compact={true}
                 showHeader={false}

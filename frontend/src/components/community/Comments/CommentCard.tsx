@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { Heart, MessageSquare, MoreHorizontal } from 'lucide-react';
-import { ContentComment } from '../../services/collaborationService';
+import { ContentComment } from '../../../services/collaborationService';
 import { formatDistanceToNow } from 'date-fns';
 
 interface CommentCardProps {

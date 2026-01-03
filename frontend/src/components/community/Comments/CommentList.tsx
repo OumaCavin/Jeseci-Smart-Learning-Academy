@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Loader, MessageSquare } from 'lucide-react';
-import { getContentComments, likeComment, ContentComment } from '../../services/collaborationService';
+import { getContentComments, likeComment, ContentComment } from '../../../services/collaborationService';
 import CommentCard from './CommentCard';
 import CommentForm from './CommentForm';
 

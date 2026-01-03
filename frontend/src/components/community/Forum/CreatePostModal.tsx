@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { X, Loader } from 'lucide-react';
-import { createPost } from '../../services/collaborationService';
+import { createPost } from '../../../services/collaborationService';
 
 interface CreatePostModalProps {
   threadId: string;

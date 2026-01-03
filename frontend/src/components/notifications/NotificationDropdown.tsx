@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Bell, Check, X, Loader } from 'lucide-react';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { NotificationItem } from './NotificationItem';
 import { Link } from 'react-router-dom';
 

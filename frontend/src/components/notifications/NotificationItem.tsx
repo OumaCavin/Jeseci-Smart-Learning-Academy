@@ -14,8 +14,8 @@ import {
   Trash2,
   ExternalLink
 } from 'lucide-react';
-import { Notification, NOTIFICATION_TYPE_CONFIG } from '../services/notificationService';
-import { useNotifications } from '../contexts/NotificationContext';
+import { Notification, NOTIFICATION_TYPE_CONFIG } from '../../services/notificationService';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 interface NotificationItemProps {
   notification: Notification;
