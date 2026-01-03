@@ -900,21 +900,6 @@
 **/.claude/debug/**
 
 # ==============================================================================
-# PROJECT EXCLUSIONS
-# ==============================================================================
-# Browser automation files
-browser/
-
-# Temporary working directory
-tmp/
-
-# Workspace configuration (local only)
-workspace.json
-
-# User input files directory
-user_input_files/
-
-# ==============================================================================
 # NESTED GIT REPOSITORIES
 # ==============================================================================
 # Temporarily renamed .git directories (used by WorkspaceGitManager)
