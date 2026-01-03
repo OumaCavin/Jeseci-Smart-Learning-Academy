@@ -790,6 +790,31 @@ class AIUsageStats(Base):
         return f"<AIUsageStats(type='{self.stat_type}', key='{self.stat_key}', value={self.stat_value})>"
 
 
+class Testimonial(Base):
+    """Testimonial model for user reviews and feedback"""
+    __tablename__ = "testimonials"
+    __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    role: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    company: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    rating: Mapped[int] = mapped_column(Integer, default=5)
+    avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    is_approved: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    __table_args__ = (
+        Index("idx_testimonial_approved", "is_approved"),
+        Index("idx_testimonial_active", "is_active"),
+    )
+    
+    def __repr__(self) -> str:
+        return f"<Testimonial(id={self.id}, name='{self.name}', rating={self.rating})>"
+
+
 # =============================================================================
 # Export all models for convenient importing
 # =============================================================================
@@ -809,4 +834,6 @@ __all__ = [
     "SystemLog", "SystemHealth", "AIAgent",
     # AI
     "AIGeneratedContent", "AIUsageStats",
+    # Testimonials
+    "Testimonial",
 ]
