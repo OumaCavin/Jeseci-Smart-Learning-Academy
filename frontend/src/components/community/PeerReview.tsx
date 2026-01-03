@@ -25,49 +25,16 @@ import {
   SortAsc,
   SortDesc
 } from 'lucide-react';
-import advancedCollaborationService from '../../services/advancedCollaborationService';
+import advancedCollaborationService, {
+  PeerReviewSubmission as ServicePeerReviewSubmission,
+  PeerReviewAssignment as ServicePeerReviewAssignment,
+  PeerReviewFeedback as ServicePeerReviewFeedback
+} from '../../services/advancedCollaborationService';
 
-// Type definitions
-interface PeerReviewSubmission {
-  id: number;
-  authorId: number;
-  authorUsername: string;
-  authorReputation: number;
-  title: string;
-  description: string;
-  contentType: string;
-  contentUrl: string;
-  status: 'pending' | 'assigned' | 'in_review' | 'completed' | 'approved' | 'needs_revision' | 'rejected';
-  reviewerId: number | null;
-  reviewerUsername: string | null;
-  averageRating: number | null;
-  createdAt: string;
-  updatedAt: string;
-  dueDate: string | null;
-}
-
-interface PeerReviewAssignment {
-  id: number;
-  submissionId: number;
-  reviewerId: number;
-  reviewerUsername: string;
-  status: 'pending' | 'accepted' | 'completed' | 'declined';
-  assignedAt: string;
-  completedAt: string | null;
-  feedbackRating: number | null;
-}
-
-interface PeerReviewFeedback {
-  id: number;
-  submissionId: number;
-  reviewerId: number;
-  reviewerUsername: string;
-  rating: number;
-  strengths: string;
-  improvements: string;
-  comments: string;
-  createdAt: string;
-}
+// Type definitions (using service types)
+interface PeerReviewSubmission extends ServicePeerReviewSubmission {}
+interface PeerReviewAssignment extends ServicePeerReviewAssignment {}
+interface PeerReviewFeedback extends ServicePeerReviewFeedback {}
 
 interface ReviewStats {
   totalSubmissions: number;
@@ -92,7 +59,14 @@ const PeerReview: React.FC = () => {
   const [submissions, setSubmissions] = useState<PeerReviewSubmission[]>([]);
   const [assignments, setAssignments] = useState<PeerReviewAssignment[]>([]);
   const [feedback, setFeedback] = useState<PeerReviewFeedback[]>([]);
-  const [stats, setStats] = useState<ReviewStats | null>(null);
+  const [stats, setStats] = useState<ReviewStats>({
+    totalSubmissions: 0,
+    pendingReviews: 0,
+    averageRating: 0,
+    reviewsGiven: 0,
+    reviewsReceived: 0,
+    topReviewers: []
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSubmission, setSelectedSubmission] = useState<PeerReviewSubmission | null>(null);
