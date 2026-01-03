@@ -266,7 +266,7 @@ const Moderation: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-blue-600 font-medium">Pending Reviews</p>
-                    <p className="text-2xl font-bold text-blue-900">{stats.pendingReports}</p>
+                    <p className="text-2xl font-bold text-blue-900">{stats.pending_reports}</p>
                   </div>
                   <Clock className="w-8 h-8 text-blue-300" />
                 </div>
@@ -275,7 +275,7 @@ const Moderation: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-green-600 font-medium">Resolved</p>
-                    <p className="text-2xl font-bold text-green-900">{stats.resolvedReports}</p>
+                    <p className="text-2xl font-bold text-green-900">{stats.resolved_reports}</p>
                   </div>
                   <CheckCircle className="w-8 h-8 text-green-300" />
                 </div>
@@ -284,7 +284,7 @@ const Moderation: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 font-medium">Dismissed</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.dismissedReports}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.dismissed_reports}</p>
                   </div>
                   <XCircle className="w-8 h-8 text-gray-300" />
                 </div>
@@ -293,7 +293,7 @@ const Moderation: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-purple-600 font-medium">Avg Resolution</p>
-                    <p className="text-2xl font-bold text-purple-900">{stats.avgResolutionTime}h</p>
+                    <p className="text-2xl font-bold text-purple-900">{stats.avg_resolution_time}h</p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-purple-300" />
                 </div>
@@ -318,9 +318,9 @@ const Moderation: React.FC = () => {
             <div className="flex items-center gap-2">
               <Flag className="w-4 h-4" />
               Review Queue
-              {queue && queue.totalPending > 0 && (
+              {queue && queue.filter(q => q.status === 'pending').length > 0 && (
                 <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {queue.totalPending}
+                  {queue.filter(q => q.status === 'pending').length}
                 </span>
               )}
             </div>
@@ -613,25 +613,25 @@ const Moderation: React.FC = () => {
                   <div key={action.id} className="p-4 hover:bg-gray-50">
                     <div className="flex items-start gap-4">
                       <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                        {getActionTypeIcon(action.actionType)}
+                        {getActionTypeIcon(action.action_type)}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-medium text-gray-900">
-                            {action.moderatorUsername}
+                            {action.moderator_username}
                           </span>
                           <span className="text-gray-500">took action:</span>
                           <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs font-medium rounded">
-                            {action.actionType.toUpperCase()}
+                            {action.action_type.toUpperCase()}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mb-2">{action.reason}</p>
                         <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>Report #{action.reportId}</span>
+                          <span>Report #{action.report_id}</span>
                           {action.duration && (
                             <span>Duration: {action.duration} days</span>
                           )}
-                          <span>{new Date(action.createdAt).toLocaleString()}</span>
+                          <span>{new Date(action.created_at).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -649,7 +649,7 @@ const Moderation: React.FC = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Top Report Reasons</h3>
               <div className="space-y-3">
-                {stats.topReasons.map((item, index) => (
+                {(stats.top_reasons || []).map((item, index) => (
                   <div key={index} className="flex items-center gap-4">
                     <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-600">
                       {index + 1}
