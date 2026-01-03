@@ -1,9 +1,12 @@
 /**
  * Auth Context - Provides authentication state and methods throughout the app
+ * Includes automatic session timeout after 3 minutes of inactivity
  */
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { apiService, User } from '../services/api';
+import { useSessionTimeout } from '../hooks/useSessionTimeout';
+import SessionTimeoutModal from '../components/SessionTimeoutModal';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -14,6 +17,8 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
   refreshUserData: () => Promise<void>;
+  showSessionWarning: boolean;
+  sessionTimeRemaining: number;
 }
 
 interface RegisterData {
@@ -38,6 +43,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Session timeout state
+  const [showSessionWarning, setShowSessionWarning] = useState(false);
+  const [sessionTimeRemaining, setSessionTimeRemaining] = useState(0);
+
   // Initialize auth state from localStorage on mount
   useEffect(() => {
     const initAuth = async () => {
@@ -60,7 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
           } catch (error) {
             // Token expired (5-minute timeout for security), clear storage
-            console.log('Session expired after 5 minutes, logging out for security');
+            console.log('Session expired, logging out for security');
             localStorage.removeItem(AUTH_TOKEN_KEY);
             localStorage.removeItem(AUTH_USER_KEY);
             setToken(null);
@@ -77,6 +86,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     initAuth();
   }, []);
+
+  // Handle logout from session timeout
+  const handleSessionTimeout = useCallback(() => {
+    console.log('Session timeout - logging out user');
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
+    setToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
+    setShowSessionWarning(false);
+  }, []);
+
+  // Handle warning dismissed (user activity detected)
+  const handleWarningDismissed = useCallback(() => {
+    setShowSessionWarning(false);
+    setSessionTimeRemaining(0);
+  }, []);
+
+  // Initialize session timeout when authenticated
+  const {
+    logout: sessionLogout,
+    resetSession,
+    warningTimeRemaining,
+    showWarning,
+    formatTime
+  } = useSessionTimeout(handleSessionTimeout);
+
+  // Update session warning state
+  useEffect(() => {
+    setShowSessionWarning(showWarning);
+    if (showWarning) {
+      setSessionTimeRemaining(Math.ceil(warningTimeRemaining / 1000));
+    }
+  }, [showWarning, warningTimeRemaining]);
 
   const login = async (username: string, password: string) => {
     setLoading(true);
@@ -98,6 +141,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setToken(authToken);
         setUser(userData);
         setIsAuthenticated(true);
+
+        // Reset session timeout on login
+        resetSession();
       } else {
         // Provide detailed error messages based on error code
         const errorCode = response.code || '';
@@ -124,7 +170,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const response = await apiService.register(userData);
 
       if (response.success && response.user) {
-        const userData = response.user;
+        const newUserData = response.user;
         const authToken = response.access_token || response.token;
 
         if (!authToken) {
@@ -133,11 +179,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // Store in localStorage for session persistence
         localStorage.setItem(AUTH_TOKEN_KEY, authToken);
-        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(userData));
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(newUserData));
 
         setToken(authToken);
-        setUser(userData);
+        setUser(newUserData);
         setIsAuthenticated(true);
+
+        // Reset session timeout on registration
+        resetSession();
       } else {
         // Provide detailed error messages based on error code
         const errorCode = response.code || '';
@@ -169,6 +218,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
+    setShowSessionWarning(false);
+
+    // Clean up session timeout
+    sessionLogout();
   };
 
   const refreshUserData = async () => {
@@ -198,10 +251,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         register,
         logout,
-        refreshUserData
+        refreshUserData,
+        showSessionWarning,
+        sessionTimeRemaining
       }}
     >
       {children}
+      {/* Session Timeout Modal - Only show when authenticated and warning is active */}
+      {isAuthenticated && showSessionWarning && (
+        <SessionTimeoutModal
+          show={showSessionWarning}
+          remainingSeconds={sessionTimeRemaining}
+          onStayLoggedIn={resetSession}
+          formatTime={formatTime}
+        />
+      )}
     </AuthContext.Provider>
   );
 };
