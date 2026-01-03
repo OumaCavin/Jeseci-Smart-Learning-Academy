@@ -253,18 +253,18 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ limit = 10 }) => {
         {entries.map((entry, index) => (
           <div
             key={entry.user_id}
-            className={`p-4 flex items-center justify-between ${getRankStyle(entry.rank)}`}
+            className={`p-4 flex items-center justify-between ${getRankStyle((entry as any).rank || index + 1)}`}
           >
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0 w-8 flex justify-center">
-                {getRankIcon(entry.rank)}
+                {getRankIcon((entry as any).rank || index + 1)}
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-medium">
-                {entry.username?.charAt(0).toUpperCase() || '?'}
+                {(entry as any).username?.charAt(0).toUpperCase() || entry.user_id.toString().charAt(0).toUpperCase() || '?'}
               </div>
               <div>
-                <p className="font-medium text-gray-900">{entry.username}</p>
-                <p className="text-sm text-gray-500">Level {entry.level} • {entry.rank}</p>
+                <p className="font-medium text-gray-900">{(entry as any).username || `User ${entry.user_id}`}</p>
+                <p className="text-sm text-gray-500">Level {entry.level} • Rank #{(entry as any).rank || index + 1}</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
