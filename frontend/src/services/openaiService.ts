@@ -30,9 +30,10 @@ class OpenAIService {
   private baseURL = 'https://api.openai.com/v1/chat/completions';
 
   constructor() {
-    this.apiKey = process.env.OPENAI_API_KEY || '';
+    // Use Vite environment variable (import.meta.env) for browser compatibility
+    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
     if (!this.apiKey) {
-      console.warn('OPENAI_API_KEY not found in environment variables');
+      console.warn('VITE_OPENAI_API_KEY not found in environment variables. AI features will use fallback responses.');
     }
   }
 
