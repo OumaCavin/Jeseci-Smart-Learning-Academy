@@ -1,7 +1,7 @@
 // Activity Service for Jeseci Smart Learning Academy
 // Handles all API communication for user activities and recent activity feed
 
-import { apiService } from './api';
+import { apiService } from '../api';
 
 // Activity type definitions
 export type ActivityType =
