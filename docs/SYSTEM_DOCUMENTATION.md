@@ -3,19 +3,27 @@
 ## Table of Contents
 
 1. [System Overview](#system-overview)
-2. [User Categories and Roles](#user-categories-and-roles)
-3. [Role Hierarchy and Permissions](#role-hierarchy-and-permissions)
-4. [Access Control System](#access-control-system)
-5. [Backend Authorization](#backend-authorization)
-6. [Frontend Role Display](#frontend-role-display)
-7. [Database Schema](#database-schema)
-8. [API Endpoints Reference](#api-endpoints-reference)
-9. [Content Generation Flow](#content-generation-flow)
-10. [AI Quiz Generation Flow](#ai-quiz-generation-flow)
-11. [Security Considerations](#security-considerations)
-12. [Development Notes](#development-notes)
-13. [Related Documentation](#related-documentation-1)
-14. [User Views, Access, and User Flow](#user-views-access-and-user-flow)
+2. [Code Execution Engine](#code-execution-engine)
+3. [Multi-Language Code Execution](#multi-language-code-execution)
+4. [Code Snippet Version History](#code-snippet-version-history)
+5. [Test Case Management](#test-case-management)
+6. [Debug Session Management](#debug-session-management)
+7. [Error Knowledge Base](#error-knowledge-base)
+8. [User Categories and Roles](#user-categories-and-roles)
+9. [Role Hierarchy and Permissions](#role-hierarchy-and-permissions)
+10. [Access Control System](#access-control-system)
+11. [Backend Authorization](#backend-authorization)
+12. [Frontend Role Display](#frontend-role-display)
+13. [Database Schema](#database-schema)
+14. [API Endpoints Reference](#api-endpoints-reference)
+15. [Content Generation Flow](#content-generation-flow)
+16. [AI Quiz Generation Flow](#ai-quiz-generation-flow)
+17. [Content View Tracking](#content-view-tracking)
+18. [Security Considerations](#security-considerations)
+19. [Development Notes](#development-notes)
+20. [Related Documentation](#related-documentation-1)
+21. [User Views, Access, and User Flow](#user-views-access-and-user-flow)
+22. [Frontend API Methods Reference](#frontend-api-methods-reference)
 
 ---
 
@@ -27,6 +35,573 @@ Jeseci Smart Learning Academy is a comprehensive learning management platform bu
 - **Frontend**: React-based admin dashboard with TypeScript
 - **Database**: Hybrid storage using PostgreSQL (relational data) and Neo4j (graph relationships)
 - **Authentication**: JWT-based authentication with role-based access control (RBAC)
+- **Code Execution Engine**: Multi-language code execution, version control, testing, and debugging platform
+
+---
+
+## Code Execution Engine
+
+### Overview
+
+The Jeseci Smart Learning Academy Code Execution Engine is a comprehensive platform for executing, testing, and debugging code within a secure sandboxed environment. This engine powers interactive coding exercises, automated assessments, and step-through debugging sessions for learners studying programming concepts. The system provides a complete development environment that enables students to write, run, test, and debug code directly within the learning platform, with intelligent error detection and solution recommendations.
+
+### Architecture Components
+
+The Code Execution Engine consists of several integrated components that work together to provide a seamless coding experience. The execution runtime handles multi-language code execution supporting Python, JavaScript, and Jac languages, with configurable timeout limits and resource quotas for each language. The version control system automatically tracks changes to code snippets, maintaining a complete history of edits with the ability to rollback to any previous version. The testing framework enables educators to create test cases that validate student code, providing immediate feedback on correctness and performance. The debugging system provides real-time debugging capabilities with breakpoints, step-through control, and variable inspection. The error knowledge base maintains a repository of common error patterns and their solutions, helping students learn from their mistakes and understand how to fix common programming errors.
+
+**Core Modules Location**: The code execution engine is implemented in `backend/code_execution.py` for the execution logic and `backend/code_execution_store.py` for data persistence and management operations. The database schema for code execution features is defined in `backend/database/initialize_database.py`, with dedicated tables for code snippets, versions, test cases, test results, debug sessions, and the error knowledge base.
+
+### Security Model
+
+The code execution engine implements a comprehensive security model to protect the platform while providing a realistic coding environment. All code executes within a sandboxed environment with resource isolation, preventing malicious or erroneous code from affecting the host system or other users. Execution timeout limits are configurable per language, with Python and JavaScript defaulting to 30 seconds and Jac language defaulting to 60 seconds due to its more complex runtime requirements. Memory and CPU quotas are enforced per execution, with Python and JavaScript allocations of 256MB and Jac allocations of 512MB to accommodate its graph-based execution model. Network access is restricted to prevent code from making external connections, though standard library functions that don't require network access remain available. Input sanitization and validation ensure that user-provided code and inputs are properly validated before execution, preventing injection attacks and other security vulnerabilities.
+
+### Frontend Integration
+
+The frontend provides a comprehensive code editing experience through the `CodeEditor.tsx` component located in `frontend/src/components/`. The editor features a language selector dropdown that allows users to switch between Python, JavaScript, and Jac languages, with syntax highlighting appropriate for each language. A version history panel displays all saved versions of the current code snippet, enabling users to compare changes and restore previous versions with a single click. The test case management panel allows users to create, edit, and run test cases directly within the editor interface. Debug controls provide step-through functionality including step over, step into, and step out operations, along with variable inspection and call stack visualization. The output console displays execution results, errors, and debugging information in a clearly formatted manner.
+
+---
+
+## Multi-Language Code Execution
+
+### Supported Languages
+
+The Code Execution Engine supports three programming languages, each with specific runtime configurations optimized for educational use. Python serves as the primary language for general programming education, leveraging the extensive Python standard library and providing access to commonly used modules for data manipulation, string processing, and mathematical operations. JavaScript support enables web development education, allowing students to write and execute JavaScript code with Node.js runtime features. The Jac language is the platform's native language, supporting the unique object-spatial programming paradigm that forms the foundation of the Jaseci development environment.
+
+| Language | Runtime | Default Timeout | Memory Limit | Use Case |
+|----------|---------|-----------------|--------------|----------|
+| **Python** | Python 3.x | 30 seconds | 256 MB | General programming, data science, automation |
+| **JavaScript** | Node.js | 30 seconds | 256 MB | Web development, server-side scripting |
+| **Jac** | Jaclang Runtime | 60 seconds | 512 MB | Object-spatial programming, graph-based development |
+
+### Execution API
+
+The code execution endpoint provides a unified interface for executing code in any supported language. The system automatically routes the request to the appropriate runtime based on the specified language parameter, handles input and output streams, enforces resource limits, and returns structured results including output, errors, and execution metrics.
+
+**Endpoint**: `POST /walker/execute_code`
+
+**Request Parameters**:
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `code` | string | Yes | Source code to execute |
+| `language` | string | Yes | Programming language identifier (python, javascript, jac) |
+| `input` | string | No | Standard input to pass to the program |
+| `timeout` | integer | No | Custom execution timeout in seconds |
+
+**Example Request**:
+
+```json
+{
+    "code": "print('Hello, World!')\nprint(2 + 2)",
+    "language": "python",
+    "input": "",
+    "timeout": 30
+}
+```
+
+**Response Structure**:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `output` | string | Standard output from the program |
+| `error` | string | Standard error output or runtime error message |
+| `execution_time` | float | Execution duration in seconds |
+| `memory_used` | integer | Peak memory usage in bytes |
+| `success` | boolean | Whether execution completed without errors |
+
+**Example Response**:
+
+```json
+{
+    "success": true,
+    "output": "Hello, World!\n4",
+    "error": "",
+    "execution_time": 0.045,
+    "memory_used": 15234
+}
+```
+
+### Language-Specific Features
+
+**Python Execution**: Python code executes in an isolated environment with access to the standard library including `os`, `json`, `math`, `random`, `re`, `datetime`, `collections`, `itertools`, and `functools` modules. Third-party packages are not available by default to maintain security and consistency across executions. The execution environment supports both Python 3 syntax and common patterns used in educational contexts.
+
+**JavaScript Execution**: JavaScript code runs in a Node.js environment with access to core modules such as `console`, `process` (limited), `Buffer`, and `util`. File system access is restricted for security purposes, but string manipulation, mathematical operations, and JSON processing work as expected. The environment is suitable for teaching JavaScript fundamentals, asynchronous programming concepts, and Node.js development patterns.
+
+**Jac Execution**: Jac language execution leverages the native Jaclang runtime with full support for object-spatial programming features including nodes, walkers, edges, and graphs. The extended timeout and memory limits accommodate the graph-based execution model. This enables teaching of the unique Jaseci paradigm alongside traditional programming concepts.
+
+---
+
+## Code Snippet Version History
+
+### Overview
+
+The version history system automatically tracks changes to code snippets, maintaining a complete audit trail of edits made by users. This feature enables students to review their progress over time, compare different versions of their code, and restore previous states when needed. Educators can also use version history to review student work and understand the evolution of their coding approach.
+
+### Data Model
+
+The version history is stored in the `snippet_versions` table within the `jeseci_academy` schema. Each version represents a snapshot of a code snippet at a specific point in time, capturing the complete code content, the author of the change, and optional descriptive information about what was modified.
+
+**Database Schema**:
+
+```sql
+CREATE TABLE jeseci_academy.snippet_versions (
+    id SERIAL PRIMARY KEY,
+    version_id VARCHAR(100) UNIQUE NOT NULL,
+    snippet_id VARCHAR(100) REFERENCES jeseci_academy.code_snippets(snippet_id),
+    version_number INTEGER NOT NULL,
+    code_content TEXT NOT NULL,
+    created_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    change_description TEXT,
+    UNIQUE(snippet_id, version_number)
+);
+```
+
+**Field Descriptions**:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `version_id` | VARCHAR(100) | Unique identifier for this version |
+| `snippet_id` | VARCHAR(100) | Reference to the parent code snippet |
+| `version_number` | INTEGER | Sequential version number within the snippet |
+| `code_content` | TEXT | Complete source code at this version |
+| `created_by` | VARCHAR(100) | User who created this version |
+| `created_at` | TIMESTAMP | Timestamp of version creation |
+| `change_description` | TEXT | Optional description of changes made |
+
+### Version Management API
+
+The system provides a comprehensive set of API endpoints for managing version history. These endpoints enable listing versions, creating new snapshots, retrieving specific versions, and rolling back to previous states. All endpoints require authentication and validate that the requesting user has access to the associated code snippet.
+
+**Version Management Endpoints**:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/snippet_versions` | GET | List all versions for a snippet |
+| `/walker/snippet_versions` | POST | Create a new version snapshot |
+| `/walker/snippet_versions/{id}` | GET | Get specific version details |
+| `/walker/snippet_rollback` | POST | Rollback to a previous version |
+| `/walker/snippet_compare` | POST | Compare two versions (diff) |
+
+**List Versions Request**:
+
+```json
+{
+    "snippet_id": "snippet_abc123"
+}
+```
+
+**List Versions Response**:
+
+```json
+{
+    "success": true,
+    "versions": [
+        {
+            "version_id": "ver_001",
+            "version_number": 1,
+            "created_by": "student_123",
+            "created_at": "2026-01-03T10:00:00Z",
+            "change_description": "Initial version"
+        },
+        {
+            "version_id": "ver_002",
+            "version_number": 2,
+            "created_by": "student_123",
+            "created_at": "2026-01-03T10:15:00Z",
+            "change_description": "Added function to calculate sum"
+        }
+    ]
+}
+```
+
+### Frontend Version History Panel
+
+The frontend provides an intuitive interface for browsing and managing version history. The version panel displays as a collapsible sidebar showing a chronological list of all saved versions. Each version entry shows the version number, creation time, and change description if provided. Users can click on any version to view its complete code content, compare it with the current version, or restore it as the current working copy. Visual diff highlighting shows additions and deletions between versions, making it easy to track changes at a glance.
+
+---
+
+## Test Case Management
+
+### Overview
+
+The test case management system enables educators to create and manage test cases that validate student code submissions. Test cases specify input data, expected output, and optional validation criteria that determine whether a student's solution is correct. The system supports multiple test cases per code snippet, including hidden test cases that students cannot see, enabling comprehensive assessment of student understanding.
+
+### Test Case Structure
+
+Each test case defines a single validation scenario with input parameters and expected results. Test cases can be visible to students or hidden, allowing educators to include both public tests for guidance and private tests for comprehensive evaluation. Points can be assigned to each test case, enabling weighted scoring of different aspects of a solution.
+
+**Test Case Interface**:
+
+```typescript
+interface TestCase {
+    test_id: string;
+    snippet_id: string;
+    test_name: string;
+    input_data: string;
+    expected_output: string;
+    is_hidden: boolean;
+    points: number;
+    created_by: string;
+    created_at: string;
+    timeout?: number;
+    description?: string;
+}
+```
+
+**Field Descriptions**:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `test_id` | string | Unique identifier for the test case |
+| `snippet_id` | string | Reference to the associated code snippet |
+| `test_name` | string | Human-readable name for the test |
+| `input_data` | string | Input to pass to the student code |
+| `expected_output` | string | Expected output for validation |
+| `is_hidden` | boolean | Whether test is hidden from students |
+| `points` | number | Points awarded for passing this test |
+| `created_by` | string | Educator who created the test |
+| `timeout` | number | Custom timeout for this test |
+| `description` | string | Optional description of what is tested |
+
+### Test Execution API
+
+The test execution endpoints provide comprehensive functionality for running tests and retrieving results. The system executes each test case by running the student code with the specified input and comparing the actual output against the expected output. Results include pass/fail status, execution metrics, and detailed error information for failed tests.
+
+**Endpoint**: `POST /walker/run_test_case`
+
+**Request**:
+
+```json
+{
+    "test_id": "test_123",
+    "code": "def add(a, b): return a + b"
+}
+```
+
+**Response**:
+
+```json
+{
+    "passed": true,
+    "actual_output": "5",
+    "expected_output": "5",
+    "execution_time": 0.023,
+    "memory_used": 12345,
+    "error": null
+}
+```
+
+**Batch Test Execution Endpoint**: `POST /walker/run_tests`
+
+Runs all test cases associated with a code snippet and returns comprehensive results including overall score, individual test results, and performance metrics.
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "total_tests": 5,
+    "passed": 4,
+    "failed": 1,
+    "score": 85,
+    "total_points": 100,
+    "earned_points": 85,
+    "results": [
+        {
+            "test_id": "test_001",
+            "test_name": "Basic Addition",
+            "passed": true,
+            "actual_output": "5",
+            "expected_output": "5",
+            "points_earned": 20
+        },
+        {
+            "test_id": "test_002",
+            "test_name": "Negative Numbers",
+            "passed": false,
+            "actual_output": "-3",
+            "expected_output": "-5",
+            "points_earned": 0,
+            "error": "Output mismatch"
+        }
+    ],
+    "execution_time": 0.452,
+    "memory_used": 23456
+}
+```
+
+### Test Results Storage
+
+Test execution results are persisted in the `test_results` table for analytics and student feedback. This enables tracking of student performance over time, identifying common misconceptions, and providing detailed feedback on code quality. The storage layer captures execution details, error messages, and performance metrics for each test run.
+
+**Test Results Schema**:
+
+```sql
+CREATE TABLE jeseci_academy.test_results (
+    id SERIAL PRIMARY KEY,
+    result_id VARCHAR(100) UNIQUE NOT NULL,
+    test_id VARCHAR(100) REFERENCES jeseci_academy.test_cases(test_id),
+    user_id VARCHAR(100),
+    actual_output TEXT,
+    passed BOOLEAN NOT NULL,
+    execution_time FLOAT,
+    memory_used INTEGER,
+    error_message TEXT,
+    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Frontend Test Case Panel
+
+The test case management panel in the frontend provides a comprehensive interface for creating, editing, and running tests. The panel displays all test cases associated with the current code snippet, with visible tests shown to all users and hidden tests indicated with a lock icon visible only to educators. Each test case card shows the test name, input, expected output, and points value. Running tests displays progress indicators and presents detailed results with pass/fail status, execution time, and any error messages. The panel integrates seamlessly with the code editor, allowing students to write code and immediately validate their solution against test cases.
+
+---
+
+## Debug Session Management
+
+### Overview
+
+The debug session management system provides comprehensive debugging capabilities for students learning to code. The system enables step-through debugging with breakpoints, variable inspection, call stack visualization, and real-time state monitoring. Debug sessions run in isolated environments, preventing interference between concurrent debugging activities while maintaining full debugging functionality.
+
+### Debug Session Lifecycle
+
+A debug session progresses through several states during its lifecycle, from initialization through active debugging to termination. The system manages session state to ensure proper resource allocation and cleanup, preventing resource leaks from abandoned debugging sessions.
+
+**Session States**:
+
+| State | Description |
+|-------|-------------|
+| `initializing` | Session is being set up |
+| `running` | Debug session is active, code is executing |
+| `paused` | Execution paused at breakpoint or step completion |
+| `terminated` | Session has ended and resources are freed |
+
+### Debug Control API
+
+The debug API provides comprehensive control over debugging sessions, enabling fine-grained management of execution flow and state inspection. Each endpoint serves a specific purpose in the debugging workflow, from initial session creation through active debugging to proper session termination.
+
+**Session Management Endpoints**:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/debug_start` | POST | Create new debug session, return session_id |
+| `/walker/debug_end` | POST | Terminate debug session, free resources |
+| `/walker/debug_breakpoints` | POST | Configure breakpoints for session |
+| `/walker/debug_step_over` | POST | Execute current line, skip function calls |
+| `/walker/debug_step_into` | POST | Enter function call on next line |
+| `/walker/debug_step_out` | POST | Return from current function |
+| `/walker/debug_continue` | POST | Run to next breakpoint |
+| `/walker/debug_state` | GET | Get current debug state |
+| `/walker/debug_variables` | GET | Get all visible variables |
+| `/walker/debug_stack` | GET | Get call stack information |
+
+**Start Debug Session Request**:
+
+```json
+{
+    "code": "def factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n-1)\n\nprint(factorial(5))",
+    "language": "python"
+}
+```
+
+**Start Debug Session Response**:
+
+```json
+{
+    "success": true,
+    "session_id": "debug_session_abc123",
+    "state": "running",
+    "current_line": 6,
+    "breakpoints": []
+}
+```
+
+**Set Breakpoints Request**:
+
+```json
+{
+    "session_id": "debug_session_abc123",
+    "breakpoints": [2, 4, 6]
+}
+```
+
+### Debug State Response
+
+The debug state endpoint returns comprehensive information about the current debugging session, including the current execution position, all visible variables and their values, and the call stack showing the execution history.
+
+**Debug State Response**:
+
+```json
+{
+    "success": true,
+    "session_id": "debug_session_abc123",
+    "state": "paused",
+    "current_line": 4,
+    "variables": {
+        "n": 5,
+        "result": 120,
+        "items": [1, 2, 3, 4, 5]
+    },
+    "call_stack": [
+        {
+            "function": "main",
+            "file": "main.py",
+            "line": 7
+        },
+        {
+            "function": "factorial",
+            "file": "main.py",
+            "line": 4
+        }
+    ],
+    "breakpoints": [2, 4, 6],
+    "output": "5\n"
+}
+```
+
+### Debug Sessions Schema
+
+Debug session data is persisted in the `debug_sessions` table for session tracking and analytics. The schema captures session metadata, user associations, and resource usage statistics.
+
+**Debug Sessions Schema**:
+
+```sql
+CREATE TABLE jeseci_academy.debug_sessions (
+    id SERIAL PRIMARY KEY,
+    session_id VARCHAR(100) UNIQUE NOT NULL,
+    user_id VARCHAR(100),
+    snippet_id VARCHAR(100),
+    language VARCHAR(50),
+    state VARCHAR(20) DEFAULT 'initializing',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    execution_count INTEGER DEFAULT 0,
+    total_execution_time FLOAT DEFAULT 0
+);
+```
+
+### Frontend Debug Controls
+
+The frontend provides an intuitive debugging interface with visual controls for all debugging operations. The toolbar includes buttons for starting new debug sessions, setting and clearing breakpoints, and controlling execution flow with step over, step into, step out, and continue operations. Variable watch panels display current variable values in real-time, updating as execution progresses. The call stack panel shows the hierarchical call history with the ability to inspect frames at different levels. Source code display highlights the current execution line with visual indicators for breakpoints and the current scope. Console output shows program output alongside debug information, maintaining a clear separation between normal output and debugging messages.
+
+---
+
+## Error Knowledge Base
+
+### Overview
+
+The error knowledge base is a comprehensive repository of programming errors, their causes, and recommended solutions. The system provides intelligent error lookup functionality that matches runtime errors against known patterns and suggests appropriate fixes. This feature accelerates student learning by providing immediate, contextual help when errors occur, teaching students how to diagnose and resolve common programming problems.
+
+### Error Classification
+
+The knowledge base maintains a hierarchical taxonomy of error types, organizing errors by category, language, and specific patterns. This classification enables efficient lookup and provides a logical structure for browsing solutions.
+
+**Error Categories**:
+
+| Category | Description | Examples |
+|----------|-------------|----------|
+| **Syntax Errors** | Language syntax violations | Missing colon, unmatched parentheses, invalid indentation |
+| **Runtime Errors** | Execution-time failures | Division by zero, null reference, index out of range |
+| **Logic Errors** | Incorrect program behavior | Off-by-one errors, incorrect conditionals |
+| **Import Errors** | Module and dependency issues | Module not found, circular import, missing package |
+| **Type Errors** | Type-related failures | Type mismatch, unexpected type, cannot convert |
+| **Memory Errors** | Resource exhaustion | Stack overflow, excessive memory allocation |
+| **Permission Errors** | Access control violations | File not readable, permission denied |
+
+### Error Lookup API
+
+The error lookup endpoint accepts error messages and contextual information, returning matching solutions from the knowledge base ranked by confidence score. The system uses pattern matching and natural language processing to identify the most relevant solutions.
+
+**Endpoint**: `POST /walker/error_lookup`
+
+**Request**:
+
+```json
+{
+    "error_message": "NameError: name 'x' is not defined",
+    "language": "python",
+    "context": "def test(): print(x)"
+}
+```
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "error_type": "NameError",
+    "solutions": [
+        {
+            "solution_id": "sol_001",
+            "title": "Variable Not Defined",
+            "explanation": "The variable 'x' is used before being defined or is not in scope",
+            "fix": "Define the variable before use",
+            "code_example": "x = 10\nprint(x)",
+            "confidence": 0.95,
+            "category": "Runtime Errors"
+        }
+    ],
+    "related_errors": [
+        {
+            "error_type": "UnboundLocalError",
+            "similarity": 0.7
+        }
+    ]
+}
+```
+
+### Knowledge Base Management
+
+Authorized administrators can manage the error knowledge base through dedicated endpoints, adding new error patterns and solutions to improve the system's coverage. The management interface supports CRUD operations for error entries, solution voting for quality ranking, and bulk import functionality for adding large numbers of entries.
+
+**Admin Management Endpoints**:
+
+| Endpoint | Method | Required Role | Description |
+|----------|--------|---------------|-------------|
+| `/walker/admin_errors` | GET | content_admin | List all error patterns |
+| `/walker/admin_errors` | POST | content_admin | Add new error pattern |
+| `/walker/admin_errors/{id}` | PUT | content_admin | Update error entry |
+| `/walker/admin_errors/{id}` | DELETE | content_admin | Delete error entry |
+| `/walker/admin_solutions` | POST | content_admin | Add solution to error |
+| `/walker/admin_solutions/{id}` | PUT | content_admin | Update solution |
+
+### Knowledge Base Schema
+
+The error knowledge base is stored across multiple tables supporting efficient lookup, categorization, and quality management of error solutions.
+
+**Error Knowledge Base Schema**:
+
+```sql
+CREATE TABLE jeseci_academy.error_knowledge_base (
+    id SERIAL PRIMARY KEY,
+    error_id VARCHAR(100) UNIQUE NOT NULL,
+    error_type VARCHAR(100) NOT NULL,
+    error_pattern TEXT NOT NULL,
+    language VARCHAR(50),
+    category VARCHAR(50),
+    severity VARCHAR(20) DEFAULT 'info',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE jeseci_academy.error_solutions (
+    id SERIAL PRIMARY KEY,
+    solution_id VARCHAR(100) UNIQUE NOT NULL,
+    error_id VARCHAR(100) REFERENCES jeseci_academy.error_knowledge_base(error_id),
+    title VARCHAR(255) NOT NULL,
+    explanation TEXT NOT NULL,
+    fix_description TEXT,
+    code_example TEXT,
+    confidence_score FLOAT DEFAULT 0.5,
+    votes INTEGER DEFAULT 0,
+    created_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Frontend Error Display
+
+The frontend integrates error knowledge base results directly into the code editor interface. When a runtime error occurs, the error display panel shows the error message along with suggested solutions from the knowledge base. Each solution displays the title, explanation, and a code example demonstrating the fix. Students can apply fixes with a single click, copying the solution code directly into their editor. Related errors and similar patterns are shown for additional context, helping students understand the broader category of errors they encountered.
 
 ---
 
@@ -370,6 +945,119 @@ CREATE TABLE jeseci_academy.user_learning_preferences (
 );
 ```
 
+### Code Snippets Table
+
+```sql
+CREATE TABLE jeseci_academy.code_snippets (
+    id SERIAL PRIMARY KEY,
+    snippet_id VARCHAR(100) UNIQUE NOT NULL,
+    user_id VARCHAR(100),
+    title VARCHAR(255),
+    code_content TEXT NOT NULL,
+    language VARCHAR(50) DEFAULT 'python',
+    is_public BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Snippet Versions Table
+
+```sql
+CREATE TABLE jeseci_academy.snippet_versions (
+    id SERIAL PRIMARY KEY,
+    version_id VARCHAR(100) UNIQUE NOT NULL,
+    snippet_id VARCHAR(100) REFERENCES jeseci_academy.code_snippets(snippet_id),
+    version_number INTEGER NOT NULL,
+    code_content TEXT NOT NULL,
+    created_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    change_description TEXT,
+    UNIQUE(snippet_id, version_number)
+);
+```
+
+### Test Cases Table
+
+```sql
+CREATE TABLE jeseci_academy.test_cases (
+    id SERIAL PRIMARY KEY,
+    test_id VARCHAR(100) UNIQUE NOT NULL,
+    snippet_id VARCHAR(100) REFERENCES jeseci_academy.code_snippets(snippet_id),
+    test_name VARCHAR(255) NOT NULL,
+    input_data TEXT,
+    expected_output TEXT,
+    is_hidden BOOLEAN DEFAULT FALSE,
+    points INTEGER DEFAULT 10,
+    created_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    description TEXT
+);
+```
+
+### Test Results Table
+
+```sql
+CREATE TABLE jeseci_academy.test_results (
+    id SERIAL PRIMARY KEY,
+    result_id VARCHAR(100) UNIQUE NOT NULL,
+    test_id VARCHAR(100) REFERENCES jeseci_academy.test_cases(test_id),
+    user_id VARCHAR(100),
+    actual_output TEXT,
+    passed BOOLEAN NOT NULL,
+    execution_time FLOAT,
+    memory_used INTEGER,
+    error_message TEXT,
+    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Debug Sessions Table
+
+```sql
+CREATE TABLE jeseci_academy.debug_sessions (
+    id SERIAL PRIMARY KEY,
+    session_id VARCHAR(100) UNIQUE NOT NULL,
+    user_id VARCHAR(100),
+    snippet_id VARCHAR(100),
+    language VARCHAR(50),
+    state VARCHAR(20) DEFAULT 'initializing',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    execution_count INTEGER DEFAULT 0,
+    total_execution_time FLOAT DEFAULT 0
+);
+```
+
+### Error Knowledge Base Tables
+
+```sql
+CREATE TABLE jeseci_academy.error_knowledge_base (
+    id SERIAL PRIMARY KEY,
+    error_id VARCHAR(100) UNIQUE NOT NULL,
+    error_type VARCHAR(100) NOT NULL,
+    error_pattern TEXT NOT NULL,
+    language VARCHAR(50),
+    category VARCHAR(50),
+    severity VARCHAR(20) DEFAULT 'info',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE jeseci_academy.error_solutions (
+    id SERIAL PRIMARY KEY,
+    solution_id VARCHAR(100) UNIQUE NOT NULL,
+    error_id VARCHAR(100) REFERENCES jeseci_academy.error_knowledge_base(error_id),
+    title VARCHAR(255) NOT NULL,
+    explanation TEXT NOT NULL,
+    fix_description TEXT,
+    code_example TEXT,
+    confidence_score FLOAT DEFAULT 0.5,
+    votes INTEGER DEFAULT 0,
+    created_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
 ---
 
 ### Database Sync Behavior
@@ -380,7 +1068,7 @@ The Jeseci Smart Learning Academy uses a **hybrid database architecture** with P
 
 | Database | Purpose | Use Cases |
 |----------|---------|-----------|
-| **PostgreSQL** | Relational data storage and admin management | Courses, Quizzes, User progress, Analytics, Learning Path metadata |
+| **PostgreSQL** | Relational data storage and admin management | Courses, Quizzes, User progress, Analytics, Learning Path metadata, Code Snippets |
 | **Neo4j** | Graph-based learning experience | Concepts, Learning Paths (as nodes), Concept relationships (prerequisites, related_to) |
 
 #### Current Sync Behavior
@@ -394,6 +1082,7 @@ When content is created from the admin panel, the following sync behavior applie
 | **Courses** | ✓ Yes | ✓ Yes | ✗ No | Courses are operational data, not part of the learning graph |
 | **Quizzes** | ✓ Yes | ✓ Yes | ✗ No | Quizzes are assessment data, not part of the learning graph |
 | **Relationships** | ✓ Yes | ✗ No | ✓ Yes | Graph relationships only exist in Neo4j |
+| **Code Snippets** | ✓ Yes | ✓ Yes | ✗ No | Code snippets are operational data stored in PostgreSQL |
 
 #### Sync Behavior Details
 
@@ -411,6 +1100,11 @@ When content is created from the admin panel, the following sync behavior applie
 - These are operational/transactional data types
 - Used for admin management and user tracking
 - Not involved in the learning graph navigation
+
+**Code Snippets (PostgreSQL only)**
+- Code snippets, test cases, and debug sessions are stored in PostgreSQL
+- Version history, test results, and error knowledge base are all relational data
+- Neo4j is not required for code execution features
 
 **Relationships (Neo4j only)**
 - Concept-to-concept relationships (PREREQUISITE, RELATED_TO, PART_OF, BUILDS_UPON)
@@ -447,6 +1141,35 @@ def create_path(title, description, courses, concepts, difficulty, duration):
 ---
 
 ## API Endpoints Reference
+
+### Code Execution Endpoints
+
+| Endpoint | Method | Required Role | Description |
+|----------|--------|---------------|-------------|
+| `/walker/execute_code` | POST | Any authenticated | Execute code snippet |
+| `/walker/execute_batch` | POST | Any authenticated | Execute multiple snippets |
+| `/walker/snippet_versions` | GET | Any authenticated | List snippet versions |
+| `/walker/snippet_versions` | POST | Any authenticated | Create new version |
+| `/walker/snippet_versions/{id}` | GET | Any authenticated | Get version details |
+| `/walker/snippet_rollback` | POST | Any authenticated | Rollback to version |
+| `/walker/snippet_compare` | POST | Any authenticated | Compare two versions |
+| `/walker/test_cases` | GET | Any authenticated | List test cases |
+| `/walker/test_cases` | POST | Any authenticated | Create test case |
+| `/walker/run_test_case` | POST | Any authenticated | Execute single test |
+| `/walker/run_tests` | POST | Any authenticated | Execute all tests |
+| `/walker/debug_start` | POST | Any authenticated | Start debug session |
+| `/walker/debug_end` | POST | Any authenticated | End debug session |
+| `/walker/debug_breakpoints` | POST | Any authenticated | Set breakpoints |
+| `/walker/debug_step_over` | POST | Any authenticated | Step over |
+| `/walker/debug_step_into` | POST | Any authenticated | Step into |
+| `/walker/debug_step_out` | POST | Any authenticated | Step out |
+| `/walker/debug_continue` | POST | Any authenticated | Continue execution |
+| `/walker/debug_state` | GET | Any authenticated | Get debug state |
+| `/walker/debug_variables` | GET | Any authenticated | Get variables |
+| `/walker/debug_stack` | GET | Any authenticated | Get call stack |
+| `/walker/error_lookup` | POST | Any authenticated | Lookup error solutions |
+| `/walker/error_submit` | POST | Any authenticated | Submit new error pattern |
+| `/walker/admin_errors` | GET | content_admin | Manage error knowledge base |
 
 ### User Management Endpoints
 
@@ -580,181 +1303,6 @@ Backend Authorization Check
   - Enable edit/delete actions
 ```
 
-### Frontend Implementation
-
-The frontend implementation resides in the admin dashboard's AI Lab section, providing a user-friendly interface for content generation requests. The implementation uses React hooks for state management and the centralized admin API service for backend communication.
-
-```typescript
-// From frontend/src/admin/pages/AIManager.tsx
-const handleGenerate = async (formData: GenerateRequest) => {
-  setLoading(true);
-  setError(null);
-  
-  try {
-    const response = await adminApi.generateAIContent({
-      concept_name: formData.conceptName,
-      domain: formData.domain,
-      difficulty: formData.difficulty,
-      related_concepts: formData.relatedConcepts
-    });
-    
-    if (response.success) {
-      setGeneratedContent(response.content);
-      // Refresh content list
-      loadAIContent();
-    } else {
-      setError(response.message || 'Generation failed');
-    }
-  } catch (err: any) {
-    setError(err.message || 'Failed to generate content');
-  } finally {
-    setLoading(false);
-  }
-};
-```
-
-The frontend service method constructs the API request and handles the response unwrapping required by the Jaclang API architecture:
-
-```typescript
-// From frontend/src/services/adminApi.ts
-async generateAIContent(request: {
-  concept_name: string;
-  domain: string;
-  difficulty: string;
-  related_concepts?: string[];
-}): Promise<{ success: boolean; content: AIGeneratedContentAdmin; message: string }> {
-  return this.makeRequest('/walker/admin_ai_generate', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  });
-}
-```
-
-### Backend Implementation
-
-The backend implementation consists of two primary components: the Jaclang walker that handles the HTTP endpoint and the Python module that manages AI interactions and database operations.
-
-**Jaclang Walker (app.jac)**:
-
-The walker receives requests, validates permissions, and orchestrates the content generation process:
-
-```jac
-walker admin_ai_generate {
-    can admin_ai_generate with entry {
-        # Initialize store and get content with error handling
-        content = {};
-        try {
-            ai_store.initialize_ai_content();
-            content = ai_store.generate_ai_content(
-                concept_name,
-                domain,
-                difficulty,
-                related_concepts,
-                generated_by
-            );
-        } except Exception as e {
-            print("Error generating AI content: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to generate AI content: " + str(e),
-                "content": null
-            }
-        }
-        
-        if content {
-            report {
-                "success": True,
-                "content": content,
-                "message": "AI content generated successfully"
-            }
-        }
-    }
-}
-```
-
-**Python Module (backend/admin_ai_store.py)**:
-
-The Python module contains the core logic for generating content through OpenAI and storing results:
-
-```python
-# From backend/admin_ai_store.py
-def generate_ai_content(concept_name: str, domain: str, difficulty: str,
-                        related_concepts: Optional[List[str]] = None,
-                        generated_by: str = "admin") -> Dict[str, Any]:
-    """Generate AI content using OpenAI API"""
-    # Get OpenAI API key from environment
-    api_key = os.environ.get("OPENAI_API_KEY")
-    
-    if not api_key:
-        return {"success": False, "error": "OpenAI API key not configured"}
-    
-    # Construct prompt based on parameters
-    prompt = construct_content_prompt(concept_name, domain, difficulty, related_concepts)
-    
-    # Call OpenAI API
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=2000,
-            temperature=0.7
-        )
-        content = response.choices[0].message.content
-    except Exception as e:
-        logger.error(f"OpenAI API error: {e}")
-        return {"success": False, "error": str(e)}
-    
-    # Calculate token usage
-    tokens_used = response.usage.total_tokens if hasattr(response, 'usage') else None
-    
-    # Store in database
-    result = save_ai_content(
-        concept_name=concept_name,
-        domain=domain,
-        difficulty=difficulty,
-        content=content,
-        generated_by=generated_by,
-        related_concepts=related_concepts,
-        tokens_used=tokens_used
-    )
-    
-    return result
-```
-
-### Prompt Construction
-
-The prompt construction process transforms basic parameters into detailed instructions for the AI model. The system uses a multi-part prompt structure that ensures consistent output format and educational quality.
-
-**System Prompt Components**:
-
-The system prompt establishes the AI's role as an educational content creator and specifies the expected output format. Key components include role definition, output structure requirements, tone guidelines, and formatting standards. The prompt instructs the AI to produce markdown-formatted content with specific sections including overview, key concepts, examples, practice exercises, and summary.
-
-**User Prompt Template**:
-
-The user prompt incorporates the specific parameters from the content generation request:
-
-```
-Generate educational content about the following topic:
-
-Topic: {concept_name}
-Domain: {domain}
-Difficulty Level: {difficulty}
-
-{fmt:Related Concepts: {related_concepts} if provided}
-
-Please create comprehensive educational content including:
-1. Overview/Introduction
-2. Key Concepts (numbered list)
-3. Code examples where applicable
-4. Practice Exercises
-5. Summary
-
-Format the content in markdown.
-```
-
 ### Database Storage
 
 Generated content persists in the PostgreSQL database through the `ai_generated_content` table. The storage implementation ensures data integrity and enables efficient retrieval for later viewing or editing.
@@ -783,101 +1331,6 @@ CREATE TABLE jeseci_academy.ai_usage_stats (
 );
 ```
 
-### Response Structure
-
-The API returns content in a structured format that includes both the generated material and metadata useful for management operations. The Jaclang response wrapper follows the standard pattern used throughout the platform.
-
-```json
-{
-  "result": {
-    "_jac_type": "admin_ai_generate",
-    "_jac_id": "aadaaa8c96604c42b27dce8eb139b89b",
-    "_jac_archetype": "walker",
-    "concept_name": "Object Spatial Programming",
-    "difficulty": "intermediate",
-    "domain": "Jac Language",
-    "generated_by": "admin",
-    "related_concepts": ["Node"]
-  },
-  "reports": [
-    {
-      "success": true,
-      "content": {
-        "content_id": "ai_1767262252",
-        "concept_name": "Object Spatial Programming",
-        "domain": "Jac Language",
-        "difficulty": "intermediate",
-        "content": "# Object Spatial Programming\n\n## Overview\n...",
-        "related_concepts": ["Node"],
-        "generated_at": "2026-01-01T13:10:52Z",
-        "generated_by": "admin",
-        "source": "ai_generator",
-        "model": "openai"
-      },
-      "message": "AI content generated successfully"
-    }
-  ]
-}
-```
-
-### AI Content Management
-
-Beyond generation, the system provides comprehensive management capabilities for viewing, editing, and deleting AI-generated content. These operations support the content administrator's workflow for quality assurance and content curation.
-
-**Viewing Generated Content**: The admin panel displays all generated content in a searchable, filterable table. Each entry shows the concept name, domain, difficulty, generation date, and a content preview. Administrators can click any entry to view the full markdown content in a modal dialog.
-
-**Editing Content**: Generated content can be modified after creation to correct errors, add platform-specific information, or improve clarity. Edit operations update the content field in the database while preserving the original generation metadata for audit purposes.
-
-**Deleting Content**: Content administrators can remove inappropriate or obsolete generated content. Deletion removes the entry from the database and updates the associated statistics counters. The system records deletion actions in the audit log for accountability.
-
-### Configuration Requirements
-
-The content generation feature requires proper configuration of external service credentials and system parameters. Missing or incorrect configuration results in generation failures.
-
-**Required Environment Variables**:
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `OPENAI_API_KEY` | OpenAI API key for GPT access | Yes |
-| `OPENAI_MODEL` | Model name (default: gpt-3.5-turbo) | No |
-| `MAX_TOKENS` | Maximum response tokens (default: 2000) | No |
-| `TEMPERATURE` | Model temperature (default: 0.7) | No |
-
-**Configuration File Location**:
-
-Environment variables can be set in the backend configuration file located at `backend/config/.env`. The application loads these variables during startup and makes them available to the content generation module.
-
-```bash
-# Example backend/config/.env
-OPENAI_API_KEY=sk-your-api-key-here
-OPENAI_MODEL=gpt-3.5-turbo
-MAX_TOKENS=2000
-TEMPERATURE=0.7
-```
-
-### Error Handling
-
-The content generation system implements comprehensive error handling to provide meaningful feedback and maintain system stability. Errors can occur at multiple stages of the generation process.
-
-**Authentication Errors**: Invalid or missing JWT tokens result in 401 Unauthorized responses. Content administrators must have valid sessions with appropriate permissions (content_admin or higher) to generate content.
-
-**Configuration Errors**: Missing OpenAI API key results in immediate failure with a clear error message. The system logs configuration errors to assist with debugging.
-
-**API Errors**: OpenAI API failures (rate limits, network issues, invalid requests) propagate to the user with descriptive error messages. The system implements retry logic for transient failures.
-
-**Database Errors**: Storage failures prevent content persistence but do not lose generated content. The system returns the generated content in the error response, allowing manual storage if needed.
-
-### Related API Endpoints
-
-The content generation feature integrates with several related API endpoints for complete content management functionality.
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/walker/admin_ai_generate` | POST | Generate new AI content |
-| `/walker/admin_ai_content` | GET | List all generated content |
-| `/walker/admin_ai_domains` | GET | List available domains |
-| `/walker/admin_ai_stats` | GET | Get usage statistics |
-
 ---
 
 ## AI Quiz Generation Flow
@@ -888,19 +1341,7 @@ The Jeseci Smart Learning Academy includes an AI-powered quiz generation system 
 
 The quiz generation system leverages OpenAI's language models to produce high-quality educational quizzes with questions, answer options, correct answers, and explanatory notes. The system handles the complete lifecycle of quiz generation including prompt construction, API communication, response parsing, and persistent storage. This enables content administrators to rapidly expand the quiz inventory with consistent, well-structured assessments covering various programming concepts and technical topics.
 
-### Architecture Components
-
-The quiz generation architecture consists of three primary layers that work together to transform simple topic descriptions into comprehensive educational assessments. The frontend layer provides an interface for content administrators to specify generation parameters and view results. The backend layer manages communication with external AI services and enforces access controls. The persistence layer ensures that generated quizzes remain available for future retrieval and management operations.
-
-**Frontend Layer**: The React-based admin dashboard includes a dedicated Quiz Manager section where authorized administrators can initiate quiz generation requests. The interface presents form fields for topic, difficulty level, and number of questions. Upon submission, the frontend constructs a structured request payload and sends it to the appropriate backend endpoint. The response displays generated quiz content including questions, options, and explanations.
-
-**Backend Layer**: The backend implements a Jaclang walker that handles quiz generation requests with proper authentication and authorization checks. The primary walker `admin_quizzes_generate_ai` receives request parameters, constructs detailed prompts for the AI model, communicates with OpenAI's API, parses the response, and stores the result in the database. Error handling ensures graceful degradation when AI services are unavailable or when prompt generation fails.
-
-**Persistence Layer**: Generated quizzes persist in the PostgreSQL database within the `quizzes` and `quiz_questions` tables. Each quiz entry includes a unique identifier, title, description, associated concept, difficulty level, and metadata. Questions are stored in the `quiz_questions` table with proper associations to their parent quiz.
-
 ### Request Flow
-
-The quiz generation process follows a well-defined sequence of steps that transform user input into stored quiz content. Understanding this flow helps in debugging issues and extending functionality.
 
 ```
 Content Administrator
@@ -961,221 +1402,11 @@ Backend Authorization Check
   - Enable save/edit actions
 ```
 
-### Frontend Implementation
-
-The frontend implementation resides in the admin dashboard's Quiz Manager section, providing a user-friendly interface for quiz generation requests. The implementation uses React hooks for state management and the centralized admin API service for backend communication.
-
-```typescript
-// From frontend/src/admin/pages/QuizManager.tsx
-const handleGenerateQuiz = async (formData: GenerateQuizRequest) => {
-  setLoading(true);
-  setError(null);
-  
-  try {
-    const response = await adminApi.generateAIQuiz({
-      topic: formData.topic,
-      difficulty: formData.difficulty,
-      question_count: formData.questionCount
-    });
-    
-    if (response.success) {
-      setGeneratedQuiz(response.quiz);
-      // Display quiz preview
-    } else {
-      setError(response.message || 'Generation failed');
-    }
-  } catch (err: any) {
-    setError(err.message || 'Failed to generate quiz');
-  } finally {
-    setLoading(false);
-  }
-};
-```
-
-The frontend service method constructs the API request and handles the response unwrapping required by the Jaclang API architecture:
-
-```typescript
-// From frontend/src/services/adminApi.ts
-async generateAIQuiz(request: {
-  topic: string;
-  difficulty: string;
-  question_count?: number;
-}): Promise<{
-  success: boolean;
-  quiz?: {...};
-  message: string;
-}> {
-  return this.makeRequest('/walker/admin_quizzes_generate_ai', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  });
-}
-```
-
-### Backend Implementation
-
-The backend implementation consists of two primary components: the Jaclang walker that handles the HTTP endpoint and the Python module that manages AI interactions and database operations.
-
-**Jaclang Walker (app.jac)**:
-
-The walker receives requests, validates permissions, and orchestrates the quiz generation process:
-
-```jac
-walker admin_quizzes_generate_ai {
-    has topic: str;
-    has difficulty: str;
-    has question_count: int = 5;
-    
-    can admin_quizzes_generate_ai with entry {
-        result = quiz_store.generate_ai_quiz(self.topic, self.difficulty, self.question_count);
-        
-        if result['success'] {
-            report {
-                "success": True,
-                "quiz": result.get('quiz', {}),
-                "topic": self.topic,
-                "difficulty": self.difficulty,
-                "question_count": self.question_count,
-                "message": result.get('message', 'Quiz generated successfully')
-            };
-        } else {
-            report {"success": False, "error": result.get('error', 'Failed to generate quiz')};
-        }
-    }
-}
-```
-
-**Python Module (backend/admin_quiz_store.py)**:
-
-The Python module contains the core logic for generating quizzes through OpenAI and storing results:
-
-```python
-# From backend/admin_quiz_store.py
-def generate_ai_quiz(topic: str, difficulty: str, question_count: int = 5) -> Dict[str, Any]:
-    """Generate a quiz using OpenAI API"""
-    # Get OpenAI API key from environment
-    api_key = os.environ.get("OPENAI_API_KEY")
-    
-    if not api_key or api_key.startswith("sk-proj-placeholder"):
-        # Return sample quiz for demo purposes
-        return _generate_sample_quiz(topic, difficulty, question_count)
-    
-    # Construct prompt based on parameters
-    prompt = construct_quiz_prompt(topic, difficulty, question_count)
-    
-    # Call OpenAI API
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=2000,
-            temperature=0.7
-        )
-        content = response.choices[0].message.content
-        quiz_data = json.loads(content)
-    except Exception as e:
-        logger.error(f"OpenAI API error: {e}")
-        return {"success": False, "error": str(e)}
-    
-    # Store quiz in database
-    result = save_ai_quiz(
-        topic=topic,
-        difficulty=difficulty,
-        quiz_data=quiz_data
-    )
-    
-    return result
-```
-
-### Prompt Construction
-
-The prompt construction process transforms basic parameters into detailed instructions for the AI model. The system uses a multi-part prompt structure that ensures consistent output format and educational quality.
-
-**System Prompt Components**:
-
-The system prompt establishes the AI's role as an educational quiz creator and specifies the expected output format. Key components include role definition, output structure requirements, question guidelines, and answer formatting standards. The prompt instructs the AI to produce JSON-formatted quizzes with specific fields including question text, answer options, correct answer index, and explanatory notes.
-
-**User Prompt Template**:
-
-The user prompt incorporates the specific parameters from the quiz generation request:
-
-```
-Create a multiple-choice quiz about the following topic:
-
-Topic: {topic}
-Difficulty Level: {difficulty}
-Number of Questions: {question_count}
-
-Requirements:
-1. Each question should have 4 answer options (A, B, C, D)
-2. Include the correct answer index (0-3)
-3. Provide a brief explanation for why each answer is correct or incorrect
-4. Make questions challenging but fair for {difficulty} level
-5. Focus on practical knowledge and understanding
-
-Format the response as valid JSON with this structure:
-{
-    "title": "Quiz title",
-    "description": "Brief description",
-    "questions": [
-        {
-            "question": "Question text",
-            "options": ["Option A", "Option B", "Option C", "Option D"],
-            "correct_answer": 0,
-            "explanation": "Why this is the correct answer"
-        }
-    ]
-}
-```
-
-### Sample Quiz Generation (Fallback)
-
-When no OpenAI API key is configured, the system generates a sample quiz for demonstration purposes. This allows administrators to preview the quiz generation workflow without requiring API credentials.
-
-```python
-# From backend/admin_quiz_store.py
-def _generate_sample_quiz(topic: str, difficulty: str, question_count: int = 5) -> Dict[str, Any]:
-    """Generate a sample quiz for demonstration when no API key is available"""
-    # Create sample questions based on topic
-    # Returns structured quiz with questions, options, and answers
-    
-    sample_questions = [
-        {
-            "question": f"What is a key concept related to {topic}?",
-            "options": [
-                f"Understanding {topic} fundamentals",
-                f"Advanced {topic} techniques",
-                f"{topic} best practices",
-                f"All of the above"
-            ],
-            "correct_answer": 3,
-            "explanation": f"All these aspects are important for mastering {topic}"
-        }
-    ]
-    
-    return {
-        "success": True,
-        "quiz": {
-            "title": f"{topic} Quiz",
-            "description": f"Sample quiz about {topic} at {difficulty} level",
-            "questions": sample_questions[:question_count]
-        },
-        "is_sample": True,
-        "message": "Sample quiz generated (API key not configured)"
-    }
-```
-
 ### Database Storage
-
-Generated quizzes persist in the PostgreSQL database through the `quizzes` and `quiz_questions` tables. The storage implementation ensures data integrity and enables efficient retrieval for quiz-taking operations.
 
 **Quizzes Table**:
 
 ```sql
--- From backend/database/initialize_database.py
 CREATE TABLE jeseci_academy.quizzes (
     quiz_id VARCHAR(100) PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -1210,316 +1441,19 @@ CREATE TABLE jeseci_academy.quiz_questions (
 );
 ```
 
-### Response Structure
-
-The API returns quiz data in a structured format that includes both the generated assessment and metadata useful for management operations. The Jaclang response wrapper follows the standard pattern used throughout the platform.
-
-```json
-{
-  "result": {
-    "_jac_type": "admin_quizzes_generate_ai",
-    "_jac_id": "abc123def456",
-    "_jac_archetype": "walker",
-    "topic": "JAC Variables",
-    "difficulty": "beginner",
-    "question_count": 5
-  },
-  "reports": [
-    {
-      "success": true,
-      "quiz": {
-        "title": "JAC Variables Quiz",
-        "description": "Test your knowledge of JAC variables",
-        "questions": [
-          {
-            "question": "What is the correct way to declare a variable in JAC?",
-            "options": ["var x: int = 5", "int x = 5", "let x = 5", "x: int = 5"],
-            "correct_answer": 0,
-            "explanation": "In JAC, variables are declared using 'var' keyword with type annotation"
-          }
-        ]
-      },
-      "topic": "JAC Variables",
-      "difficulty": "beginner",
-      "question_count": 5,
-      "message": "Quiz generated successfully"
-    }
-  ]
-}
-```
-
-### API Endpoints
-
-The quiz generation feature integrates with several related API endpoints for complete quiz management functionality.
-
-| Endpoint | Method | Required Role | Description |
-|----------|--------|---------------|-------------|
-| `/walker/admin_quizzes_generate_ai` | POST | content_admin | Generate new AI quiz |
-| `/walker/admin_quizzes` | GET | admin | List all quizzes |
-| `/walker/admin_quizzes_create` | POST | content_admin | Create new quiz manually |
-| `/walker/admin_quizzes_update` | PUT | content_admin | Update existing quiz |
-| `/walker/admin_quizzes_delete` | DELETE | content_admin | Delete quiz |
-| `/walker/admin_quizzes_analytics` | GET | admin | Get quiz analytics |
-
-### Configuration Requirements
-
-The quiz generation feature requires proper configuration of external service credentials and system parameters. Missing or incorrect configuration results in generation failures or fallback to sample mode.
-
-**Required Environment Variables**:
-
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `OPENAI_API_KEY` | OpenAI API key for GPT access | No | None |
-| `OPENAI_MODEL` | Model name | No | gpt-4o-mini |
-| `MAX_TOKENS` | Maximum response tokens | No | 2000 |
-| `TEMPERATURE` | Model temperature | No | 0.7 |
-
-**Configuration File Location**:
-
-Environment variables can be set in the backend configuration file located at `backend/config/.env`. The application loads these variables during startup and makes them available to the quiz generation module.
-
-```bash
-# Example backend/config/.env
-OPENAI_API_KEY=sk-your-api-key-here
-OPENAI_MODEL=gpt-4o-mini
-MAX_TOKENS=2000
-TEMPERATURE=0.7
-```
-
-### Error Handling
-
-The quiz generation system implements comprehensive error handling to provide meaningful feedback and maintain system stability. Errors can occur at multiple stages of the generation process.
-
-**Authentication Errors**: Invalid or missing JWT tokens result in 401 Unauthorized responses. Content administrators must have valid sessions with appropriate permissions (content_admin or higher) to generate quizzes.
-
-**Configuration Errors**: Missing or placeholder OpenAI API key results in automatic fallback to sample quiz generation. The system logs configuration warnings to assist with debugging.
-
-**API Errors**: OpenAI API failures (rate limits, network issues, invalid requests) propagate to the user with descriptive error messages. The system implements retry logic for transient failures.
-
-**Database Errors**: Storage failures prevent quiz persistence but do not lose generated content. The system returns the generated content in the error response, allowing manual storage if needed.
-
-### Frontend Integration
-
-Client applications integrate with the quiz generation feature through the admin API service. The following example demonstrates the complete integration pattern.
-
-**Quiz Generation Form**:
-
-```typescript
-// Example: Quiz generation form component
-const QuizGenerationForm = () => {
-  const [topic, setTopic] = useState('');
-  const [difficulty, setDifficulty] = useState('beginner');
-  const [questionCount, setQuestionCount] = useState(5);
-  const [generatedQuiz, setGeneratedQuiz] = useState(null);
-  
-  const handleGenerate = async () => {
-    const response = await adminApi.generateAIQuiz({
-      topic,
-      difficulty,
-      question_count: questionCount
-    });
-    
-    if (response.success) {
-      setGeneratedQuiz(response.quiz);
-    }
-  };
-  
-  return (
-    <div>
-      <input 
-        value={topic}
-        onChange={(e) => setTopic(e.target.value)}
-        placeholder="Quiz topic"
-      />
-      <select 
-        value={difficulty}
-        onChange={(e) => setDifficulty(e.target.value)}
-      >
-        <option value="beginner">Beginner</option>
-        <option value="intermediate">Intermediate</option>
-        <option value="advanced">Advanced</option>
-        <option value="expert">Expert</option>
-      </select>
-      <input 
-        type="number"
-        value={questionCount}
-        onChange={(e) => setQuestionCount(parseInt(e.target.value))}
-        min="1"
-        max="20"
-      />
-      <button onClick={handleGenerate}>Generate Quiz</button>
-      
-      {generatedQuiz && (
-        <QuizPreview quiz={generatedQuiz} />
-      )}
-    </div>
-  );
-};
-```
-
-### Related API Endpoints
-
-The quiz generation feature integrates with the broader quiz management ecosystem for complete assessment lifecycle support.
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/walker/admin_quizzes_generate_ai` | POST | Generate new AI quiz |
-| `/walker/admin_quizzes` | GET | List all quizzes |
-| `/walker/admin_quizzes_create` | POST | Create quiz manually |
-| `/walker/admin_quizzes_update` | PUT | Update quiz |
-| `/walker/admin_quizzes_delete` | DELETE | Delete quiz |
-| `/walker/admin_quizzes_analytics` | GET | Quiz analytics |
-| `/walker/submit_quiz_attempt` | POST | Submit quiz answers |
-
 ---
 
 ## Content View Tracking
 
-The Jeseci Smart Learning Academy includes a comprehensive content view tracking system that records when users view courses, concepts, and learning paths, providing accurate analytics data for the admin dashboard. This section documents the complete view tracking architecture including database schema, API endpoints, and integration with existing analytics.
-
 ### Overview
 
-The content view tracking system replaces the previous mock view data with real statistics derived from actual user interactions. The system captures every content view event with rich metadata including user information, session data, device type, view duration, and geographic information. This data powers the popular content analytics in the admin panel and enables data-driven decisions about content development and promotion.
+The content view tracking system monitors and records how users interact with educational content throughout the platform. This data powers analytics dashboards, enables personalized recommendations, and provides insights into content performance and user engagement patterns.
 
-The tracking architecture consists of three primary components that work together to capture, store, and aggregate view data. The API layer receives view events from client applications through dedicated endpoints and forwards them to the storage layer. The storage layer records individual events in the content_views table and maintains running aggregations in the content_views_summary table for efficient analytics queries. The analytics layer exposes aggregated statistics through the admin_analytics_content endpoint, replacing the previous mock calculations with real view counts.
+### Recording Content Views
 
-### Database Schema
+**Endpoint**: `POST /walker/record_content_view`
 
-The view tracking system uses two PostgreSQL tables to store and aggregate view data. These tables are created automatically when running the database initialization script and include appropriate indexes for efficient querying.
-
-**Content Views Table**: The content_views table records individual view events with comprehensive metadata for analytics and security purposes. Each record captures the viewed content identifier, viewer information, device details, and temporal data enabling detailed analysis of content consumption patterns.
-
-```sql
--- From backend/database/initialize_database.py
-CREATE TABLE jeseci_academy.content_views (
-    id SERIAL PRIMARY KEY,
-    view_id VARCHAR(64) UNIQUE NOT NULL,
-    content_id VARCHAR(100) NOT NULL,
-    content_type VARCHAR(50) NOT NULL,
-    user_id VARCHAR(64),
-    session_id VARCHAR(100),
-    ip_address INET,
-    user_agent TEXT,
-    viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    view_duration INTEGER DEFAULT 0,
-    referrer_url TEXT,
-    device_type VARCHAR(20) DEFAULT 'desktop',
-    browser VARCHAR(50),
-    country_code VARCHAR(10),
-    is_unique_view BOOLEAN DEFAULT FALSE
-);
-```
-
-**Content Views Summary Table**: The content_views_summary table maintains running aggregations of view data for efficient analytics queries. Rather than counting individual events for each dashboard request, the system updates these aggregations incrementally as views are recorded, providing fast response times for the admin analytics endpoints.
-
-```sql
-CREATE TABLE jeseci_academy.content_views_summary (
-    id SERIAL PRIMARY KEY,
-    content_id VARCHAR(100) NOT NULL,
-    content_type VARCHAR(50) NOT NULL,
-    total_views INTEGER DEFAULT 0,
-    unique_views INTEGER DEFAULT 0,
-    total_view_duration INTEGER DEFAULT 0,
-    last_viewed_at TIMESTAMP,
-    views_today INTEGER DEFAULT 0,
-    views_this_week INTEGER DEFAULT 0,
-    views_this_month INTEGER DEFAULT 0,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(content_id, content_type)
-);
-```
-
-**Indexes**: The system creates several indexes to optimize query performance for common analytics patterns. The content_id index supports lookups for specific content statistics, while the content_type index enables filtering by content type. The viewed_at index facilitates time-based queries for period-specific analytics.
-
-```sql
-CREATE INDEX idx_content_views_content_id ON jeseci_academy.content_views(content_id);
-CREATE INDEX idx_content_views_content_type ON jeseci_academy.content_views(content_type);
-CREATE INDEX idx_content_views_user_id ON jeseci_academy.content_views(user_id);
-CREATE INDEX idx_content_views_viewed_at ON jeseci_academy.content_views(viewed_at);
-CREATE INDEX idx_content_views_summary_total ON jeseci_academy.content_views_summary(total_views DESC);
-```
-
-### Python Module
-
-The content_views_store.py module provides the core functionality for recording views and retrieving analytics data. This module implements thread-safe operations using reentrant locks, automatic connection management, and smart aggregation updates that reset period counters on schedule.
-
-**ContentViewsStore Class**: The main class manages all view tracking operations including recording individual views, retrieving popular content, and generating aggregated statistics. The class maintains a persistent database connection and handles reconnection automatically if the connection is lost.
-
-```python
-# From backend/content_views_store.py
-class ContentViewsStore:
-    """Manages content view tracking and analytics data storage."""
-
-    def __init__(self):
-        self._lock = threading.RLock()
-        self._connection = None
-        self._init_connection()
-
-    def record_view(self, content_id: str, content_type: str, user_id: Optional[str] = None,
-                   session_id: Optional[str] = None, view_duration: int = 0, **kwargs) -> Dict[str, Any]:
-        """Record a content view event with full metadata."""
-        # Generates unique view_id, checks for unique views,
-        # inserts into content_views and updates content_views_summary atomically
-
-    def get_popular_content(self, content_type: str, limit: int = 10, period: str = "all_time") -> List[Dict[str, Any]]:
-        """Get the most popular content based on views for a specific period."""
-
-    def get_content_view_stats(self, content_id: str, content_type: str) -> Dict[str, Any]:
-        """Get detailed view statistics for a specific content item."""
-
-    def get_all_content_view_summary(self) -> List[Dict[str, Any]]:
-        """Get aggregated view summary for all content."""
-```
-
-**Unique View Detection**: The system tracks unique views by detecting when a user or session views the same content for the first time within a 24-hour period. This prevents inflated view counts from repeated refreshes while accurately capturing genuine user engagement. The is_unique_view flag is set during record_view operations based on whether an existing view from the same user or session exists within the tracking window.
-
-**Period Aggregation**: The content_views_summary table maintains counters for different time periods including daily, weekly, and monthly views. The _update_period_aggregations method resets these counters when the period changes, ensuring accurate period-specific statistics without requiring expensive recomputation of all historical data.
-
-**Convenience Functions**: The module exports several convenience functions that provide simple access to common operations without requiring direct instantiation of the ContentViewsStore class.
-
-```python
-# Convenience functions exported from content_views_store.py
-def record_content_view(content_id: str, content_type: str, user_id: Optional[str] = None,
-                       session_id: Optional[str] = None, **kwargs) -> Dict[str, Any]:
-    """Record a content view event."""
-    return content_views_store.record_view(...)
-
-def get_popular_content(content_type: str, limit: int = 10, period: str = "all_time") -> List[Dict[str, Any]]:
-    """Get popular content based on view counts."""
-    return content_views_store.get_popular_content(...)
-
-def get_all_views_summary() -> List[Dict[str, Any]]:
-    """Get view summary for all content."""
-    return content_views_store.get_all_content_view_summary()
-```
-
-### API Endpoints
-
-The view tracking system exposes three API endpoints for recording views and retrieving analytics data. These endpoints integrate with the existing admin authentication system and respect role-based permissions.
-
-**Record Content View Endpoint**: The record_content_view endpoint receives view events from client applications and stores them in the database. This endpoint accepts comprehensive view metadata and returns a view_id for tracking purposes.
-
-| Endpoint | Method | Required Role | Description |
-|----------|--------|---------------|-------------|
-| `/walker/record_content_view` | POST | any | Record a content view event |
-
-**Request Parameters**:
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| content_id | string | Yes | The unique identifier of the content being viewed |
-| content_type | string | Yes | Type of content (course, concept, learning_path) |
-| user_id | string | No | User ID if authenticated, null for anonymous views |
-| session_id | string | No | Session ID for tracking anonymous users |
-| view_duration | integer | No | Duration of view in seconds |
-| ip_address | string | No | Client IP address |
-| user_agent | string | No | Client user agent string |
-| referrer_url | string | No | URL that referred to this content |
-| device_type | string | No | Device type (desktop, mobile, tablet) |
-| browser | string | No | Browser name |
-| country_code | string | No | Country code from IP |
-
-**Example Request**:
+Records a single content view event with optional engagement metrics.
 
 ```bash
 curl -X POST http://localhost:8000/walker/record_content_view \
@@ -1535,256 +1469,6 @@ curl -X POST http://localhost:8000/walker/record_content_view \
   }'
 ```
 
-**Example Response**:
-
-```json
-{
-  "result": {
-    "_jac_type": "record_content_view",
-    "_jac_id": "abc123def456",
-    "_jac_archetype": "walker"
-  },
-  "reports": [
-    {
-      "success": true,
-      "message": "View recorded successfully",
-      "view_id": "550e8400-e29b-41d4-a716-446655440000",
-      "is_unique_view": true
-    }
-  ]
-}
-```
-
-**Get Content View Analytics Endpoint**: The get_content_view_analytics endpoint provides flexible access to view statistics supporting filtering by content, content type, and time period. This endpoint powers the popular content sections of the admin analytics dashboard.
-
-| Endpoint | Method | Required Role | Description |
-|----------|--------|---------------|-------------|
-| `/walker/get_content_view_analytics` | POST | admin | Get view analytics data |
-
-**Request Parameters**:
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| content_id | string | No | Specific content ID to get stats for |
-| content_type | string | No | Filter by type (course, concept, learning_path) |
-| period | string | No | Time period (all_time, today, week, month) |
-| limit | integer | No | Maximum results (default 10) |
-
-**Example Request**:
-
-```bash
-curl -X POST http://localhost:8000/walker/get_content_view_analytics \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content_type": "course",
-    "period": "all_time",
-    "limit": 10
-  }'
-```
-
-**Example Response**:
-
-```json
-{
-  "result": {
-    "_jac_type": "get_content_view_analytics",
-    "_jac_id": "xyz789abc123",
-    "_jac_archetype": "walker"
-  },
-  "reports": [
-    {
-      "success": true,
-      "content_type": "course",
-      "period": "all_time",
-      "popular_content": [
-        {
-          "content_id": "course_jac_fundamentals",
-          "content_type": "course",
-          "views": 150,
-          "unique_views": 89,
-          "last_viewed_at": "2026-01-02T01:15:00Z"
-        },
-        {
-          "content_id": "course_jac_osp",
-          "content_type": "course",
-          "views": 120,
-          "unique_views": 75,
-          "last_viewed_at": "2026-01-02T00:45:00Z"
-        }
-      ]
-    }
-  ]
-}
-```
-
-**Updated Admin Analytics Content Endpoint**: The existing admin_analytics_content endpoint has been updated to use real view data instead of mock calculations. The popular_content section now displays actual view counts from the content_views_summary table, providing accurate analytics for content performance assessment.
-
-| Endpoint | Method | Required Role | Description |
-|----------|--------|---------------|-------------|
-| `/walker/admin_analytics_content` | GET | admin | Get content analytics with real view data |
-
-**Example Response**:
-
-```json
-{
-  "result": {
-    "_jac_type": "admin_analytics_content",
-    "_jac_id": "def456ghi789",
-    "_jac_archetype": "walker"
-  },
-  "reports": [
-    {
-      "success": true,
-      "analytics": {
-        "total_courses": 4,
-        "total_concepts": 11,
-        "popular_content": [
-          {
-            "content_id": "course_jac_fundamentals",
-            "title": "JAC Programming Fundamentals",
-            "views": 150,
-            "unique_views": 89,
-            "content_type": "course"
-          },
-          {
-            "content_id": "course_jac_osp",
-            "title": "JAC OSP Expert",
-            "views": 120,
-            "unique_views": 75,
-            "content_type": "course"
-          }
-        ],
-        "content_by_difficulty": {
-          "beginner": 4,
-          "intermediate": 2,
-          "advanced": 3
-        }
-      }
-    }
-  ]
-}
-```
-
-### Integration with Admin Analytics
-
-The view tracking system integrates seamlessly with the existing admin analytics infrastructure, replacing mock view data with accurate statistics while maintaining backward compatibility with the established API response structure.
-
-**Admin Analytics Walker Integration**: The admin_analytics_content walker in app.jac now queries the content_views_store module for real view data. The walker retrieves the top five courses by total views and enriches each entry with course metadata from the content store, presenting a comprehensive view of content performance in the analytics response.
-
-```jac
-# From backend/app.jac
-# Get real popular content with actual view counts from database
-popular_content = [];
-course_views = content_views_module.get_popular_content("course", limit=5, period="all_time");
-for view_data in course_views {
-    # Get course title from content store
-    course_title = "Unknown Course";
-    for course in courses {
-        if course.get('course_id') == view_data['content_id'] {
-            course_title = course.get('title', 'Unknown Course');
-            break;
-        }
-    }
-    popular_content.append({
-        "content_id": view_data['content_id'],
-        "title": course_title,
-        "views": view_data['views'],
-        "unique_views": view_data['unique_views'],
-        "content_type": "course"
-    });
-}
-```
-
-**Graceful Degradation**: The system handles scenarios where no views have been recorded yet by displaying courses with zero views rather than mock data. This ensures administrators can see the content inventory even before tracking data accumulates, while future views will populate the statistics naturally.
-
-### Frontend Integration
-
-Client applications should record views when users access content to build the analytics dataset over time. The recommended integration pattern is to call the record_content_view endpoint when a user navigates to a content detail page or begins consuming content.
-
-**Recording Views on Content Access**: When a user clicks on a course, concept, or learning path, the frontend should fire a view recording request in the background. This can be done in the useEffect hook of the content detail component or in the navigation handler before content loads.
-
-```typescript
-// Example: Recording a view when accessing course content
-const recordCourseView = async (courseId: string, userId?: string) => {
-  try {
-    await fetch('/walker/record_content_view', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        content_id: courseId,
-        content_type: 'course',
-        user_id: userId || null,
-        session_id: getSessionId(), // Generate or retrieve session ID
-        view_duration: 0, // Will be updated when user leaves
-        device_type: getDeviceType(),
-        browser: getBrowserName()
-      })
-    });
-  } catch (error) {
-    console.error('Failed to record view:', error);
-    // Non-critical failure - continue with content display
-  }
-};
-```
-
-**Updating View Duration**: For more accurate engagement metrics, applications can update the view duration when users navigate away from content. This requires storing the view_id from the initial recording and making a follow-up request to update the record.
-
-```typescript
-// Example: Updating view duration on content exit
-const updateViewDuration = async (viewId: string, totalDuration: number) => {
-  try {
-    await fetch('/walker/update_content_view', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        view_id: viewId,
-        view_duration: Math.round(totalDuration)
-      })
-    });
-  } catch (error) {
-    console.error('Failed to update view duration:', error);
-  }
-};
-```
-
-### Setup and Initialization
-
-To enable content view tracking, administrators must initialize the database tables and ensure the backend module is properly loaded during application startup.
-
-**Database Table Creation**: Run the database initialization script to create the content_views and content_views_summary tables along with their indexes.
-
-```bash
-# Initialize database tables
-python -m database.initialize_database
-```
-
-**Backend Module Loading**: The content_views_store module is automatically imported when the backend application starts. The module initializes its database connection on first use and maintains connection health through automatic reconnection.
-
-**Verification**: After initialization, verify the system is working by checking the admin analytics endpoint:
-
-```bash
-curl http://localhost:8000/walker/admin_analytics_content
-```
-
-If no views have been recorded yet, the response will show courses with zero views. After recording some views using the record_content_view endpoint, the popular_content section will reflect the actual view counts.
-
-### Analytics Data Retention
-
-The view tracking system maintains individual view records indefinitely for detailed historical analysis, while aggregated summary data provides fast access to current statistics. The activity log within the analytics store maintains a rolling window of the most recent 1000 activity records for lightweight tracking needs.
-
-**Data Retention Policies**: Individual view records persist in the content_views table without automatic deletion, supporting long-term trend analysis and audit requirements. The content_views_summary table maintains running aggregations that update incrementally as new views are recorded, providing efficient access to cumulative statistics without historical truncation.
-
-**Privacy Considerations**: The system captures minimal personal information, storing only user_id when available and session_id for anonymous tracking. IP addresses are stored in INET format enabling geographic aggregation without exposing full addresses. These practices comply with standard privacy requirements while providing sufficient data for analytics purposes.
-
-### Related API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/walker/record_content_view` | POST | Record a content view event |
-| `/walker/get_content_view_analytics` | POST | Get view analytics data |
-| `/walker/admin_analytics_content` | GET | Get content analytics with real views |
-| `/walker/admin_clear_content_cache` | POST | Clear analytics cache |
-
 ---
 
 ## Security Considerations
@@ -1797,6 +1481,16 @@ The system implements robust RBAC with the following principles:
 2. **Hierarchical Inheritance**: Higher roles automatically include lower-level permissions
 3. **Centralized Permission Checks**: All permission checks go through `AdminRole.has_permission()`
 4. **Database-Level Enforcement**: Database queries also respect role restrictions
+
+### Code Execution Security
+
+The Code Execution Engine implements additional security measures:
+
+- **Sandboxed Execution**: Code runs in isolated containers with resource limits
+- **Timeout Enforcement**: Maximum execution time prevents infinite loops
+- **Memory Limits**: Memory quotas prevent excessive resource consumption
+- **Network Restrictions**: No external network access from executing code
+- **Input Validation**: All inputs are sanitized before execution
 
 ### Authentication Flow
 
@@ -1864,6 +1558,45 @@ To modify permissions for existing roles:
 2. Update the permission matrix in this documentation
 3. Test all affected endpoints
 
+### Adding New Error Patterns
+
+To extend the error knowledge base:
+
+1. **Gather error information**:
+   - Error type and category
+   - Error pattern or message format
+   - Language specificity
+   - Severity level
+
+2. **Create solution entry**:
+   - Clear title and explanation
+   - Detailed fix description
+   - Code example demonstrating the fix
+   - Confidence score based on frequency
+
+3. **Add via admin endpoint**:
+   ```bash
+   POST /walker/admin_errors
+   {
+     "error_type": "CustomError",
+     "error_pattern": "Custom error message pattern",
+     "language": "python",
+     "category": "Runtime Errors"
+   }
+   ```
+
+4. **Add solution via admin endpoint**:
+   ```bash
+   POST /walker/admin_solutions
+   {
+     "error_id": "error_id_from_previous_call",
+     "title": "Solution Title",
+     "explanation": "Detailed explanation of the solution",
+     "code_example": "Corrected code example",
+     "fix_description": "How to apply the fix"
+   }
+   ```
+
 ---
 
 ## Related Documentation
@@ -1873,399 +1606,88 @@ To modify permissions for existing roles:
 - [API Reference](api_reference.md)
 - [Admin Interface Design](ADMIN_INTERFACE_DESIGN.md)
 - [Admin Interface Implementation](ADMIN_INTERFACE_IMPLEMENTATION.md)
+- [Frontend Defensive Patterns Guide](../architecture/FRONTEND_DEFENSIVE_PATTERNS_GUIDE.md)
 
 ---
 
 ## User Views, Access, and User Flow
 
-This section provides detailed documentation on how different user types interact with the Jeseci Smart Learning Academy platform, including their respective views, access permissions, navigation flows, and behavioral patterns.
-
----
-
 ### Regular Users (Student Portal)
 
 #### Student Portal Views
 
-The student portal provides a comprehensive learning environment with multiple interconnected views designed to facilitate effective knowledge acquisition. Each view serves a specific purpose in the learning journey and contributes to an cohesive educational experience.
+**Dashboard View**: The landing page for all regular users upon login displays a personalized overview of their learning progress, recommended content, and upcoming activities.
 
-**Dashboard View**: The landing page for all regular users upon login displays a personalized overview of their learning progress, recommended content, and upcoming activities. The dashboard integrates with the user's learning history to surface relevant course suggestions based on their demonstrated interests and skill levels. Statistical cards present completion rates, streak information, and recent achievements to motivate continued engagement. A welcome message addresses the user by name, establishing a personalized connection with the platform from the first interaction.
+**Courses View**: This view presents a catalog of available courses organized by categories, difficulty levels, and learning paths.
 
-**Courses View**: This view presents a catalog of available courses organized by categories, difficulty levels, and learning paths. Course cards display essential information including title, description, estimated duration, difficulty level, and progress indicators for enrolled courses. The view supports filtering by subject area, skill level, and content type to help students find relevant materials efficiently. Search functionality enables keyword-based course discovery, while pagination or infinite scrolling handles large catalogs of educational content.
+**Concepts View**: The concepts view provides access to individual learning modules that cover specific topics within courses.
 
-**Concepts View**: The concepts view provides access to individual learning modules that cover specific topics within courses. Each concept card presents the topic name, associated difficulty level, estimated completion time, and prerequisite information. The view emphasizes visual learning through concept mapping when available, showing relationships between different topics in a learner's chosen field. Progress tracking per concept allows students to understand their mastery levels across different subject areas.
+**Learning Paths View**: This view displays curated sequences of concepts and courses designed to achieve specific learning objectives.
 
-**Learning Paths View**: This view displays curated sequences of concepts and courses designed to achieve specific learning objectives. Learning path cards outline the destination skill or knowledge goal, the estimated time to completion, and the number of concepts included in the path. Visual progress indicators show advancement through the path, with milestone markers for completed sections. The view helps students understand how individual concepts connect to broader learning goals.
+**Profile View**: The profile section allows students to manage their account information, learning preferences, and personal settings.
 
-**Profile View**: The profile section allows students to manage their account information, learning preferences, and personal settings. Users can update their display name, bio, avatar, and contact information. The learning preferences panel enables customization of content recommendations through style selection, skill level indicators, and preferred difficulty settings. Notification preferences control email reminders, push notifications, and in-app alerts. The profile view also displays learning statistics including total time spent, courses completed, and achievements earned.
+**AI Lab View**: The AI Lab provides intelligent features including personalized concept recommendations, quiz generation, and adaptive learning assistance.
 
-**AI Lab View**: The AI Lab provides intelligent features including personalized concept recommendations, quiz generation, and adaptive learning assistance. This view leverages the backend AI service to generate practice questions, summarize concept content, and suggest optimal learning sequences based on user performance data. Interactive chat functionality allows students to ask questions about course material and receive contextual assistance.
+#### Code Editor Access
 
-#### Student Access Permissions
+Students access the Code Editor through interactive coding exercises and practice problems. The editor provides:
 
-Regular users operate with the most restrictive permission set in the system, designed to protect platform integrity while enabling full learning functionality. The access model follows the principle of least privilege, granting only the permissions necessary for educational activities.
-
-**Content Access**: Students can view all published courses, concepts, and learning paths in read-only mode. Content appears based on visibility rules that may restrict certain materials to specific user segments or subscription levels. Students cannot modify, delete, or create new content entries in the database. Access to premium content may require subscription verification or one-time purchase validation through the integration layer.
-
-**Quiz Access**: The system grants students access to quiz functionality including taking quizzes associated with enrolled content, reviewing past quiz results, and accessing performance analytics for their attempts. Students can retake quizzes to improve scores, though some configurations may limit retake frequency. Quiz creation and modification privileges are restricted to content administrators and above.
-
-**Progress Tracking**: Students have full access to their personal progress data including completed concepts, quiz scores, time spent per content item, and achievement unlocking status. This data remains private to the individual user and cannot be accessed by other students. Progress synchronization occurs in real-time as students complete learning activities.
-
-**Community Features**: If the platform includes discussion forums or peer interaction features, students gain access based on enrollment status and community guidelines. Posting, commenting, and reaction permissions follow moderation rules designed to maintain constructive learning environments.
-
-**API Access**: The backend restricts API access for regular users to read-only endpoints essential for learning activities. Write operations, administrative functions, and system configuration endpoints require elevated permissions. Rate limiting applies more restrictively to student-level API access compared to administrative users.
-
-#### Student User Flow
-
-The student user journey follows a structured path designed to minimize friction while maximizing learning outcomes. Understanding this flow helps in designing features that support natural progression through educational content.
-
-**Initial Login Flow**: Upon successful authentication, the system redirects students to the student portal dashboard. The JWT token embedded in the session contains role information that the frontend uses to select the appropriate view hierarchy. If the user has admin privileges, a settings icon appears in the navigation, providing access to the admin panel through explicit user action. This dual-role handling ensures that administrators can access both views without automatic redirection.
-
-**Content Discovery Flow**: Students typically begin their session by exploring available content through category navigation or search. The discovery algorithm considers the user's learning history, stated preferences, and engagement patterns to surface relevant recommendations. Clicking a course or concept card loads the detail view with comprehensive information about the selected item. Enrollment or concept access occurs through explicit action buttons that trigger backend verification of access permissions.
-
-**Learning Session Flow**: When a student begins a learning session, the system tracks their progress through the content. Video playback, reading material consumption, and interactive exercises all trigger progress updates. The frontend sends periodic heartbeat signals to maintain session state and prevent progress loss on network interruptions. Completion of a content item triggers achievement checks, progress bar updates, and potential recommendation of subsequent material.
-
-**Quiz Taking Flow**: Accessing a quiz loads the quiz interface with questions relevant to the current learning context. Students progress through questions one at a time, with answer selection recorded before moving forward. Submission completes the attempt, triggers scoring logic on the backend, and returns the result along with explanatory feedback. Performance data feeds into the adaptive learning system to refine future recommendations.
-
-**Session Termination Flow**: Students can end their session at any time through logout functionality that clears local session state and invalidates the JWT token on the server. Automatic session timeout occurs after a configurable period of inactivity, prompting re-authentication on the next access attempt. The system persists all progress data in real-time, ensuring no learning activity is lost due to unexpected disconnections.
-
-#### Student Behavior Patterns
-
-Understanding typical student behavior enables optimization of the platform for maximum engagement and learning effectiveness. The system collects and analyzes behavioral signals to improve the learning experience.
-
-**Session Patterns**: Students typically engage in sessions ranging from 15 to 45 minutes, with peak activity occurring during evening hours and weekends. The platform sees increased engagement during academic periods and decreased activity during vacation seasons. Completion rates correlate strongly with daily goal settings and reminder notification delivery.
-
-**Navigation Patterns**: Most students follow a predictable navigation pattern from dashboard to course catalog to specific content items. Return visitors often bypass the catalog and go directly to their in-progress content, accessed through the dashboard's continue learning section. Search usage increases when students have specific topics in mind, while browsing dominates when exploration is the goal.
-
-**Content Consumption Patterns**: Video content shows the highest completion rates, followed by interactive exercises, and then textual material. Students frequently pause and resume video playback, indicating the importance of robust progress tracking. Quiz attempts often follow content consumption, with most students taking quizzes within the same session as the related material.
-
-**Engagement Triggers**: Achievement notifications, streak reminders, and personalized recommendations drive the highest engagement spikes. Social features like leaderboards and peer comparisons motivate competitive students, while progress visualization appeals to those focused on mastery. Push notifications about new content in preferred categories show strong open rates.
-
----
+- Language selection (Python, JavaScript, Jac)
+- Code execution with instant feedback
+- Test case validation
+- Debugging capabilities
+- Version history for reviewing progress
 
 ### Admin Users (Admin Portal)
 
 #### Admin Dashboard Views
 
-The admin portal provides a comprehensive management interface for platform administrators, organized into functional sections that align with different aspects of platform operations. Each view is protected by role-based access controls that restrict functionality based on administrative privileges.
+**Dashboard Overview**: The main admin dashboard presents system-wide statistics and health indicators.
 
-**Dashboard Overview**: The main admin dashboard presents system-wide statistics and health indicators. Key metrics include user registration counts, active sessions, content completion rates, and platform utilization trends. Real-time widgets display recent system activities, pending tasks, and alerts requiring administrative attention. The overview serves as a command center for monitoring overall platform health and identifying areas requiring intervention.
+**Users Management View**: This view enables administrators to manage all user accounts in the system.
 
-**Users Management View**: This view enables administrators to manage all user accounts in the system. The user table displays registered users with columns for username, email, role, status, registration date, and last login. Search and filtering capabilities allow quick location of specific users. Action buttons provide access to user detail views, role modification, activation toggling, and deletion functions. Bulk operations support mass updates for user status changes.
+**Content Management View**: The content manager provides access to all educational materials including courses, concepts, and learning paths.
 
-**Content Management View**: The content manager provides access to all educational materials including courses, concepts, and learning paths. Separate tabs organize content by type, with consistent table displays showing titles, categories, difficulty levels, and creation dates. Content cards expand to reveal detailed metadata including subcategories, complexity scores, key terms, and synonyms. Create, edit, and delete actions are available based on content admin permissions. The view integrates with Neo4j to display relationship mappings between concepts.
+**Quiz Management View**: This view presents the quiz database with options to create, edit, and delete quiz content.
 
-**Quiz Management View**: This view presents the quiz database with options to create, edit, and delete quiz content. Quiz cards display the associated concept, question count, difficulty level, and performance statistics. Detailed quiz views show individual questions with answer options, correct answers, and explanatory notes. Creation wizards guide content admins through the process of building new quizzes with multiple question types.
+**AI Lab View**: The admin AI Lab provides access to system intelligence features including recommendation algorithms, content analysis tools, and adaptive learning configuration.
 
-**AI Lab View**: The admin AI Lab provides access to system intelligence features including recommendation algorithms, content analysis tools, and adaptive learning configuration. Performance dashboards display AI model accuracy metrics, recommendation acceptance rates, and engagement impact statistics. Configuration panels allow fine-tuning of recommendation weights, quiz generation parameters, and adaptive difficulty adjustment rules.
+**Analytics Reports View**: Comprehensive analytics dashboards present detailed reports on user behavior, content performance, and platform utilization.
 
-**Analytics Reports View**: Comprehensive analytics dashboards present detailed reports on user behavior, content performance, and platform utilization. Interactive charts visualize trends over time, comparisons between segments, and distribution patterns. Export functionality generates reports in various formats for external analysis or stakeholder communication. Data refresh controls allow administrators to update analytics caches manually.
+#### Admin Access to Code Execution Features
 
-#### Admin Access Permissions
+Content administrators have access to:
 
-Administrative access follows a hierarchical permission model where elevated roles include all capabilities of lower levels plus additional specialized functions. This structure ensures appropriate division of administrative responsibilities while maintaining operational flexibility.
-
-**Level 1 - Admin**: General administrators have read access to most system areas with limited write capabilities. They can view all dashboards, access user lists in read-only mode, view content without modification rights, and access analytics in limited capacity. This role suits team members who need visibility into system operations without the ability to make changes.
-
-**Level 2 - Specialized Admins**: Content administrators can fully manage educational materials including courses, concepts, learning paths, and quizzes. User administrators have complete control over user accounts including creation, modification, role assignment, and deactivation. Analytics administrators have full access to reporting features with export capabilities. These specialized roles enable focused delegation of administrative responsibilities.
-
-**Level 3 - Super Admin**: The super admin role possesses complete system access including all capabilities of other roles plus system configuration, LMS integration management, and platform-wide settings modification. Super admins serve as the ultimate authority for system operation and can delegate permissions to other administrators.
-
-**Permission Enforcement**: The backend enforces permissions through decorator-based authorization on all API endpoints. Frontend components conditionally render based on permission flags retrieved during authentication. Audit logging tracks all administrative actions with user identification and timestamp records.
-
-#### Admin User Flow
-
-Administrative workflows follow patterns optimized for efficient task completion while maintaining security and accountability throughout operations.
-
-**Authentication and Portal Access**: Administrators log in through the standard authentication flow, receiving JWT tokens with embedded role information. Upon successful authentication, the frontend routing system redirects users with admin roles to the student portal by default, maintaining the regular user experience. Administrators can access the admin panel through a prominently displayed settings icon in the navigation header, which appears only for users with admin permissions. This design ensures that admin capabilities are accessible but don't interfere with the primary learning experience.
-
-**Admin Panel Entry**: Clicking the admin access button loads the admin layout with the sidebar navigation, header controls, and main content area. The "Back to Student Portal" button appears in the admin header, allowing quick return to the learning interface without logging out. Session management maintains context across view switches, enabling administrators to move between student and admin experiences seamlessly.
-
-**Common Administrative Workflows**: User management workflows typically involve searching for target accounts, reviewing current settings, making necessary modifications, and confirming changes through action modals. Content management follows a create-read-update-delete pattern with validation at each stage. Analytics workflows involve selecting report parameters, reviewing visualizations, and exporting results for distribution.
-
-**Bulk Operations**: When managing large numbers of items, administrators can select multiple entries through checkboxes and apply actions to the selection. Progress indicators show bulk operation status, with error reporting for items that failed processing. Confirmation dialogs prevent accidental mass changes.
-
-**Session Management**: Administrative sessions use the same JWT mechanism as regular users but with elevated claims. Session timeout applies consistently, requiring re-authentication after periods of inactivity. Administrative actions during the session remain associated with the authenticated identity for audit purposes.
-
-#### Admin Behavior Patterns
-
-Administrator behavior differs significantly from regular users, with distinct usage patterns that inform interface design and feature prioritization.
-
-**Access Patterns**: Administrative access typically occurs during business hours, with peak activity around morning check-ins and end-of-day reviews. Weekend and after-hours access indicates incident response rather than routine administration. Super admin access events are relatively rare and often correspond to system changes or emergency interventions.
-
-**Task Duration**: Administrative tasks vary widely in duration, from quick user lookups taking seconds to comprehensive content audits requiring hours. The interface accommodates both patterns through efficient search and navigation, plus persistent workspace features for extended operations.
-
-**Navigation Patterns**: Administrators develop efficient navigation paths based on their regular responsibilities. User admins primarily utilize the Users section, while content admins focus on Content management. Dashboard overview serves as a common starting point for all administrators, with section-specific views following based on task requirements.
-
-**Risk Sensitivity**: Administrative actions carry system-wide implications, leading to more deliberate behavior patterns compared to regular users. Administrators typically review confirmation dialogs carefully and verify changes before submission. Error prevention features and undo capabilities reduce the perceived risk of administrative operations.
-
-**Delegation Patterns**: Organizations with multiple administrators develop delegation patterns based on role assignments. Super admins often handle initial setup and then transition to monitoring mode, while specialized admins manage day-to-day operations. Understanding these patterns helps in designing approval workflows and escalation procedures.
-
----
-
-### View Transition and Navigation
-
-#### Between Student and Admin Views
-
-The platform supports seamless transitions between student and admin views for users with dual permissions. This design accommodates the reality that platform staff also serve as learners while maintaining clear separation between personal and administrative contexts.
-
-**Navigation Trigger**: The settings icon appears in the student portal header for users with administrative privileges. Clicking this icon opens a dropdown with the "Admin Panel" option. This explicit access pattern prevents accidental entry into administrative contexts while keeping the feature discoverable.
-
-**State Preservation**: When transitioning from student to admin views, the current learning context is preserved in session state. Returning to the student portal restores the previous view, allowing administrators to resume their learning activities without disruption. Progress on in-progress content remains intact across view transitions.
-
-**Permission Validation**: Each view transition validates the user's permission to access the target context. Attempting to access admin features without appropriate permissions results in a permission denied message. This validation occurs on both frontend routing and backend API access.
-
-#### Within Admin Views
-
-**Sidebar Navigation**: The admin sidebar provides persistent navigation between major functional areas. Collapsible mode allows maximizing content area while maintaining quick access to navigation. Active section highlighting indicates the current location within the admin hierarchy.
-
-**Header Controls**: The admin header includes the section title, breadcrumb navigation, and utility buttons including the "Back to Student Portal" option. The header remains fixed during content scrolling, ensuring controls remain accessible.
-
-**Contextual Actions**: Each admin view provides action buttons appropriate to its function, positioned consistently for discoverability. Primary actions appear prominently, while secondary actions are available through dropdown menus or icon buttons.
-
----
-
-### State Management
-
-#### Student Portal State
-
-**Authentication State**: The frontend maintains authentication state including JWT token, user profile, and permission flags. This state persists across sessions through secure token storage and automatic refresh on page reload.
-
-**Learning State**: Current progress, incomplete content, and achievement data load from the backend on session initialization. Local caching reduces API calls while real-time updates ensure currency. Optimistic updates provide responsive feedback for progress actions.
-
-**Preference State**: User preferences including display settings, notification choices, and learning style selections store locally and sync to the backend. Local storage enables preference persistence without network dependence.
-
-#### Admin Portal State
-
-**Administrative State**: Admin state includes current section, selected items, filter settings, and action history. Multi-tab workflows maintain state per section, allowing quick switching between management tasks.
-
-**Data Caching**: Admin views implement aggressive caching to reduce database load for frequently accessed data. Cache invalidation occurs on data modifications within the same session. Manual refresh options allow administrators to force cache updates.
-
-**Audit Trail**: Administrative actions log to the audit system with timestamps, user identification, and affected resources. This trail supports accountability and troubleshooting for administrative operations.
-
----
-
-### Related Documentation
-
-- [Architecture Documentation Summary](ARCHITECTURE_DOCUMENTATION_SUMMARY.md)
-- [Database Architecture](database-architecture.md)
-- [API Reference](api_reference.md)
-- [Admin Interface Design](ADMIN_INTERFACE_DESIGN.md)
-- [Admin Interface Implementation](ADMIN_INTERFACE_IMPLEMENTATION.md)
-
----
-
-- [User Views, Access, and User Flow](#user-views-access-and-user-flow)
-14. [Frontend API Methods Reference](#frontend-api-methods-reference)
+- Creating and managing test cases for coding exercises
+- Managing the error knowledge base
+- Viewing debug session analytics
+- Creating coding challenges with validation tests
 
 ---
 
 ## Frontend API Methods Reference
 
-This section provides a comprehensive reference of all frontend API methods, their corresponding backend walkers (API endpoints), and the data flow between the frontend and backend systems. This documentation is essential for understanding the communication patterns between the React admin dashboard and the Jaclang backend.
-
-### Overview
-
-The Jeseci Smart Learning Academy uses a centralized API service pattern where all HTTP requests to the backend are routed through the `AdminApiService` class defined in `frontend/src/services/adminApi.ts`. Each frontend method maps to a specific backend walker (Jaclang endpoint) that handles the corresponding business logic. The frontend and backend communicate using JSON payloads over HTTP POST requests, with responses wrapped in a Jaclang-specific format that includes a `reports` array containing the actual response data.
-
-The API architecture follows a REST-like pattern where each endpoint corresponds to a specific resource or operation. Walker names in the backend use snake_case (e.g., `admin_users`), while frontend method names use camelCase (e.g., `getUsers`). The API uses JWT authentication, with the token included in the Authorization header as a Bearer token. All API endpoints require authentication, and most require specific role-based permissions (admin, content_admin, user_admin, analytics_admin, or super_admin) to access.
-
-### Dashboard API Methods
-
-The dashboard API provides access to system-wide statistics and health information for the admin interface. These endpoints aggregate data from multiple sources including user counts, content metrics, and system health indicators.
+### Code Execution API Methods
 
 | Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
 |-----------------|----------------|---------------|---------|
-| `getDashboardStats()` | `admin_dashboard` | `/walker/admin_dashboard` | Retrieves comprehensive dashboard statistics including user counts, content statistics, and system health. Returns user_statistics, admin_statistics, content_statistics, and system_health data from PostgreSQL and Neo4j databases. |
-
-### User Management API Methods
-
-User management endpoints handle all administrative operations on user accounts including listing, creating, updating, and deleting users. These endpoints are protected by user_admin or higher permissions to ensure only authorized personnel can modify user data.
-
-| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
-|-----------------|----------------|---------------|---------|
-| `getUsers()` | `admin_users` | `/walker/admin_users` | Retrieves paginated list of users with filtering options for include_inactive, admin_only, and search queries. Supports limit and offset parameters for pagination. Returns users without sensitive password data. |
-| `createAdminUser()` | `admin_users_create` | `/walker/admin_users_create` | Creates a new admin user with specified role and permissions. Requires username, email, password, and admin_role parameters. Additional optional fields include first_name, last_name, learning_style, skill_level, and notification preferences. |
-| `updateUser()` | `admin_users_update` | `/walker/admin_users_update` | Updates an existing user's properties including is_admin status, admin_role, and is_active state. Requires user_id parameter to identify the target user. |
-| `bulkUserAction()` | `admin_users_bulk_action` | `/walker/admin_users_bulk_action` | Applies bulk actions (suspend, activate, delete) to multiple users simultaneously. Accepts user_ids array, action type, reason for action, deleted_by user identifier, and IP address for audit logging. |
-| `restoreUsers()` | `admin_users_restore` | `/walker/admin_users_restore` | Restores soft-deleted users to active status. Accepts user_ids array, restored_by user identifier, and IP address for audit trail purposes. |
-| `getDeletedUsers()` | `admin_users_deleted` | `/walker/admin_users_deleted` | Retrieves list of soft-deleted (trashed) users for potential restoration. Returns users with is_deleted flag set to true and associated deletion metadata. |
-
-### Course Management API Methods
-
-Course management endpoints handle educational content operations including listing, creating, updating, and deleting courses. Courses are stored in PostgreSQL and represent the primary learning units in the platform.
-
-| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
-|-----------------|----------------|---------------|---------|
-| `getCourses()` | `admin_content_courses` | `/walker/admin_content_courses` | Retrieves all courses from the database. Returns course details including course_id, title, description, domain, difficulty, and content_type. |
-| `createCourse()` | `admin_content_course_create` | `/walker/admin_content_course_create` | Creates a new course with specified parameters. Requires title, description, domain, and difficulty. Optional content_type defaults to "interactive". Returns the created course_id. |
-| `updateCourse()` | `admin_content_course_update` | `/walker/admin_content_course_update` | Updates an existing course's properties. Requires course_id along with optional title, description, domain, and difficulty parameters for fields to update. |
-| `deleteCourse()` | `admin_content_course_delete` | `/walker/admin_content_course_delete` | Soft-deletes a course from the database. Requires course_id, deleted_by user identifier, and ip_address for audit logging. Sets is_deleted flag rather than removing the record. |
-| `restoreCourse()` | `admin_content_course_restore` | `/walker/admin_content_course_restore` | Restores a soft-deleted course to active status. Requires course_id, restored_by user identifier, and ip_address for audit trail. Clears is_deleted flag and associated deletion metadata. |
-| `getDeletedCourses()` | `admin_content_courses_deleted` | `/walker/admin_content_courses_deleted` | Retrieves list of soft-deleted courses for potential restoration. Returns courses with is_deleted flag set to true along with deletion metadata. |
-
-### Concept Management API Methods
-
-Concept management endpoints handle learning concept operations. Concepts are stored in Neo4j as graph nodes, enabling relationship mapping and prerequisite tracking for the learning graph system.
-
-| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
-|-----------------|----------------|---------------|---------|
-| `getConcepts()` | `admin_content_concepts` | `/walker/admin_content_concepts` | Retrieves all concepts from Neo4j graph database. Returns concept details including concept_id, name, display_name, category, difficulty_level, and domain. |
-| `getConceptRelationships()` | `admin_content_relationships` | `/walker/admin_content_relationships` | Retrieves all concept-to-concept relationships from Neo4j. Returns source and target concept details with relationship type and strength information. |
-| `addConceptRelationship()` | `admin_content_relationships_create` | `/walker/admin_content_relationships_create` | Creates a new relationship between two concepts. Requires source_id, target_id, relationship_type (PREREQUISITE, RELATED_TO, PART_OF, BUILDS_UPON), and optional strength parameter. |
-| `deleteConceptRelationship()` | `admin_content_relationships_delete` | `/walker/admin_content_relationships_delete` | Removes a relationship between two concepts. Requires source_id, target_id, and relationship_type to identify the specific relationship to remove. |
-| `createConcept()` | `admin_content_concept_create` | `/walker/admin_content_concept_create` | Creates a new concept node in Neo4j. Requires name, category, difficulty_level, and domain. Optional display_name, description, and icon parameters provide additional metadata. |
-
-### Learning Path Management API Methods
-
-Learning path endpoints manage curated sequences of concepts and courses designed to achieve specific learning objectives. Paths are stored in both PostgreSQL (metadata) and Neo4j (nodes and relationships).
-
-| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
-|-----------------|----------------|---------------|---------|
-| `getLearningPaths()` | `admin_content_paths` | `/walker/admin_content_paths` | Retrieves all learning paths from the database. Returns path details including path_id, title, description, difficulty, duration, and associated course/concept IDs. |
-| `createLearningPath()` | `admin_content_path_create` | `/walker/admin_content_path_create` | Creates a new learning path with associated courses and concepts. Requires title, description, courses array, concepts array, difficulty, and duration. Optional target_audience parameter specifies intended users. |
-
-### Quiz Management API Methods
-
-Quiz management endpoints handle assessment content operations including listing, creating, generating with AI, and deleting quizzes. Quizzes are stored in PostgreSQL with associated questions in a separate table.
-
-| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
-|-----------------|----------------|---------------|---------|
-| `getQuizzes()` | `admin_quizzes` | `/walker/admin_quizzes` | Retrieves all quizzes from the database. Returns quiz details including quiz_id, title, description, course_id, difficulty, and question count. |
-| `createQuiz()` | `admin_quizzes_create` | `/walker/admin_quizzes_create` | Creates a new quiz manually. Requires title, description, and difficulty. Optional course_id associates quiz with specific course. Returns created quiz_id. |
-| `updateQuiz()` | `admin_quizzes_update` | `/walker/admin_quizzes_update` | Updates an existing quiz's properties. Requires quiz_id along with optional title, description, and difficulty parameters for fields to update. |
-| `deleteQuiz()` | `admin_quizzes_delete` | `/walker/admin_quizzes_delete` | Soft-deletes a quiz from the database. Requires quiz_id for the target quiz. Sets is_deleted flag while preserving associated questions. |
-| `generateAIQuiz()` | `admin_quizzes_generate_ai` | `/walker/admin_quizzes_generate_ai` | Generates a new quiz using AI (OpenAI GPT). Requires topic, difficulty, and optional question_count (default 5). Returns generated quiz with questions, options, correct answers, and explanations. Falls back to sample quiz if API key not configured. |
-| `saveAIQuiz()` | `admin_quizzes_save_ai` | `/walker/admin_quizzes_save_ai` | Saves an AI-generated quiz to the database. Requires quiz_data object (title, description, questions array), topic, and difficulty. Persists quiz and all associated questions to PostgreSQL. |
-| `getQuizAnalytics()` | `admin_quizzes_analytics` | `/walker/admin_quizzes_analytics` | Retrieves quiz performance statistics including total_quizzes, total_attempts, average_score, and pass_rate metrics. |
-
-### AI Content API Methods
-
-AI content endpoints manage AI-generated educational materials including generation, listing, and statistics retrieval.
-
-| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
-|-----------------|----------------|---------------|---------|
-| `getAIContent()` | `admin_ai_content` | `/walker/admin_ai_content` | Retrieves all AI-generated content from the database. Returns content details including content_id, concept_name, domain, difficulty, generated content, and metadata. |
-| `generateAIContent()` | `admin_ai_generate` | `/walker/admin_ai_generate` | Generates new educational content using AI. Requires concept_name, domain, and difficulty. Optional related_concepts parameter provides context. Returns generated markdown content. |
-| `getAIUsageStats()` | `admin_ai_stats` | `/walker/admin_ai_stats` | Retrieves AI feature usage statistics including total_generations, total_tokens_used, domains_used distribution, and recent_generations list. |
-| `getDomains()` | `admin_ai_domains` | `/walker/admin_ai_domains` | Retrieves available AI domains for content generation. Returns domain list with id, name, description, and associated course count. |
-
-### Analytics API Methods
-
-Analytics endpoints provide system usage statistics and performance metrics for administrative reporting.
-
-| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
-|-----------------|----------------|---------------|---------|
-| `getUserAnalytics()` | `admin_analytics_users` | `/walker/admin_analytics_users` | Retrieves user-related analytics including total_users, active_users, new_users array, and user_growth trend data. |
-| `getLearningAnalytics()` | `admin_analytics_learning` | `/walker/admin_analytics_learning` | Retrieves learning-related analytics including total_sessions, completed_courses, average_progress, and learning_trends over time. |
-| `getContentAnalytics()` | `admin_analytics_content` | `/walker/admin_analytics_content` | Retrieves content performance analytics including total_courses, total_concepts, popular_content with view counts, and content_by_difficulty distribution. |
-| `refreshAnalytics()` | `admin_analytics_refresh` | `/walker/admin_analytics_refresh` | Triggers analytics cache refresh to ensure up-to-date statistics. Returns refresh status and timestamp. |
-
-### Content View Tracking API Methods
-
-Content view tracking endpoints record and retrieve content consumption metrics for analytics purposes.
-
-| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
-|-----------------|----------------|---------------|---------|
-| `recordContentView()` | `record_content_view` | `/walker/record_content_view` | Records a content view event. Requires content_id and content_type. Optional parameters include user_id, session_id, view_duration, device_type, browser, country_code, and referrer_url. Returns view_id and is_unique_view flag. |
-| `getContentViewAnalytics()` | `get_content_view_analytics` | `/walker/get_content_view_analytics` | Retrieves content view statistics. Can filter by content_id and content_type, or retrieve popular content by type. Supports period parameter (all_time, today, week, month) and limit for result count. |
-
-### Cache Management API Methods
-
-Cache management endpoints allow administrators to clear cached data to ensure fresh database queries.
-
-| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
-|-----------------|----------------|---------------|---------|
-| `clearContentCache()` | `admin_clear_content_cache` | `/walker/admin_clear_content_cache` | Clears all content caches forcing fresh database queries on next request. Returns confirmation message with timestamp of cache clear operation. |
-
-### Audit Log API Methods
-
-Audit log endpoints provide access to system activity logs for security and compliance purposes.
-
-| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
-|-----------------|----------------|---------------|---------|
-| `getAuditLogs()` | `admin_audit_logs` | `/walker/admin_audit_logs` | Retrieves audit log entries with filtering options. Supports filtering by table_name, action_type, performed_by, start_date, end_date. Returns logs array with pagination support via limit and offset. |
-| `getAuditHistory()` | `admin_audit_history` | `/walker/admin_audit_history` | Retrieves audit history for a specific record. Requires table_name and record_id. Returns all audit entries associated with that record including creation, updates, and deletions. |
-| `getUserActivity()` | `admin_user_activity` | `/walker/admin_user_activity` | Retrieves activity log for a specific user. Requires performed_by parameter. Returns all actions performed by the specified user with timestamps and details. |
-| `getTableActivity()` | `admin_table_activity` | `/walker/admin_table_activity` | Retrieves activity summary for a specific table. Requires table_name and optional days parameter for time range. Returns activity counts and recent operations summary. |
-
-### API Response Structure
-
-All API responses follow a consistent structure defined by the Jaclang runtime. Understanding this structure is essential for proper response handling in the frontend.
-
-**Successful Response Structure**:
-
-```json
-{
-  "result": {
-    "_jac_type": "walker_name",
-    "_jac_id": "unique_walker_id",
-    "_jac_archetype": "walker",
-    "param1": "value1",
-    "param2": "value2"
-  },
-  "reports": [
-    {
-      "success": true,
-      "data": {
-        "key": "value"
-      },
-      "message": "Operation completed successfully"
-    }
-  ]
-}
-```
-
-**Error Response Structure**:
-
-```json
-{
-  "error": "Error description",
-  "traceback": "Detailed traceback information for debugging"
-}
-```
-
-**Response Unwrapping**: The frontend `AdminApiService.makeRequest()` method automatically extracts data from the `reports` array for successful responses. Components receive the unwrapped data directly without needing to parse the Jaclang response wrapper.
-
-### Request Flow Example
-
-The following example demonstrates the complete request-response flow for creating a new course:
-
-```
-1. Frontend Component calls adminApi.createCourse({ title: "Python Basics", description: "Learn Python", domain: "Programming", difficulty: "beginner" })
-
-2. AdminApiService.makeRequest('/walker/admin_content_course_create', { method: 'POST', body: JSON.stringify({ title: "Python Basics", description: "Learn Python", domain: "Programming", difficulty: "beginner" }) })
-
-3. HTTP POST request sent to http://localhost:8000/walker/admin_content_course_create with Authorization header containing JWT token
-
-4. Backend receives request, validates JWT token and user permissions
-
-5. admin_content_course_create walker executes, calls content_store.create_course() with provided parameters
-
-6. Database INSERT operation creates new course record in PostgreSQL
-
-7. Walker returns success response with created course_id
-
-8. Jaclang runtime wraps response in standard format with reports array
-
-9. HTTP response returned to frontend with wrapped data
-
-10. AdminApiService.makeRequest() unwraps reports[0] and returns to caller
-
-11. Frontend component receives { success: true, course_id: "course_new_xxx", message: "Course created successfully" }
-```
-
-### Common Error Handling Patterns
-
-The API implements consistent error handling across all endpoints. Authentication errors return 401 status with error messages. Authorization errors return 403 status with permission denial details. Validation errors return 400 status with field-specific error messages. Database errors return 500 status with operation-specific error details.
-
-All frontend methods should implement try-catch blocks to handle network errors, timeout errors, and unexpected response formats. The `makeRequest()` method logs all errors with endpoint information for debugging purposes.
-
-### Related Documentation
-
-- [API Endpoints Reference](#api-endpoints-reference)
-- [Content Generation Flow](#content-generation-flow)
-- [AI Quiz Generation Flow](#ai-quiz-generation-flow)
-- [Content View Tracking](#content-view-tracking)
+| `executeCode()` | `execute_code` | `/walker/execute_code` | Execute code snippet |
+| `getSnippetVersions()` | `snippet_versions` | `/walker/snippet_versions` | List version history |
+| `createSnippetVersion()` | `snippet_versions` | `/walker/snippet_versions` | Save new version |
+| `rollbackSnippet()` | `snippet_rollback` | `/walker/snippet_rollback` | Restore previous version |
+| `getTestCases()` | `test_cases` | `/walker/test_cases` | List test cases |
+| `createTestCase()` | `test_cases` | `/walker/test_cases` | Create test case |
+| `runTest()` | `run_test_case` | `/walker/run_test_case` | Execute single test |
+| `runTests()` | `run_tests` | `/walker/run_tests` | Run all tests |
+| `startDebugSession()` | `debug_start` | `/walker/debug_start` | Initialize debugging |
+| `endDebugSession()` | `debug_end` | `/walker/debug_end` | End debugging |
+| `setBreakpoints()` | `debug_breakpoints` | `/walker/debug_breakpoints` | Configure breakpoints |
+| `stepOver()` | `debug_step_over` | `/walker/debug_step_over` | Step over line |
+| `stepInto()` | `debug_step_into` | `/walker/debug_step_into` | Step into function |
+| `stepOut()` | `debug_step_out` | `/walker/debug_step_out` | Step out of function |
+| `continueDebug()` | `debug_continue` | `/walker/debug_continue` | Continue execution |
+| `getDebugState()` | `debug_state` | `/walker/debug_state` | Get debug information |
+| `lookupError()` | `error_lookup` | `/walker/error_lookup` | Find error solutions |
 
 ---
 
@@ -2275,9 +1697,9 @@ All frontend methods should implement try-catch blocks to handle network errors,
 |----------|-------|
 | **Last Updated** | 2026-01-03 |
 | **Author** | Development Team |
-| **Version** | 1.3 |
+| **Version** | 1.4 |
 | **Status** | Active |
-| **Changes** | Added Frontend API Methods Reference documentation section |
+| **Changes** | Added complete Code Execution Engine documentation including multi-language support, version history, test case management, debug sessions, and error knowledge base |
 
 ---
 
