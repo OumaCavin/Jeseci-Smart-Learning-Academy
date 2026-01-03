@@ -1154,6 +1154,56 @@ def create_chat_export_table(cursor):
     logger.info("✓ Chat export table created: chat_exports")
 
 
+def create_user_activities_table(cursor):
+    """Create user activities table for tracking user learning activities"""
+    logger.info("Creating user activities table...")
+    
+    # User activities table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.user_activities (
+            id SERIAL PRIMARY KEY,
+            activity_id VARCHAR(64) UNIQUE NOT NULL,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            activity_type VARCHAR(50) NOT NULL CHECK (activity_type IN (
+                'lesson_completed',
+                'quiz_passed',
+                'achievement_unlocked',
+                'streak_started',
+                'course_enrolled',
+                'module_completed',
+                'level_up',
+                'daily_goal_reached',
+                'certificate_earned',
+                'friend_joined',
+                'comment_posted',
+                'login'
+            )),
+            description TEXT,
+            metadata JSONB DEFAULT '{{}}',
+            points_earned INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Create indexes for efficient querying
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_user_activities_user_id 
+        ON {DB_SCHEMA}.user_activities(user_id)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_user_activities_type 
+        ON {DB_SCHEMA}.user_activities(activity_type)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_user_activities_created 
+        ON {DB_SCHEMA}.user_activities(user_id, created_at DESC)
+    """)
+    
+    logger.info("✓ User activities table created: user_activities")
+
+
 def create_platform_stats_table(cursor):
     """Create platform statistics table for storing aggregated platform metrics"""
     logger.info("Creating platform stats table...")
@@ -1274,6 +1324,7 @@ def initialize_database():
         create_contact_messages_table(cursor)
         create_chat_export_table(cursor)
         create_platform_stats_table(cursor)
+        create_user_activities_table(cursor)
         create_indexes(cursor)
         
         conn.commit()
