@@ -3,8 +3,13 @@
  * 
  * A full-featured code editor for Jac language with:
  * - Monaco Editor integration
- * - Syntax highlighting for Jac language
- * - Code execution
+ * - Multi-language support (Jac, Python, JavaScript)
+ * - Syntax highlighting for multiple languages
+ * - Code execution with sandboxing
+ * - Version history management
+ * - Test case management for auto-grading
+ * - Step-through debugging
+ * - Educational error suggestions
  * - Save/Load snippets
  * - Execution history
  */
@@ -26,28 +31,30 @@ import {
   History,
   ChevronDown,
   FolderPlus,
-  MoreVertical
+  MoreVertical,
+  Bug,
+  Beaker,
+  RotateCcw,
+  Eye,
+  EyeOff,
+  ChevronRight,
+  ChevronLeft,
+  Loader,
+  Lightbulb,
+  BookOpen
 } from 'lucide-react';
 import { apiService } from '../api';
 
-// Jac language keywords for syntax highlighting
-const JAC_KEYWORDS = [
-  'walker', 'node', 'edge', 'can', 'has', 'with', 'import',
-  'if', 'else', 'for', 'while', 'return', 'break', 'continue',
-  'try', 'except', 'finally', 'raise', 'assert', 'pass',
-  'global', 'nonlocal', 'del', 'yield', 'from', 'as', 'in',
-  'is', 'not', 'and', 'or', 'True', 'False', 'None',
-  'report', 'ignore', 'spawn', 'here', 'root', 'super',
-  'static', 'public', 'private', 'protected'
+// Supported programming languages
+const SUPPORTED_LANGUAGES = [
+  { id: 'jac', name: 'Jac', extension: 'jac' },
+  { id: 'python', name: 'Python', extension: 'py' },
+  { id: 'javascript', name: 'JavaScript', extension: 'js' }
 ];
 
-const JAC_TYPES = [
-  'str', 'int', 'float', 'bool', 'list', 'dict', 'tuple',
-  'set', 'any', 'void', 'null', 'async', 'await'
-];
-
-// Default Jac code template
-const DEFAULT_CODE = `walker init {
+// Default code templates for each language
+const DEFAULT_CODE_TEMPLATES: Record<string, string> = {
+  jac: `walker init {
     has greeting: str = "Hello, Jeseci Academy!";
     
     can init with entry {
@@ -66,8 +73,40 @@ walker calculate_sum {
         print(f"Sum: {self.a} + {self.b} = {result}");
         report result;
     }
-}`;
+}`,
+  python: `# Python Code Example
+def main():
+    greeting = "Hello, Jeseci Academy!"
+    print(greeting)
+    print("Welcome to Python Programming!")
+    
+    # Calculate sum
+    a = 10
+    b = 20
+    result = a + b
+    print(f"Sum: {a} + {b} = {result}")
+    return result
 
+if __name__ == "__main__":
+    main()`,
+  javascript: `// JavaScript Code Example
+function main() {
+    const greeting = "Hello, Jeseci Academy!";
+    console.log(greeting);
+    console.log("Welcome to JavaScript Programming!");
+    
+    // Calculate sum
+    const a = 10;
+    const b = 20;
+    const result = a + b;
+    console.log(\`Sum: \${a} + \${b} = \${result}\`);
+    return result;
+}
+
+main();`
+};
+
+// Interface definitions
 interface Snippet {
   id: string;
   title: string;
@@ -90,6 +129,13 @@ interface ExecutionResult {
   status: string;
   error_type?: string;
   line_number?: number;
+  error_suggestion?: {
+    title: string;
+    description: string;
+    suggestion: string;
+    documentation_link?: string;
+    examples?: string;
+  };
 }
 
 interface Folder {
@@ -100,26 +146,86 @@ interface Folder {
   color: string;
 }
 
+interface SnippetVersion {
+  id: string;
+  snippet_id: string;
+  version_number: number;
+  code_content: string;
+  title: string;
+  description?: string;
+  created_by: number;
+  change_summary?: string;
+  created_at: string;
+}
+
+interface TestCase {
+  id: string;
+  snippet_id: string;
+  name: string;
+  input_data?: string;
+  expected_output: string;
+  is_hidden: boolean;
+  order_index: number;
+  timeout_ms: number;
+  created_by?: number;
+  created_at: string;
+}
+
+interface TestResult {
+  id: string;
+  test_case_id: string;
+  execution_id: string;
+  passed: boolean;
+  actual_output: string;
+  execution_time_ms: number;
+  error_message?: string;
+  created_at: string;
+}
+
 const CodeEditor: React.FC = () => {
-  // State
-  const [code, setCode] = useState<string>(DEFAULT_CODE);
+  // Core state
+  const [code, setCode] = useState<string>(DEFAULT_CODE_TEMPLATES['jac']);
   const [output, setOutput] = useState<string>('');
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [showHistory, setShowHistory] = useState<boolean>(false);
-  const [showSnippets, setShowSnippets] = useState<boolean>(false);
+  const [status, setStatus] = useState<'ready' | 'executing' | 'success' | 'error'>('ready');
+  
+  // UI state
+  const [activePanel, setActivePanel] = useState<'none' | 'snippets' | 'history' | 'versions' | 'tests' | 'debug'>('none');
   const [activeTab, setActiveTab] = useState<'output' | 'ai'>('output');
+  
+  // Data state
   const [executionHistory, setExecutionHistory] = useState<any[]>([]);
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [versions, setVersions] = useState<SnippetVersion[]>([]);
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
+  
+  // Settings state
+  const [language, setLanguage] = useState<string>('jac');
   const [selectedFolder, setSelectedFolder] = useState<string>('');
   const [saveTitle, setSaveTitle] = useState<string>('');
   const [saveDescription, setSaveDescription] = useState<string>('');
+  const [currentSnippetId, setCurrentSnippetId] = useState<string>('');
+  
+  // Modal state
   const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
   const [showNewFolderModal, setShowNewFolderModal] = useState<boolean>(false);
+  const [showTestModal, setShowTestModal] = useState<boolean>(false);
   const [newFolderName, setNewFolderName] = useState<string>('');
-  const [currentSnippetId, setCurrentSnippetId] = useState<string>('');
-  const [status, setStatus] = useState<string>('ready');
+  
+  // Debug state
+  const [isDebugMode, setIsDebugMode] = useState<boolean>(false);
+  const [debugSession, setDebugSession] = useState<any>(null);
+  const [currentLine, setCurrentLine] = useState<number | null>(null);
+  const [variables, setVariables] = useState<Record<string, any>>({});
+  
+  // Test modal state
+  const [newTestName, setNewTestName] = useState<string>('');
+  const [newTestInput, setNewTestInput] = useState<string>('');
+  const [newTestExpected, setNewTestExpected] = useState<string>('');
+  const [isHiddenTest, setIsHiddenTest] = useState<boolean>(false);
   
   const editorRef = useRef<any>(null);
 
@@ -166,26 +272,88 @@ const CodeEditor: React.FC = () => {
     }
   };
 
+  // Load versions for current snippet
+  const loadVersions = async (snippetId: string) => {
+    try {
+      const response = await apiService.getSnippetVersions(snippetId);
+      if (response.success) {
+        setVersions(response.versions);
+      }
+    } catch (error) {
+      console.error('Error loading versions:', error);
+    }
+  };
+
+  // Load test cases for current snippet
+  const loadTestCases = async (snippetId: string) => {
+    try {
+      const response = await apiService.getSnippetTestCases(snippetId);
+      if (response.success) {
+        setTestCases(response.test_cases);
+      }
+    } catch (error) {
+      console.error('Error loading test cases:', error);
+    }
+  };
+
   // Handle editor mount
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
   };
 
+  // Handle language change
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    setCode(DEFAULT_CODE_TEMPLATES[newLanguage] || '');
+  };
+
   // Execute code
-  const executeCode = async () => {
+  const executeCode = async (mode: 'run' | 'debug' | 'grade' = 'run') => {
     setIsExecuting(true);
     setOutput('');
     setStatus('executing');
 
     try {
-      const result = await apiService.executeJacCode(code);
+      const result = await apiService.executeCode(code, language, mode);
 
       if (result.success) {
-        const outputText = `✅ Execution successful!\n\n${result.output || 'No output'}`;
+        let outputText = '';
+        
+        if (mode === 'grade') {
+          outputText = `✅ Auto-grading Results\n\n`;
+          if (result.test_results) {
+            const passed = result.test_results.filter((t: any) => t.passed).length;
+            const total = result.test_results.length;
+            outputText += `Tests: ${passed}/${total} passed\n\n`;
+            result.test_results.forEach((test: any, index: number) => {
+              outputText += `${index + 1}. ${test.name}: ${test.passed ? '✅ PASSED' : '❌ FAILED'}\n`;
+              if (!test.passed) {
+                outputText += `   Expected: ${test.expected_output}\n`;
+                outputText += `   Got: ${test.actual_output}\n`;
+              }
+            });
+          }
+        } else {
+          outputText = `✅ Execution successful!\n\n${result.output || 'No output'}`;
+        }
+        
         setOutput(outputText);
         setStatus('success');
       } else {
         let errorText = `❌ Error: ${result.error || 'Unknown error'}`;
+        
+        // Add educational suggestion if available
+        if (result.error_suggestion) {
+          const { title, description, suggestion, documentation_link, examples } = result.error_suggestion;
+          errorText += `\n\n💡 ${title}\n\n${description}\n\nSuggestion: ${suggestion}`;
+          if (documentation_link) {
+            errorText += `\n\n📚 Learn more: ${documentation_link}`;
+          }
+          if (examples) {
+            errorText += `\n\nExample:\n${examples}`;
+          }
+        }
+        
         setOutput(errorText);
         setStatus('error');
       }
@@ -201,6 +369,54 @@ const CodeEditor: React.FC = () => {
     }
   };
 
+  // Run tests
+  const runTests = async () => {
+    await executeCode('grade');
+  };
+
+  // Start debug session
+  const startDebugSession = async () => {
+    try {
+      const response = await apiService.createDebugSession(currentSnippetId);
+      if (response.success) {
+        setDebugSession(response.session);
+        setIsDebugMode(true);
+        setCurrentLine(1);
+        setVariables({});
+        setActivePanel('debug');
+      }
+    } catch (error) {
+      alert('Failed to start debug session: ' + error);
+    }
+  };
+
+  // Step through debug
+  const debugStep = async (action: 'step' | 'continue' | 'terminate') => {
+    if (!debugSession) return;
+
+    try {
+      const response = await apiService.debugStep(debugSession.id, action);
+      if (response.success) {
+        if (action === 'terminate') {
+          setIsDebugMode(false);
+          setDebugSession(null);
+          setCurrentLine(null);
+        } else {
+          setCurrentLine(response.current_line);
+          setVariables(response.variables || {});
+          
+          if (response.status === 'completed') {
+            setOutput(`Debug completed!\n\nOutput:\n${response.output || 'No output'}`);
+            setStatus(response.success ? 'success' : 'error');
+            setIsDebugMode(false);
+          }
+        }
+      }
+    } catch (error) {
+      alert('Debug step failed: ' + error);
+    }
+  };
+
   // Save snippet
   const saveSnippet = async () => {
     if (!saveTitle.trim()) {
@@ -213,6 +429,7 @@ const CodeEditor: React.FC = () => {
       const response = await apiService.saveSnippet({
         title: saveTitle,
         code: code,
+        language: language,
         description: saveDescription,
         snippet_id: currentSnippetId || undefined
       });
@@ -222,6 +439,12 @@ const CodeEditor: React.FC = () => {
         setSaveTitle('');
         setSaveDescription('');
         setCurrentSnippetId(response.snippet.id);
+        
+        // Create initial version
+        if (!currentSnippetId) {
+          await apiService.createVersion(response.snippet.id, code, saveTitle, 1, 'Initial version');
+        }
+        
         loadSnippets();
       } else {
         alert('Failed to save snippet: ' + response.error);
@@ -257,13 +480,57 @@ const CodeEditor: React.FC = () => {
     }
   };
 
+  // Create test case
+  const createTestCase = async () => {
+    if (!newTestName.trim() || !newTestExpected.trim()) {
+      alert('Please fill in test name and expected output');
+      return;
+    }
+
+    try {
+      const response = await apiService.createTestCase({
+        snippet_id: currentSnippetId,
+        name: newTestName,
+        input_data: newTestInput,
+        expected_output: newTestExpected,
+        is_hidden: isHiddenTest
+      });
+
+      if (response.success) {
+        setShowTestModal(false);
+        setNewTestName('');
+        setNewTestInput('');
+        setNewTestExpected('');
+        setIsHiddenTest(false);
+        loadTestCases(currentSnippetId);
+      } else {
+        alert('Failed to create test case: ' + response.error);
+      }
+    } catch (error) {
+      alert('Error creating test case: ' + error);
+    }
+  };
+
   // Load snippet
   const loadSnippet = (snippet: Snippet) => {
     setCode(snippet.code_content);
     setCurrentSnippetId(snippet.id);
     setSaveTitle(snippet.title);
     setSaveDescription(snippet.description || '');
-    setShowSnippets(false);
+    setLanguage(snippet.language || 'jac');
+    
+    // Load related data
+    loadVersions(snippet.id);
+    loadTestCases(snippet.id);
+    
+    setActivePanel('none');
+  };
+
+  // Load version
+  const loadVersion = (version: SnippetVersion) => {
+    setCode(version.code_content);
+    setOutput(`Loaded version ${version.version_number}: ${version.change_summary || 'No description'}`);
+    setStatus('ready');
   };
 
   // Delete snippet
@@ -299,17 +566,26 @@ const CodeEditor: React.FC = () => {
     setStatus('ready');
   };
 
+  // Get language-specific syntax highlighting
+  const getMonacoLanguage = () => {
+    switch (language) {
+      case 'python': return 'python';
+      case 'javascript': return 'javascript';
+      default: return 'python'; // Monaco doesn't have Jac, use Python highlighting
+    }
+  };
+
   return (
     <div className="flex h-full bg-gray-900 text-white">
       {/* Left Sidebar - Snippets */}
-      <div className={`${showSnippets ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-gray-700 flex flex-col`}>
+      <div className={`${activePanel === 'snippets' ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-gray-700 flex flex-col`}>
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
           <h3 className="font-semibold text-lg flex items-center gap-2">
             <FileCode size={18} />
             Snippets
           </h3>
           <button 
-            onClick={() => setShowSnippets(false)}
+            onClick={() => setActivePanel('none')}
             className="text-gray-400 hover:text-white"
           >
             <X size={18} />
@@ -354,8 +630,13 @@ const CodeEditor: React.FC = () => {
                     <Trash2 size={14} />
                   </button>
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {new Date(snippet.updated_at).toLocaleDateString()}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-300">
+                    {snippet.language}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(snippet.updated_at).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             ))}
@@ -365,7 +646,7 @@ const CodeEditor: React.FC = () => {
         <div className="p-3 border-t border-gray-700">
           <button 
             onClick={() => {
-              setCode(DEFAULT_CODE);
+              setCode(DEFAULT_CODE_TEMPLATES[language]);
               setCurrentSnippetId('');
               setSaveTitle('');
               setSaveDescription('');
@@ -378,6 +659,211 @@ const CodeEditor: React.FC = () => {
         </div>
       </div>
 
+      {/* Version History Sidebar */}
+      <div className={`${activePanel === 'versions' ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-gray-700 flex flex-col bg-gray-850`}>
+        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <History size={18} />
+            Version History
+          </h3>
+          <button 
+            onClick={() => setActivePanel('none')}
+            className="text-gray-400 hover:text-white"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-3">
+          {versions.length === 0 ? (
+            <div className="text-gray-500 text-center py-8">
+              <History size={32} className="mx-auto mb-2 opacity-50" />
+              <p>No versions yet</p>
+              <p className="text-sm mt-2">Save your snippet to create the first version</p>
+            </div>
+          ) : (
+            versions.map((version) => (
+              <div 
+                key={version.id}
+                className="p-3 mb-2 bg-gray-800 rounded cursor-pointer hover:bg-gray-700"
+                onClick={() => loadVersion(version)}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">v{version.version_number}</span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(version.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-400 mt-1 truncate">
+                  {version.change_summary || 'No description'}
+                </p>
+                <button 
+                  className="mt-2 text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    loadVersion(version);
+                  }}
+                >
+                  <RotateCcw size={12} />
+                  Restore this version
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Test Cases Sidebar */}
+      <div className={`${activePanel === 'tests' ? 'w-72' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-gray-700 flex flex-col bg-gray-850`}>
+        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <Beaker size={18} />
+            Test Cases
+          </h3>
+          <button 
+            onClick={() => setActivePanel('none')}
+            className="text-gray-400 hover:text-white"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        
+        {/* Run tests button */}
+        <div className="p-3 border-b border-gray-700">
+          <button 
+            onClick={runTests}
+            disabled={isExecuting || !currentSnippetId}
+            className={`w-full py-2 rounded flex items-center justify-center gap-2 ${
+              currentSnippetId ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-700 cursor-not-allowed'
+            }`}
+          >
+            <Beaker size={16} />
+            Run All Tests
+          </button>
+        </div>
+        
+        {/* Test cases list */}
+        <div className="flex-1 overflow-y-auto p-3">
+          {testCases.length === 0 ? (
+            <div className="text-gray-500 text-center py-8">
+              <Beaker size={32} className="mx-auto mb-2 opacity-50" />
+              <p>No test cases yet</p>
+              <p className="text-sm mt-2">Add test cases to enable auto-grading</p>
+            </div>
+          ) : (
+            testCases.map((test) => (
+              <div 
+                key={test.id}
+                className="p-3 mb-2 bg-gray-800 rounded"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{test.name}</span>
+                  {test.is_hidden && (
+                    <span className="text-xs px-2 py-0.5 rounded bg-yellow-900 text-yellow-300">
+                      Hidden
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Input: {test.input_data || 'None'}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Expected: {test.expected_output}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        
+        {/* Add test button */}
+        <div className="p-3 border-t border-gray-700">
+          <button 
+            onClick={() => currentSnippetId ? setShowTestModal(true) : alert('Save your snippet first to add test cases')}
+            className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded flex items-center justify-center gap-2"
+          >
+            <Beaker size={16} />
+            Add Test Case
+          </button>
+        </div>
+      </div>
+
+      {/* Debug Sidebar */}
+      <div className={`${activePanel === 'debug' ? 'w-72' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-gray-700 flex flex-col bg-gray-850`}>
+        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <Bug size={18} />
+            Debugger
+          </h3>
+          <button 
+            onClick={() => setActivePanel('none')}
+            className="text-gray-400 hover:text-white"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        
+        {/* Debug controls */}
+        <div className="p-3 border-b border-gray-700 flex gap-2">
+          <button 
+            onClick={() => debugStep('step')}
+            disabled={!isDebugMode}
+            className="flex-1 py-2 bg-yellow-600 hover:bg-yellow-700 rounded text-sm flex items-center justify-center gap-1"
+          >
+            <ChevronRight size={14} />
+            Step
+          </button>
+          <button 
+            onClick={() => debugStep('continue')}
+            disabled={!isDebugMode}
+            className="flex-1 py-2 bg-green-600 hover:bg-green-700 rounded text-sm flex items-center justify-center gap-1"
+          >
+            <Play size={14} />
+            Continue
+          </button>
+          <button 
+            onClick={() => debugStep('terminate')}
+            disabled={!isDebugMode}
+            className="flex-1 py-2 bg-red-600 hover:bg-red-700 rounded text-sm flex items-center justify-center gap-1"
+          >
+            <X size={14} />
+            Stop
+          </button>
+        </div>
+        
+        {/* Current line indicator */}
+        <div className="p-3 border-b border-gray-700">
+          <div className="text-sm text-gray-400">Current Line</div>
+          <div className="text-xl font-mono">{currentLine || '-'}</div>
+        </div>
+        
+        {/* Variables */}
+        <div className="flex-1 overflow-y-auto p-3">
+          <div className="text-sm text-gray-400 mb-2">Variables</div>
+          {Object.keys(variables).length === 0 ? (
+            <div className="text-gray-500 text-sm">No variables in scope</div>
+          ) : (
+            <pre className="text-xs bg-gray-800 p-2 rounded overflow-x-auto">
+              {JSON.stringify(variables, null, 2)}
+            </pre>
+          )}
+        </div>
+        
+        {!isDebugMode && (
+          <div className="p-3 border-t border-gray-700">
+            <button 
+              onClick={startDebugSession}
+              disabled={!currentSnippetId}
+              className={`w-full py-2 rounded flex items-center justify-center gap-2 ${
+                currentSnippetId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-700 cursor-not-allowed'
+              }`}
+            >
+              <Bug size={16} />
+              Start Debugging
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Toolbar */}
@@ -385,20 +871,38 @@ const CodeEditor: React.FC = () => {
           <div className="flex items-center gap-4">
             {/* Toggle snippets sidebar */}
             <button 
-              onClick={() => setShowSnippets(!showSnippets)}
-              className={`p-2 rounded hover:bg-gray-700 ${showSnippets ? 'text-blue-400' : 'text-gray-400'}`}
-              title="Toggle Snippets"
+              onClick={() => setActivePanel(activePanel === 'snippets' ? 'none' : 'snippets')}
+              className={`p-2 rounded hover:bg-gray-700 ${activePanel === 'snippets' ? 'text-blue-400' : 'text-gray-400'}`}
+              title="Snippets"
             >
               <FolderOpen size={18} />
             </button>
             
-            {/* Toggle history */}
+            {/* Toggle versions */}
             <button 
-              onClick={() => setShowHistory(!showHistory)}
-              className={`p-2 rounded hover:bg-gray-700 ${showHistory ? 'text-blue-400' : 'text-gray-400'}`}
-              title="Execution History"
+              onClick={() => setActivePanel(activePanel === 'versions' ? 'none' : 'versions')}
+              className={`p-2 rounded hover:bg-gray-700 ${activePanel === 'versions' ? 'text-blue-400' : 'text-gray-400'}`}
+              title="Version History"
             >
               <History size={18} />
+            </button>
+            
+            {/* Toggle tests */}
+            <button 
+              onClick={() => setActivePanel(activePanel === 'tests' ? 'none' : 'tests')}
+              className={`p-2 rounded hover:bg-gray-700 ${activePanel === 'tests' ? 'text-blue-400' : 'text-gray-400'}`}
+              title="Test Cases"
+            >
+              <Beaker size={18} />
+            </button>
+            
+            {/* Toggle debug */}
+            <button 
+              onClick={() => setActivePanel(activePanel === 'debug' ? 'none' : 'debug')}
+              className={`p-2 rounded hover:bg-gray-700 ${activePanel === 'debug' ? 'text-blue-400' : 'text-gray-400'}`}
+              title="Debugger"
+            >
+              <Bug size={18} />
             </button>
             
             {/* Format code */}
@@ -409,6 +913,23 @@ const CodeEditor: React.FC = () => {
             >
               <FileCode size={18} />
             </button>
+            
+            {/* Divider */}
+            <div className="h-6 w-px bg-gray-600"></div>
+            
+            {/* Language selector */}
+            <div className="relative">
+              <select 
+                value={language}
+                onChange={(e) => handleLanguageChange(e.target.value)}
+                className="appearance-none bg-gray-700 border border-gray-600 rounded px-3 py-1.5 pr-8 text-sm cursor-pointer hover:bg-gray-600"
+              >
+                {SUPPORTED_LANGUAGES.map(lang => (
+                  <option key={lang.id} value={lang.id}>{lang.name}</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
           </div>
           
           {/* Action buttons */}
@@ -424,7 +945,7 @@ const CodeEditor: React.FC = () => {
             
             {/* Execute button */}
             <button 
-              onClick={executeCode}
+              onClick={() => executeCode('run')}
               disabled={isExecuting}
               className={`flex items-center gap-2 px-6 py-2 rounded font-medium ${
                 isExecuting 
@@ -434,7 +955,7 @@ const CodeEditor: React.FC = () => {
             >
               {isExecuting ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <Loader size={16} className="animate-spin" />
                   Running...
                 </>
               ) : (
@@ -453,7 +974,8 @@ const CodeEditor: React.FC = () => {
           <div className="flex-1 flex flex-col">
             <Editor
               height="100%"
-              defaultLanguage="python"
+              defaultLanguage={getMonacoLanguage()}
+              language={getMonacoLanguage()}
               value={code}
               onChange={(value) => setCode(value || '')}
               onMount={handleEditorDidMount}
@@ -479,124 +1001,79 @@ const CodeEditor: React.FC = () => {
           </div>
           
           {/* Output Panel */}
-          {showHistory ? (
-            /* Execution History Panel */
-            <div className="w-80 border-l border-gray-700 flex flex-col bg-gray-850">
-              <div className="p-4 border-b border-gray-700">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Clock size={18} />
-                  Execution History
-                </h3>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                {executionHistory.length === 0 ? (
-                  <div className="p-4 text-gray-500 text-center">
-                    No execution history yet
-                  </div>
-                ) : (
-                  executionHistory.map((item, index) => (
-                    <div 
-                      key={item.id || index}
-                      className="p-3 border-b border-gray-800 cursor-pointer hover:bg-gray-800"
-                      onClick={() => {
-                        setCode(item.code_content);
-                        setOutput(item.output);
-                        setStatus(item.status);
-                        setShowHistory(false);
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          item.status === 'success' ? 'bg-green-900 text-green-300' : 
-                          item.status === 'error' ? 'bg-red-900 text-red-300' : 
-                          'bg-yellow-900 text-yellow-300'
-                        }`}>
-                          {item.status}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {item.execution_time_ms}ms
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {new Date(item.created_at).toLocaleString()}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+          <div className="w-80 border-l border-gray-700 flex flex-col bg-gray-850">
+            {/* Tabs */}
+            <div className="flex border-b border-gray-700">
+              <button 
+                onClick={() => setActiveTab('output')}
+                className={`flex-1 py-3 text-sm font-medium ${
+                  activeTab === 'output' 
+                    ? 'text-blue-400 border-b-2 border-blue-400' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Terminal size={16} className="inline mr-2" />
+                Output
+              </button>
+              <button 
+                onClick={() => setActiveTab('ai')}
+                className={`flex-1 py-3 text-sm font-medium ${
+                  activeTab === 'ai' 
+                    ? 'text-blue-400 border-b-2 border-blue-400' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Lightbulb size={16} className="inline mr-2" />
+                AI Help
+              </button>
             </div>
-          ) : (
-            /* Output Panel */
-            <div className="w-80 border-l border-gray-700 flex flex-col bg-gray-850">
-              {/* Tabs */}
-              <div className="flex border-b border-gray-700">
-                <button 
-                  onClick={() => setActiveTab('output')}
-                  className={`flex-1 py-3 text-sm font-medium ${
-                    activeTab === 'output' 
-                      ? 'text-blue-400 border-b-2 border-blue-400' 
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  <Terminal size={16} className="inline mr-2" />
-                  Output
-                </button>
-                <button 
-                  onClick={() => setActiveTab('ai')}
-                  className={`flex-1 py-3 text-sm font-medium ${
-                    activeTab === 'ai' 
-                      ? 'text-blue-400 border-b-2 border-blue-400' 
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  AI Help
-                </button>
-              </div>
-              
-              {/* Output content */}
-              <div className="flex-1 overflow-y-auto p-4 font-mono text-sm">
-                {output ? (
-                  <div className="whitespace-pre-wrap">
-                    <div className={`mb-4 ${
-                      status === 'success' ? 'text-green-400' : 
-                      status === 'error' ? 'text-red-400' : 'text-yellow-400'
-                    }`}>
-                      {status === 'success' && '✅ '}
-                      {status === 'error' && '❌ '}
-                      {status === 'executing' && '⏳ '}
-                      {status === 'ready' && '📝 '}
-                      {status === 'success' ? 'Execution completed successfully!' :
-                       status === 'error' ? 'Execution failed' :
-                       status === 'executing' ? 'Executing code...' : 'Ready'}
+            
+            {/* Output content */}
+            <div className="flex-1 overflow-y-auto p-4 font-mono text-sm">
+              {output ? (
+                <div className="whitespace-pre-wrap">
+                  <div className={`mb-4 ${
+                    status === 'success' ? 'text-green-400' : 
+                    status === 'error' ? 'text-red-400' : 'text-yellow-400'
+                  }`}>
+                    {status === 'success' && '✅ '}
+                    {status === 'error' && '❌ '}
+                    {status === 'executing' && '⏳ '}
+                    {status === 'ready' && '📝 '}
+                    {status === 'success' ? 'Execution completed successfully!' :
+                     status === 'error' ? 'Execution failed' :
+                     status === 'executing' ? 'Executing code...' : 'Ready'}
+                  </div>
+                  {output && (
+                    <div className="text-gray-300 bg-gray-900 p-3 rounded border border-gray-700 whitespace-pre-wrap">
+                      {output}
                     </div>
-                    {output && (
-                      <div className="text-gray-300 bg-gray-900 p-3 rounded border border-gray-700">
-                        {output}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-gray-500 text-center mt-10">
-                    <Terminal size={48} className="mx-auto mb-4 opacity-50" />
-                    <p>Write your Jac code and click "Run Code" to execute</p>
-                  </div>
-                )}
-              </div>
-              
-              {/* Clear button */}
-              {output && (
-                <div className="p-3 border-t border-gray-700">
-                  <button 
-                    onClick={clearOutput}
-                    className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm flex items-center justify-center gap-2"
-                  >
-                    <Trash2 size={16} />
-                    Clear Output
-                  </button>
+                  )}
+                </div>
+              ) : (
+                <div className="text-gray-500 text-center mt-10">
+                  <Terminal size={48} className="mx-auto mb-4 opacity-50" />
+                  <p>Write your code and click "Run Code" to execute</p>
+                  <p className="text-sm mt-2 text-gray-400">
+                    Language: {SUPPORTED_LANGUAGES.find(l => l.id === language)?.name}
+                  </p>
                 </div>
               )}
             </div>
-          )}
+            
+            {/* Clear button */}
+            {output && (
+              <div className="p-3 border-t border-gray-700">
+                <button 
+                  onClick={clearOutput}
+                  className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={16} />
+                  Clear Output
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       
@@ -640,11 +1117,23 @@ const CodeEditor: React.FC = () => {
               </div>
               
               <div>
+                <label className="block text-sm text-gray-400 mb-1">Language</label>
+                <select 
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                >
+                  {SUPPORTED_LANGUAGES.map(lang => (
+                    <option key={lang.id} value={lang.id}>{lang.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
                 <label className="block text-sm text-gray-400 mb-1">Folder</label>
                 <select 
-                  value={folders.find(f => f.id === snippets.find(s => s.id === currentSnippetId)?.folder_id)?.id || ''}
-                  onChange={(e) => {}}
                   className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                  defaultValue=""
                 >
                   <option value="">No folder</option>
                   {folders.map(folder => (
@@ -667,13 +1156,140 @@ const CodeEditor: React.FC = () => {
                 className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded flex items-center justify-center gap-2"
               >
                 {isSaving ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <Loader size={16} className="animate-spin" />
                 ) : (
                   <>
                     <Save size={16} />
                     Save
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* New Folder Modal */}
+      {showNewFolderModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-96">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Create Folder</h3>
+              <button 
+                onClick={() => setShowNewFolderModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Folder Name *</label>
+                <input 
+                  type="text"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                  placeholder="Enter folder name"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button 
+                onClick={() => setShowNewFolderModal(false)}
+                className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={createFolder}
+                className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded flex items-center justify-center gap-2"
+              >
+                <FolderPlus size={16} />
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Test Case Modal */}
+      {showTestModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-96">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Add Test Case</h3>
+              <button 
+                onClick={() => setShowTestModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Test Name *</label>
+                <input 
+                  type="text"
+                  value={newTestName}
+                  onChange={(e) => setNewTestName(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                  placeholder="e.g., Test addition"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Input</label>
+                <textarea 
+                  value={newTestInput}
+                  onChange={(e) => setNewTestInput(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                  rows={2}
+                  placeholder="Input data (optional)"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Expected Output *</label>
+                <textarea 
+                  value={newTestExpected}
+                  onChange={(e) => setNewTestExpected(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                  rows={2}
+                  placeholder="Expected output"
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox"
+                  id="isHidden"
+                  checked={isHiddenTest}
+                  onChange={(e) => setIsHiddenTest(e.target.checked)}
+                  className="rounded bg-gray-700 border-gray-600"
+                />
+                <label htmlFor="isHidden" className="text-sm text-gray-400">
+                  Hidden test (only shown if failed)
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button 
+                onClick={() => setShowTestModal(false)}
+                className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={createTestCase}
+                className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 rounded flex items-center justify-center gap-2"
+              >
+                <Beaker size={16} />
+                Create Test
               </button>
             </div>
           </div>
