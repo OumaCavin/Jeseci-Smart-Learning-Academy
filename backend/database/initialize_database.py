@@ -1325,7 +1325,374 @@ def create_collaboration_tables(cursor):
         )
     """)
     
-    # Create indexes for efficient querying
+    # ==============================================================================
+    # UPVOTING AND REPUTATION SYSTEM TABLES
+    # ==============================================================================
+    
+    # User reputation table - tracks reputation points and levels
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.user_reputation (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            reputation_points INTEGER DEFAULT 0,
+            level INTEGER DEFAULT 1,
+            total_upvotes_received INTEGER DEFAULT 0,
+            total_downvotes_received INTEGER DEFAULT 0,
+            total_accepted_answers INTEGER DEFAULT 0,
+            helpful_flags_count INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id)
+        )
+    """)
+    
+    # Reputation events table - tracks individual reputation changes
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.reputation_events (
+            id SERIAL PRIMARY KEY,
+            event_id VARCHAR(64) UNIQUE NOT NULL,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            event_type VARCHAR(50) NOT NULL CHECK (event_type IN (
+                'upvote_received',
+                'downvote_received',
+                'answer_accepted',
+                'question_upvoted',
+                'post_flagged_helpful',
+                'mentorship_completed',
+                'peer_review_completed',
+                'streak_bonus',
+                'achievement_bonus',
+                'downvote_given',
+                'flag_declined'
+            )),
+            points_change INTEGER NOT NULL,
+            target_user_id INTEGER REFERENCES {DB_SCHEMA}.users(id) ON DELETE SET NULL,
+            content_id VARCHAR(100),
+            content_type VARCHAR(50),
+            reason TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Upvotes table - tracks upvotes on content
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.content_upvotes (
+            id SERIAL PRIMARY KEY,
+            upvote_id VARCHAR(64) UNIQUE NOT NULL,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            content_id VARCHAR(100) NOT NULL,
+            content_type VARCHAR(50) NOT NULL CHECK (content_type IN ('forum_post', 'forum_thread', 'content_comment', 'peer_review_feedback')),
+            vote_type INTEGER NOT NULL CHECK (vote_type IN (1, -1)),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, content_id, content_type)
+        )
+    """)
+    
+    # ==============================================================================
+    # STUDY GROUPS TABLES
+    # ==============================================================================
+    
+    # Study groups table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.study_groups (
+            id SERIAL PRIMARY KEY,
+            group_id VARCHAR(64) UNIQUE NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            description TEXT,
+            learning_goal TEXT,
+            target_topic VARCHAR(100),
+            max_members INTEGER DEFAULT 10,
+            is_public BOOLEAN DEFAULT TRUE,
+            is_active BOOLEAN DEFAULT TRUE,
+            created_by INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Study group members table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.study_group_members (
+            id SERIAL PRIMARY KEY,
+            membership_id VARCHAR(64) UNIQUE NOT NULL,
+            group_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.study_groups(group_id) ON DELETE CASCADE,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            role VARCHAR(20) DEFAULT 'member' CHECK (role IN ('owner', 'admin', 'member')),
+            joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_active_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(group_id, user_id)
+        )
+    """)
+    
+    # Study group shared notes table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.study_group_notes (
+            id SERIAL PRIMARY KEY,
+            note_id VARCHAR(64) UNIQUE NOT NULL,
+            group_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.study_groups(group_id) ON DELETE CASCADE,
+            author_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            title VARCHAR(200) NOT NULL,
+            content TEXT NOT NULL,
+            tags TEXT[],
+            is_pinned BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Study group goals table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.study_group_goals (
+            id SERIAL PRIMARY KEY,
+            goal_id VARCHAR(64) UNIQUE NOT NULL,
+            group_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.study_groups(group_id) ON DELETE CASCADE,
+            title VARCHAR(200) NOT NULL,
+            description TEXT,
+            target_completion_date DATE,
+            is_completed BOOLEAN DEFAULT FALSE,
+            completed_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Study group discussions table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.study_group_discussions (
+            id SERIAL PRIMARY KEY,
+            discussion_id VARCHAR(64) UNIQUE NOT NULL,
+            group_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.study_groups(group_id) ON DELETE CASCADE,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            topic VARCHAR(200) NOT NULL,
+            content TEXT NOT NULL,
+            is_pinned BOOLEAN DEFAULT FALSE,
+            reply_count INTEGER DEFAULT 0,
+            last_reply_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Study group messages table (for real-time chat)
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.study_group_messages (
+            id SERIAL PRIMARY KEY,
+            message_id VARCHAR(64) UNIQUE NOT NULL,
+            group_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.study_groups(group_id) ON DELETE CASCADE,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            content TEXT NOT NULL,
+            message_type VARCHAR(20) DEFAULT 'text' CHECK (message_type IN ('text', 'link', 'file', 'milestone')),
+            file_url VARCHAR(500),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # ==============================================================================
+    # MENTORSHIP SYSTEM TABLES
+    # ==============================================================================
+    
+    # Mentorship profiles table - stores mentor information
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.mentorship_profiles (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            is_available BOOLEAN DEFAULT TRUE,
+            expertise_areas TEXT[],
+            years_experience INTEGER DEFAULT 0,
+            teaching_style TEXT,
+            bio TEXT,
+            availability_hours VARCHAR(100),
+            max_mentees INTEGER DEFAULT 3,
+            current_mentees_count INTEGER DEFAULT 0,
+            total_sessions_completed INTEGER DEFAULT 0,
+            average_rating DECIMAL(3,2) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id)
+        )
+    """)
+    
+    # Mentorship requests table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.mentorship_requests (
+            id SERIAL PRIMARY KEY,
+            request_id VARCHAR(64) UNIQUE NOT NULL,
+            mentor_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            mentee_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected', 'completed', 'cancelled')),
+            topic VARCHAR(100),
+            goals TEXT,
+            preferred_schedule VARCHAR(100),
+            message TEXT,
+            response_message TEXT,
+            requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            responded_at TIMESTAMP,
+            completed_at TIMESTAMP
+        )
+    """)
+    
+    # Mentorship sessions table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.mentorship_sessions (
+            id SERIAL PRIMARY KEY,
+            session_id VARCHAR(64) UNIQUE NOT NULL,
+            mentorship_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.mentorship_requests(id) ON DELETE CASCADE,
+            mentor_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            mentee_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            scheduled_at TIMESTAMP NOT NULL,
+            duration_minutes INTEGER DEFAULT 60,
+            status VARCHAR(20) DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'in_progress', 'completed', 'cancelled', 'no_show')),
+            topic VARCHAR(200),
+            notes TEXT,
+            outcome TEXT,
+            mentor_feedback TEXT,
+            mentee_feedback TEXT,
+            mentor_rating INTEGER CHECK (mentor_rating >= 1 AND mentor_rating <= 5),
+            mentee_rating INTEGER CHECK (mentee_rating >= 1 AND mentee_rating <= 5),
+            started_at TIMESTAMP,
+            ended_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # ==============================================================================
+    # MODERATION TABLES
+    # ==============================================================================
+    
+    # Content reports table - tracks user reports
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.content_reports (
+            id SERIAL PRIMARY KEY,
+            report_id VARCHAR(64) UNIQUE NOT NULL,
+            reporter_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            content_id VARCHAR(100) NOT NULL,
+            content_type VARCHAR(50) NOT NULL CHECK (content_type IN ('forum_post', 'forum_thread', 'content_comment', 'study_group_note', 'study_group_message')),
+            report_reason VARCHAR(50) NOT NULL CHECK (report_reason IN (
+                'spam',
+                'harassment',
+                'inappropriate_content',
+                'misinformation',
+                'copyright',
+                'other'
+            )),
+            additional_info TEXT,
+            status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'resolved', 'dismissed')),
+            priority VARCHAR(20) DEFAULT 'normal' CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
+            reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            reviewed_by INTEGER REFERENCES {DB_SCHEMA}.users(id) ON DELETE SET NULL,
+            reviewed_at TIMESTAMP,
+            resolution_notes TEXT
+        )
+    """)
+    
+    # Moderation actions table - tracks moderator actions
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.moderation_actions (
+            id SERIAL PRIMARY KEY,
+            action_id VARCHAR(64) UNIQUE NOT NULL,
+            moderator_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            content_id VARCHAR(100) NOT NULL,
+            content_type VARCHAR(50) NOT NULL,
+            action_type VARCHAR(50) NOT NULL CHECK (action_type IN (
+                'content_removed',
+                'content_hidden',
+                'user_warned',
+                'user_suspended',
+                'user_banned',
+                'report_dismissed',
+                'content_edited'
+            )),
+            reason TEXT,
+            notes TEXT,
+            is_reversed BOOLEAN DEFAULT FALSE,
+            reversed_by INTEGER REFERENCES {DB_SCHEMA}.users(id) ON DELETE SET NULL,
+            reversed_at TIMESTAMP,
+            reversal_reason TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Moderation queue table - content awaiting review
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.moderation_queue (
+            id SERIAL PRIMARY KEY,
+            queue_id VARCHAR(64) UNIQUE NOT NULL,
+            content_id VARCHAR(100) NOT NULL,
+            content_type VARCHAR(50) NOT NULL,
+            report_id INTEGER REFERENCES {DB_SCHEMA}.content_reports(id) ON DELETE SET NULL,
+            priority VARCHAR(20) DEFAULT 'normal' CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
+            status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'in_review', 'resolved')),
+            assigned_to INTEGER REFERENCES {DB_SCHEMA}.users(id) ON DELETE SET NULL,
+            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            assigned_at TIMESTAMP,
+            resolved_at TIMESTAMP,
+            resolution_summary TEXT
+        )
+    """)
+    
+    # ==============================================================================
+    # PEER REVIEW SYSTEM TABLES
+    # ==============================================================================
+    
+    # Peer review submissions table - work submitted for review
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.peer_review_submissions (
+            id SERIAL PRIMARY KEY,
+            submission_id VARCHAR(64) UNIQUE NOT NULL,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            title VARCHAR(200) NOT NULL,
+            description TEXT,
+            content_type VARCHAR(50) NOT NULL CHECK (content_type IN ('assignment', 'project', 'code', 'essay', 'presentation')),
+            related_content_id VARCHAR(100),
+            related_content_type VARCHAR(50),
+            status VARCHAR(20) DEFAULT 'open' CHECK (status IN ('open', 'in_review', 'completed', 'archived')),
+            max_reviewers INTEGER DEFAULT 2,
+            current_reviewers INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Peer review assignments table - tracks who reviews what
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.peer_review_assignments (
+            id SERIAL PRIMARY KEY,
+            assignment_id VARCHAR(64) UNIQUE NOT NULL,
+            submission_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.peer_review_submissions(submission_id) ON DELETE CASCADE,
+            reviewer_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            status VARCHAR(20) DEFAULT 'assigned' CHECK (status IN ('assigned', 'in_progress', 'completed', 'declined')),
+            assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            completed_at TIMESTAMP,
+            deadline DATE,
+            UNIQUE(submission_id, reviewer_id)
+        )
+    """)
+    
+    # Peer review feedback table - stores feedback given
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.peer_review_feedback (
+            id SERIAL PRIMARY KEY,
+            feedback_id VARCHAR(64) UNIQUE NOT NULL,
+            assignment_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.peer_review_assignments(assignment_id) ON DELETE CASCADE,
+            submission_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.peer_review_submissions(submission_id) ON DELETE CASCADE,
+            reviewer_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            overall_rating INTEGER CHECK (overall_rating >= 1 AND overall_rating <= 5),
+            strengths TEXT,
+            improvements TEXT,
+            comments TEXT,
+            is_approved BOOLEAN DEFAULT FALSE,
+            author_response TEXT,
+            feedback_upvotes INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # ==============================================================================
+    # INDEXES FOR ADVANCED COLLABORATION TABLES
+    # ==============================================================================
+    
+    # User connections indexes
     cursor.execute(f"""
         CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_user_connections_user 
         ON {DB_SCHEMA}.user_connections(user_id, status)
@@ -1336,11 +1703,13 @@ def create_collaboration_tables(cursor):
         ON {DB_SCHEMA}.user_connections(connected_user_id, status) WHERE status = 'pending'
     """)
     
+    # Forums indexes
     cursor.execute(f"""
         CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_forums_active 
         ON {DB_SCHEMA}.forums(is_active, sort_order)
     """)
     
+    # Forum threads indexes
     cursor.execute(f"""
         CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_forum_threads_forum 
         ON {DB_SCHEMA}.forum_threads(forum_id, created_at DESC)
@@ -1351,6 +1720,7 @@ def create_collaboration_tables(cursor):
         ON {DB_SCHEMA}.forum_threads(user_id)
     """)
     
+    # Forum posts indexes
     cursor.execute(f"""
         CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_forum_posts_thread 
         ON {DB_SCHEMA}.forum_posts(thread_id, created_at ASC)
@@ -1361,6 +1731,7 @@ def create_collaboration_tables(cursor):
         ON {DB_SCHEMA}.forum_posts(user_id)
     """)
     
+    # Content comments indexes
     cursor.execute(f"""
         CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_content_comments_content 
         ON {DB_SCHEMA}.content_comments(content_id, content_type, created_at DESC)
@@ -1369,6 +1740,106 @@ def create_collaboration_tables(cursor):
     cursor.execute(f"""
         CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_content_comments_user 
         ON {DB_SCHEMA}.content_comments(user_id)
+    """)
+    
+    # Reputation indexes
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_user_reputation_points 
+        ON {DB_SCHEMA}.user_reputation(reputation_points DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_reputation_events_user 
+        ON {DB_SCHEMA}.reputation_events(user_id, created_at DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_content_upvotes_content 
+        ON {DB_SCHEMA}.content_upvotes(content_id, content_type)
+    """)
+    
+    # Study groups indexes
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_study_groups_active 
+        ON {DB_SCHEMA}.study_groups(is_active, created_at DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_study_groups_topic 
+        ON {DB_SCHEMA}.study_groups(target_topic)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_study_group_members_group 
+        ON {DB_SCHEMA}.study_group_members(group_id)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_study_group_notes_group 
+        ON {DB_SCHEMA}.study_group_notes(group_id, created_at DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_study_group_discussions_group 
+        ON {DB_SCHEMA}.study_group_discussions(group_id, created_at DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_study_group_messages_group 
+        ON {DB_SCHEMA}.study_group_messages(group_id, created_at DESC)
+    """)
+    
+    # Mentorship indexes
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_mentorship_profiles_available 
+        ON {DB_SCHEMA}.mentorship_profiles(is_available, expertise_areas)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_mentorship_requests_mentor 
+        ON {DB_SCHEMA}.mentorship_requests(mentor_id, status)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_mentorship_requests_mentee 
+        ON {DB_SCHEMA}.mentorship_requests(mentee_id, status)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_mentorship_sessions_scheduled 
+        ON {DB_SCHEMA}.mentorship_sessions(scheduled_at, status)
+    """)
+    
+    # Moderation indexes
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_content_reports_status 
+        ON {DB_SCHEMA}.content_reports(status, priority)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_moderation_queue_status 
+        ON {DB_SCHEMA}.moderation_queue(status, priority)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_moderation_actions_moderator 
+        ON {DB_SCHEMA}.moderation_actions(moderator_id, created_at DESC)
+    """)
+    
+    # Peer review indexes
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_peer_review_submissions_user 
+        ON {DB_SCHEMA}.peer_review_submissions(user_id, status)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_peer_review_assignments_reviewer 
+        ON {DB_SCHEMA}.peer_review_assignments(reviewer_id, status)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_peer_review_feedback_submission 
+        ON {DB_SCHEMA}.peer_review_feedback(submission_id)
     """)
     
     # Seed default forums if table is empty
@@ -1389,6 +1860,11 @@ def create_collaboration_tables(cursor):
             """, (f"forum_{category.lower().replace(' ', '_')}", name, desc, category, icon, sort_order))
     
     logger.info("✓ Collaboration tables created: user_connections, forums, forum_threads, forum_posts, content_comments")
+    logger.info("✓ Reputation system tables created: user_reputation, reputation_events, content_upvotes")
+    logger.info("✓ Study groups tables created: study_groups, study_group_members, study_group_notes, study_group_goals, study_group_discussions, study_group_messages")
+    logger.info("✓ Mentorship tables created: mentorship_profiles, mentorship_requests, mentorship_sessions")
+    logger.info("✓ Moderation tables created: content_reports, moderation_actions, moderation_queue")
+    logger.info("✓ Peer review tables created: peer_review_submissions, peer_review_assignments, peer_review_feedback")
 
 
 def create_indexes(cursor):

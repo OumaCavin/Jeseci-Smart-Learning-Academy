@@ -24,6 +24,7 @@ import content_views_store as content_views_module;
 import notification_store as notification_module;
 import activity_store as activity_module;
 import collaboration_store as collaboration_module;
+import advanced_collaboration_store as advanced_collab_module;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -4837,5 +4838,979 @@ walker content_comment_like {
         );
         
         report result;
+    }
+}
+
+# ==============================================================================
+# Advanced Collaboration API Endpoints - Reputation System
+# ==============================================================================
+
+walker user_reputation {
+    can user_reputation with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        reputation = adv_collab_module.get_user_reputation(user_id);
+        
+        if reputation {
+            report {
+                "success": True,
+                "reputation": reputation
+            };
+        } else {
+            report {
+                "success": True,
+                "reputation": {
+                    "reputation_points": 0,
+                    "level": 1,
+                    "total_upvotes_received": 0,
+                    "total_downvotes_received": 0,
+                    "total_accepted_answers": 0
+                }
+            };
+        }
+    }
+}
+
+walker reputation_leaderboard {
+    has limit: int = 10;
+    
+    can reputation_leaderboard with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        leaderboard = adv_collab_module.get_leaderboard(self.limit);
+        
+        report {
+            "success": True,
+            "leaderboard": leaderboard,
+            "total": len(leaderboard)
+        };
+    }
+}
+
+walker content_upvote {
+    has content_id: str;
+    has content_type: str;
+    has vote_type: int = 1;
+    
+    can content_upvote with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if self.vote_type not in [1, -1] {
+            report {
+                "success": False,
+                "error": "vote_type must be 1 (upvote) or -1 (downvote)"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.upvote_content(
+            user_id=user_id,
+            content_id=self.content_id,
+            content_type=self.content_type,
+            vote_type=self.vote_type
+        );
+        
+        report result;
+    }
+}
+
+# ==============================================================================
+# Advanced Collaboration API Endpoints - Study Groups
+# ==============================================================================
+
+walker study_group_create {
+    has name: str;
+    has description: str = "";
+    has learning_goal: str = "";
+    has target_topic: str = "";
+    has is_public: bool = True;
+    
+    can study_group_create with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.name or len(self.name) < 3 {
+            report {
+                "success": False,
+                "error": "Group name must be at least 3 characters"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.create_study_group(
+            name=self.name,
+            description=self.description,
+            created_by=user_id,
+            learning_goal=self.learning_goal,
+            target_topic=self.target_topic,
+            is_public=self.is_public
+        );
+        
+        report result;
+    }
+}
+
+walker study_groups_list {
+    has topic: str = "";
+    has limit: int = 20;
+    has offset: int = 0;
+    
+    can study_groups_list with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        groups = adv_collab_module.get_study_groups(
+            is_public=True,
+            topic=self.topic if self.topic else null,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report {
+            "success": True,
+            "groups": groups,
+            "total": len(groups)
+        };
+    }
+}
+
+walker study_group_join {
+    has group_id: str;
+    
+    can study_group_join with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.join_study_group(
+            group_id=self.group_id,
+            user_id=user_id
+        );
+        
+        report result;
+    }
+}
+
+walker study_group_notes {
+    has group_id: str;
+    has limit: int = 50;
+    has offset: int = 0;
+    
+    can study_group_notes with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        notes = adv_collab_module.get_group_notes(
+            group_id=self.group_id,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report {
+            "success": True,
+            "notes": notes,
+            "total": len(notes)
+        };
+    }
+}
+
+walker study_group_note_create {
+    has group_id: str;
+    has title: str;
+    has content: str;
+    has tags: list = [];
+    
+    can study_group_note_create with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.create_group_note(
+            group_id=self.group_id,
+            author_id=user_id,
+            title=self.title,
+            content=self.content,
+            tags=self.tags
+        );
+        
+        report result;
+    }
+}
+
+walker study_group_goals {
+    has group_id: str;
+    
+    can study_group_goals with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        goals = adv_collab_module.get_group_goals(group_id=self.group_id);
+        
+        report {
+            "success": True,
+            "goals": goals,
+            "total": len(goals)
+        };
+    }
+}
+
+walker study_group_goal_create {
+    has group_id: str;
+    has title: str;
+    has description: str = "";
+    has target_completion_date: str = "";
+    
+    can study_group_goal_create with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        import datetime;
+        completion_date = null;
+        if self.target_completion_date {
+            try {
+                completion_date = datetime.datetime.fromisoformat(self.target_completion_date).date();
+            } except Exception as e {
+                print("Error parsing date: " + str(e));
+            }
+        }
+        
+        result = adv_collab_module.create_group_goal(
+            group_id=self.group_id,
+            title=self.title,
+            description=self.description,
+            target_completion_date=completion_date
+        );
+        
+        report result;
+    }
+}
+
+walker study_group_messages {
+    has group_id: str;
+    has limit: int = 50;
+    has before_id: str = "";
+    
+    can study_group_messages with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        messages = adv_collab_module.get_group_messages(
+            group_id=self.group_id,
+            limit=self.limit,
+            before_id=self.before_id if self.before_id else null
+        );
+        
+        report {
+            "success": True,
+            "messages": messages,
+            "total": len(messages)
+        };
+    }
+}
+
+walker study_group_message_send {
+    has group_id: str;
+    has content: str;
+    has message_type: str = "text";
+    has file_url: str = "";
+    
+    can study_group_message_send with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.content or len(self.content) < 1 {
+            report {
+                "success": False,
+                "error": "Message content is required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.send_group_message(
+            group_id=self.group_id,
+            user_id=user_id,
+            content=self.content,
+            message_type=self.message_type,
+            file_url=self.file_url if self.file_url else null
+        );
+        
+        report result;
+    }
+}
+
+# ==============================================================================
+# Advanced Collaboration API Endpoints - Mentorship System
+# ==============================================================================
+
+walker mentor_profile_create {
+    has expertise_areas: list;
+    has bio: str = "";
+    has years_experience: int = 0;
+    has teaching_style: str = "";
+    has availability_hours: str = "";
+    has max_mentees: int = 3;
+    
+    can mentor_profile_create with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.expertise_areas or len(self.expertise_areas) == 0 {
+            report {
+                "success": False,
+                "error": "At least one expertise area is required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.create_mentor_profile(
+            user_id=user_id,
+            expertise_areas=self.expertise_areas,
+            bio=self.bio,
+            years_experience=self.years_experience,
+            teaching_style=self.teaching_style,
+            availability_hours=self.availability_hours,
+            max_mentees=self.max_mentees
+        );
+        
+        report result;
+    }
+}
+
+walker mentors_search {
+    has expertise_areas: list = [];
+    has limit: int = 20;
+    
+    can mentors_search with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        mentors = adv_collab_module.search_mentors(
+            expertise_areas=self.expertise_areas if self.expertise_areas and len(self.expertise_areas) > 0 else null,
+            is_available=True,
+            limit=self.limit
+        );
+        
+        report {
+            "success": True,
+            "mentors": mentors,
+            "total": len(mentors)
+        };
+    }
+}
+
+walker mentorship_request {
+    has mentor_id: int;
+    has topic: str;
+    has goals: str = "";
+    has preferred_schedule: str = "";
+    has message: str = "";
+    
+    can mentorship_request with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.mentor_id or not self.topic {
+            report {
+                "success": False,
+                "error": "mentor_id and topic are required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.request_mentorship(
+            mentor_id=self.mentor_id,
+            mentee_id=user_id,
+            topic=self.topic,
+            goals=self.goals,
+            preferred_schedule=self.preferred_schedule,
+            message=self.message
+        );
+        
+        report result;
+    }
+}
+
+walker mentorship_request_respond {
+    has request_id: str;
+    has status: str;
+    has response_message: str = "";
+    
+    can mentorship_request_respond with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.request_id or self.status not in ["accepted", "rejected"] {
+            report {
+                "success": False,
+                "error": "Valid request_id and status (accepted/rejected) are required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.respond_to_mentorship_request(
+            request_id=self.request_id,
+            status=self.status,
+            response_message=self.response_message
+        );
+        
+        report result;
+    }
+}
+
+walker mentorship_session_schedule {
+    has mentorship_id: int;
+    has scheduled_at: str;
+    has duration_minutes: int = 60;
+    has topic: str = "";
+    
+    can mentorship_session_schedule with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.scheduled_at {
+            report {
+                "success": False,
+                "error": "scheduled_at is required"
+            };
+            return;
+        }
+        
+        import datetime;
+        scheduled_datetime = null;
+        try {
+            scheduled_datetime = datetime.datetime.fromisoformat(self.scheduled_at.replace('Z', '+00:00'));
+        } except Exception as e {
+            report {
+                "success": False,
+                "error": "Invalid scheduled_at format. Use ISO format."
+            };
+            return;
+        }
+        
+        result = adv_collab_module.schedule_mentorship_session(
+            mentorship_id=self.mentorship_id,
+            scheduled_at=scheduled_datetime,
+            duration_minutes=self.duration_minutes,
+            topic=self.topic
+        );
+        
+        report result;
+    }
+}
+
+walker mentorship_session_complete {
+    has session_id: str;
+    has mentor_feedback: str = "";
+    has mentee_feedback: str = "";
+    has mentor_rating: int = 0;
+    has mentee_rating: int = 0;
+    has outcome: str = "";
+    
+    can mentorship_session_complete with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.session_id {
+            report {
+                "success": False,
+                "error": "session_id is required"
+            };
+            return;
+        }
+        
+        if self.mentor_rating and (self.mentor_rating < 1 or self.mentor_rating > 5) {
+            report {
+                "success": False,
+                "error": "mentor_rating must be between 1 and 5"
+            };
+            return;
+        }
+        
+        if self.mentee_rating and (self.mentee_rating < 1 or self.mentee_rating > 5) {
+            report {
+                "success": False,
+                "error": "mentee_rating must be between 1 and 5"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.complete_mentorship_session(
+            session_id=self.session_id,
+            mentor_feedback=self.mentor_feedback,
+            mentee_feedback=self.mentee_feedback,
+            mentor_rating=self.mentor_rating if self.mentor_rating else null,
+            mentee_rating=self.mentee_rating if self.mentee_rating else null,
+            outcome=self.outcome
+        );
+        
+        report result;
+    }
+}
+
+# ==============================================================================
+# Advanced Collaboration API Endpoints - Moderation System
+# ==============================================================================
+
+walker content_report {
+    has content_id: str;
+    has content_type: str;
+    has report_reason: str;
+    has additional_info: str = "";
+    has priority: str = "normal";
+    
+    can content_report with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        valid_reasons = ["spam", "harassment", "inappropriate_content", "misinformation", "copyright", "other"];
+        if self.report_reason not in valid_reasons {
+            report {
+                "success": False,
+                "error": "Invalid report_reason. Must be one of: " + ", ".join(valid_reasons)
+            };
+            return;
+        }
+        
+        valid_priorities = ["low", "normal", "high", "urgent"];
+        priority = self.priority if self.priority in valid_priorities else "normal";
+        
+        result = adv_collab_module.report_content(
+            reporter_id=user_id,
+            content_id=self.content_id,
+            content_type=self.content_type,
+            report_reason=self.report_reason,
+            additional_info=self.additional_info,
+            priority=priority
+        );
+        
+        report result;
+    }
+}
+
+walker moderation_queue {
+    has status: str = "pending";
+    has priority: str = "";
+    has limit: int = 20;
+    has offset: int = 0;
+    
+    can moderation_queue with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        # Check if user is admin/moderator
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        queue = adv_collab_module.get_moderation_queue(
+            status=self.status,
+            priority=self.priority if self.priority else null,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report {
+            "success": True,
+            "queue": queue,
+            "total": len(queue)
+        };
+    }
+}
+
+walker moderation_action {
+    has content_id: str;
+    has content_type: str;
+    has action_type: str;
+    has reason: str = "";
+    has notes: str = "";
+    
+    can moderation_action with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        valid_actions = ["content_removed", "content_hidden", "user_warned", "user_suspended", "user_banned", "report_dismissed", "content_edited"];
+        if self.action_type not in valid_actions {
+            report {
+                "success": False,
+                "error": "Invalid action_type. Must be one of: " + ", ".join(valid_actions)
+            };
+            return;
+        }
+        
+        result = adv_collab_module.take_moderation_action(
+            moderator_id=user_id,
+            content_id=self.content_id,
+            content_type=self.content_type,
+            action_type=self.action_type,
+            reason=self.reason,
+            notes=self.notes
+        );
+        
+        report result;
+    }
+}
+
+walker moderation_stats {
+    can moderation_stats with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        stats = adv_collab_module.get_moderation_stats();
+        
+        report {
+            "success": True,
+            "stats": stats
+        };
+    }
+}
+
+# ==============================================================================
+# Advanced Collaboration API Endpoints - Peer Review System
+# ==============================================================================
+
+walker peer_review_submit {
+    has title: str;
+    has description: str;
+    has content_type: str;
+    has related_content_id: str = "";
+    has related_content_type: str = "";
+    has max_reviewers: int = 2;
+    
+    can peer_review_submit with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.title or not self.content_type {
+            report {
+                "success": False,
+                "error": "title and content_type are required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.create_peer_review_submission(
+            user_id=user_id,
+            title=self.title,
+            description=self.description,
+            content_type=self.content_type,
+            related_content_id=self.related_content_id if self.related_content_id else null,
+            related_content_type=self.related_content_type if self.related_content_type else null,
+            max_reviewers=self.max_reviewers
+        );
+        
+        report result;
+    }
+}
+
+walker peer_review_assign {
+    has submission_id: str;
+    has reviewer_id: int;
+    has deadline: str = "";
+    
+    can peer_review_assign with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        import datetime;
+        deadline_date = null;
+        if self.deadline {
+            try {
+                deadline_date = datetime.datetime.fromisoformat(self.deadline).date();
+            } except Exception as e {
+                print("Error parsing deadline: " + str(e));
+            }
+        }
+        
+        result = adv_collab_module.assign_peer_reviewer(
+            submission_id=self.submission_id,
+            reviewer_id=self.reviewer_id,
+            deadline=deadline_date
+        );
+        
+        report result;
+    }
+}
+
+walker peer_review_feedback {
+    has assignment_id: str;
+    has overall_rating: int;
+    has strengths: str;
+    has improvements: str;
+    has comments: str;
+    
+    can peer_review_feedback with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.assignment_id or not self.overall_rating {
+            report {
+                "success": False,
+                "error": "assignment_id and overall_rating are required"
+            };
+            return;
+        }
+        
+        if self.overall_rating < 1 or self.overall_rating > 5 {
+            report {
+                "success": False,
+                "error": "overall_rating must be between 1 and 5"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.submit_peer_review(
+            assignment_id=self.assignment_id,
+            reviewer_id=user_id,
+            overall_rating=self.overall_rating,
+            strengths=self.strengths,
+            improvements=self.improvements,
+            comments=self.comments
+        );
+        
+        report result;
+    }
+}
+
+walker peer_review_submissions {
+    has status: str = "";
+    
+    can peer_review_submissions with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        submissions = adv_collab_module.get_my_submissions(
+            user_id=user_id,
+            status=self.status if self.status else null
+        );
+        
+        report {
+            "success": True,
+            "submissions": submissions,
+            "total": len(submissions)
+        };
+    }
+}
+
+walker peer_review_my_assignments {
+    has status: str = "";
+    
+    can peer_review_my_assignments with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        assignments = adv_collab_module.get_my_review_assignments(
+            user_id=user_id,
+            status=self.status if self.status else null
+        );
+        
+        report {
+            "success": True,
+            "assignments": assignments,
+            "total": len(assignments)
+        };
+    }
+}
+
+walker peer_review_get_feedback {
+    has submission_id: str;
+    
+    can peer_review_get_feedback with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        feedback = adv_collab_module.get_submission_reviews(
+            submission_id=self.submission_id
+        );
+        
+        report {
+            "success": True,
+            "feedback": feedback,
+            "total": len(feedback)
+        };
     }
 }
