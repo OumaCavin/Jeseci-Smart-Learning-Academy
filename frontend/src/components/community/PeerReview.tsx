@@ -393,9 +393,9 @@ const PeerReview: React.FC = () => {
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4" />
               Review Assignments
-              {assignments.filter(a => a.status === 'pending').length > 0 && (
+              {assignments.filter(a => a.status === 'assigned').length > 0 && (
                 <span className="bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {assignments.filter(a => a.status === 'pending').length}
+                  {assignments.filter(a => a.status === 'assigned').length}
                 </span>
               )}
             </div>
@@ -504,7 +504,7 @@ const PeerReview: React.FC = () => {
                 <div className="divide-y divide-gray-200">
                   {filteredSubmissions.map((submission) => (
                     <div
-                      key={submission.id}
+                      key={submission.submission_id}
                       className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                       onClick={() => setSelectedSubmission(submission)}
                     >
@@ -515,10 +515,10 @@ const PeerReview: React.FC = () => {
                               {submission.status.replace('_', ' ').toUpperCase()}
                             </span>
                             <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700 capitalize">
-                              {submission.contentType.replace('_', ' ')}
+                              {submission.content_type.replace('_', ' ')}
                             </span>
                             <span className="text-sm text-gray-500">
-                              {new Date(submission.createdAt).toLocaleDateString()}
+                              {new Date(submission.created_at).toLocaleDateString()}
                             </span>
                           </div>
                           <h3 className="font-medium text-gray-900 mb-1">{submission.title}</h3>
@@ -526,18 +526,18 @@ const PeerReview: React.FC = () => {
                           <div className="flex items-center gap-4 text-sm text-gray-500">
                             <span className="flex items-center gap-1">
                               <User className="w-4 h-4" />
-                              {submission.authorUsername}
+                              {submission.author_username}
                             </span>
-                            {submission.averageRating !== null && (
+                            {submission.average_rating !== null && (
                               <span className="flex items-center gap-1">
                                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                {submission.averageRating.toFixed(1)}
+                                {submission.average_rating.toFixed(1)}
                               </span>
                             )}
-                            {submission.reviewerUsername && (
+                            {submission.reviewer_username && (
                               <span className="flex items-center gap-1">
                                 <Eye className="w-4 h-4" />
-                                Reviewer: {submission.reviewerUsername}
+                                Reviewer: {submission.reviewer_username}
                               </span>
                             )}
                           </div>
@@ -567,9 +567,9 @@ const PeerReview: React.FC = () => {
             ) : (
               <div className="divide-y divide-gray-200">
                 {assignments.map((assignment) => {
-                  const submission = submissions.find(s => s.id === assignment.submissionId);
+                  const submission = submissions.find(s => s.submission_id === assignment.submission_id);
                   return (
-                    <div key={assignment.id} className="p-4">
+                    <div key={assignment.assignment_id} className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
@@ -577,7 +577,7 @@ const PeerReview: React.FC = () => {
                               {assignment.status.toUpperCase()}
                             </span>
                             <span className="text-sm text-gray-500">
-                              Assigned {new Date(assignment.assignedAt).toLocaleDateString()}
+                              Assigned {new Date(assignment.assigned_at).toLocaleDateString()}
                             </span>
                           </div>
                           {submission && (
