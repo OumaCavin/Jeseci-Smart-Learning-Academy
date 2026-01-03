@@ -377,6 +377,89 @@ walker DatabaseManager {
         }
     }
     
+    ## Store testimonial in database
+    can store_testimonial(testimonial_data: dict) -> dict {
+        """Store testimonial in PostgreSQL database"""
+        
+        try {
+            manager = py_db.get_postgres_manager();
+            
+            # Insert testimonial into database
+            query = """
+            INSERT INTO testimonials (
+                name, role, company, content, rating, avatar_url, 
+                is_approved, is_active
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8
+            ) RETURNING id
+            """;
+            
+            params = (
+                testimonial_data['name'],
+                testimonial_data.get('role'),
+                testimonial_data.get('company'),
+                testimonial_data['content'],
+                testimonial_data.get('rating', 5),
+                testimonial_data.get('avatar_url'),
+                testimonial_data.get('is_approved', False),
+                True
+            );
+            
+            result = manager.execute_query(query, params);
+            
+            if result and len(result) > 0 {
+                return {
+                    "success": True,
+                    "id": result[0]['id'],
+                    "message": "Testimonial stored successfully"
+                };
+            } else {
+                return {
+                    "success": False,
+                    "error": "Failed to store testimonial"
+                };
+            }
+        } except (Exception as error) {
+            std.out("Testimonial storage error:", error);
+            return {
+                "success": False,
+                "error": "Database error: " + str(error)
+            };
+        }
+    }
+    
+    ## Get testimonials from database
+    can get_testimonials(params: dict) -> dict {
+        """Retrieve approved testimonials from database"""
+        
+        try {
+            manager = py_db.get_postgres_manager();
+            
+            query = """
+            SELECT id, name, role, company, content, rating, avatar_url, created_at
+            FROM testimonials 
+            WHERE is_approved = true AND is_active = true
+            ORDER BY created_at DESC
+            """;
+            
+            result = manager.execute_query(query, None);
+            
+            return {
+                "success": True,
+                "testimonials": result or [],
+                "total": len(result) if result else 0
+            };
+            
+        } except (Exception as error) {
+            std.out("Testimonial retrieval error:", error);
+            return {
+                "success": False,
+                "error": "Database error: " + str(error),
+                "testimonials": []
+            };
+        }
+    }
+    
     ## Close all database connections
     can close_connections with entry {
         py_db.close_all_connections();

@@ -94,6 +94,399 @@ walker health_check {
 }
 
 # ==============================================================================
+# Authentication - User Registration
+# ==============================================================================
+
+walker user_create {
+    has username: str;
+    has email: str;
+    has password: str;
+    has first_name: str = "";
+    has last_name: str = "";
+    
+    can user_create with entry {
+        import database as db_module;
+        import uuid;
+        import bcrypt;
+        
+        # Validate required fields
+        if not self.username or not self.username.strip() {
+            report {
+                "success": False,
+                "error": "Username is required"
+            };
+            return;
+        }
+        
+        if not self.email or not self.email.strip() {
+            report {
+                "success": False,
+                "error": "Email is required"
+            };
+            return;
+        }
+        
+        if not self.password or len(self.password) < 8 {
+            report {
+                "success": False,
+                "error": "Password must be at least 8 characters"
+            };
+            return;
+        }
+        
+        # Validate email format
+        if "@" not in self.email or "." not in self.email {
+            report {
+                "success": False,
+                "error": "Invalid email format"
+            };
+            return;
+        }
+        
+        try:
+            # Get database session
+            Session = db_module.get_session();
+            session = Session();
+            
+            # Check if username or email already exists
+            existing_user = session.query(db_module.User).filter(
+                (db_module.User.username == self.username) | 
+                (db_module.User.email == self.email)
+            ).first();
+            
+            if existing_user {
+                session.close();
+                if existing_user.username == self.username {
+                    report {
+                        "success": False,
+                        "error": "Username already exists"
+                    };
+                } else {
+                    report {
+                        "success": False,
+                        "error": "Email already registered"
+                    };
+                }
+                return;
+            }
+            
+            # Generate unique user_id
+            user_id = "user_" + str(uuid.uuid4().hex[:12]);
+            
+            # Hash password
+            password_bytes = self.password.encode('utf-8');
+            salt = bcrypt.gensalt();
+            password_hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8');
+            
+            # Create new user
+            new_user = db_module.User(
+                user_id=user_id,
+                username=self.username,
+                email=self.email,
+                password_hash=password_hash,
+                is_active=True,
+                is_admin=False,
+                admin_role='student',
+                is_email_verified=False
+            );
+            
+            session.add(new_user);
+            session.flush();  # Get the user ID
+            
+            # Create user profile
+            new_profile = db_module.UserProfile(
+                user_id=new_user.id,
+                first_name=self.first_name if self.first_name else None,
+                last_name=self.last_name if self.last_name else None,
+                display_name=(self.first_name + " " + self.last_name).strip() if (self.first_name or self.last_name) else self.username,
+                language="en"
+            );
+            
+            session.add(new_profile);
+            
+            # Create default learning preferences
+            new_prefs = db_module.UserLearningPreference(
+                user_id=new_user.id,
+                daily_goal_minutes=30,
+                preferred_difficulty="intermediate",
+                preferred_content_type="text",
+                notifications_enabled=True,
+                email_reminders=True,
+                dark_mode=False,
+                auto_play_videos=True
+            );
+            
+            session.add(new_prefs);
+            session.commit();
+            
+            # Generate a simple session token (in production, use JWT)
+            session_token = "session_" + str(uuid.uuid4().hex[:24]);
+            
+            session.close();
+            
+            report {
+                "success": True,
+                "message": "Account created successfully",
+                "user": {
+                    "user_id": user_id,
+                    "username": self.username,
+                    "email": self.email,
+                    "first_name": self.first_name,
+                    "last_name": self.last_name,
+                    "is_admin": False,
+                    "is_email_verified": False
+                },
+                "session_token": session_token
+            };
+            
+        except Exception as e:
+            print("Error creating user: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to create account: " + str(e)
+            };
+    }
+}
+
+# ==============================================================================
+# Authentication - User Login
+# ==============================================================================
+
+walker user_login {
+    has username: str;
+    has password: str;
+    
+    can user_login with entry {
+        import database as db_module;
+        import bcrypt;
+        import uuid;
+        
+        if not self.username or not self.password {
+            report {
+                "success": False,
+                "error": "Username and password are required"
+            };
+            return;
+        }
+        
+        try:
+            Session = db_module.get_session();
+            session = Session();
+            
+            user = session.query(db_module.User).filter(
+                db_module.User.username == self.username
+            ).first();
+            
+            if not user {
+                session.close();
+                report {
+                    "success": False,
+                    "error": "Invalid username or password"
+                };
+                return;
+            }
+            
+            if not user.is_active {
+                session.close();
+                report {
+                    "success": False,
+                    "error": "Account is deactivated"
+                };
+                return;
+            }
+            
+            # Verify password
+            password_bytes = self.password.encode('utf-8');
+            if not bcrypt.checkpw(password_bytes, user.password_hash.encode('utf-8')):
+                session.close();
+                report {
+                    "success": False,
+                    "error": "Invalid username or password"
+                };
+                return;
+            }
+            
+            # Update last login
+            import datetime;
+            user.last_login_at = datetime.datetime.now();
+            session.commit();
+            
+            # Generate session token
+            session_token = "session_" + str(uuid.uuid4().hex[:24]);
+            
+            # Get profile data
+            profile = session.query(db_module.UserProfile).filter(
+                db_module.UserProfile.user_id == user.id
+            ).first();
+            
+            first_name = profile.first_name if profile else "";
+            last_name = profile.last_name if profile else "";
+            
+            session.close();
+            
+            report {
+                "success": True,
+                "message": "Login successful",
+                "user": {
+                    "user_id": user.user_id,
+                    "username": user.username,
+                    "email": user.email,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "is_admin": user.is_admin,
+                    "is_email_verified": user.is_email_verified
+                },
+                "session_token": session_token
+            };
+            
+        except Exception as e:
+            print("Error during login: " + str(e));
+            report {
+                "success": False,
+                "error": "Login failed: " + str(e)
+            };
+    }
+}
+
+# ==============================================================================
+# Authentication - User Registration (legacy alias)
+# ==============================================================================
+
+walker user_register {
+    has username: str;
+    has email: str;
+    has password: str;
+    has first_name: str = "";
+    has last_name: str = "";
+    
+    can user_register with entry {
+        # Redirect to user_create logic
+        import database as db_module;
+        import uuid;
+        import bcrypt;
+        
+        # Validate required fields
+        if not self.username or not self.username.strip() {
+            report {
+                "success": False,
+                "error": "Username is required"
+            };
+            return;
+        }
+        
+        if not self.email or not self.email.strip() {
+            report {
+                "success": False,
+                "error": "Email is required"
+            };
+            return;
+        }
+        
+        if not self.password or len(self.password) < 8 {
+            report {
+                "success": False,
+                "error": "Password must be at least 8 characters"
+            };
+            return;
+        }
+        
+        try:
+            Session = db_module.get_session();
+            session = Session();
+            
+            existing_user = session.query(db_module.User).filter(
+                (db_module.User.username == self.username) | 
+                (db_module.User.email == self.email)
+            ).first();
+            
+            if existing_user {
+                session.close();
+                if existing_user.username == self.username {
+                    report {
+                        "success": False,
+                        "error": "Username already exists"
+                    };
+                } else {
+                    report {
+                        "success": False,
+                        "error": "Email already registered"
+                    };
+                }
+                return;
+            }
+            
+            user_id = "user_" + str(uuid.uuid4().hex[:12]);
+            password_bytes = self.password.encode('utf-8');
+            salt = bcrypt.gensalt();
+            password_hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8');
+            
+            new_user = db_module.User(
+                user_id=user_id,
+                username=self.username,
+                email=self.email,
+                password_hash=password_hash,
+                is_active=True,
+                is_admin=False,
+                admin_role='student',
+                is_email_verified=False
+            );
+            
+            session.add(new_user);
+            session.flush();
+            
+            new_profile = db_module.UserProfile(
+                user_id=new_user.id,
+                first_name=self.first_name if self.first_name else None,
+                last_name=self.last_name if self.last_name else None,
+                display_name=(self.first_name + " " + self.last_name).strip() if (self.first_name or self.last_name) else self.username,
+                language="en"
+            );
+            
+            session.add(new_profile);
+            
+            new_prefs = db_module.UserLearningPreference(
+                user_id=new_user.id,
+                daily_goal_minutes=30,
+                preferred_difficulty="intermediate",
+                preferred_content_type="text",
+                notifications_enabled=True,
+                email_reminders=True,
+                dark_mode=False,
+                auto_play_videos=True
+            );
+            
+            session.add(new_prefs);
+            session.commit();
+            
+            session_token = "session_" + str(uuid.uuid4().hex[:24]);
+            
+            session.close();
+            
+            report {
+                "success": True,
+                "message": "Account created successfully",
+                "user": {
+                    "user_id": user_id,
+                    "username": self.username,
+                    "email": self.email,
+                    "first_name": self.first_name,
+                    "last_name": self.last_name,
+                    "is_admin": False,
+                    "is_email_verified": False
+                },
+                "session_token": session_token
+            };
+            
+        except Exception as e:
+            print("Error registering user: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to create account: " + str(e)
+            };
+    }
+}
+
+# ==============================================================================
 # Course Endpoints
 # ==============================================================================
 
@@ -1802,6 +2195,136 @@ walker contact_mark_read {
                 "code": "INTERNAL_ERROR"
             };
         }
+    }
+}
+
+# ==============================================================================
+# Testimonials Management
+# ==============================================================================
+
+walker testimonials {
+    can testimonials with entry {
+        import database as db_module;
+        
+        result = db_module.get_testimonials({});
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "testimonials": result.get('testimonials', []),
+                "total": result.get('total', 0)
+            };
+        } else {
+            # Return fallback testimonials if database query fails
+            report {
+                "success": True,
+                "testimonials": [],
+                "total": 0
+            };
+        }
+    }
+}
+
+walker testimonial_create {
+    has name: str;
+    has content: str;
+    has role: str = "";
+    has company: str = "";
+    has rating: int = 5;
+    has avatar_url: str = "";
+    
+    can testimonial_create with entry {
+        import database as db_module;
+        
+        if not self.name or not self.content {
+            report {
+                "success": False,
+                "error": "Name and content are required"
+            };
+            return;
+        }
+        
+        if self.rating < 1 or self.rating > 5 {
+            report {
+                "success": False,
+                "error": "Rating must be between 1 and 5"
+            };
+            return;
+        }
+        
+        testimonial_data = {
+            "name": self.name,
+            "content": self.content,
+            "role": self.role if self.role else None,
+            "company": self.company if self.company else None,
+            "rating": self.rating,
+            "avatar_url": self.avatar_url if self.avatar_url else None,
+            "is_approved": False,
+            "is_active": True
+        };
+        
+        result = db_module.store_testimonial(testimonial_data);
+        
+        if result['success'] {
+            report {
+                "success": True,
+                "message": "Thank you for your testimonial! It will be reviewed before being published."
+            };
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to submit testimonial')
+            };
+        }
+    }
+}
+
+# ==============================================================================
+# Platform Statistics
+# ==============================================================================
+
+walker platform_stats {
+    can platform_stats with entry {
+        import database as db_module;
+        
+        try:
+            Session = db_module.get_session();
+            session = Session();
+            
+            total_users = session.query(db_module.User).filter(
+                db_module.User.is_active == True
+            ).count();
+            
+            total_concepts = session.query(db_module.Concept).count();
+            
+            total_paths = session.query(db_module.LearningPath).filter(
+                db_module.LearningPath.is_published == True
+            ).count();
+            
+            session.close();
+            
+            report {
+                "success": True,
+                "stats": {
+                    "total_users": total_users,
+                    "total_concepts": total_concepts,
+                    "total_learning_paths": total_paths,
+                    "courses_completed": 0,
+                    "active_learners_today": 0
+                }
+            };
+        except Exception as e:
+            print("Error fetching platform stats: " + str(e));
+            report {
+                "success": True,
+                "stats": {
+                    "total_users": 0,
+                    "total_concepts": 12,
+                    "total_learning_paths": 3,
+                    "courses_completed": 0,
+                    "active_learners_today": 0
+                }
+            };
     }
 }
 
