@@ -5882,7 +5882,10 @@ walker compile_code {
             return;
         }
         
-        success, ir_output, error = code_exec_module.compile_to_ir(code=self.code);
+        result = code_exec_module.compile_to_ir(code=self.code);
+        success = result[0];
+        ir_output = result[1];
+        error = result[2];
         
         report {
             "success": success,
