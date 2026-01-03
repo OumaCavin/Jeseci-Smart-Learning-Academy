@@ -1,4 +1,4 @@
-# Database Module for Jeseci Smart Learning Companion
+# Database Module for Jeseci Smart Learning Academy
 
 This module provides comprehensive database connectivity for PostgreSQL and Neo4j databases, enabling persistent storage and graph-based knowledge management for the learning platform.
 
