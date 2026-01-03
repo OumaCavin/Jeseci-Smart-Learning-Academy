@@ -251,7 +251,10 @@ if command -v psql &> /dev/null; then
             sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON SEQUENCES TO $POSTGRES_USER;" 2>/dev/null || true
 
             # Use the centralized database initialization script
-            PYTHON_OUTPUT=$(python3 -c "
+            print_step "Executing Python initialization..."
+            
+            # Run directly so output streams to console immediately
+            python3 -c "
 import sys
 import os
 sys.path.insert(0, os.path.join(os.getcwd(), 'backend'))
@@ -270,11 +273,9 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     sys.exit(1)
-" 2>&1)
+"
 
-            echo "$PYTHON_OUTPUT"
-
-            # Check if Python script exited with error
+            # Check exit code of the previous command directly
             if [ $? -ne 0 ]; then
                 printf "\n"
                 print_error "Failed to create database tables"
