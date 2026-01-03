@@ -630,6 +630,54 @@ class CodeSnippetStore:
         finally:
             conn.close()
     
+    def get_snippet_version(self, version_id: str) -> Optional[Dict]:
+        """Get a specific version by ID"""
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(f"""
+                SELECT * FROM {self.table_versions}
+                WHERE id = %s
+            """, (version_id,))
+            
+            row = cursor.fetchone()
+            if row:
+                return self._row_to_version(row)
+            return None
+            
+        finally:
+            conn.close()
+    
+    def create_snippet_version(self, snippet_id: str, version_number: int,
+                               code_content: str, title: str,
+                               created_by: int, description: str = None,
+                               change_summary: str = None,
+                               created_at: datetime = None) -> Dict:
+        """Create a new version of a snippet with explicit version number"""
+        version_id = f"ver_{uuid.uuid4().hex[:12]}"
+        
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(f"""
+                INSERT INTO {self.table_versions}
+                (id, snippet_id, version_number, code_content, title, description, created_by, change_summary, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (version_id, snippet_id, version_number, code_content, title, 
+                  description, created_by, change_summary, created_at or datetime.now()))
+            
+            conn.commit()
+            
+            # Return the created version
+            return self.get_snippet_version(version_id)
+            
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Error creating snippet version: {e}")
+            raise
+        finally:
+            conn.close()
+    
     def get_version(self, version_id: str) -> Optional[Dict]:
         """Get a specific version by ID"""
         conn = get_db_connection()
@@ -749,6 +797,10 @@ class CodeSnippetStore:
             
         finally:
             conn.close()
+    
+    def get_test_cases(self, snippet_id: str, include_hidden: bool = True) -> List[Dict]:
+        """Get all test cases for a snippet (alias for compatibility)"""
+        return self.get_snippet_test_cases(snippet_id, include_hidden)
     
     def get_test_case(self, test_case_id: str) -> Optional[Dict]:
         """Get a specific test case by ID"""
@@ -1091,6 +1143,29 @@ class CodeSnippetStore:
         finally:
             conn.close()
     
+    def get_user_debug_sessions(self, user_id: int, include_completed: bool = False) -> List[Dict]:
+        """Get all debug sessions for a user"""
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            if include_completed:
+                cursor.execute(f"""
+                    SELECT * FROM {self.table_debug_sessions}
+                    WHERE user_id = %s
+                    ORDER BY created_at DESC
+                """, (user_id,))
+            else:
+                cursor.execute(f"""
+                    SELECT * FROM {self.table_debug_sessions}
+                    WHERE user_id = %s AND status IN ('active', 'paused')
+                    ORDER BY created_at DESC
+                """, (user_id,))
+            
+            return [self._row_to_debug_session(row) for row in cursor.fetchall()]
+            
+        finally:
+            conn.close()
+    
     def update_debug_session(self, session_id: str, status: str = None,
                              current_line: int = None, breakpoints: str = None,
                              variables: str = None, call_stack: str = None) -> bool:
@@ -1143,6 +1218,45 @@ class CodeSnippetStore:
     def terminate_debug_session(self, session_id: str) -> bool:
         """Terminate a debug session"""
         return self.update_debug_session(session_id, status="terminated")
+    
+    def add_breakpoint(self, session_id: str, line_number: int) -> Optional[Dict]:
+        """Add a breakpoint to a debug session"""
+        session = self.get_debug_session(session_id)
+        if not session:
+            return None
+        
+        import json
+        breakpoints = json.loads(session.get("breakpoints", "[]"))
+        
+        if line_number not in breakpoints:
+            breakpoints.append(line_number)
+            breakpoints.sort()
+        
+        self.update_debug_session(
+            session_id=session_id,
+            breakpoints=json.dumps(breakpoints)
+        )
+        
+        return self.get_debug_session(session_id)
+    
+    def remove_breakpoint(self, session_id: str, line_number: int) -> Optional[Dict]:
+        """Remove a breakpoint from a debug session"""
+        session = self.get_debug_session(session_id)
+        if not session:
+            return None
+        
+        import json
+        breakpoints = json.loads(session.get("breakpoints", "[]"))
+        
+        if line_number in breakpoints:
+            breakpoints.remove(line_number)
+        
+        self.update_debug_session(
+            session_id=session_id,
+            breakpoints=json.dumps(breakpoints)
+        )
+        
+        return self.get_debug_session(session_id)
     
     # =========================================================================
     # Folder Operations

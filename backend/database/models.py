@@ -794,7 +794,7 @@ class Testimonial(Base):
     """Testimonial model for user reviews and feedback"""
     __tablename__ = "testimonials"
     __table_args__ = {"schema": "jeseci_academy", "extend_existing": True}
-    
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     role: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
@@ -805,14 +805,147 @@ class Testimonial(Base):
     is_approved: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
-    
+
     __table_args__ = (
         Index("idx_testimonial_approved", "is_approved"),
         Index("idx_testimonial_active", "is_active"),
     )
-    
+
     def __repr__(self) -> str:
         return f"<Testimonial(id={self.id}, name='{self.name}', rating={self.rating})>"
+
+
+# =============================================================================
+# Authentication & Security Models
+# =============================================================================
+
+class EmailVerification(Base):
+    """Email verification tokens for user registration"""
+    __tablename__ = "email_verifications"
+    __table_args__ = {"schema": "jeseci_academy"}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.id", ondelete="CASCADE"), nullable=False)
+    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    token_type: Mapped[str] = mapped_column(String(20), default="email_verification")  # email_verification, email_change
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    is_used: Mapped[bool] = mapped_column(Boolean, default=False)
+    used_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        Index("idx_ev_user_id", "user_id"),
+        Index("idx_ev_token", "token"),
+        Index("idx_ev_expires_at", "expires_at"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<EmailVerification(id={self.id}, user_id={self.user_id}, token='{self.token[:10]}...')>"
+
+
+class PasswordReset(Base):
+    """Password reset tokens for password recovery"""
+    __tablename__ = "password_resets"
+    __table_args__ = {"schema": "jeseci_academy"}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.id", ondelete="CASCADE"), nullable=False)
+    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    is_used: Mapped[bool] = mapped_column(Boolean, default=False)
+    used_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        Index("idx_pr_user_id", "user_id"),
+        Index("idx_pr_token", "token"),
+        Index("idx_pr_expires_at", "expires_at"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<PasswordReset(id={self.id}, user_id={self.user_id}, token='{self.token[:10]}...')>"
+
+
+# =============================================================================
+# Code Execution Models
+# =============================================================================
+
+class SnippetVersion(Base):
+    """Code snippet versions for version control"""
+    __tablename__ = "snippet_versions"
+    __table_args__ = {"schema": "jeseci_academy"}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    snippet_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.code_snippets.snippet_id", ondelete="CASCADE"), nullable=False)
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    code_content: Mapped[str] = mapped_column(Text, nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    change_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_by: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        UniqueConstraint("snippet_id", "version_number", name="uq_snippet_version"),
+        Index("idx_sv_snippet_id", "snippet_id"),
+        Index("idx_sv_created_at", "created_at"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<SnippetVersion(id={self.id}, snippet_id='{self.snippet_id}', version={self.version_number})>"
+
+
+class TestCase(Base):
+    """Test cases for code snippets"""
+    __tablename__ = "test_cases"
+    __table_args__ = {"schema": "jeseci_academy"}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    snippet_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.code_snippets.snippet_id", ondelete="CASCADE"), nullable=False)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    input_data: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    expected_output: Mapped[str] = mapped_column(Text, nullable=False)
+    is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
+    order_index: Mapped[int] = mapped_column(Integer, default=0)
+    timeout_ms: Mapped[int] = mapped_column(Integer, default=5000)
+    created_by: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        Index("idx_tc_snippet_id", "snippet_id"),
+        Index("idx_tc_order", "order_index"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<TestCase(id={self.id}, snippet_id='{self.snippet_id}', name='{self.name}')>"
+
+
+class DebugSession(Base):
+    """Debug sessions for code debugging"""
+    __tablename__ = "debug_sessions"
+    __table_args__ = {"schema": "jeseci_academy"}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    session_id: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    snippet_id: Mapped[str] = mapped_column(String(50), ForeignKey("jeseci_academy.code_snippets.snippet_id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("jeseci_academy.users.id", ondelete="CASCADE"), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="running")  # running, paused, completed
+    current_line: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    breakpoints: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # List of breakpoint line numbers
+    variables: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # Current variable state
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    __table_args__ = (
+        Index("idx_ds_snippet_id", "snippet_id"),
+        Index("idx_ds_user_id", "user_id"),
+        Index("idx_ds_status", "status"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<DebugSession(id={self.id}, session_id='{self.session_id}', status='{self.status}')>"
 
 
 # =============================================================================
@@ -836,4 +969,8 @@ __all__ = [
     "AIGeneratedContent", "AIUsageStats",
     # Testimonials
     "Testimonial",
+    # Authentication & Security
+    "EmailVerification", "PasswordReset",
+    # Code Execution
+    "SnippetVersion", "TestCase", "DebugSession",
 ]
