@@ -2054,15 +2054,230 @@ The platform supports seamless transitions between student and admin views for u
 
 ---
 
+- [User Views, Access, and User Flow](#user-views-access-and-user-flow)
+14. [Frontend API Methods Reference](#frontend-api-methods-reference)
+
+---
+
+## Frontend API Methods Reference
+
+This section provides a comprehensive reference of all frontend API methods, their corresponding backend walkers (API endpoints), and the data flow between the frontend and backend systems. This documentation is essential for understanding the communication patterns between the React admin dashboard and the Jaclang backend.
+
+### Overview
+
+The Jeseci Smart Learning Academy uses a centralized API service pattern where all HTTP requests to the backend are routed through the `AdminApiService` class defined in `frontend/src/services/adminApi.ts`. Each frontend method maps to a specific backend walker (Jaclang endpoint) that handles the corresponding business logic. The frontend and backend communicate using JSON payloads over HTTP POST requests, with responses wrapped in a Jaclang-specific format that includes a `reports` array containing the actual response data.
+
+The API architecture follows a REST-like pattern where each endpoint corresponds to a specific resource or operation. Walker names in the backend use snake_case (e.g., `admin_users`), while frontend method names use camelCase (e.g., `getUsers`). The API uses JWT authentication, with the token included in the Authorization header as a Bearer token. All API endpoints require authentication, and most require specific role-based permissions (admin, content_admin, user_admin, analytics_admin, or super_admin) to access.
+
+### Dashboard API Methods
+
+The dashboard API provides access to system-wide statistics and health information for the admin interface. These endpoints aggregate data from multiple sources including user counts, content metrics, and system health indicators.
+
+| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
+|-----------------|----------------|---------------|---------|
+| `getDashboardStats()` | `admin_dashboard` | `/walker/admin_dashboard` | Retrieves comprehensive dashboard statistics including user counts, content statistics, and system health. Returns user_statistics, admin_statistics, content_statistics, and system_health data from PostgreSQL and Neo4j databases. |
+
+### User Management API Methods
+
+User management endpoints handle all administrative operations on user accounts including listing, creating, updating, and deleting users. These endpoints are protected by user_admin or higher permissions to ensure only authorized personnel can modify user data.
+
+| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
+|-----------------|----------------|---------------|---------|
+| `getUsers()` | `admin_users` | `/walker/admin_users` | Retrieves paginated list of users with filtering options for include_inactive, admin_only, and search queries. Supports limit and offset parameters for pagination. Returns users without sensitive password data. |
+| `createAdminUser()` | `admin_users_create` | `/walker/admin_users_create` | Creates a new admin user with specified role and permissions. Requires username, email, password, and admin_role parameters. Additional optional fields include first_name, last_name, learning_style, skill_level, and notification preferences. |
+| `updateUser()` | `admin_users_update` | `/walker/admin_users_update` | Updates an existing user's properties including is_admin status, admin_role, and is_active state. Requires user_id parameter to identify the target user. |
+| `bulkUserAction()` | `admin_users_bulk_action` | `/walker/admin_users_bulk_action` | Applies bulk actions (suspend, activate, delete) to multiple users simultaneously. Accepts user_ids array, action type, reason for action, deleted_by user identifier, and IP address for audit logging. |
+| `restoreUsers()` | `admin_users_restore` | `/walker/admin_users_restore` | Restores soft-deleted users to active status. Accepts user_ids array, restored_by user identifier, and IP address for audit trail purposes. |
+| `getDeletedUsers()` | `admin_users_deleted` | `/walker/admin_users_deleted` | Retrieves list of soft-deleted (trashed) users for potential restoration. Returns users with is_deleted flag set to true and associated deletion metadata. |
+
+### Course Management API Methods
+
+Course management endpoints handle educational content operations including listing, creating, updating, and deleting courses. Courses are stored in PostgreSQL and represent the primary learning units in the platform.
+
+| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
+|-----------------|----------------|---------------|---------|
+| `getCourses()` | `admin_content_courses` | `/walker/admin_content_courses` | Retrieves all courses from the database. Returns course details including course_id, title, description, domain, difficulty, and content_type. |
+| `createCourse()` | `admin_content_course_create` | `/walker/admin_content_course_create` | Creates a new course with specified parameters. Requires title, description, domain, and difficulty. Optional content_type defaults to "interactive". Returns the created course_id. |
+| `updateCourse()` | `admin_content_course_update` | `/walker/admin_content_course_update` | Updates an existing course's properties. Requires course_id along with optional title, description, domain, and difficulty parameters for fields to update. |
+| `deleteCourse()` | `admin_content_course_delete` | `/walker/admin_content_course_delete` | Soft-deletes a course from the database. Requires course_id, deleted_by user identifier, and ip_address for audit logging. Sets is_deleted flag rather than removing the record. |
+| `restoreCourse()` | `admin_content_course_restore` | `/walker/admin_content_course_restore` | Restores a soft-deleted course to active status. Requires course_id, restored_by user identifier, and ip_address for audit trail. Clears is_deleted flag and associated deletion metadata. |
+| `getDeletedCourses()` | `admin_content_courses_deleted` | `/walker/admin_content_courses_deleted` | Retrieves list of soft-deleted courses for potential restoration. Returns courses with is_deleted flag set to true along with deletion metadata. |
+
+### Concept Management API Methods
+
+Concept management endpoints handle learning concept operations. Concepts are stored in Neo4j as graph nodes, enabling relationship mapping and prerequisite tracking for the learning graph system.
+
+| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
+|-----------------|----------------|---------------|---------|
+| `getConcepts()` | `admin_content_concepts` | `/walker/admin_content_concepts` | Retrieves all concepts from Neo4j graph database. Returns concept details including concept_id, name, display_name, category, difficulty_level, and domain. |
+| `getConceptRelationships()` | `admin_content_relationships` | `/walker/admin_content_relationships` | Retrieves all concept-to-concept relationships from Neo4j. Returns source and target concept details with relationship type and strength information. |
+| `addConceptRelationship()` | `admin_content_relationships_create` | `/walker/admin_content_relationships_create` | Creates a new relationship between two concepts. Requires source_id, target_id, relationship_type (PREREQUISITE, RELATED_TO, PART_OF, BUILDS_UPON), and optional strength parameter. |
+| `deleteConceptRelationship()` | `admin_content_relationships_delete` | `/walker/admin_content_relationships_delete` | Removes a relationship between two concepts. Requires source_id, target_id, and relationship_type to identify the specific relationship to remove. |
+| `createConcept()` | `admin_content_concept_create` | `/walker/admin_content_concept_create` | Creates a new concept node in Neo4j. Requires name, category, difficulty_level, and domain. Optional display_name, description, and icon parameters provide additional metadata. |
+
+### Learning Path Management API Methods
+
+Learning path endpoints manage curated sequences of concepts and courses designed to achieve specific learning objectives. Paths are stored in both PostgreSQL (metadata) and Neo4j (nodes and relationships).
+
+| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
+|-----------------|----------------|---------------|---------|
+| `getLearningPaths()` | `admin_content_paths` | `/walker/admin_content_paths` | Retrieves all learning paths from the database. Returns path details including path_id, title, description, difficulty, duration, and associated course/concept IDs. |
+| `createLearningPath()` | `admin_content_path_create` | `/walker/admin_content_path_create` | Creates a new learning path with associated courses and concepts. Requires title, description, courses array, concepts array, difficulty, and duration. Optional target_audience parameter specifies intended users. |
+
+### Quiz Management API Methods
+
+Quiz management endpoints handle assessment content operations including listing, creating, generating with AI, and deleting quizzes. Quizzes are stored in PostgreSQL with associated questions in a separate table.
+
+| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
+|-----------------|----------------|---------------|---------|
+| `getQuizzes()` | `admin_quizzes` | `/walker/admin_quizzes` | Retrieves all quizzes from the database. Returns quiz details including quiz_id, title, description, course_id, difficulty, and question count. |
+| `createQuiz()` | `admin_quizzes_create` | `/walker/admin_quizzes_create` | Creates a new quiz manually. Requires title, description, and difficulty. Optional course_id associates quiz with specific course. Returns created quiz_id. |
+| `updateQuiz()` | `admin_quizzes_update` | `/walker/admin_quizzes_update` | Updates an existing quiz's properties. Requires quiz_id along with optional title, description, and difficulty parameters for fields to update. |
+| `deleteQuiz()` | `admin_quizzes_delete` | `/walker/admin_quizzes_delete` | Soft-deletes a quiz from the database. Requires quiz_id for the target quiz. Sets is_deleted flag while preserving associated questions. |
+| `generateAIQuiz()` | `admin_quizzes_generate_ai` | `/walker/admin_quizzes_generate_ai` | Generates a new quiz using AI (OpenAI GPT). Requires topic, difficulty, and optional question_count (default 5). Returns generated quiz with questions, options, correct answers, and explanations. Falls back to sample quiz if API key not configured. |
+| `saveAIQuiz()` | `admin_quizzes_save_ai` | `/walker/admin_quizzes_save_ai` | Saves an AI-generated quiz to the database. Requires quiz_data object (title, description, questions array), topic, and difficulty. Persists quiz and all associated questions to PostgreSQL. |
+| `getQuizAnalytics()` | `admin_quizzes_analytics` | `/walker/admin_quizzes_analytics` | Retrieves quiz performance statistics including total_quizzes, total_attempts, average_score, and pass_rate metrics. |
+
+### AI Content API Methods
+
+AI content endpoints manage AI-generated educational materials including generation, listing, and statistics retrieval.
+
+| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
+|-----------------|----------------|---------------|---------|
+| `getAIContent()` | `admin_ai_content` | `/walker/admin_ai_content` | Retrieves all AI-generated content from the database. Returns content details including content_id, concept_name, domain, difficulty, generated content, and metadata. |
+| `generateAIContent()` | `admin_ai_generate` | `/walker/admin_ai_generate` | Generates new educational content using AI. Requires concept_name, domain, and difficulty. Optional related_concepts parameter provides context. Returns generated markdown content. |
+| `getAIUsageStats()` | `admin_ai_stats` | `/walker/admin_ai_stats` | Retrieves AI feature usage statistics including total_generations, total_tokens_used, domains_used distribution, and recent_generations list. |
+| `getDomains()` | `admin_ai_domains` | `/walker/admin_ai_domains` | Retrieves available AI domains for content generation. Returns domain list with id, name, description, and associated course count. |
+
+### Analytics API Methods
+
+Analytics endpoints provide system usage statistics and performance metrics for administrative reporting.
+
+| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
+|-----------------|----------------|---------------|---------|
+| `getUserAnalytics()` | `admin_analytics_users` | `/walker/admin_analytics_users` | Retrieves user-related analytics including total_users, active_users, new_users array, and user_growth trend data. |
+| `getLearningAnalytics()` | `admin_analytics_learning` | `/walker/admin_analytics_learning` | Retrieves learning-related analytics including total_sessions, completed_courses, average_progress, and learning_trends over time. |
+| `getContentAnalytics()` | `admin_analytics_content` | `/walker/admin_analytics_content` | Retrieves content performance analytics including total_courses, total_concepts, popular_content with view counts, and content_by_difficulty distribution. |
+| `refreshAnalytics()` | `admin_analytics_refresh` | `/walker/admin_analytics_refresh` | Triggers analytics cache refresh to ensure up-to-date statistics. Returns refresh status and timestamp. |
+
+### Content View Tracking API Methods
+
+Content view tracking endpoints record and retrieve content consumption metrics for analytics purposes.
+
+| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
+|-----------------|----------------|---------------|---------|
+| `recordContentView()` | `record_content_view` | `/walker/record_content_view` | Records a content view event. Requires content_id and content_type. Optional parameters include user_id, session_id, view_duration, device_type, browser, country_code, and referrer_url. Returns view_id and is_unique_view flag. |
+| `getContentViewAnalytics()` | `get_content_view_analytics` | `/walker/get_content_view_analytics` | Retrieves content view statistics. Can filter by content_id and content_type, or retrieve popular content by type. Supports period parameter (all_time, today, week, month) and limit for result count. |
+
+### Cache Management API Methods
+
+Cache management endpoints allow administrators to clear cached data to ensure fresh database queries.
+
+| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
+|-----------------|----------------|---------------|---------|
+| `clearContentCache()` | `admin_clear_content_cache` | `/walker/admin_clear_content_cache` | Clears all content caches forcing fresh database queries on next request. Returns confirmation message with timestamp of cache clear operation. |
+
+### Audit Log API Methods
+
+Audit log endpoints provide access to system activity logs for security and compliance purposes.
+
+| Frontend Method | Backend Walker | HTTP Endpoint | Purpose |
+|-----------------|----------------|---------------|---------|
+| `getAuditLogs()` | `admin_audit_logs` | `/walker/admin_audit_logs` | Retrieves audit log entries with filtering options. Supports filtering by table_name, action_type, performed_by, start_date, end_date. Returns logs array with pagination support via limit and offset. |
+| `getAuditHistory()` | `admin_audit_history` | `/walker/admin_audit_history` | Retrieves audit history for a specific record. Requires table_name and record_id. Returns all audit entries associated with that record including creation, updates, and deletions. |
+| `getUserActivity()` | `admin_user_activity` | `/walker/admin_user_activity` | Retrieves activity log for a specific user. Requires performed_by parameter. Returns all actions performed by the specified user with timestamps and details. |
+| `getTableActivity()` | `admin_table_activity` | `/walker/admin_table_activity` | Retrieves activity summary for a specific table. Requires table_name and optional days parameter for time range. Returns activity counts and recent operations summary. |
+
+### API Response Structure
+
+All API responses follow a consistent structure defined by the Jaclang runtime. Understanding this structure is essential for proper response handling in the frontend.
+
+**Successful Response Structure**:
+
+```json
+{
+  "result": {
+    "_jac_type": "walker_name",
+    "_jac_id": "unique_walker_id",
+    "_jac_archetype": "walker",
+    "param1": "value1",
+    "param2": "value2"
+  },
+  "reports": [
+    {
+      "success": true,
+      "data": {
+        "key": "value"
+      },
+      "message": "Operation completed successfully"
+    }
+  ]
+}
+```
+
+**Error Response Structure**:
+
+```json
+{
+  "error": "Error description",
+  "traceback": "Detailed traceback information for debugging"
+}
+```
+
+**Response Unwrapping**: The frontend `AdminApiService.makeRequest()` method automatically extracts data from the `reports` array for successful responses. Components receive the unwrapped data directly without needing to parse the Jaclang response wrapper.
+
+### Request Flow Example
+
+The following example demonstrates the complete request-response flow for creating a new course:
+
+```
+1. Frontend Component calls adminApi.createCourse({ title: "Python Basics", description: "Learn Python", domain: "Programming", difficulty: "beginner" })
+
+2. AdminApiService.makeRequest('/walker/admin_content_course_create', { method: 'POST', body: JSON.stringify({ title: "Python Basics", description: "Learn Python", domain: "Programming", difficulty: "beginner" }) })
+
+3. HTTP POST request sent to http://localhost:8000/walker/admin_content_course_create with Authorization header containing JWT token
+
+4. Backend receives request, validates JWT token and user permissions
+
+5. admin_content_course_create walker executes, calls content_store.create_course() with provided parameters
+
+6. Database INSERT operation creates new course record in PostgreSQL
+
+7. Walker returns success response with created course_id
+
+8. Jaclang runtime wraps response in standard format with reports array
+
+9. HTTP response returned to frontend with wrapped data
+
+10. AdminApiService.makeRequest() unwraps reports[0] and returns to caller
+
+11. Frontend component receives { success: true, course_id: "course_new_xxx", message: "Course created successfully" }
+```
+
+### Common Error Handling Patterns
+
+The API implements consistent error handling across all endpoints. Authentication errors return 401 status with error messages. Authorization errors return 403 status with permission denial details. Validation errors return 400 status with field-specific error messages. Database errors return 500 status with operation-specific error details.
+
+All frontend methods should implement try-catch blocks to handle network errors, timeout errors, and unexpected response formats. The `makeRequest()` method logs all errors with endpoint information for debugging purposes.
+
+### Related Documentation
+
+- [API Endpoints Reference](#api-endpoints-reference)
+- [Content Generation Flow](#content-generation-flow)
+- [AI Quiz Generation Flow](#ai-quiz-generation-flow)
+- [Content View Tracking](#content-view-tracking)
+
+---
+
 ## Document Information
 
 | Property | Value |
 |----------|-------|
 | **Last Updated** | 2026-01-03 |
 | **Author** | Development Team |
-| **Version** | 1.2 |
+| **Version** | 1.3 |
 | **Status** | Active |
-| **Changes** | Added AI Quiz Generation Flow documentation section |
+| **Changes** | Added Frontend API Methods Reference documentation section |
 
 ---
 
