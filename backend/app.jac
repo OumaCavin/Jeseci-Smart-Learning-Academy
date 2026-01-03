@@ -313,18 +313,47 @@ walker ai_generate_content {
     can ai_generate_content with entry {
         import datetime;
         
-        result = {
-            "success": True,
-            "concept_name": self.concept_name,
-            "domain": self.domain,
-            "difficulty": self.difficulty,
-            "content": "AI-generated content for " + self.concept_name + ". This lesson covers fundamental concepts and provides hands-on examples.",
-            "related_concepts": self.related_concepts,
-            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "source": "ai_generator"
-        };
-        
-        report result;
+        try {
+            import from python { PyModule }
+            ai_module = PyModule("ai_generator");
+            
+            # Convert list to comma-separated string
+            related_concepts_str = ",".join(self.related_concepts) if self.related_concepts else "";
+            
+            # Generate content using OpenAI
+            generated_content = ai_module.sync_generate_lesson(
+                self.concept_name,
+                self.domain,
+                self.difficulty,
+                related_concepts_str
+            );
+            
+            report {
+                "success": True,
+                "concept_name": self.concept_name,
+                "domain": self.domain,
+                "difficulty": self.difficulty,
+                "content": generated_content,
+                "related_concepts": self.related_concepts,
+                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "source": "ai_generator"
+            };
+        } except Exception as e {
+            print("Error in AI content generation: " + str(e));
+            
+            # Fallback to mock content
+            report {
+                "success": True,
+                "concept_name": self.concept_name,
+                "domain": self.domain,
+                "difficulty": self.difficulty,
+                "content": "AI-generated content for " + self.concept_name + ". This lesson covers fundamental concepts and provides hands-on examples.",
+                "related_concepts": self.related_concepts,
+                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "source": "ai_generator",
+                "fallback": True
+            };
+        }
     }
 }
 
@@ -775,28 +804,38 @@ walker achievements {
 
 walker chat {
     has message: str;
+    has context: str = "";
     
     can chat with entry {
-        # Simple AI chat responses
-        responses = [
-            "That's a great question! Let me explain...",
-            "I understand what you're asking. Here's my perspective...",
-            "Based on your learning history, I'd recommend focusing on...",
-            "Great thinking! This concept relates to...",
-            "Let me break this down for you in simple terms..."
-        ];
-        
         import datetime;
-        response = responses[0];
         
-        # Add context-aware response
-        contextual_response = response + "\n\nWould you like me to elaborate on any specific aspect of this topic?";
-        
-        report {
-            "success": True,
-            "response": contextual_response,
-            "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-        };
+        try {
+            import from python { PyModule }
+            ai_module = PyModule("ai_generator");
+            result = ai_module.sync_chat_with_ai(self.message, self.context);
+            
+            report result;
+        } except Exception as e {
+            print("Error in AI chat: " + str(e));
+            
+            # Fallback to mock response
+            responses = [
+                "That's a great question! Let me explain...",
+                "I understand what you're asking. Here's my perspective...",
+                "Based on your learning history, I'd recommend focusing on...",
+                "Great thinking! This concept relates to...",
+                "Let me break this down for you in simple terms..."
+            ];
+            
+            contextual_response = responses[0] + "\n\nWould you like me to elaborate on any specific aspect of this topic?";
+            
+            report {
+                "success": True,
+                "response": contextual_response,
+                "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "fallback": True
+            };
+        }
     }
 }
 # ==============================================================================
