@@ -6690,10 +6690,10 @@ walker create_folder {
 
 walker get_folders {
     has parent_folder_id: str = "";
-    
+
     can get_folders with entry {
         import code_execution_store as code_store_module;
-        
+
         user_id = ctx().get('user_id');
         if not user_id {
             report {
@@ -6702,16 +6702,1264 @@ walker get_folders {
             };
             return;
         }
-        
+
         folders = code_store_module.get_user_folders(
             user_id=user_id,
             parent_folder_id=self.parent_folder_id if self.parent_folder_id else null
         );
-        
+
         report {
             "success": True,
             "folders": folders,
             "total": len(folders)
+        };
+    }
+}
+
+# ==============================================================================
+# Email Verification Endpoints
+# ==============================================================================
+
+walker verify_email {
+    has token: str;
+
+    can verify_email with entry {
+        import database as db_module;
+        import uuid;
+
+        if not self.token or not self.token.strip() {
+            report {
+                "success": False,
+                "error": "Verification token is required"
+            };
+            return;
+        }
+
+        try:
+            Session = db_module.get_session();
+            session = Session();
+
+            # Find the verification token
+            verification = session.query(db_module.EmailVerification).filter(
+                db_module.EmailVerification.token == self.token
+            ).first();
+
+            if not verification {
+                session.close();
+                report {
+                    "success": False,
+                    "error": "Invalid or expired verification token"
+                };
+                return;
+            }
+
+            # Check if token is expired
+            import datetime;
+            if verification.expires_at and verification.expires_at < datetime.datetime.now():
+                session.close();
+                report {
+                    "success": False,
+                    "error": "Verification token has expired"
+                };
+                return;
+            }
+
+            # Find and update the user
+            user = session.query(db_module.User).filter(
+                db_module.User.id == verification.user_id
+            ).first();
+
+            if not user {
+                session.close();
+                report {
+                    "success": False,
+                    "error": "User not found"
+                };
+                return;
+            }
+
+            # Mark user as verified
+            user.is_email_verified = True;
+            user.is_active = True;
+
+            # Delete the used verification token
+            session.delete(verification);
+            session.commit();
+            session.close();
+
+            report {
+                "success": True,
+                "message": "Email verified successfully",
+                "user": {
+                    "user_id": user.user_id,
+                    "username": user.username,
+                    "email": user.email,
+                    "is_email_verified": True
+                }
+            };
+
+        except Exception as e:
+            print("Error verifying email: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to verify email: " + str(e)
+            };
+    }
+}
+
+walker resend_verification {
+    has email: str;
+
+    can resend_verification with entry {
+        import database as db_module;
+        import uuid;
+        import email_verification as email_verification_module;
+
+        if not self.email or not self.email.strip() {
+            report {
+                "success": False,
+                "error": "Email is required"
+            };
+            return;
+        }
+
+        try:
+            Session = db_module.get_session();
+            session = Session();
+
+            # Find user by email
+            user = session.query(db_module.User).filter(
+                db_module.User.email == self.email
+            ).first();
+
+            if not user {
+                session.close();
+                report {
+                    "success": False,
+                    "error": "User with this email not found"
+                };
+                return;
+            }
+
+            # Check if already verified
+            if user.is_email_verified {
+                session.close();
+                report {
+                    "success": False,
+                    "error": "Email is already verified"
+                };
+                return;
+            }
+
+            # Delete existing verification tokens
+            existing_tokens = session.query(db_module.EmailVerification).filter(
+                db_module.EmailVerification.user_id == user.id
+            ).all();
+            for token in existing_tokens:
+                session.delete(token);
+
+            # Create new verification token
+            import secrets;
+            token = secrets.token_urlsafe(32);
+            import datetime;
+            expires_at = datetime.datetime.now() + datetime.timedelta(hours=24);
+
+            verification = db_module.EmailVerification(
+                user_id=user.id,
+                token=token,
+                email=user.email,
+                expires_at=expires_at,
+                created_at=datetime.datetime.now()
+            );
+            session.add(verification);
+            session.commit();
+
+            # Send verification email
+            email_sent = False;
+            try:
+                email_module = email_verification_module.EmailVerificationModule();
+                email_sent = email_module.send_verification_email(
+                    user_email=user.email,
+                    username=user.username,
+                    verification_token=token
+                );
+            except Exception as email_error:
+                print("Error sending verification email: " + str(email_error));
+
+            session.close();
+
+            if email_sent {
+                report {
+                    "success": True,
+                    "message": "Verification email sent successfully"
+                };
+            } else {
+                report {
+                    "success": True,
+                    "message": "Verification email sent (email service unavailable, token generated)",
+                    "debug_token": token
+                };
+            }
+
+        except Exception as e:
+            print("Error resending verification: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to resend verification email: " + str(e)
+            };
+    }
+}
+
+walker verification_status {
+    has user_id: str;
+
+    can verification_status with entry {
+        import database as db_module;
+
+        if not self.user_id or not self.user_id.strip() {
+            report {
+                "success": False,
+                "error": "User ID is required"
+            };
+            return;
+        }
+
+        try:
+            Session = db_module.get_session();
+            session = Session();
+
+            user = session.query(db_module.User).filter(
+                db_module.User.user_id == self.user_id
+            ).first();
+
+            if not user {
+                session.close();
+                report {
+                    "success": False,
+                    "error": "User not found"
+                };
+                return;
+            }
+
+            # Check if user has pending verification
+            pending_verification = session.query(db_module.EmailVerification).filter(
+                db_module.EmailVerification.user_id == user.id
+            ).first();
+
+            session.close();
+
+            report {
+                "success": True,
+                "is_email_verified": user.is_email_verified,
+                "has_pending_verification": pending_verification is not None
+            };
+
+        except Exception as e:
+            print("Error checking verification status: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to check verification status: " + str(e)
+            };
+    }
+}
+
+# ==============================================================================
+# Password Reset Endpoints
+# ==============================================================================
+
+walker forgot_password {
+    has email: str;
+
+    can forgot_password with entry {
+        import database as db_module;
+        import uuid;
+        import password_reset as reset_module;
+
+        if not self.email or not self.email.strip() {
+            report {
+                "success": False,
+                "error": "Email is required"
+            };
+            return;
+        }
+
+        try:
+            Session = db_module.get_session();
+            session = Session();
+
+            user = session.query(db_module.User).filter(
+                db_module.User.email == self.email
+            ).first();
+
+            # Always return success to prevent email enumeration
+            if not user {
+                session.close();
+                report {
+                    "success": True,
+                    "message": "If an account exists with this email, a password reset link has been sent"
+                };
+                return;
+            }
+
+            # Delete existing reset tokens
+            existing_tokens = session.query(db_module.PasswordReset).filter(
+                db_module.PasswordReset.user_id == user.id
+            ).all();
+            for token in existing_tokens:
+                session.delete(token);
+
+            # Create new reset token
+            import secrets;
+            token = secrets.token_urlsafe(32);
+            import datetime;
+            expires_at = datetime.datetime.now() + datetime.timedelta(hours=1);
+
+            reset_token = db_module.PasswordReset(
+                user_id=user.id,
+                token=token,
+                expires_at=expires_at,
+                created_at=datetime.datetime.now(),
+                is_used=False
+            );
+            session.add(reset_token);
+            session.commit();
+
+            # Send reset email
+            email_sent = False;
+            try:
+                reset_module_instance = reset_module.PasswordResetModule();
+                email_sent = reset_module_instance.send_password_reset_email(
+                    user_email=user.email,
+                    username=user.username,
+                    reset_token=token
+                );
+            except Exception as email_error:
+                print("Error sending password reset email: " + str(email_error));
+
+            session.close();
+
+            report {
+                "success": True,
+                "message": "If an account exists with this email, a password reset link has been sent"
+            };
+
+        except Exception as e:
+            print("Error processing forgot password: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to process password reset request: " + str(e)
+            };
+    }
+}
+
+walker reset_password_validate {
+    has token: str;
+
+    can reset_password_validate with entry {
+        import database as db_module;
+
+        if not self.token or not self.token.strip() {
+            report {
+                "success": False,
+                "error": "Reset token is required"
+            };
+            return;
+        }
+
+        try:
+            Session = db_module.get_session();
+            session = Session();
+
+            reset_token = session.query(db_module.PasswordReset).filter(
+                db_module.PasswordReset.token == self.token,
+                db_module.PasswordReset.is_used == False
+            ).first();
+
+            if not reset_token {
+                session.close();
+                report {
+                    "success": False,
+                    "error": "Invalid or expired reset token"
+                };
+                return;
+            }
+
+            import datetime;
+            if reset_token.expires_at and reset_token.expires_at < datetime.datetime.now():
+                session.close();
+                report {
+                    "success": False,
+                    "error": "Reset token has expired"
+                };
+                return;
+            }
+
+            user = session.query(db_module.User).filter(
+                db_module.User.id == reset_token.user_id
+            ).first();
+
+            session.close();
+
+            if user {
+                report {
+                    "success": True,
+                    "message": "Token is valid",
+                    "user_id": user.user_id,
+                    "username": user.username
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": "User not found"
+                };
+            }
+
+        except Exception as e:
+            print("Error validating reset token: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to validate reset token: " + str(e)
+            };
+    }
+}
+
+walker reset_password {
+    has token: str;
+    has new_password: str;
+    has confirm_password: str;
+
+    can reset_password with entry {
+        import database as db_module;
+        import bcrypt;
+
+        if not self.token or not self.token.strip() {
+            report {
+                "success": False,
+                "error": "Reset token is required"
+            };
+            return;
+        }
+
+        if not self.new_password or len(self.new_password) < 8 {
+            report {
+                "success": False,
+                "error": "Password must be at least 8 characters"
+            };
+            return;
+        }
+
+        if self.new_password != self.confirm_password {
+            report {
+                "success": False,
+                "error": "Passwords do not match"
+            };
+            return;
+        }
+
+        try:
+            Session = db_module.get_session();
+            session = Session();
+
+            reset_token = session.query(db_module.PasswordReset).filter(
+                db_module.PasswordReset.token == self.token,
+                db_module.PasswordReset.is_used == False
+            ).first();
+
+            if not reset_token {
+                session.close();
+                report {
+                    "success": False,
+                    "error": "Invalid or expired reset token"
+                };
+                return;
+            }
+
+            import datetime;
+            if reset_token.expires_at and reset_token.expires_at < datetime.datetime.now():
+                session.close();
+                report {
+                    "success": False,
+                    "error": "Reset token has expired"
+                };
+                return;
+            }
+
+            user = session.query(db_module.User).filter(
+                db_module.User.id == reset_token.user_id
+            ).first();
+
+            if not user {
+                session.close();
+                report {
+                    "success": False,
+                    "error": "User not found"
+                };
+                return;
+            }
+
+            # Hash new password
+            password_bytes = self.new_password.encode('utf-8');
+            salt = bcrypt.gensalt();
+            password_hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8');
+
+            # Update user password
+            user.password_hash = password_hash;
+
+            # Mark token as used
+            reset_token.is_used = True;
+            reset_token.used_at = datetime.datetime.now();
+
+            session.commit();
+            session.close();
+
+            report {
+                "success": True,
+                "message": "Password reset successfully"
+            };
+
+        except Exception as e:
+            print("Error resetting password: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to reset password: " + str(e)
+            };
+    }
+}
+
+# ==============================================================================
+# Code Snippet Version Management Endpoints
+# ==============================================================================
+
+walker snippet_version {
+    has action: str = "list";
+    has snippet_id: str = "";
+    has version_id: str = "";
+    has code: str = "";
+    has title: str = "";
+    has version_number: int = 0;
+    has description: str = "";
+    has change_summary: str = "";
+
+    can snippet_version with entry {
+        import code_execution_store as code_store_module;
+
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+
+        if self.action == "list" {
+            if not self.snippet_id {
+                report {
+                    "success": False,
+                    "error": "snippet_id is required for list action"
+                };
+                return;
+            }
+
+            versions = code_store_module.get_snippet_versions(
+                snippet_id=self.snippet_id
+            );
+
+            report {
+                "success": True,
+                "versions": versions,
+                "total": len(versions)
+            };
+            return;
+        }
+
+        if self.action == "get" {
+            if not self.version_id {
+                report {
+                    "success": False,
+                    "error": "version_id is required for get action"
+                };
+                return;
+            }
+
+            version = code_store_module.get_snippet_version(
+                version_id=self.version_id
+            );
+
+            if version {
+                report {
+                    "success": True,
+                    "version": version
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": "Version not found"
+                };
+            }
+            return;
+        }
+
+        if self.action == "create" {
+            if not self.snippet_id or not self.code or not self.title {
+                report {
+                    "success": False,
+                    "error": "snippet_id, code, and title are required for create action"
+                };
+                return;
+            }
+
+            try:
+                import datetime;
+                version = code_store_module.create_snippet_version(
+                    snippet_id=self.snippet_id,
+                    version_number=self.version_number if self.version_number > 0 else 1,
+                    code_content=self.code,
+                    title=self.title,
+                    description=self.description if self.description else null,
+                    change_summary=self.change_summary if self.change_summary else null,
+                    created_by=user_id,
+                    created_at=datetime.datetime.now()
+                );
+
+                report {
+                    "success": True,
+                    "message": "Version created successfully",
+                    "version": version
+                };
+            except Exception as e {
+                report {
+                    "success": False,
+                    "error": "Failed to create version: " + str(e)
+                };
+            }
+            return;
+        }
+
+        if self.action == "restore" {
+            if not self.version_id {
+                report {
+                    "success": False,
+                    "error": "version_id is required for restore action"
+                };
+                return;
+            }
+
+            try:
+                restored = code_store_module.restore_snippet_version(
+                    version_id=self.version_id,
+                    user_id=user_id
+                );
+
+                if restored {
+                    report {
+                        "success": True,
+                        "message": "Version restored successfully"
+                    };
+                } else {
+                    report {
+                        "success": False,
+                        "error": "Failed to restore version"
+                    };
+                }
+            except Exception as e {
+                report {
+                    "success": False,
+                    "error": "Failed to restore version: " + str(e)
+                };
+            }
+            return;
+        }
+
+        report {
+            "success": False,
+            "error": "Unknown action: " + self.action
+        };
+    }
+}
+
+# ==============================================================================
+# Test Case Management Endpoints
+# ==============================================================================
+
+walker test_case {
+    has action: str = "list";
+    has snippet_id: str = "";
+    has test_case_id: str = "";
+    has name: str = "";
+    has input_data: str = "";
+    has expected_output: str = "";
+    has is_hidden: bool = False;
+    has order_index: int = 0;
+    has timeout_ms: int = 5000;
+
+    can test_case with entry {
+        import code_execution_store as code_store_module;
+
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+
+        if self.action == "list" {
+            if not self.snippet_id {
+                report {
+                    "success": False,
+                    "error": "snippet_id is required for list action"
+                };
+                return;
+            }
+
+            test_cases = code_store_module.get_test_cases(
+                snippet_id=self.snippet_id,
+                include_hidden=True
+            );
+
+            report {
+                "success": True,
+                "test_cases": test_cases,
+                "total": len(test_cases)
+            };
+            return;
+        }
+
+        if self.action == "get" {
+            if not self.test_case_id {
+                report {
+                    "success": False,
+                    "error": "test_case_id is required for get action"
+                };
+                return;
+            }
+
+            test_case = code_store_module.get_test_case(
+                test_case_id=self.test_case_id
+            );
+
+            if test_case {
+                report {
+                    "success": True,
+                    "test_case": test_case
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": "Test case not found"
+                };
+            }
+            return;
+        }
+
+        if self.action == "create" {
+            if not self.snippet_id or not self.name or not self.expected_output {
+                report {
+                    "success": False,
+                    "error": "snippet_id, name, and expected_output are required for create action"
+                };
+                return;
+            }
+
+            try:
+                import datetime;
+                test_case = code_store_module.create_test_case(
+                    snippet_id=self.snippet_id,
+                    name=self.name,
+                    input_data=self.input_data if self.input_data else null,
+                    expected_output=self.expected_output,
+                    is_hidden=self.is_hidden,
+                    order_index=self.order_index if self.order_index > 0 else 1,
+                    timeout_ms=self.timeout_ms if self.timeout_ms > 0 else 5000,
+                    created_by=user_id,
+                    created_at=datetime.datetime.now()
+                );
+
+                report {
+                    "success": True,
+                    "message": "Test case created successfully",
+                    "test_case": test_case
+                };
+            except Exception as e {
+                report {
+                    "success": False,
+                    "error": "Failed to create test case: " + str(e)
+                };
+            }
+            return;
+        }
+
+        if self.action == "update" {
+            if not self.test_case_id {
+                report {
+                    "success": False,
+                    "error": "test_case_id is required for update action"
+                };
+                return;
+            }
+
+            try:
+                updated = code_store_module.update_test_case(
+                    test_case_id=self.test_case_id,
+                    name=self.name if self.name else null,
+                    input_data=self.input_data if self.input_data else null,
+                    expected_output=self.expected_output if self.expected_output else null,
+                    is_hidden=self.is_hidden if self.order_index > -1 else null,
+                    order_index=self.order_index if self.order_index > 0 else null,
+                    timeout_ms=self.timeout_ms if self.timeout_ms > 0 else null
+                );
+
+                if updated {
+                    test_case = code_store_module.get_test_case(
+                        test_case_id=self.test_case_id
+                    );
+                    report {
+                        "success": True,
+                        "message": "Test case updated successfully",
+                        "test_case": test_case
+                    };
+                } else {
+                    report {
+                        "success": False,
+                        "error": "Failed to update test case"
+                    };
+                }
+            except Exception as e {
+                report {
+                    "success": False,
+                    "error": "Failed to update test case: " + str(e)
+                };
+            }
+            return;
+        }
+
+        if self.action == "delete" {
+            if not self.test_case_id {
+                report {
+                    "success": False,
+                    "error": "test_case_id is required for delete action"
+                };
+                return;
+            }
+
+            try:
+                deleted = code_store_module.delete_test_case(
+                    test_case_id=self.test_case_id
+                );
+
+                if deleted {
+                    report {
+                        "success": True,
+                        "message": "Test case deleted successfully"
+                    };
+                } else {
+                    report {
+                        "success": False,
+                        "error": "Test case not found or access denied"
+                    };
+                }
+            except Exception as e {
+                report {
+                    "success": False,
+                    "error": "Failed to delete test case: " + str(e)
+                };
+            }
+            return;
+        }
+
+        if self.action == "run" {
+            if not self.test_case_id {
+                report {
+                    "success": False,
+                    "error": "test_case_id is required for run action"
+                };
+                return;
+            }
+
+            test_case = code_store_module.get_test_case(
+                test_case_id=self.test_case_id
+            );
+
+            if not test_case {
+                report {
+                    "success": False,
+                    "error": "Test case not found"
+                };
+                return;
+            }
+
+            # Execute the test case
+            import code_execution as code_exec_module;
+
+            user_code = code_store_module.get_snippet(
+                snippet_id=test_case['snippet_id'],
+                user_id=user_id
+            );
+
+            if not user_code {
+                report {
+                    "success": False,
+                    "error": "Snippet not found"
+                };
+                return;
+            }
+
+            result = code_exec_module.run_test_case(
+                code=user_code['code'],
+                input_data=test_case['input_data'] or '',
+                expected_output=test_case['expected_output'],
+                timeout_ms=test_case['timeout_ms']
+            );
+
+            report {
+                "success": True,
+                "test_result": result,
+                "test_case": test_case
+            };
+            return;
+        }
+
+        report {
+            "success": False,
+            "error": "Unknown action: " + self.action
+        };
+    }
+}
+
+# ==============================================================================
+# Debug Session Management Endpoints
+# ==============================================================================
+
+walker debug_session {
+    has action: str = "create";
+    has session_id: str = "";
+    has snippet_id: str = "";
+    has breakpoint_line: int = 0;
+    has variables: list = [];
+    has current_line: int = 0;
+    has command: str = "";
+
+    can debug_session with entry {
+        import code_execution_store as code_store_module;
+
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+
+        if self.action == "create" {
+            if not self.snippet_id {
+                report {
+                    "success": False,
+                    "error": "snippet_id is required for create action"
+                };
+                return;
+            }
+
+            try:
+                import datetime;
+                session = code_store_module.create_debug_session(
+                    snippet_id=self.snippet_id,
+                    user_id=user_id,
+                    status="running",
+                    started_at=datetime.datetime.now()
+                );
+
+                report {
+                    "success": True,
+                    "message": "Debug session created",
+                    "session": session
+                };
+            except Exception as e {
+                report {
+                    "success": False,
+                    "error": "Failed to create debug session: " + str(e)
+                };
+            }
+            return;
+        }
+
+        if self.action == "get" {
+            if not self.session_id {
+                report {
+                    "success": False,
+                    "error": "session_id is required for get action"
+                };
+                return;
+            }
+
+            session = code_store_module.get_debug_session(
+                session_id=self.session_id
+            );
+
+            if session {
+                report {
+                    "success": True,
+                    "session": session
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": "Debug session not found"
+                };
+            }
+            return;
+        }
+
+        if self.action == "list" {
+            sessions = code_store_module.get_user_debug_sessions(
+                user_id=user_id,
+                include_completed=False
+            );
+
+            report {
+                "success": True,
+                "sessions": sessions,
+                "total": len(sessions)
+            };
+            return;
+        }
+
+        if self.action == "step" {
+            if not self.session_id {
+                report {
+                    "success": False,
+                    "error": "session_id is required for step action"
+                };
+                return;
+            }
+
+            session = code_store_module.get_debug_session(
+                session_id=self.session_id
+            );
+
+            if not session {
+                report {
+                    "success": False,
+                    "error": "Debug session not found"
+                };
+                return;
+            }
+
+            # Step through the code
+            import code_execution as code_exec_module;
+
+            result = code_exec_module.debug_step(
+                code=session['code'],
+                command=self.command or 'step',
+                current_line=self.current_line if self.current_line > 0 else session.get('current_line', 1)
+            );
+
+            # Update session state
+            import datetime;
+            new_line = result.get('current_line', self.current_line);
+            updated_session = code_store_module.update_debug_session(
+                session_id=self.session_id,
+                current_line=new_line,
+                variables=result.get('variables', []),
+                status='paused' if result.get('status') == 'paused' else 'running'
+            );
+
+            report {
+                "success": True,
+                "session": updated_session,
+                "result": result
+            };
+            return;
+        }
+
+        if self.action == "continue" {
+            if not self.session_id {
+                report {
+                    "success": False,
+                    "error": "session_id is required for continue action"
+                };
+                return;
+            }
+
+            session = code_store_module.get_debug_session(
+                session_id=self.session_id
+            );
+
+            if not session {
+                report {
+                    "success": False,
+                    "error": "Debug session not found"
+                };
+                return;
+            }
+
+            # Continue execution to next breakpoint or end
+            import code_execution as code_exec_module;
+
+            result = code_exec_module.debug_continue(
+                code=session['code'],
+                current_line=self.current_line if self.current_line > 0 else session.get('current_line', 1),
+                breakpoints=session.get('breakpoints', [])
+            );
+
+            import datetime;
+            code_store_module.update_debug_session(
+                session_id=self.session_id,
+                current_line=result.get('current_line', 0),
+                status='completed',
+                completed_at=datetime.datetime.now()
+            );
+
+            report {
+                "success": True,
+                "result": result,
+                "session": {
+                    "id": self.session_id,
+                    "status": "completed"
+                }
+            };
+            return;
+        }
+
+        if self.action == "breakpoint" {
+            if not self.session_id {
+                report {
+                    "success": False,
+                    "error": "session_id is required for breakpoint action"
+                };
+                return;
+            }
+
+            if self.breakpoint_line <= 0 {
+                report {
+                    "success": False,
+                    "error": "breakpoint_line is required for breakpoint action"
+                };
+                return;
+            }
+
+            try:
+                session = code_store_module.add_breakpoint(
+                    session_id=self.session_id,
+                    line_number=self.breakpoint_line
+                );
+
+                report {
+                    "success": True,
+                    "message": "Breakpoint added",
+                    "session": session
+                };
+            except Exception as e {
+                report {
+                    "success": False,
+                    "error": "Failed to add breakpoint: " + str(e)
+                };
+            }
+            return;
+        }
+
+        if self.action == "remove_breakpoint" {
+            if not self.session_id or self.breakpoint_line <= 0 {
+                report {
+                    "success": False,
+                    "error": "session_id and breakpoint_line are required"
+                };
+                return;
+            }
+
+            try:
+                session = code_store_module.remove_breakpoint(
+                    session_id=self.session_id,
+                    line_number=self.breakpoint_line
+                );
+
+                report {
+                    "success": True,
+                    "message": "Breakpoint removed",
+                    "session": session
+                };
+            except Exception as e {
+                report {
+                    "success": False,
+                    "error": "Failed to remove breakpoint: " + str(e)
+                };
+            }
+            return;
+        }
+
+        if self.action == "evaluate" {
+            if not self.session_id {
+                report {
+                    "success": False,
+                    "error": "session_id is required for evaluate action"
+                };
+                return;
+            }
+
+            session = code_store_module.get_debug_session(
+                session_id=self.session_id
+            );
+
+            if not session {
+                report {
+                    "success": False,
+                    "error": "Debug session not found"
+                };
+                return;
+            }
+
+            # Evaluate expression at current line
+            import code_execution as code_exec_module;
+
+            result = code_exec_module.evaluate_expression(
+                code=session['code'],
+                expression=self.command,
+                current_line=self.current_line if self.current_line > 0 else session.get('current_line', 1),
+                variables=session.get('variables', [])
+            );
+
+            report {
+                "success": True,
+                "result": result
+            };
+            return;
+        }
+
+        if self.action == "end" {
+            if not self.session_id {
+                report {
+                    "success": False,
+                    "error": "session_id is required for end action"
+                };
+                return;
+            }
+
+            try:
+                import datetime;
+                code_store_module.update_debug_session(
+                    session_id=self.session_id,
+                    status='completed',
+                    completed_at=datetime.datetime.now()
+                );
+
+                report {
+                    "success": True,
+                    "message": "Debug session ended"
+                };
+            except Exception as e {
+                report {
+                    "success": False,
+                    "error": "Failed to end debug session: " + str(e)
+                };
+            }
+            return;
+        }
+
+        report {
+            "success": False,
+            "error": "Unknown action: " + self.action
         };
     }
 }
