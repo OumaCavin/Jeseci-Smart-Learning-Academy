@@ -178,11 +178,107 @@ export interface CodeExecutionResponse {
   error?: string;
   execution_time?: number;
   memory_used?: number;
+  test_results?: TestResult[];
+  error_suggestion?: ErrorSuggestion;
 }
 
 export interface SnippetsListResponse {
   success: boolean;
   snippets?: CodeSnippet[];
+  error?: string;
+}
+
+export interface SnippetVersion {
+  id: string;
+  snippet_id: string;
+  version_number: number;
+  code_content: string;
+  title: string;
+  description?: string;
+  created_by: number;
+  change_summary?: string;
+  created_at: string;
+}
+
+export interface TestCase {
+  id: string;
+  snippet_id: string;
+  name: string;
+  input_data?: string;
+  expected_output: string;
+  is_hidden: boolean;
+  order_index: number;
+  timeout_ms: number;
+  created_by?: number;
+  created_at: string;
+}
+
+export interface TestResult {
+  id: string;
+  test_case_id: string;
+  execution_id: string;
+  passed: boolean;
+  actual_output: string;
+  execution_time_ms: number;
+  error_message?: string;
+  created_at: string;
+}
+
+export interface ErrorSuggestion {
+  title: string;
+  description: string;
+  suggestion: string;
+  documentation_link?: string;
+  examples?: string[];
+}
+
+export interface DebugSession {
+  id: string;
+  snippet_id: string;
+  status: 'running' | 'paused' | 'completed';
+  current_line?: number;
+  variables?: Record<string, any>;
+}
+
+export interface SnippetVersionResponse {
+  success: boolean;
+  versions?: SnippetVersion[];
+  error?: string;
+}
+
+export interface TestCaseResponse {
+  success: boolean;
+  test_cases?: TestCase[];
+  error?: string;
+}
+
+export interface TestResultsResponse {
+  success: boolean;
+  test_results?: TestResult[];
+  passed_count?: number;
+  total_count?: number;
+  error?: string;
+}
+
+export interface DebugSessionResponse {
+  success: boolean;
+  session?: DebugSession;
+  current_line?: number;
+  variables?: Record<string, any>;
+  status?: 'running' | 'paused' | 'completed';
+  output?: string;
+  error?: string;
+}
+
+export interface CreateVersionResponse {
+  success: boolean;
+  version?: SnippetVersion;
+  error?: string;
+}
+
+export interface CreateTestCaseResponse {
+  success: boolean;
+  test_case?: TestCase;
   error?: string;
 }
 
@@ -694,12 +790,12 @@ class ApiService {
     return { success: true, history: [] };
   }
 
-  async saveSnippet(data: { title: string; code: string; description?: string; snippet_id?: string }): Promise<any> {
+  async saveSnippet(data: { title: string; code: string; language?: string; description?: string; snippet_id?: string }): Promise<any> {
     return this.saveCodeSnippet({
       title: data.title,
       code: data.code,
       description: data.description,
-      language: 'jac'
+      language: data.language || 'jac'
     });
   }
 
@@ -710,6 +806,79 @@ class ApiService {
 
   async deleteSnippet(snippetId: string): Promise<any> {
     return this.deleteCodeSnippet(snippetId);
+  }
+
+  // Snippet versions
+  async getSnippetVersions(snippetId: string): Promise<SnippetVersionResponse> {
+    return this.makeRequest('/walker/snippet_version', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'list',
+        snippet_id: snippetId
+      }),
+    });
+  }
+
+  async createVersion(snippetId: string, code: string, title: string, versionNumber: number, description?: string): Promise<CreateVersionResponse> {
+    return this.makeRequest('/walker/snippet_version', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'create',
+        snippet_id: snippetId,
+        code,
+        title,
+        version_number: versionNumber,
+        description
+      }),
+    });
+  }
+
+  // Test cases
+  async getSnippetTestCases(snippetId: string): Promise<TestCaseResponse> {
+    return this.makeRequest('/walker/test_case', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'list',
+        snippet_id: snippetId
+      }),
+    });
+  }
+
+  async createTestCase(data: {
+    snippet_id: string;
+    name: string;
+    input_data: string;
+    expected_output: string;
+    is_hidden?: boolean;
+  }): Promise<CreateTestCaseResponse> {
+    return this.makeRequest('/walker/test_case', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'create',
+        ...data
+      }),
+    });
+  }
+
+  // Debug sessions
+  async createDebugSession(snippetId: string): Promise<DebugSessionResponse> {
+    return this.makeRequest('/walker/debug_session', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'create',
+        snippet_id: snippetId
+      }),
+    });
+  }
+
+  async debugStep(sessionId: string, action: string): Promise<DebugSessionResponse> {
+    return this.makeRequest('/walker/debug_session', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: action,
+        session_id: sessionId
+      }),
+    });
   }
 }
 
