@@ -481,13 +481,12 @@ Jeseci-Smart-Learning-Academy/
 │   └── onboarding_guide.md
 │
 ├── 🔧 Configuration Files
-│   ├── .gitignore                # Git ignore patterns
-│   ├── .env.example             # Environment template
+│   ├── .gitignore                # Git ignore patterns (tracks exclusions)
 │   └── README.md               # This file
 │
 └── 🗂️ Additional Directories
     ├── venv/                   # Python virtual environment (gitignored)
-    └── assets/                 # Project assets
+    └── assets/                 # Project assets directory (gitignored)
 ```
 
 ---
