@@ -8,7 +8,7 @@ import json
 import asyncio
 import aiohttp
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 # Import centralized logging configuration
 from logger_config import logger
@@ -27,6 +27,126 @@ class AIContentGenerator:
         self.api_key = OPENAI_API_KEY
         self.available = OPENAI_AVAILABLE
         self.base_url = "https://api.openai.com/v1"
+        self.chat_history: List[Dict[str, str]] = []
+    
+    async def chat_with_ai(
+        self,
+        message: str,
+        context: Optional[str] = None,
+        max_history: int = 10
+    ) -> Dict:
+        """
+        Chat with AI assistant for educational support.
+        
+        Args:
+            message: User's message/question
+            context: Optional context about user's learning progress
+            max_history: Maximum number of chat messages to keep in history
+            
+        Returns:
+            Dictionary containing success status, AI response, and timestamp
+        """
+        
+        if not self.available or not self.api_key:
+            return self._generate_fallback_chat_response(message)
+        
+        try:
+            logger.info(f"Processing chat message: {message[:50]}...")
+            
+            # Build system message with context
+            system_content = """You are Jeseci, an intelligent AI learning assistant for Jeseci Smart Learning Academy. 
+Your role is to help students understand concepts, answer questions, and guide their learning journey.
+Be helpful, encouraging, and clear in your explanations. Use examples to illustrate concepts.
+If you don't know something, admit it and suggest where to find more information."""
+            
+            if context:
+                system_content += f"\n\nCurrent learning context: {context}"
+            
+            # Build messages array with history
+            messages = [{"role": "system", "content": system_content}]
+            
+            # Add recent chat history
+            for msg in self.chat_history[-max_history:]:
+                messages.append(msg)
+            
+            # Add user message
+            messages.append({"role": "user", "content": message})
+            
+            # Call OpenAI API
+            async with aiohttp.ClientSession() as session:
+                headers = {
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json"
+                }
+                
+                payload = {
+                    "model": "gpt-4o-mini",
+                    "messages": messages,
+                    "temperature": 0.7,
+                    "max_tokens": 1000
+                }
+                
+                async with session.post(
+                    f"{self.base_url}/chat/completions",
+                    headers=headers,
+                    json=payload
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        ai_response = result["choices"][0]["message"]["content"]
+                        
+                        # Add to chat history
+                        self.chat_history.append({"role": "user", "content": message})
+                        self.chat_history.append({"role": "assistant", "content": ai_response})
+                        
+                        # Trim history if needed
+                        while len(self.chat_history) > max_history * 2:
+                            self.chat_history.pop(0)
+                        
+                        logger.info("Successfully generated chat response")
+                        
+                        return {
+                            "success": True,
+                            "response": ai_response,
+                            "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                        }
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"OpenAI API error: {error_text}")
+                        return self._generate_fallback_chat_response(message)
+                        
+        except Exception as e:
+            logger.error(f"Error in chat: {str(e)}")
+            return self._generate_fallback_chat_response(message)
+    
+    def _generate_fallback_chat_response(self, message: str) -> Dict:
+        """
+        Generate fallback response when OpenAI is unavailable
+        """
+        import random
+        
+        fallback_responses = [
+            "That's a great question! Based on what you're asking, I think this relates to fundamental concepts in your learning path.",
+            "I understand what you're curious about. This is an important topic that connects to several key concepts.",
+            "Thanks for asking! I'd recommend exploring this topic further through your lessons and practice exercises.",
+            "Great thinking! This concept you're asking about builds on what you've been learning.",
+            "I'd be happy to help with this. Consider reviewing the related concepts in your learning dashboard for more context."
+        ]
+        
+        response = random.choice(fallback_responses)
+        contextual_addition = "\n\nWould you like me to elaborate on any specific aspect of this topic?"
+        
+        return {
+            "success": True,
+            "response": response + contextual_addition,
+            "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "fallback": True
+        }
+    
+    def clear_chat_history(self):
+        """Clear the chat history"""
+        self.chat_history = []
+        logger.info("Chat history cleared")
     
     async def generate_concept_lesson(
         self, 
@@ -243,6 +363,29 @@ def sync_generate_lesson(
             )
         )
         return future.result()
+
+
+def sync_chat_with_ai(
+    message: str,
+    context: str = ""
+) -> dict:
+    """Synchronous wrapper for chat functionality"""
+    import concurrent.futures
+    
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(
+            asyncio.run,
+            ai_generator.chat_with_ai(
+                message=message,
+                context=context
+            )
+        )
+        return future.result()
+
+
+def clear_ai_chat_history():
+    """Clear the chat history"""
+    ai_generator.clear_chat_history()
 
 
 if __name__ == "__main__":
