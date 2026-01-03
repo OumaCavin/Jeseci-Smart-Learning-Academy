@@ -1,11 +1,11 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import ActivityIcon from './ActivityIcon';
-import { UserActivity } from '../../services/activityService';
+import { Activity } from '../../services/activityService';
 
 interface RecentActivityCardProps {
-  activity: UserActivity;
-  onClick?: (activity: UserActivity) => void;
+  activity: Activity;
+  onClick?: (activity: Activity) => void;
   showTimestamp?: boolean;
   compact?: boolean;
 }
@@ -16,71 +16,76 @@ const RecentActivityCard: React.FC<RecentActivityCardProps> = ({
   showTimestamp = true,
   compact = false,
 }) => {
-  const formatActivityDetails = (activity: UserActivity): { title: string; description: string } => {
-    switch (activity.activity_type) {
-      case 'lesson_completed':
+  const formatActivityDetails = (activity: Activity): { title: string; description: string } => {
+    switch (activity.type) {
+      case 'LESSON_COMPLETED':
         return {
           title: 'Lesson Completed',
-          description: `You completed "${activity.metadata?.lesson_title || 'a lesson'}"`,
+          description: activity.description || 'You completed a lesson',
         };
-      case 'quiz_passed':
+      case 'COURSE_STARTED':
+        return {
+          title: 'Course Started',
+          description: activity.description || 'You started a course',
+        };
+      case 'COURSE_COMPLETED':
+        return {
+          title: 'Course Completed',
+          description: activity.description || 'You completed a course',
+        };
+      case 'QUIZ_PASSED':
         return {
           title: 'Quiz Passed',
-          description: `You passed the quiz with ${activity.metadata?.score || 0}% score`,
+          description: activity.description || 'You passed a quiz',
         };
-      case 'achievement_unlocked':
+      case 'ACHIEVEMENT_EARNED':
         return {
           title: 'Achievement Unlocked',
-          description: `You earned the "${activity.metadata?.achievement_name || 'achievement'}" badge`,
+          description: activity.description || 'You earned an achievement',
         };
-      case 'streak_started':
+      case 'STREAK_MILESTONE':
         return {
-          title: 'Streak Started',
-          description: `You started a ${activity.metadata?.streak_days || 1} day learning streak!`,
+          title: 'Streak Milestone',
+          description: activity.description || 'You reached a streak milestone',
         };
-      case 'course_enrolled':
-        return {
-          title: 'Course Enrolled',
-          description: `You enrolled in "${activity.metadata?.course_title || 'a course'}"`,
-        };
-      case 'module_completed':
-        return {
-          title: 'Module Completed',
-          description: `You completed the module "${activity.metadata?.module_title || 'a module'}"`,
-        };
-      case 'level_up':
-        return {
-          title: 'Level Up!',
-          description: `Congratulations! You've reached level ${activity.metadata?.new_level || 1}`,
-        };
-      case 'daily_goal_reached':
-        return {
-          title: 'Daily Goal Reached',
-          description: `You studied for ${activity.metadata?.study_minutes || 0} minutes today`,
-        };
-      case 'certificate_earned':
-        return {
-          title: 'Certificate Earned',
-          description: `You earned a certificate for "${activity.metadata?.course_title || 'course'}"`,
-        };
-      case 'friend_joined':
-        return {
-          title: 'Friend Joined',
-          description: `${activity.metadata?.friend_name || 'A friend'} joined the platform`,
-        };
-      case 'comment_posted':
-        return {
-          title: 'Comment Posted',
-          description: `You commented on "${activity.metadata?.lesson_title || 'a lesson'}"`,
-        };
-      case 'login':
+      case 'LOGIN':
         return {
           title: 'Welcome Back!',
           description: 'You logged into your account',
         };
+      case 'CONTENT_VIEWED':
+        return {
+          title: 'Content Viewed',
+          description: activity.description || 'You viewed some content',
+        };
+      case 'AI_GENERATED':
+        return {
+          title: 'AI Generated',
+          description: activity.description || 'AI content generated',
+        };
+      case 'LEARNING_PATH_STARTED':
+        return {
+          title: 'Learning Path Started',
+          description: activity.description || 'You started a learning path',
+        };
+      case 'LEARNING_PATH_COMPLETED':
+        return {
+          title: 'Learning Path Completed',
+          description: activity.description || 'You completed a learning path',
+        };
+      case 'CONCEPT_MASTERED':
+        return {
+          title: 'Concept Mastered',
+          description: activity.description || 'You mastered a concept',
+        };
+      case 'BADGE_EARNED':
+        return {
+          title: 'Badge Earned',
+          description: activity.description || 'You earned a badge',
+        };
       default:
         return {
-          title: activity.activity_type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+          title: activity.type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
           description: activity.description || 'You performed an activity',
         };
     }
@@ -88,9 +93,9 @@ const RecentActivityCard: React.FC<RecentActivityCardProps> = ({
 
   const { title, description } = formatActivityDetails(activity);
 
-  const getPointsBadge = (activity: UserActivity): string | null => {
-    if (activity.points_earned && activity.points_earned > 0) {
-      return `+${activity.points_earned} XP`;
+  const getPointsBadge = (activity: Activity): string | null => {
+    if (activity.xp_earned && activity.xp_earned > 0) {
+      return `+${activity.xp_earned} XP`;
     }
     return null;
   };
@@ -119,7 +124,7 @@ const RecentActivityCard: React.FC<RecentActivityCardProps> = ({
       role={onClick ? 'button' : undefined}
       aria-label={title}
     >
-      <ActivityIcon type={activity.activity_type} size={compact ? 'sm' : 'md'} />
+      <ActivityIcon type={activity.type} size={compact ? 'sm' : 'md'} />
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
@@ -156,21 +161,6 @@ const RecentActivityCard: React.FC<RecentActivityCardProps> = ({
           <p className="text-sm text-gray-600 mt-1 line-clamp-1">
             {description}
           </p>
-        )}
-
-        {!compact && activity.metadata && Object.keys(activity.metadata).length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {activity.metadata.course_title && (
-              <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-xs text-blue-700">
-                {activity.metadata.course_title}
-              </span>
-            )}
-            {activity.metadata.lesson_title && (
-              <span className="inline-flex items-center px-2 py-1 rounded-md bg-purple-50 text-xs text-purple-700">
-                {activity.metadata.lesson_title}
-              </span>
-            )}
-          </div>
         )}
       </div>
     </div>
