@@ -25,7 +25,7 @@ import {
   Target,
   Activity
 } from 'lucide-react';
-import { getForums, getConnectionRequests, getConnections, Forum as ForumType, Connection } from '../../services/collaborationService';
+import { getForums, getConnectionRequests, getConnections, Forum as ForumType, Connection, ConnectionRequest } from '../../services/collaborationService';
 import UserConnections from './UserConnections';
 import ForumList from './Forum/ForumList';
 import CreateThreadModal from './Forum/CreateThreadModal';
@@ -46,7 +46,7 @@ const CommunityDashboard: React.FC<CommunityDashboardProps> = ({ onNavigateToThr
   const [activeTab, setActiveTab] = useState<TabType>('forums');
   const [forums, setForums] = useState<ForumType[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
-  const [connectionRequests, setConnectionRequests] = useState<Connection[]>([]);
+  const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateThread, setShowCreateThread] = useState(false);
