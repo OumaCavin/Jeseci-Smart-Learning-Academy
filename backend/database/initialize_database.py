@@ -940,6 +940,256 @@ def create_sync_engine_indexes(cursor):
     logger.info("✓ Sync engine indexes created")
 
 
+def create_notification_tables(cursor):
+    """Create notification-related tables for in-app notifications"""
+    logger.info("Creating notification tables...")
+    
+    # Notifications table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.notifications (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            type VARCHAR(50) NOT NULL CHECK (type IN (
+                'ACHIEVEMENT',
+                'COURSE_MILESTONE',
+                'CONTENT_UPDATE',
+                'COMMUNITY_REPLY',
+                'STREAK_REMINDER',
+                'AI_RESPONSE',
+                'SYSTEM_ANNOUNCEMENT'
+            )),
+            title VARCHAR(255) NOT NULL,
+            message TEXT NOT NULL,
+            link VARCHAR(500),
+            is_read BOOLEAN DEFAULT FALSE,
+            is_archived BOOLEAN DEFAULT FALSE,
+            metadata JSONB DEFAULT '{{}}',
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        )
+    """)
+    
+    # Notification preferences table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.notification_preferences (
+            user_id UUID PRIMARY KEY REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            email_enabled BOOLEAN DEFAULT TRUE,
+            push_enabled BOOLEAN DEFAULT TRUE,
+            types_config JSONB DEFAULT '{{
+                "ACHIEVEMENT": true,
+                "COURSE_MILESTONE": true,
+                "CONTENT_UPDATE": true,
+                "COMMUNITY_REPLY": true,
+                "STREAK_REMINDER": true,
+                "AI_RESPONSE": true,
+                "SYSTEM_ANNOUNCEMENT": true
+            }}'::jsonb,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        )
+    """)
+    
+    # Create indexes for efficient querying
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_notifications_user_id 
+        ON {DB_SCHEMA}.notifications(user_id)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_notifications_user_unread 
+        ON {DB_SCHEMA}.notifications(user_id, is_read) WHERE is_read = FALSE
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_notifications_created_at 
+        ON {DB_SCHEMA}.notifications(user_id, created_at DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_notifications_type 
+        ON {DB_SCHEMA}.notifications(type)
+    """)
+    
+    logger.info("✓ Notification tables created: notifications, notification_preferences")
+
+
+def create_testimonials_table(cursor):
+    """Create testimonials table for user reviews and feedback"""
+    logger.info("Creating testimonials table...")
+    
+    # Testimonials table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.testimonials (
+            id SERIAL PRIMARY KEY,
+            testimonial_id VARCHAR(64) UNIQUE NOT NULL,
+            user_id INTEGER REFERENCES {DB_SCHEMA}.users(id) ON DELETE SET NULL,
+            author_name VARCHAR(100) NOT NULL,
+            author_role VARCHAR(100),
+            author_avatar VARCHAR(500),
+            content TEXT NOT NULL,
+            rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+            is_approved BOOLEAN DEFAULT FALSE,
+            is_featured BOOLEAN DEFAULT FALSE,
+            is_published BOOLEAN DEFAULT TRUE,
+            category VARCHAR(50) DEFAULT 'general',
+            metadata JSONB DEFAULT '{{}}',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            published_at TIMESTAMP
+        )
+    """)
+    
+    # Create indexes
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_testimonials_user_id 
+        ON {DB_SCHEMA}.testimonials(user_id)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_testimonials_published 
+        ON {DB_SCHEMA}.testimonials(is_published, is_approved) 
+        WHERE is_published = TRUE AND is_approved = TRUE
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_testimonials_featured 
+        ON {DB_SCHEMA}.testimonials(is_featured, is_published) 
+        WHERE is_featured = TRUE AND is_published = TRUE
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_testimonials_rating 
+        ON {DB_SCHEMA}.testimonials(rating DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_testimonials_created 
+        ON {DB_SCHEMA}.testimonials(created_at DESC)
+    """)
+    
+    logger.info("✓ Testimonials table created: testimonials")
+
+
+def create_contact_messages_table(cursor):
+    """Create contact messages table for storing contact form submissions"""
+    logger.info("Creating contact messages table...")
+    
+    # Contact messages table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.contact_messages (
+            id SERIAL PRIMARY KEY,
+            message_id VARCHAR(64) UNIQUE NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            phone VARCHAR(50),
+            subject VARCHAR(255),
+            message TEXT NOT NULL,
+            contact_reason VARCHAR(50) DEFAULT 'general',
+            status VARCHAR(20) DEFAULT 'new',
+            is_read BOOLEAN DEFAULT FALSE,
+            read_at TIMESTAMP,
+            responded_at TIMESTAMP,
+            responded_by VARCHAR(100),
+            ip_address INET,
+            user_agent TEXT,
+            metadata JSONB DEFAULT '{{}}',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Create indexes
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_contact_messages_email 
+        ON {DB_SCHEMA}.contact_messages(email)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_contact_messages_status 
+        ON {DB_SCHEMA}.contact_messages(status, is_read)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_contact_messages_created 
+        ON {DB_SCHEMA}.contact_messages(created_at DESC)
+    """)
+    
+    logger.info("✓ Contact messages table created: contact_messages")
+
+
+def create_chat_export_table(cursor):
+    """Create chat export table for storing chat conversation exports"""
+    logger.info("Creating chat export table...")
+    
+    # Chat export history table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.chat_exports (
+            id SERIAL PRIMARY KEY,
+            export_id VARCHAR(64) UNIQUE NOT NULL,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            export_format VARCHAR(20) DEFAULT 'pdf',
+            recipient_email VARCHAR(255),
+            message_count INTEGER DEFAULT 0,
+            conversation_title VARCHAR(255),
+            file_path VARCHAR(500),
+            file_size_bytes INTEGER,
+            is_delivered BOOLEAN DEFAULT FALSE,
+            delivered_at TIMESTAMP,
+            delivery_error TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Create indexes
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_chat_exports_user_id 
+        ON {DB_SCHEMA}.chat_exports(user_id)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_chat_exports_created 
+        ON {DB_SCHEMA}.chat_exports(created_at DESC)
+    """)
+    
+    logger.info("✓ Chat export table created: chat_exports")
+
+
+def create_platform_stats_table(cursor):
+    """Create platform statistics table for storing aggregated platform metrics"""
+    logger.info("Creating platform stats table...")
+    
+    # Platform stats table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.platform_stats (
+            id SERIAL PRIMARY KEY,
+            stat_date DATE NOT NULL UNIQUE,
+            total_users INTEGER DEFAULT 0,
+            active_users INTEGER DEFAULT 0,
+            new_users INTEGER DEFAULT 0,
+            total_concepts INTEGER DEFAULT 0,
+            total_courses INTEGER DEFAULT 0,
+            total_lessons INTEGER DEFAULT 0,
+            total_learning_paths INTEGER DEFAULT 0,
+            total_achievements INTEGER DEFAULT 0,
+            total_sessions INTEGER DEFAULT 0,
+            total_session_duration INTEGER DEFAULT 0,
+            avg_session_duration INTEGER DEFAULT 0,
+            completion_rate DECIMAL(5,2) DEFAULT 0,
+            streak_active_users INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Create indexes
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_platform_stats_date 
+        ON {DB_SCHEMA}.platform_stats(stat_date DESC)
+    """)
+    
+    logger.info("✓ Platform stats table created: platform_stats")
+
+
 def create_indexes(cursor):
     """Create database indexes for performance"""
     logger.info("Creating database indexes...")
@@ -1019,6 +1269,11 @@ def initialize_database():
         create_domains_table(cursor)
         create_sync_engine_tables(cursor)
         create_sync_engine_indexes(cursor)
+        create_notification_tables(cursor)
+        create_testimonials_table(cursor)
+        create_contact_messages_table(cursor)
+        create_chat_export_table(cursor)
+        create_platform_stats_table(cursor)
         create_indexes(cursor)
         
         conn.commit()
