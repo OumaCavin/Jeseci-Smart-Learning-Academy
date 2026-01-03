@@ -838,6 +838,70 @@ walker chat {
         }
     }
 }
+
+# ==============================================================================
+# Chat Export
+# ==============================================================================
+
+walker export_chat {
+    has email: str;
+    has chat_messages: list = [];
+    has user_name: str = "User";
+    
+    can export_chat with entry {
+        import datetime;
+        import json;
+        
+        if not self.email {
+            report {
+                "success": False,
+                "error": "Email address is required",
+                "code": "MISSING_EMAIL"
+            };
+            return;
+        }
+        
+        if not self.chat_messages or len(self.chat_messages) == 0 {
+            report {
+                "success": False,
+                "error": "No chat messages to export",
+                "code": "NO_MESSAGES"
+            };
+            return;
+        }
+        
+        try {
+            import from python { PyModule }
+            chat_export_module = PyModule("chat_export");
+            
+            # Convert list to JSON string for Python module
+            chat_messages_json = json.dumps(self.chat_messages);
+            
+            # Send chat export email
+            result = chat_export_module.sync_send_chat_export_email(
+                self.email,
+                chat_messages_json,
+                self.user_name
+            );
+            
+            report {
+                "success": result.get("success", False),
+                "message": "Chat transcript sent to " + self.email,
+                "message_count": result.get("message_count", len(self.chat_messages)),
+                "email": self.email,
+                "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "method": result.get("method", "unknown")
+            };
+        } except Exception as e {
+            print("Error exporting chat: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to export chat: " + str(e),
+                "code": "EXPORT_FAILED"
+            };
+        }
+    }
+}
 # ==============================================================================
 # Graph-Based Features - Neo4j Integration
 # ==============================================================================
