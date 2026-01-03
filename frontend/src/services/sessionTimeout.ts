@@ -210,6 +210,15 @@ class SessionTimeoutManager {
   isActive(): boolean {
     return this.isInitialized;
   }
+
+  /**
+   * Reset the session timeout timer (public method to restart the timer)
+   */
+  resetTimeout(): void {
+    if (this.isInitialized) {
+      this.restartTimeoutTimer();
+    }
+  }
 }
 
 // Export singleton instance

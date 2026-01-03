@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { sessionTimeoutManager, SESSION_CONFIG } from './sessionTimeout';
+import { sessionTimeoutManager, SESSION_CONFIG } from '../services/sessionTimeout';
 
 interface UseSessionTimeoutReturn {
   isSessionActive: boolean;
@@ -22,7 +22,7 @@ export const useSessionTimeout = (onLogout: () => void): UseSessionTimeoutReturn
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [remainingTime, setRemainingTime] = useState(SESSION_CONFIG.TIMEOUT_MS);
   const [showWarning, setShowWarning] = useState(false);
-  const [warningTimeRemaining, setWarningTimeRemaining] = useState(SESSION_CONFIG.WARNING_MS);
+  const [warningTimeRemaining, setWarningTimeRemaining] = useState(SESSION_CONFIG.WARNING_BEFORE_MS);
   
   // Use refs to avoid stale closures in callbacks
   const onLogoutRef = useRef(onLogout);
@@ -59,7 +59,7 @@ export const useSessionTimeout = (onLogout: () => void): UseSessionTimeoutReturn
     const handleWarningDismissed = () => {
       console.log('Session timeout warning dismissed (user activity detected)');
       setShowWarning(false);
-      setWarningTimeRemaining(SESSION_CONFIG.WARNING_MS);
+      setWarningTimeRemaining(SESSION_CONFIG.WARNING_BEFORE_MS);
     };
 
     sessionTimeoutManager.initialize({
@@ -104,10 +104,10 @@ export const useSessionTimeout = (onLogout: () => void): UseSessionTimeoutReturn
 
   // Reset session (extend timeout)
   const resetSession = useCallback(() => {
-    sessionTimeoutManager.restartTimeoutTimer();
+    sessionTimeoutManager.resetTimeout();
     setIsSessionActive(true);
     setShowWarning(false);
-    setWarningTimeRemaining(SESSION_CONFIG.WARNING_MS);
+    setWarningTimeRemaining(SESSION_CONFIG.WARNING_BEFORE_MS);
   }, []);
 
   return {
