@@ -1,0 +1,131 @@
+(workspace) cavin@DESKTOP-KR7GL8A:~/projects/Jeseci-Smart-Learning-Academy$ sudo service neo4j start && sudo service postgresql start
+[sudo] password for cavin: 
+(workspace) cavin@DESKTOP-KR7GL8A:~/projects/Jeseci-Smart-Learning-Academy$ sudo service neo4j status
+● neo4j.service - Neo4j Graph Database
+     Loaded: loaded (/usr/lib/systemd/system/neo4j.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-03 18:19:20 EAT; 2min 11s ago
+   Main PID: 250 (java)
+      Tasks: 95 (limit: 9367)
+     Memory: 725.0M (peak: 1.0G)
+        CPU: 59.176s
+     CGroup: /system.slice/neo4j.service
+             ├─250 /usr/bin/java -Xmx128m -classpath "/usr/share/neo4j/lib/*:/usr/share/neo4j/etc:/usr/share/neo4j/repo/*" -Dapp.name=neo4j ->
+             └─936 /usr/lib/jvm/java-21-openjdk-amd64/bin/java -cp "/var/lib/neo4j/plugins/*:/etc/neo4j/*:/usr/share/neo4j/lib/*" -XX:+UseG1G>
+lines 1-10...skipping...
+● neo4j.service - Neo4j Graph Database
+     Loaded: loaded (/usr/lib/systemd/system/neo4j.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-03 18:19:20 EAT; 2min 11s ago
+   Main PID: 250 (java)
+      Tasks: 95 (limit: 9367)
+     Memory: 725.0M (peak: 1.0G)
+        CPU: 59.176s
+     CGroup: /system.slice/neo4j.service
+             ├─250 /usr/bin/java -Xmx128m -classpath "/usr/share/neo4j/lib/*:/usr/share/neo4j/etc:/usr/share/neo4j/repo/*" -Dapp.name=neo4j ->
+             └─936 /usr/lib/jvm/java-21-openjdk-amd64/bin/java -cp "/var/lib/neo4j/plugins/*:/etc/neo4j/*:/usr/share/neo4j/lib/*" -XX:+UseG1G>
+
+lines 1-11...skipping...
+● neo4j.service - Neo4j Graph Database
+     Loaded: loaded (/usr/lib/systemd/system/neo4j.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-03 18:19:20 EAT; 2min 11s ago
+   Main PID: 250 (java)
+      Tasks: 95 (limit: 9367)
+     Memory: 725.0M (peak: 1.0G)
+        CPU: 59.176s
+     CGroup: /system.slice/neo4j.service
+             ├─250 /usr/bin/java -Xmx128m -classpath "/usr/share/neo4j/lib/*:/usr/share/neo4j/etc:/usr/share/neo4j/repo/*" -Dapp.name=neo4j ->
+             └─936 /usr/lib/jvm/java-21-openjdk-amd64/bin/java -cp "/var/lib/neo4j/plugins/*:/etc/neo4j/*:/usr/share/neo4j/lib/*" -XX:+UseG1G>
+
+Jan 03 18:19:36 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:36.706+0000 INFO  This instance is ServerId{ac4b655a} (ac4b655a-5c7d-4e6d-98bf-4>
+Jan 03 18:19:39 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:39.781+0000 INFO  ======== Neo4j 2025.10.1 ========
+lines 1-13...skipping...
+● neo4j.service - Neo4j Graph Database
+     Loaded: loaded (/usr/lib/systemd/system/neo4j.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-03 18:19:20 EAT; 2min 11s ago
+   Main PID: 250 (java)
+      Tasks: 95 (limit: 9367)
+     Memory: 725.0M (peak: 1.0G)
+        CPU: 59.176s
+     CGroup: /system.slice/neo4j.service
+             ├─250 /usr/bin/java -Xmx128m -classpath "/usr/share/neo4j/lib/*:/usr/share/neo4j/etc:/usr/share/neo4j/repo/*" -Dapp.name=neo4j ->
+             └─936 /usr/lib/jvm/java-21-openjdk-amd64/bin/java -cp "/var/lib/neo4j/plugins/*:/etc/neo4j/*:/usr/share/neo4j/lib/*" -XX:+UseG1G>
+
+Jan 03 18:19:36 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:36.706+0000 INFO  This instance is ServerId{ac4b655a} (ac4b655a-5c7d-4e6d-98bf-4>
+Jan 03 18:19:39 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:39.781+0000 INFO  ======== Neo4j 2025.10.1 ========
+Jan 03 18:19:42 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:42.969+0000 INFO  Anonymous Usage Data is being sent to Neo4j, see https://neo4j>
+lines 1-14...skipping...
+● neo4j.service - Neo4j Graph Database
+     Loaded: loaded (/usr/lib/systemd/system/neo4j.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-03 18:19:20 EAT; 2min 11s ago
+   Main PID: 250 (java)
+      Tasks: 95 (limit: 9367)
+     Memory: 725.0M (peak: 1.0G)
+        CPU: 59.176s
+     CGroup: /system.slice/neo4j.service
+             ├─250 /usr/bin/java -Xmx128m -classpath "/usr/share/neo4j/lib/*:/usr/share/neo4j/etc:/usr/share/neo4j/repo/*" -Dapp.name=neo4j ->
+             └─936 /usr/lib/jvm/java-21-openjdk-amd64/bin/java -cp "/var/lib/neo4j/plugins/*:/etc/neo4j/*:/usr/share/neo4j/lib/*" -XX:+UseG1G>
+
+Jan 03 18:19:36 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:36.706+0000 INFO  This instance is ServerId{ac4b655a} (ac4b655a-5c7d-4e6d-98bf-4>
+Jan 03 18:19:39 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:39.781+0000 INFO  ======== Neo4j 2025.10.1 ========
+Jan 03 18:19:42 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:42.969+0000 INFO  Anonymous Usage Data is being sent to Neo4j, see https://neo4j>
+Jan 03 18:19:47 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:47.615+0000 INFO  Bolt enabled on localhost:7687.
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.238+0000 INFO  HTTP enabled on localhost:7474.
+lines 1-16...skipping...
+● neo4j.service - Neo4j Graph Database
+     Loaded: loaded (/usr/lib/systemd/system/neo4j.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-03 18:19:20 EAT; 2min 11s ago
+   Main PID: 250 (java)
+      Tasks: 95 (limit: 9367)
+     Memory: 725.0M (peak: 1.0G)
+        CPU: 59.176s
+     CGroup: /system.slice/neo4j.service
+             ├─250 /usr/bin/java -Xmx128m -classpath "/usr/share/neo4j/lib/*:/usr/share/neo4j/etc:/usr/share/neo4j/repo/*" -Dapp.name=neo4j ->
+             └─936 /usr/lib/jvm/java-21-openjdk-amd64/bin/java -cp "/var/lib/neo4j/plugins/*:/etc/neo4j/*:/usr/share/neo4j/lib/*" -XX:+UseG1G>
+
+Jan 03 18:19:36 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:36.706+0000 INFO  This instance is ServerId{ac4b655a} (ac4b655a-5c7d-4e6d-98bf-4>
+Jan 03 18:19:39 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:39.781+0000 INFO  ======== Neo4j 2025.10.1 ========
+Jan 03 18:19:42 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:42.969+0000 INFO  Anonymous Usage Data is being sent to Neo4j, see https://neo4j>
+Jan 03 18:19:47 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:47.615+0000 INFO  Bolt enabled on localhost:7687.
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.238+0000 INFO  HTTP enabled on localhost:7474.
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.239+0000 INFO  Remote interface available at http://localhost:7474/
+lines 1-17...skipping...
+● neo4j.service - Neo4j Graph Database
+     Loaded: loaded (/usr/lib/systemd/system/neo4j.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-03 18:19:20 EAT; 2min 11s ago
+   Main PID: 250 (java)
+      Tasks: 95 (limit: 9367)
+     Memory: 725.0M (peak: 1.0G)
+        CPU: 59.176s
+     CGroup: /system.slice/neo4j.service
+             ├─250 /usr/bin/java -Xmx128m -classpath "/usr/share/neo4j/lib/*:/usr/share/neo4j/etc:/usr/share/neo4j/repo/*" -Dapp.name=neo4j ->
+             └─936 /usr/lib/jvm/java-21-openjdk-amd64/bin/java -cp "/var/lib/neo4j/plugins/*:/etc/neo4j/*:/usr/share/neo4j/lib/*" -XX:+UseG1G>
+
+Jan 03 18:19:36 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:36.706+0000 INFO  This instance is ServerId{ac4b655a} (ac4b655a-5c7d-4e6d-98bf-4>
+Jan 03 18:19:39 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:39.781+0000 INFO  ======== Neo4j 2025.10.1 ========
+Jan 03 18:19:42 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:42.969+0000 INFO  Anonymous Usage Data is being sent to Neo4j, see https://neo4j>
+Jan 03 18:19:47 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:47.615+0000 INFO  Bolt enabled on localhost:7687.
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.238+0000 INFO  HTTP enabled on localhost:7474.
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.239+0000 INFO  Remote interface available at http://localhost:7474/
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.251+0000 INFO  id: 7EFD46913FE6276B59C6EDC7971D40777314C271E385405EE929D9687A>
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.252+0000 INFO  name: system
+lines 1-19...skipping...
+● neo4j.service - Neo4j Graph Database
+     Loaded: loaded (/usr/lib/systemd/system/neo4j.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-03 18:19:20 EAT; 2min 11s ago
+   Main PID: 250 (java)
+      Tasks: 95 (limit: 9367)
+     Memory: 725.0M (peak: 1.0G)
+        CPU: 59.176s
+     CGroup: /system.slice/neo4j.service
+             ├─250 /usr/bin/java -Xmx128m -classpath "/usr/share/neo4j/lib/*:/usr/share/neo4j/etc:/usr/share/neo4j/repo/*" -Dapp.name=neo4j ->
+             └─936 /usr/lib/jvm/java-21-openjdk-amd64/bin/java -cp "/var/lib/neo4j/plugins/*:/etc/neo4j/*:/usr/share/neo4j/lib/*" -XX:+UseG1G>
+
+Jan 03 18:19:36 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:36.706+0000 INFO  This instance is ServerId{ac4b655a} (ac4b655a-5c7d-4e6d-98bf-4>
+Jan 03 18:19:39 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:39.781+0000 INFO  ======== Neo4j 2025.10.1 ========
+Jan 03 18:19:42 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:42.969+0000 INFO  Anonymous Usage Data is being sent to Neo4j, see https://neo4j>
+Jan 03 18:19:47 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:47.615+0000 INFO  Bolt enabled on localhost:7687.
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.238+0000 INFO  HTTP enabled on localhost:7474.
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.239+0000 INFO  Remote interface available at http://localhost:7474/
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.251+0000 INFO  id: 7EFD46913FE6276B59C6EDC7971D40777314C271E385405EE929D9687A>
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.252+0000 INFO  name: system
+Jan 03 18:19:50 DESKTOP-KR7GL8A neo4j[936]: 2026-01-03 15:19:50.253+0000 INFO  creationDate: 2025-12-13T15:14:37.222Z
+lines 1-20
