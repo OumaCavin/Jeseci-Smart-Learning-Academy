@@ -125,13 +125,11 @@ const PeerReview: React.FC = () => {
 
     try {
       await advancedCollaborationService.submitPeerReviewFeedback(
-        selectedSubmission.id,
-        {
-          rating: feedbackRating,
-          strengths: feedbackStrengths,
-          improvements: feedbackImprovements,
-          comments: feedbackComments
-        }
+        (selectedSubmission as any).assignment_id || '',
+        feedbackRating,
+        feedbackStrengths,
+        feedbackImprovements,
+        feedbackComments
       );
 
       setShowFeedbackModal(false);
@@ -237,30 +235,33 @@ const PeerReview: React.FC = () => {
   // Filter and sort submissions
   const filteredSubmissions = submissions
     .filter(sub => {
-      if (filterStatus !== 'all' && sub.status !== filterStatus) return false;
-      if (filterType !== 'all' && sub.contentType !== filterType) return false;
+      const subAny = sub as any;
+      if (filterStatus !== 'all' && subAny.status !== filterStatus) return false;
+      if (filterType !== 'all' && subAny.content_type !== filterType) return false;
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
           sub.title.toLowerCase().includes(query) ||
-          sub.authorUsername.toLowerCase().includes(query) ||
+          (subAny.author_username || '').toLowerCase().includes(query) ||
           sub.description.toLowerCase().includes(query)
         );
       }
       return true;
     })
     .sort((a, b) => {
+      const aAny = a as any;
+      const bAny = b as any;
       let comparison = 0;
       switch (sortBy) {
         case 'createdAt':
-          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          comparison = new Date(aAny.created_at).getTime() - new Date(bAny.created_at).getTime();
           break;
         case 'title':
           comparison = a.title.localeCompare(b.title);
           break;
         case 'rating':
-          const ratingA = a.averageRating || 0;
-          const ratingB = b.averageRating || 0;
+          const ratingA = aAny.average_rating || 0;
+          const ratingB = bAny.average_rating || 0;
           comparison = ratingA - ratingB;
           break;
         default:
@@ -588,29 +589,29 @@ const PeerReview: React.FC = () => {
                           <div className="flex items-center gap-4 text-sm text-gray-500">
                             <span className="flex items-center gap-1">
                               <User className="w-4 h-4" />
-                              Author: {submission?.authorUsername}
+                              Author: {'author_username' in submission ? (submission as any).author_username : 'Unknown'}
                             </span>
-                            {assignment.feedbackRating !== null && (
+                            {assignment.feedback_rating !== null && (
                               <span className="flex items-center gap-1">
                                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                Your rating: {assignment.feedbackRating}
+                                Your rating: {assignment.feedback_rating}
                               </span>
                             )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2 ml-4">
-                          {assignment.status === 'pending' && (
+                          {assignment.status === 'assigned' && (
                             <button
-                              onClick={() => handleAcceptAssignment(assignment.id)}
+                              onClick={() => handleAcceptAssignment(assignment.assignment_id)}
                               className="px-3 py-1 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
                             >
                               Accept
                             </button>
                           )}
-                          {assignment.status === 'accepted' && (
+                          {assignment.status === 'in_progress' && (
                             <button
                               onClick={() => {
-                                const sub = submissions.find(s => s.id === assignment.submissionId);
+                                const sub = submissions.find(s => s.submission_id === assignment.submission_id);
                                 if (sub) {
                                   setSelectedSubmission(sub);
                                   setShowFeedbackModal(true);
@@ -653,9 +654,10 @@ const PeerReview: React.FC = () => {
               ) : (
                 <div className="divide-y divide-gray-200">
                   {feedback.map((item) => {
-                    const submission = submissions.find(s => s.id === item.submissionId);
+                    const itemAny = item as any;
+                    const submission = submissions.find(s => s.submission_id === itemAny.submission_id);
                     return (
-                      <div key={item.id} className="p-4">
+                      <div key={itemAny.feedback_id} className="p-4">
                         <div className="flex items-start gap-4">
                           <div className="flex-shrink-0">
                             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -665,7 +667,7 @@ const PeerReview: React.FC = () => {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <span className="font-medium text-gray-900">
-                                {item.reviewerUsername}
+                                {itemAny.username || 'Anonymous'}
                               </span>
                               <span className="text-gray-500">reviewed</span>
                               <span className="font-medium text-blue-600">
@@ -673,9 +675,9 @@ const PeerReview: React.FC = () => {
                               </span>
                             </div>
                             <div className="flex items-center gap-2 mb-3">
-                              {renderStarRating(item.rating)}
+                              {renderStarRating(itemAny.overall_rating)}
                               <span className="text-sm text-gray-500">
-                                {new Date(item.createdAt).toLocaleDateString()}
+                                {new Date(itemAny.created_at).toLocaleDateString()}
                               </span>
                             </div>
                             <div className="bg-green-50 rounded-lg p-3 mb-2">
@@ -813,9 +815,9 @@ const PeerReview: React.FC = () => {
                 <h4 className="font-medium text-gray-900 mb-1">{selectedSubmission.title}</h4>
                 <p className="text-gray-600 text-sm mb-2">{selectedSubmission.description}</p>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <span>By {selectedSubmission.authorUsername}</span>
+                  <span>By {(selectedSubmission as any).author_username || 'Unknown'}</span>
                   <span>•</span>
-                  <span className="capitalize">{selectedSubmission.contentType.replace('_', ' ')}</span>
+                  <span className="capitalize">{(selectedSubmission as any).content_type?.replace('_', ' ') || 'Content'}</span>
                 </div>
               </div>
 
