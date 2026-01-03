@@ -1,4 +1,4 @@
-## Database Module for Jeseci Smart Learning Companion
+## Database Module for Jeseci Smart Learning Academy
 ##
 ## This module provides database connectivity for PostgreSQL and Neo4j
 ## through Python integration. It wraps the Python database connection
