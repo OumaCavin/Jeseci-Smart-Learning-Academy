@@ -2915,6 +2915,38 @@ walker admin_quizzes_generate_ai {
     }
 }
 
+walker admin_quizzes_save_ai {
+    has quiz_data: dict;
+    has topic: str;
+    has difficulty: str;
+
+    can admin_quizzes_save_ai with entry {
+        # Save AI-generated quiz with error handling
+        try {
+            result = quiz_store.save_ai_generated_quiz(self.quiz_data, self.topic, self.difficulty);
+
+            if result['success'] {
+                report {
+                    "success": True,
+                    "quiz_id": result.get('quiz_id', ''),
+                    "message": result.get('message', 'Quiz saved successfully')
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to save quiz')
+                };
+            }
+        } except Exception as e {
+            print("Error saving AI quiz: " + str(e));
+            report {
+                "success": False,
+                "error": "Failed to save AI quiz: " + str(e)
+            };
+        }
+    }
+}
+
 walker admin_quizzes_analytics {
     can admin_quizzes_analytics with entry {
         # Initialize store with error handling
