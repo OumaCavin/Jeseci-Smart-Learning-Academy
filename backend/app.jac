@@ -21,6 +21,7 @@ import admin_quiz_store as quiz_store;
 import admin_ai_store as ai_store;
 import admin_analytics_store as analytics_store;
 import content_views_store as content_views_module;
+import notification_store as notification_module;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -1799,6 +1800,321 @@ walker contact_mark_read {
             };
         }
     }
+}
+
+# ==============================================================================
+# In-App Notification Endpoints
+# ==============================================================================
+
+walker get_notifications {
+    has limit: int = 20;
+    has offset: int = 0;
+    has filter_type: str = "";
+    has unread_only: bool = false;
+    has user_id: str = "";
+    
+    can get_notifications with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = notification_module.get_notifications({
+                "user_id": self.user_id,
+                "limit": self.limit,
+                "offset": self.offset,
+                "filter_type": self.filter_type if self.filter_type else None,
+                "unread_only": self.unread_only
+            });
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "notifications": result['notifications'],
+                    "total_count": result['total_count'],
+                    "unread_count": result['unread_count'],
+                    "has_more": result['has_more']
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to retrieve notifications'),
+                    "code": "DATABASE_ERROR"
+                };
+            }
+        } except error {
+            std.out("Get notifications error:", error);
+            report {
+                "success": False,
+                "error": "Failed to retrieve notifications",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker get_unread_count {
+    has user_id: str = "";
+    
+    can get_unread_count with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = notification_module.get_unread_count(self.user_id);
+            report {
+                "success": True,
+                "unread_count": result['unread_count']
+            };
+        } except error {
+            std.out("Get unread count error:", error);
+            report {
+                "success": False,
+                "error": "Failed to get unread count",
+                "code": "INTERNAL_ERROR",
+                "unread_count": 0
+            };
+        }
+    }
+}
+
+walker mark_notification_read {
+    has notification_ids: list;
+    has user_id: str = "";
+    
+    can mark_notification_read with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        if not self.notification_ids or len(self.notification_ids) == 0 {
+            report {
+                "success": False,
+                "error": "At least one notification ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = notification_module.mark_as_read(self.user_id, self.notification_ids);
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "updated_count": result['updated_count'],
+                    "message": "Notifications marked as read"
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to mark notifications as read'),
+                    "code": "DATABASE_ERROR"
+                };
+            }
+        } except error {
+            std.out("Mark notification read error:", error);
+            report {
+                "success": False,
+                "error": "Failed to mark notifications as read",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker mark_all_notifications_read {
+    has user_id: str = "";
+    
+    can mark_all_notifications_read with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = notification_module.mark_all_as_read(self.user_id);
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "updated_count": result['updated_count'],
+                    "message": "All notifications marked as read"
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to mark all notifications as read'),
+                    "code": "DATABASE_ERROR"
+                };
+            }
+        } except error {
+            std.out("Mark all notifications read error:", error);
+            report {
+                "success": False,
+                "error": "Failed to mark all notifications as read",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker delete_notification {
+    has notification_id: str;
+    has user_id: str = "";
+    
+    can delete_notification with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        if not self.notification_id {
+            report {
+                "success": False,
+                "error": "Notification ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = notification_module.delete_notification(self.user_id, self.notification_id);
+            report {
+                "success": result['success'],
+                "message": result.get('message', 'Notification deleted')
+            };
+        } except error {
+            std.out("Delete notification error:", error);
+            report {
+                "success": False,
+                "error": "Failed to delete notification",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker get_notification_preferences {
+    has user_id: str = "";
+    
+    can get_notification_preferences with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = notification_module.get_notification_preferences(self.user_id);
+            report {
+                "success": True,
+                "preferences": result['preferences']
+            };
+        } except error {
+            std.out("Get notification preferences error:", error);
+            report {
+                "success": False,
+                "error": "Failed to get notification preferences",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker update_notification_preferences {
+    has user_id: str = "";
+    has email_enabled: bool = true;
+    has push_enabled: bool = true;
+    has types_config: dict;
+    
+    can update_notification_preferences with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = notification_module.update_notification_preferences(
+                self.user_id,
+                self.email_enabled,
+                self.push_enabled,
+                self.types_config
+            );
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "message": result.get('message', 'Preferences updated'),
+                    "preferences": result.get('preferences', {})
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to update preferences'),
+                    "code": "DATABASE_ERROR"
+                };
+            }
+        } except error {
+            std.out("Update notification preferences error:", error);
+            report {
+                "success": False,
+                "error": "Failed to update notification preferences",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+# Internal function to create notifications (called by other modules)
+def create_user_notification(
+    user_id: str,
+    notification_type: str,
+    title: str,
+    message: str,
+    link: str = "",
+    metadata: dict = {}
+) -> dict {
+    result = notification_module.create_notification(
+        user_id,
+        notification_type,
+        title,
+        message,
+        link,
+        metadata
+    );
+    report result;
 }
 
 # Email Notification Functions
