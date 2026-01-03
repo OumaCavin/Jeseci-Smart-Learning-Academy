@@ -1,4 +1,4 @@
-# 🎓 Jeseci Smart Learning Academy
+# Jeseci Smart Learning Academy
 
 [![JAC Language](https://img.shields.io/badge/JAC-0.9.3+-6f42c1.svg)](https://github.com/Jaseci-Labs/jaseci)
 [![React](https://img.shields.io/badge/React-18+-61dafb.svg)](https://reactjs.org)
@@ -7,31 +7,44 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Author:** Cavin Otieno  
-**Updated:** January 1, 2026  
-**Version:** 2.2.0  
+**Updated:** January 3, 2026  
+**Version:** 2.3.0  
 **Architecture:** Hybrid React + JAC Backend + PostgreSQL + Neo4j
 
-An intelligent learning platform featuring a robust React frontend with defensive programming patterns, a powerful JAC backend with AI-powered content generation, personalized learning paths, comprehensive progress tracking, real-time analytics dashboard, relationship management UI, and AI-powered quiz generation for administrators.
+An intelligent learning platform featuring a robust React frontend with defensive programming patterns, a powerful JAC backend with AI-powered content generation, personalized learning paths, comprehensive progress tracking, real-time analytics dashboard, relationship management UI, AI-powered quiz generation, and a comprehensive Code Execution Engine supporting multi-language code execution, version control, testing, and debugging.
 
 ---
 
-## ✨ Features
+## Features
 
-### 🛡️ Frontend Architecture (React + TypeScript)
+### Code Execution Engine
+
+The platform includes a sophisticated Code Execution Engine that provides students with a complete coding environment directly within the learning platform.
+
+- **Multi-Language Support**: Execute Python, JavaScript, and Jac code with language-specific configurations
+- **Version History**: Automatic tracking of code changes with the ability to compare versions and rollback
+- **Test Case Management**: Create and run test cases to validate student code submissions
+- **Debug Sessions**: Step-through debugging with breakpoints, variable inspection, and call stack visualization
+- **Error Knowledge Base**: Intelligent error detection with solution recommendations for common programming errors
+
+### Frontend Architecture (React + TypeScript)
+
 - **Defensive Programming**: Comprehensive error handling and data validation
 - **Zero Runtime Crashes**: Implemented patterns prevent race conditions and API failures
 - **Graceful Degradation**: App continues working with mock data when APIs fail
 - **Type Safety**: Enhanced TypeScript integration with generic helpers
 - **Modern UI**: Responsive design with Tailwind CSS and intuitive navigation
 
-### 🚀 Backend Architecture (JAC Language + Hybrid Database)
+### Backend Architecture (JAC Language + Hybrid Database)
+
 - **Object-Spatial Programming (OSP)**: Graph-based data modeling with native persistence
 - **Walker-based APIs**: Automatically generated REST endpoints from JAC walkers
 - **byLLM AI Integration**: Native OpenAI integration for content generation
 - **Hybrid Database Layer**: PostgreSQL for transactional data, Neo4j for relationship graphs
 - **Real-time Analytics Engine**: Live data aggregation with intelligent caching
 
-### 🎯 Learning Features
+### Learning Features
+
 - **Personalized Learning Paths**: AI-driven recommendations based on progress
 - **Interactive Courses**: Multi-domain course catalog with difficulty levels
 - **Real-time Progress Tracking**: Comprehensive analytics and achievement system
@@ -39,32 +52,19 @@ An intelligent learning platform featuring a robust React frontend with defensiv
 - **Adaptive Assessments**: Intelligent quizzes with AI-powered feedback
 - **Interactive Concepts Graph**: Visual exploration of learning concepts and their relationships
 
-### 🔐 Admin Panel & Management
+### Admin Panel and Management
+
 - **Comprehensive Dashboard**: Real-time analytics with live data from PostgreSQL and Neo4j
 - **Quick Actions Navigation**: Seamless access to user management, content creation, and analytics
 - **User Management**: Complete user administration with activity tracking
 - **AI Quiz Generator**: Create AI-powered quizzes with intelligent question generation
 - **Content Management**: Full course, lesson, and concept management capabilities
 - **Relationship Visualization**: Neo4j-powered visualization of learning content relationships
-
-### 🎯 Learning Features
-- **Personalized Learning Paths**: AI-driven recommendations based on progress
-- **Interactive Courses**: Multi-domain course catalog with difficulty levels
-- **Real-time Progress Tracking**: Live analytics dashboard with user engagement metrics
-- **AI Content Generation**: Dynamic lesson creation using OpenAI
-- **Adaptive Assessments**: Intelligent quizzes with AI-powered feedback
-- **Interactive Concepts Graph**: Visual exploration of learning concepts and their relationships
-
-### 🔐 Core Functionality
-- **Secure Authentication**: JWT-based user management with proper session handling
-- **Multi-tab Dashboard**: Dashboard, Courses, Learning Paths, Concepts, Progress, Analytics
-- **Admin Management Panel**: Comprehensive dashboard with real-time analytics, user management, AI quiz generation, and content administration
-- **Achievement System**: Gamification with badges, streaks, and milestone tracking
-- **AI Chat Assistant**: Interactive learning support with conversational AI
+- **Code Exercise Management**: Create coding challenges with test cases and validation
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -83,7 +83,7 @@ git clone https://github.com/OumaCavin/Jeseci-Smart-Learning-Academy.git
 cd Jeseci-Smart-Learning-Academy
 
 # 2. Run main setup script
-bash ./scripts/setup.sh
+bash ./backend/scripts/setup.sh
 
 # 3. Set up databases
 bash backend/database/cleanup_databases.sh
@@ -93,7 +93,7 @@ bash backend/database/setup_databases.sh
 jac run backend/seed.py
 
 # 5. Create super admin user
-bash ./scripts/create_super_admin.sh
+bash ./backend/scripts/create_super_admin.sh
 ```
 
 ### Starting the Application
@@ -104,7 +104,7 @@ bash ./scripts/create_super_admin.sh
 source .venv/bin/activate
 
 # Start the API server
-bash ./scripts/jacserve
+bash ./backend/scripts/jacserve
 ```
 
 **Terminal 2 - Frontend (React Production Build):**
@@ -136,7 +136,7 @@ For development with hot reload:
 ```bash
 # Terminal 1: Backend
 source .venv/bin/activate
-bash ./scripts/jacserve
+bash ./backend/scripts/jacserve
 
 # Terminal 2: Frontend Development
 cd frontend
@@ -266,7 +266,7 @@ After setting up the database, you need to create an initial super admin user to
 The easiest way to create a super admin user is using the interactive shell script that handles all environment variable loading and input validation automatically:
 
 ```bash
-bash create_super_admin.sh
+bash backend/scripts/create_super_admin.sh
 ```
 
 This will:
@@ -290,8 +290,7 @@ Confirm Password: *********
    User Details
 ==================================================
    Username: admin
-   Email: admin@example.com
-   Role: super_admin
+   Email: admin@example.com   Role: super_admin
 ==================================================
 
 Create this super admin user? (y/N): y
@@ -401,7 +400,7 @@ SMTP_FROM=noreply@yourdomain.com
 
 4. **Restart the backend server:**
    ```bash
-   bash ./scripts/jacserve
+   bash ./backend/scripts/jacserve
    ```
 
 **Email Delivery Methods:**
@@ -430,57 +429,70 @@ To create additional admin users with different roles, run the script again with
 Jeseci-Smart-Learning-Academy/
 ├── 📱 frontend/                    # React TypeScript Application
 │   ├── src/
-│   │   ├── components/             # React components
+│   │   ├── components/             # React components (including CodeEditor.tsx)
 │   │   ├── contexts/              # React contexts (Auth, etc.)
 │   │   ├── services/              # API client & services
 │   │   ├── hooks/                 # Custom React hooks
-│   │   └── App.tsx               # 🛡️ Main app with defensive patterns
+│   │   └── App.tsx               # Main app with defensive patterns
 │   ├── public/                    # Static assets
 │   ├── dist/                     # Build output
 │   └── package.json              # Dependencies & scripts
 │
 ├── 🔧 backend/                     # JAC Language Backend
-│   ├── app.jac                   # 🎯 Main JAC application entry
+│   ├── app.jac                   # Main JAC application entry
 │   ├── graph_engine.jac          # Graph database operations
+│   ├── code_execution.py         # Code execution engine
+│   ├── code_execution_store.py   # Code execution data layer
 │   ├── ai_service.py             # OpenAI integration service
 │   ├── user_auth.py              # User authentication logic
 │   ├── agents/                   # JAC learning agents
 │   ├── config/                   # Configuration files
-│   └── database/                 # Database utilities & models
-│
-├── 📚 docs/                        # Comprehensive Documentation
-│   ├── architecture/              # Architecture documentation
-│   │   ├── architecture_overview.md           # 🏗️ Hybrid architecture
-│   │   ├── component_diagrams.md              # Component relationships
-│   │   ├── FRONTEND_DEFENSIVE_PATTERNS_GUIDE.md # 🛡️ Implementation guide
-│   │   └── api_reference.md                   # API endpoints
-│   ├── mermaid/                   # Architecture diagrams
-│   │   ├── system_arch.mmd                    # System architecture
-│   │   ├── frontend_defensive_patterns.mmd    # Error handling flow
-│   │   └── *.mmd                             # Additional diagrams
-│   ├── FRONTEND_ARCHITECTURE_UPDATE.md        # 🔄 Recent changes
-│   ├── DOCUMENTATION_UPDATE_SUMMARY.md        # 📋 Documentation index
-│   └── onboarding_guide.md                   # Getting started
-│
-├── 🔧 Configuration Files
-│   ├── .gitignore                # Git ignore patterns
-│   ├── .env.example             # Environment template
-│   ├── scripts/                  # Utility and setup scripts
+│   ├── database/                 # Database utilities & models
+│   │   ├── initialize_database.py # Database schema initialization
+│   │   ├── setup_databases.sh    # Database setup script
+│   │   └── cleanup_databases.sh  # Database cleanup script
+│   ├── scripts/                  # Backend utility scripts
 │   │   ├── setup.sh             # Environment setup script
 │   │   ├── create_super_admin.sh # Admin user creation
 │   │   ├── jacserve             # Backend server launcher
 │   │   └── ...
+│   ├── migrations/               # Database migrations
+│   ├── sync_engine/              # Sync engine modules
+│   └── tests/                    # Backend tests
+│
+├── 📚 docs/                        # Comprehensive Documentation
+│   ├── SYSTEM_DOCUMENTATION.md    # Complete system documentation
+│   ├── architecture/              # Architecture documentation
+│   │   ├── architecture_overview.md
+│   │   ├── component_diagrams.md
+│   │   ├── FRONTEND_DEFENSIVE_PATTERNS_GUIDE.md
+│   │   └── api_reference.md
+│   ├── mermaid/                   # Architecture diagrams
+│   │   ├── system_arch.mmd
+│   │   ├── frontend_defensive_patterns.mmd
+│   │   └── *.mmd
+│   ├── assets/                    # Documentation assets
+│   │   ├── browser/              # Browser automation tools
+│   │   ├── tmp/                  # Temporary files
+│   │   └── user_input_files/     # User input files for testing
+│   ├── FRONTEND_ARCHITECTURE_UPDATE.md
+│   ├── DOCUMENTATION_UPDATE_SUMMARY.md
+│   ├── sync-engine.md
+│   └── onboarding_guide.md
+│
+├── 🔧 Configuration Files
+│   ├── .gitignore                # Git ignore patterns
+│   ├── .env.example             # Environment template
 │   └── README.md               # This file
 │
 └── 🗂️ Additional Directories
-    ├── browser/                 # Browser automation tools
-    ├── tmp/                    # Temporary files (gitignored)
-    └── venv/                   # Python virtual environment (gitignored)
+    ├── venv/                   # Python virtual environment (gitignored)
+    └── assets/                 # Project assets
 ```
 
 ---
 
-## 🛡️ Frontend Defensive Architecture
+## Frontend Defensive Architecture
 
 Our React frontend implements comprehensive defensive programming patterns to ensure zero runtime crashes:
 
@@ -510,16 +522,35 @@ if (Array.isArray(dataArray)) {
 ```
 
 ### Benefits Achieved
-- ✅ **Zero Runtime Crashes** - Eliminated race condition errors
-- ✅ **Graceful Degradation** - App works with mock data when APIs fail
-- ✅ **Type Safety** - Enhanced TypeScript integration
-- ✅ **User Experience** - Seamless loading without interruptions
+
+- **Zero Runtime Crashes** - Eliminated race condition errors
+- **Graceful Degradation** - App works with mock data when APIs fail
+- **Type Safety** - Enhanced TypeScript integration
+- **User Experience** - Seamless loading without interruptions
 
 ---
 
-## 🌐 API Endpoints
+## API Endpoints
+
+### Code Execution
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/walker/execute_code` | POST | Execute code snippet |
+| `/walker/snippet_versions` | GET/POST | Version history management |
+| `/walker/snippet_rollback` | POST | Rollback to previous version |
+| `/walker/test_cases` | GET/POST | Test case management |
+| `/walker/run_test_case` | POST | Execute single test case |
+| `/walker/run_tests` | POST | Execute all test cases |
+| `/walker/debug_start` | POST | Start debug session |
+| `/walker/debug_step_over` | POST | Step over in debugging |
+| `/walker/debug_step_into` | POST | Step into in debugging |
+| `/walker/debug_continue` | POST | Continue debugging |
+| `/walker/debug_state` | GET | Get debug state |
+| `/walker/error_lookup` | POST | Lookup error solutions |
 
 ### Authentication
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/walker/user_create` | POST | User registration |
@@ -527,6 +558,7 @@ if (Array.isArray(dataArray)) {
 | `/walker/user_logout` | POST | User logout |
 
 ### Learning Content
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/walker/get_courses` | GET | List available courses |
@@ -534,7 +566,8 @@ if (Array.isArray(dataArray)) {
 | `/walker/get_learning_paths` | GET | List structured learning paths |
 | `/walker/get_quizzes` | GET | List available quizzes |
 
-### Progress & Analytics
+### Progress and Analytics
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/walker/get_user_progress` | POST | Retrieve user progress data |
@@ -545,27 +578,30 @@ if (Array.isArray(dataArray)) {
 | `/walker/get_achievements` | POST | List user achievements |
 
 ### Admin Management
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/walker/admin_get_users` | POST | List and manage platform users |
-| `/walker/admin_create_quiz` | POST | Create AI-powered quiz with intelligent question generation |
-| `/walker/admin_get_dashboard` | POST | Get admin dashboard data with real-time metrics |
-| `/walker/admin_manage_content` | POST | Manage courses, lessons, and concepts |
+| `/walker/admin_create_quiz` | POST | Create AI-powered quiz |
+| `/walker/admin_get_dashboard` | POST | Get admin dashboard data |
+| `/walker/admin_manage_content` | POST | Manage courses, lessons, concepts |
 
 ### AI Features
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/walker/ai_generate_content` | POST | Generate AI-powered content |
 | `/walker/ai_generate_quiz` | POST | Generate intelligent quiz questions |
 | `/walker/chat_message` | POST | AI chat assistant |
 
-**📖 Complete API documentation**: [`docs/architecture/api_reference.md`](docs/architecture/api_reference.md)
+**Complete API documentation**: [`docs/architecture/api_reference.md`](docs/architecture/api_reference.md)
 
 ---
 
-## 🧱 Technology Stack
+## Technology Stack
 
 ### Frontend Stack
+
 | Component | Technology | Version |
 |-----------|------------|---------|
 | **Framework** | React | 18+ |
@@ -576,6 +612,7 @@ if (Array.isArray(dataArray)) {
 | **Error Handling** | Custom Defensive Patterns | - |
 
 ### Backend Stack
+
 | Component | Technology | Version |
 |-----------|------------|---------|
 | **Language** | JAC (Jaclang) | 0.9.3+ |
@@ -586,7 +623,8 @@ if (Array.isArray(dataArray)) {
 | **Authentication** | JWT | - |
 | **Analytics Engine** | Hybrid PostgreSQL + Neo4j | Real-time |
 
-### Development & DevOps
+### Development and DevOps
+
 | Component | Technology |
 |-----------|------------|
 | **Version Control** | Git |
@@ -596,29 +634,34 @@ if (Array.isArray(dataArray)) {
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 ### Architecture Documentation
-- 🏗️ [**Architecture Overview**](docs/architecture/architecture_overview.md) - Hybrid React + JAC architecture
-- 🏗️ [**Component Diagrams**](docs/architecture/component_diagrams.md) - System component relationships  
-- 🛡️ [**Defensive Patterns Guide**](docs/architecture/FRONTEND_DEFENSIVE_PATTERNS_GUIDE.md) - Complete implementation guide
-- 📡 [**API Reference**](docs/architecture/api_reference.md) - Endpoint documentation
 
-### Implementation Documentation
-- 🔄 [**Frontend Architecture Update**](docs/FRONTEND_ARCHITECTURE_UPDATE.md) - Recent implementation changes
-- 📋 [**Documentation Index**](docs/DOCUMENTATION_UPDATE_SUMMARY.md) - Complete documentation overview
-- 📖 [**Onboarding Guide**](docs/onboarding_guide.md) - Developer setup guide
+- [Architecture Overview](docs/architecture/architecture_overview.md) - Hybrid React + JAC architecture
+- [Component Diagrams](docs/architecture/component_diagrams.md) - System component relationships
+- [Defensive Patterns Guide](docs/architecture/FRONTEND_DEFENSIVE_PATTERNS_GUIDE.md) - Complete implementation guide
+- [API Reference](docs/architecture/api_reference.md) - Endpoint documentation
+
+### System Documentation
+
+- [System Documentation](docs/SYSTEM_DOCUMENTATION.md) - Complete system documentation including Code Execution Engine
+- [Sync Engine Documentation](docs/sync-engine.md) - Database sync engine details
+- [Frontend Architecture Update](docs/FRONTEND_ARCHITECTURE_UPDATE.md) - Recent implementation changes
+- [Onboarding Guide](docs/onboarding_guide.md) - Developer setup guide
 
 ### Visual Architecture
-- 🎨 [**System Architecture Diagram**](docs/mermaid/system_arch.mmd) - High-level system overview
-- 🎨 [**Frontend Defensive Patterns**](docs/mermaid/frontend_defensive_patterns.mmd) - Error handling flow
-- 🎨 [**Additional Diagrams**](docs/mermaid/) - Complete diagram collection
+
+- [System Architecture Diagram](docs/mermaid/system_arch.mmd) - High-level system overview
+- [Frontend Defensive Patterns](docs/mermaid/frontend_defensive_patterns.mmd) - Error handling flow
+- [Additional Diagrams](docs/mermaid/) - Complete diagram collection
 
 ---
 
-## 🔧 Development
+## Development
 
 ### Frontend Development
+
 ```bash
 cd frontend
 
@@ -636,9 +679,10 @@ pnpm run build
 ```
 
 ### Backend Development
+
 ```bash
 # Run JAC backend
-bash ./scripts/jacserve
+bash ./backend/scripts/jacserve
 
 # Run with debug mode
 jac serve backend/app.jac --debug
@@ -648,6 +692,7 @@ jac check backend/app.jac
 ```
 
 ### Testing
+
 ```bash
 # Frontend tests
 cd frontend
@@ -659,9 +704,10 @@ jac test backend/
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Build
+
 ```bash
 # Frontend production build
 cd frontend
@@ -671,10 +717,11 @@ pnpm run build
 pnpm run preview
 
 # Backend production mode
-bash ./scripts/jacserve
+bash ./backend/scripts/jacserve
 ```
 
 ### Environment Variables
+
 ```bash
 # Required environment variables
 OPENAI_API_KEY=your_openai_api_key
@@ -688,20 +735,31 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES=5  # Session timeout (5 minutes for security)
 
 ---
 
-## 🎯 Key Achievements
+## Key Achievements
 
-### ✅ Implementation Status
+### Implementation Status
+
 - **Frontend Stability**: Zero runtime crashes achieved through defensive programming
 - **Real-Time Analytics**: Live data aggregation from PostgreSQL and Neo4j with intelligent caching
 - **Admin Management Panel**: Comprehensive dashboard with Quick Actions navigation, user management, and AI quiz generation
 - **Hybrid Database Architecture**: PostgreSQL for transactional data, Neo4j for relationship graphs and analytics
+- **Code Execution Engine**: Multi-language code execution, version control, testing, and debugging platform
 - **Error Handling**: Comprehensive validation and fallback systems
 - **Type Safety**: Full TypeScript integration with generic helpers
 - **User Experience**: Seamless loading and graceful degradation
 - **Documentation**: Complete architecture and implementation guides
 - **Code Quality**: Conventional commit messages and clean git history
 
-### 🛡️ Defensive Programming Features
+### Code Execution Engine Features
+
+- **Multi-Language Support**: Python, JavaScript, and Jac language execution
+- **Version History**: Automatic tracking and rollback capabilities
+- **Test Management**: Create and validate code with test cases
+- **Debugging**: Step-through debugging with breakpoints and variable inspection
+- **Error Knowledge Base**: Intelligent error detection and solution recommendations
+
+### Defensive Programming Features
+
 - **Optional Chaining**: Safe nested property access everywhere
 - **Array Protection**: All `.map()` calls protected with fallbacks
 - **API Validation**: Generic helper for extracting arrays from wrapper objects
@@ -710,16 +768,17 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES=5  # Session timeout (5 minutes for security)
 
 ---
 
-## 📄 Contributing
+## Contributing
 
 1. **Fork** the repository
 2. **Create** a feature branch with descriptive name
 3. **Implement** changes following established defensive patterns
-4. **Test** thoroughly with edge cases and error scenarios  
+4. **Test** thoroughly with edge cases and error scenarios
 5. **Document** new features and architectural changes
 6. **Submit** a pull request with clear description
 
 ### Commit Message Convention
+
 ```bash
 feat: add new learning path feature
 fix: resolve race condition in dashboard loading
@@ -729,31 +788,33 @@ refactor: improve error handling in data loading
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- **[Jaclang Team](https://github.com/Jaseci-Labs/jaseci)** - For the innovative Object-Spatial Programming language
-- **[OpenAI](https://openai.com)** - For AI content generation capabilities  
-- **[React Team](https://reactjs.org)** - For the robust frontend framework
-- **[TypeScript Team](https://typescriptlang.org)** - For type safety and developer experience
+- [Jaclang Team](https://github.com/Jaseci-Labs/jaseci) - For the innovative Object-Spatial Programming language
+- [OpenAI](https://openai.com) - For AI content generation capabilities
+- [React Team](https://reactjs.org) - For the robust frontend framework
+- [TypeScript Team](https://typescriptlang.org) - For type safety and developer experience
 
 ---
 
-## 📞 Support
+## Support
 
 For support, questions, or contributions:
-- 📧 Open an issue on GitHub
-- 📖 Check the [documentation](docs/)
-- 🛡️ Review the [defensive patterns guide](docs/architecture/FRONTEND_DEFENSIVE_PATTERNS_GUIDE.md)
+
+- Open an issue on GitHub
+- Check the [documentation](docs/)
+- Review the [defensive patterns guide](docs/architecture/FRONTEND_DEFENSIVE_PATTERNS_GUIDE.md)
 
 ---
 
-**🏆 Status: Production Ready with Real-Time Analytics and Admin Management**  
-**📈 Architecture: Hybrid PostgreSQL + Neo4j with Intelligent Caching**  
-**🔒 Quality: Defensive Programming Patterns Implemented**  
-**🤖 AI Features: Content Generation and Quiz Creation Enabled**
+**Status: Production Ready with Real-Time Analytics and Admin Management**  
+**Architecture: Hybrid PostgreSQL + Neo4j with Intelligent Caching**  
+**Quality: Defensive Programming Patterns Implemented**  
+**AI Features: Content Generation and Quiz Creation Enabled**  
+**Code Execution: Multi-Language Support with Testing and Debugging**
