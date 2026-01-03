@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { apiService, User, ProgressData, AnalyticsData, AIGeneratedContent, LearningPath, Concept, Quiz, Achievement, ChatMessage } from './services/api';
 import { AdminProvider, useAdmin } from './contexts/AdminContext';
+import { NotificationProvider, useNotifications } from './contexts/NotificationContext';
 import { AdminLayout, DashboardOverview, UserManagement, ContentManager, QuizManager, AILab, AnalyticsReports } from './admin';
 import LandingPageWithNavigation, { HelpCenterPage, ContactPage, PrivacyPage, TermsPage } from './components/LandingPage';
+import { NotificationBell, NotificationDropdown, NotificationCenter, NotificationSettings } from './components/notifications';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -151,6 +153,10 @@ const AppContent: React.FC = () => {
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [exportEmail, setExportEmail] = useState<string>('');
   const [exportStatus, setExportStatus] = useState<string>('');
+
+  // Notification pages state
+  const [showNotificationCenter, setShowNotificationCenter] = useState<boolean>(false);
+  const [showNotificationSettings, setShowNotificationSettings] = useState<boolean>(false);
 
   // Check for verification and reset pages on mount
   useEffect(() => {
@@ -1486,12 +1492,22 @@ const AppContent: React.FC = () => {
                       ⚙️ Admin Panel
                     </button>
                   )}
+                  {/* Notification Bell */}
+                  <NotificationBell size={22} />
                   <span className="user-greeting">Hello, {user?.first_name || user?.username}</span>
                   <button onClick={logout}>Logout</button>
                 </div>
               )}
             </div>
           </header>
+
+          {/* Notification Dropdown */}
+          {isAuthenticated && (
+            <NotificationDropdown 
+              isOpen={useNotifications().isDropdownOpen} 
+              onClose={useNotifications().closeDropdown}
+            />
+          )}
 
           {message && (
             <div className="message-banner">
@@ -1542,7 +1558,17 @@ const AppContent: React.FC = () => {
             </>
           )}
 
-          {!showSupportPage && (
+          {/* Show Notification Center */}
+          {showNotificationCenter && (
+            <NotificationCenter />
+          )}
+
+          {/* Show Notification Settings */}
+          {showNotificationSettings && (
+            <NotificationSettings />
+          )}
+
+          {!showSupportPage && !showNotificationCenter && !showNotificationSettings && (
             <footer className="app-footer">
               <div className="footer-content">
                 <div className="footer-section footer-brand">
@@ -1599,12 +1625,14 @@ const AppContent: React.FC = () => {
   );
 };
 
-// Wrap App with AuthProvider and AdminProvider
+// Wrap App with AuthProvider, AdminProvider, and NotificationProvider
 const App: React.FC = () => {
   return (
     <AdminProvider>
       <AuthProvider>
-        <AppContent />
+        <NotificationProvider userId={null}>
+          <AppContent />
+        </NotificationProvider>
       </AuthProvider>
     </AdminProvider>
   );
