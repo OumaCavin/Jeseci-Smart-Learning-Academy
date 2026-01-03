@@ -2054,9 +2054,9 @@ walker get_notification_preferences {
 
 walker update_notification_preferences {
     has user_id: str = "";
+    has types_config: dict = {};
     has email_enabled: bool = true;
     has push_enabled: bool = true;
-    has types_config: dict;
     
     can update_notification_preferences with entry {
         if not self.user_id {
@@ -2151,11 +2151,11 @@ def send_welcome_email(email: str, username: str) -> dict {
 # ==============================================================================
 
 walker log_activity {
-    has user_id: str = "";
     has activity_type: str;
     has title: str;
-    has description: str = "";
     has metadata: dict;
+    has user_id: str = "";
+    has description: str = "";
     has xp_earned: int = 0;
     
     can log_activity with entry {
