@@ -226,36 +226,50 @@ export interface ModerationQueueItem {
   report_reason: string;
   additional_info: string;
   reporter_username: string;
+  total_pending?: number;
 }
 
 export interface ModerationAction {
+  id: string;
   action_id: string;
   moderator_id: number;
+  moderator_username?: string;
   content_id: string;
   content_type: string;
   action_type: string;
   reason: string;
   notes: string;
   is_reversed: boolean;
+  report_id?: number;
+  duration?: number;
   created_at: string;
 }
 
 export interface ModerationStats {
   pending_reports: number;
+  resolved_reports: number;
+  dismissed_reports: number;
+  avg_resolution_time: number;
+  total_reports: number;
   reports_by_reason: Record<string, number>;
+  top_reasons?: Array<{ reason: string; count: number }>;
   recent_actions: number;
 }
 
 // Types for Peer Review
 export interface PeerReviewSubmission {
   submission_id: string;
+  id?: string;
   user_id: number;
+  author_username?: string;
   title: string;
   description: string;
   content_type: string;
+  average_rating?: number;
+  reviewer_username?: string;
   related_content_id: string;
   related_content_type: string;
-  status: 'open' | 'in_review' | 'completed' | 'archived';
+  status: 'pending' | 'assigned' | 'in_progress' | 'completed' | 'declined';
   max_reviewers: number;
   current_reviewers: number;
   feedback_count: number;
@@ -265,6 +279,7 @@ export interface PeerReviewSubmission {
 
 export interface PeerReviewAssignment {
   assignment_id: string;
+  id?: string;
   submission_id: string;
   reviewer_id: number;
   status: 'assigned' | 'in_progress' | 'completed' | 'declined';
@@ -274,6 +289,7 @@ export interface PeerReviewAssignment {
   submission_title: string;
   submission_description: string;
   author_username: string;
+  feedback_rating?: number;
 }
 
 export interface PeerReviewFeedback {
