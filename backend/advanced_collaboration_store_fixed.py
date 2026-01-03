@@ -1186,9 +1186,9 @@ def get_my_review_assignments(user_id: int, status: Optional[str] = None) -> Lis
         query = f"""
             SELECT a.*, s.title as submission_title, s.description as submission_description,
                    u.username as author_username
-            FROM {{DB_SCHEMA}}.peer_review_assignments a
-            JOIN {{DB_SCHEMA}}.peer_review_submissions s ON a.submission_id = s.submission_id
-            JOIN {{DB_SCHEMA}}.users u ON s.user_id = u.id
+            FROM {DB_SCHEMA}.peer_review_assignments a
+            JOIN {DB_SCHEMA}.peer_review_submissions s ON a.submission_id = s.submission_id
+            JOIN {DB_SCHEMA}.users u ON s.user_id = u.id
             WHERE a.reviewer_id = %s
         """
         params = [user_id]
