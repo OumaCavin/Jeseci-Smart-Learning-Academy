@@ -895,9 +895,6 @@
 # uploads/
 # downloads/
 
-# Assets directory - contains browser tools, temp files, and user inputs
-assets/
-
 # Claude Agent SDK debug files
 **/.claude/debug/
 **/.claude/debug/**
