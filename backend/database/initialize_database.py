@@ -1868,8 +1868,8 @@ def create_collaboration_tables(cursor):
 
 
 def create_code_snippets_tables(cursor):
-    """Create code snippets and execution history tables"""
-    logger.info("Creating code snippets tables...")
+    """Create code snippets, execution history, versioning, testing, and debugging tables"""
+    logger.info("Creating code snippets and related tables...")
     
     # Code folders table
     cursor.execute(f"""
@@ -1885,7 +1885,7 @@ def create_code_snippets_tables(cursor):
         )
     """)
     
-    # Code snippets table
+    # Code snippets table - expanded with multi-language support
     cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.code_snippets (
             id VARCHAR(64) PRIMARY KEY,
@@ -1903,14 +1903,14 @@ def create_code_snippets_tables(cursor):
         )
     """)
     
-    # Execution history table
+    # Execution history table - expanded with more status types
     cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.execution_history (
             id VARCHAR(64) PRIMARY KEY,
             snippet_id VARCHAR(64) REFERENCES {DB_SCHEMA}.code_snippets(id) ON DELETE SET NULL,
             user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
             code_content TEXT NOT NULL,
-            status VARCHAR(20) NOT NULL CHECK (status IN ('success', 'error', 'timeout', 'memory_exceeded')),
+            status VARCHAR(30) NOT NULL CHECK (status IN ('success', 'error', 'timeout', 'memory_exceeded', 'output_exceeded')),
             output TEXT,
             error_message TEXT,
             execution_time_ms INTEGER DEFAULT 0,
@@ -1919,7 +1919,87 @@ def create_code_snippets_tables(cursor):
         )
     """)
     
-    # Create indexes
+    # Snippet versions table for version history
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.snippet_versions (
+            id VARCHAR(64) PRIMARY KEY,
+            snippet_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.code_snippets(id) ON DELETE CASCADE,
+            version_number INTEGER NOT NULL,
+            code_content TEXT NOT NULL,
+            title VARCHAR(200) NOT NULL,
+            description TEXT,
+            created_by INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            change_summary TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(snippet_id, version_number)
+        )
+    """)
+    
+    # Test cases table for auto-grading
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.test_cases (
+            id VARCHAR(64) PRIMARY KEY,
+            snippet_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.code_snippets(id) ON DELETE CASCADE,
+            name VARCHAR(200) NOT NULL,
+            input_data TEXT,
+            expected_output TEXT NOT NULL,
+            is_hidden BOOLEAN DEFAULT FALSE,
+            order_index INTEGER DEFAULT 0,
+            timeout_ms INTEGER DEFAULT 5000,
+            created_by INTEGER REFERENCES {DB_SCHEMA}.users(id) ON DELETE SET NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Test results table for recording test execution
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.test_results (
+            id VARCHAR(64) PRIMARY KEY,
+            test_case_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.test_cases(id) ON DELETE CASCADE,
+            execution_id VARCHAR(64) REFERENCES {DB_SCHEMA}.execution_history(id) ON DELETE SET NULL,
+            passed BOOLEAN NOT NULL,
+            actual_output TEXT,
+            execution_time_ms INTEGER DEFAULT 0,
+            error_message TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Error knowledge base for educational suggestions
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.error_knowledge_base (
+            id VARCHAR(64) PRIMARY KEY,
+            error_pattern VARCHAR(500) NOT NULL,
+            error_type VARCHAR(100) NOT NULL,
+            title VARCHAR(200) NOT NULL,
+            description TEXT NOT NULL,
+            suggestion TEXT NOT NULL,
+            examples TEXT,
+            documentation_link VARCHAR(500),
+            language VARCHAR(50) DEFAULT 'jac',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Debug sessions table for step-through debugging
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.debug_sessions (
+            id VARCHAR(64) PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            snippet_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.code_snippets(id) ON DELETE CASCADE,
+            status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'paused', 'completed', 'terminated')),
+            current_line INTEGER,
+            breakpoints TEXT,
+            variables TEXT,
+            call_stack TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Create indexes for performance optimization
     cursor.execute(f"""
         CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_code_snippets_user 
         ON {DB_SCHEMA}.code_snippets(user_id)
@@ -1940,7 +2020,188 @@ def create_code_snippets_tables(cursor):
         ON {DB_SCHEMA}.execution_history(snippet_id, created_at DESC)
     """)
     
-    logger.info("✓ Code snippets tables created: code_folders, code_snippets, execution_history")
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_snippet_versions_snippet 
+        ON {DB_SCHEMA}.snippet_versions(snippet_id, version_number DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_test_cases_snippet 
+        ON {DB_SCHEMA}.test_cases(snippet_id, order_index)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_test_results_case 
+        ON {DB_SCHEMA}.test_results(test_case_id, created_at DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_debug_sessions_user 
+        ON {DB_SCHEMA}.debug_sessions(user_id, status)
+    """)
+    
+    # Seed common error patterns for Python
+    seed_error_patterns_python = [
+        ('python', r'IndentationError', 'IndentationError',
+         'Indentation Error',
+         'Your code has incorrect indentation.',
+         'Make sure all code blocks (like loops and functions) are properly aligned. Python uses spaces or tabs consistently. Check that you are using the same type of indentation throughout your file.',
+         'if True:\n    print("Aligned properly")\nelse:\n    print("Also aligned")',
+         'https://realpython.com/lessons/indentation-python/',
+         1),
+        ('python', r'SyntaxError', 'SyntaxError',
+         'Syntax Error',
+         'There is a syntax error in your code.',
+         'Check for missing colons, parentheses, quotes, or brackets. The error message usually points to the exact location where the parser got confused.',
+         None,
+         'https://docs.python.org/3/tutorial/errors.html',
+         2),
+        ('python', r'NameError', 'NameError',
+         'Undefined Variable',
+         'You are using a variable that has not been defined.',
+         'Make sure you have defined the variable before using it. Check for typos in variable names. Remember that Python is case-sensitive.',
+         'x = 5\nprint(x)  # x is defined first',
+         'https://realpython.com/python-errors-exceptions/',
+         3),
+        ('python', r'TypeError', 'TypeError',
+         'Type Mismatch',
+         'You are performing an operation on incompatible types.',
+         'Check the types of your variables. You may need to convert strings to numbers using int() or float(), or concatenate strings properly.',
+         'str_num = "10"\nprint(int(str_num))  # Convert string to int',
+         'https://realpython.com/python-data-type-conversion/',
+         4),
+        ('python', r'ZeroDivisionError', 'ZeroDivisionError',
+         'Division by Zero',
+         'You are trying to divide by zero.',
+         'Add a check to ensure the divisor is not zero before performing division.',
+         'if divisor != 0:\n    result = dividend / divisor',
+         'https://realpython.com/python-divmod/',
+         5),
+        ('python', r'IndexError', 'IndexError',
+         'List Index Out of Range',
+         'You are trying to access an index that does not exist.',
+         'Make sure your index is within the bounds of the list or string. Remember that Python uses 0-based indexing.',
+         'my_list = [1, 2, 3]\nprint(my_list[0])  # Valid: 0 to len-1',
+         'https://realpython.com/python-lists-tuples/',
+         6),
+        ('python', r'KeyError', 'KeyError',
+         'Dictionary Key Not Found',
+         'You are trying to access a dictionary key that does not exist.',
+         'Use the .get() method with a default value, or check if the key exists using "in" operator before accessing it.',
+         'my_dict = {"a": 1}\nprint(my_dict.get("a"))  # Use get() to avoid KeyError',
+         'https://realpython.com/python-dicts/',
+         7),
+        ('python', r'FileNotFoundError', 'FileNotFoundError',
+         'File Not Found',
+         'The file you are trying to read does not exist.',
+         'Check the file path and make sure the file exists before trying to read it. You can use os.path.exists() to check.',
+         'import os\nif os.path.exists("file.txt"):\n    with open("file.txt") as f:\n        content = f.read()',
+         'https://realpython.com/working-with-large-python-files/',
+         8),
+        ('python', r'AttributeError', 'AttributeError',
+         'Attribute Not Found',
+         'The object does not have the attribute you are trying to access.',
+         'Check the type of your object and make sure it has the attribute you are trying to use. Review the object documentation.',
+         'my_list = [1, 2, 3]\nmy_list.append(4)  # append is a valid list method',
+         'https://realpython.com/lessons/python-attributes/',
+         9),
+        ('python', r'ValueError', 'ValueError',
+         'Invalid Value',
+         'You are trying to convert a value to an inappropriate type.',
+         'Check the format of your input data and make sure it can be converted to the expected type. Use try-except for invalid inputs.',
+         'try:\n    num = int("123")\nexcept ValueError:\n    print("Cannot convert to int")',
+         'https://realpython.com/python-exceptions/',
+         10),
+        ('python', r'ModuleNotFoundError', 'ModuleNotFoundError',
+         'Module Not Found',
+         'The Python module you are trying to import does not exist.',
+         'Make sure the module is installed. Use pip to install missing modules: pip install module-name.',
+         'import numpy as np  # Make sure numpy is installed first',
+         'https://realpython.com/python-import/',
+         11),
+        ('python', r'ImportError', 'ImportError',
+         'Import Error',
+         'There is a problem importing a module or function.',
+         'Check the import statement and make sure the module path is correct.',
+         'from collections import OrderedDict',
+         'https://docs.python.org/3/tutorial/modules.html',
+         12),
+    ]
+    
+    # Seed common error patterns for JavaScript
+    seed_error_patterns_js = [
+        ('javascript', r'Unexpected token', 'SyntaxError',
+         'Unexpected Token',
+         'There is a syntax error in your JavaScript code.',
+         'Check for missing brackets, parentheses, semicolons, or commas. The error points to where the parser got confused.',
+         None,
+         'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_Types',
+         1),
+        ('javascript', r'ReferenceError', 'ReferenceError',
+         'Reference Error',
+         'You are using a variable that has not been defined.',
+         'Make sure you have declared the variable with let, const, or var before using it.',
+         'let x = 5;\nconsole.log(x);',
+         'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Not_defined',
+         2),
+        ('javascript', r'TypeError', 'TypeError',
+         'Type Error',
+         'You are trying to use a value in an inappropriate way.',
+         'Check if the value is null or undefined before trying to use it as an object.',
+         'const obj = {a: 1};\nconsole.log(obj.a);',
+         'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Called_on_incompatible_type',
+         3),
+        ('javascript', r'SyntaxError: Unexpected end of input', 'SyntaxError',
+         'Unexpected End of Input',
+         'Your code is missing a closing bracket, parenthesis, or brace.',
+         'Make sure all opening braces have corresponding closing braces.',
+         'function myFunction() {\n    // code\n}  // Proper closing brace',
+         'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Control_flow_and_error_handling',
+         4),
+        ('javascript', r'Cannot read', 'TypeError',
+         'Cannot Read Property',
+         'You are trying to access a property of null or undefined.',
+         'Add null checks before accessing properties, or use optional chaining (?.) operator.',
+         'const obj = null;\nconsole.log(obj?.property);  // Safe with optional chaining',
+         'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining',
+         5),
+        ('javascript', r'is not defined', 'ReferenceError',
+         'Not Defined',
+         'A variable or function you are trying to use has not been defined.',
+         'Make sure all variables are declared before use. Check for typos in names.',
+         'const myVar = "Hello";\nconsole.log(myVar);',
+         'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_Types',
+         6),
+        ('javascript', r'NaN', 'ValueError',
+         'Not a Number',
+         'The result of a mathematical operation is not a valid number.',
+         'Check your input values. Use isNaN() to check for NaN results.',
+         'const result = 0 / 0;\nif (isNaN(result)) {\n    console.log("Result is NaN");\n}',
+         'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN',
+         7),
+        ('javascript', r'Cannot set properties of undefined', 'TypeError',
+         'Cannot Set Property',
+         'You are trying to set a property on an undefined object.',
+         'Make sure the object is initialized before setting its properties.',
+         'let obj = {};\nobj.property = "value";  // Object must exist first',
+         'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_assign_to_read_only_property',
+         8),
+    ]
+    
+    # Seed error patterns
+    cursor.execute(f"SELECT COUNT(*) FROM {DB_SCHEMA}.error_knowledge_base")
+    if cursor.fetchone()[0] == 0:
+        for pattern in seed_error_patterns_python + seed_error_patterns_js:
+            try:
+                cursor.execute(f"""
+                    INSERT INTO {DB_SCHEMA}.error_knowledge_base 
+                    (id, error_pattern, error_type, title, description, suggestion, examples, documentation_link, language, priority)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (f"ekb_{uuid.uuid4().hex[:12]}", pattern[0], pattern[1], pattern[2], pattern[3], pattern[4], pattern[5], pattern[6], pattern[7], pattern[8]))
+            except Exception as e:
+                logger.debug(f"Could not seed error pattern: {e}")
+    
+    logger.info("✓ Code snippets and related tables created: code_folders, code_snippets, execution_history, snippet_versions, test_cases, test_results, error_knowledge_base, debug_sessions")
 
 
 def create_indexes(cursor):
