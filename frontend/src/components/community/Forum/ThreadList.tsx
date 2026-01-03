@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { MessageSquare, Eye, Clock, Lock, Pin } from 'lucide-react';
-import { ForumThread } from '../../services/collaborationService';
+import { ForumThread } from '../../../services/collaborationService';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ThreadListProps {

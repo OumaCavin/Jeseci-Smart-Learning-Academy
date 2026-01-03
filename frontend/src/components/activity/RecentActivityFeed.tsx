@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Activity, ActivityFilter, getActivities, logActivity } from '../../services/activityService';
+import { Activity, ActivityFilter, activityService } from '../../services/activityService';
 import RecentActivityCard from './RecentActivityCard';
 import { RefreshCw } from 'lucide-react';
 
@@ -43,7 +43,7 @@ const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({
     setError(null);
 
     try {
-      const response = await getActivities(userId || '', {
+      const response = await activityService.getActivities(userId || '', {
         limit,
         offset: (pageNum - 1) * limit,
         activityType: filter?.activityType || '',
@@ -89,10 +89,10 @@ const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({
   };
 
   const getEmptyState = () => {
-    if (filter?.activity_type) {
+    if (filter?.activityType) {
       return {
         title: 'No Activities Found',
-        description: `You haven't performed any "${filter.activity_type.replace(/_/g, ' ')}" activities yet.`,
+        description: `You haven't performed any "${filter.activityType.replace(/_/g, ' ')}" activities yet.`,
       };
     }
 

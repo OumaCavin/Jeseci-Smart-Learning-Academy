@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { X, Loader } from 'lucide-react';
-import { addComment } from '../../services/collaborationService';
+import { addComment } from '../../../services/collaborationService';
 
 interface CommentFormProps {
   contentId: string;

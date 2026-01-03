@@ -1178,7 +1178,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onShowLogin, onShowRegister, 
         setStatsLoading(true);
         const response = await apiService.getPlatformStats();
         if (response.success && response.stats) {
-          setPlatformStats(response);
+          setPlatformStats(response.stats);
           setStatsError(false);
         } else {
           setStatsError(true);
@@ -1233,11 +1233,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onShowLogin, onShowRegister, 
   }, []);
 
   // Fallback stats when API fails
-  const displayStats = platformStats?.stats ? [
-    { number: formatNumber(platformStats.stats.students_count), label: "Students Learning" },
-    { number: formatNumber(platformStats.stats.concepts_count) + "+", label: "Learning Concepts" },
-    { number: formatNumber(platformStats.stats.courses_count) + "+", label: "Expert Courses" },
-    { number: platformStats.stats.success_rate + "%", label: "Success Rate" }
+  const displayStats = platformStats ? [
+    { number: formatNumber(platformStats.total_users), label: "Students Learning" },
+    { number: formatNumber(platformStats.total_lessons) + "+", label: "Learning Concepts" },
+    { number: formatNumber(platformStats.total_courses) + "+", label: "Expert Courses" },
+    { number: formatNumber(platformStats.active_learners_today), label: "Active Learners Today" }
   ] : [
     { number: "1,000+", label: "Students Learning" },
     { number: "500+", label: "Learning Concepts" },
