@@ -55,10 +55,10 @@ const ThreadList: React.FC<ThreadListProps> = ({ threads, loading = false, onThr
             {/* Status Icons */}
             <div className="flex flex-col items-center space-y-1 pt-1">
               {thread.is_pinned && (
-                <Pin className="w-4 h-4 text-blue-600" title="Pinned" />
+                <Pin className="w-4 h-4 text-blue-600" />
               )}
               {thread.is_locked && (
-                <Lock className="w-4 h-4 text-gray-400" title="Locked" />
+                <Lock className="w-4 h-4 text-gray-400" />
               )}
             </div>
 

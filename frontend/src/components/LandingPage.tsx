@@ -1,7 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, Brain, Users, Trophy, Zap, Target, ArrowRight, Star, CheckCircle, X, MessageCircle, Send, Loader } from 'lucide-react';
 import { openAIService } from '../services/openaiService';
 import { contactService } from '../services/contactService';
+import { apiService } from '../api';
+
+interface PlatformStats {
+  total_users: number;
+  total_courses: number;
+  total_lessons: number;
+  active_learners_today: number;
+}
+
+interface Testimonial {
+  id: string;
+  name: string;
+  role: string;
+  content: string;
+  avatar_url?: string;
+  rating: number;
+}
+
+interface TestimonialsResponse {
+  success: boolean;
+  testimonials: Testimonial[];
+}
 
 interface LandingPageProps {
   onShowLogin: () => void;

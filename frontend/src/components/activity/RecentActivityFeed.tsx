@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserActivity, ActivityFilter, getUserActivities, logActivity } from '../../services/activityService';
+import { Activity, ActivityFilter, getActivities, logActivity } from '../../services/activityService';
 import RecentActivityCard from './RecentActivityCard';
-import { ArrowPathIcon } from '@heroicons/react/24/outline';
+import { RefreshCw } from 'lucide-react';
 
 interface RecentActivityFeedProps {
+  userId: string;
   limit?: number;
   filter?: ActivityFilter;
   showHeader?: boolean;
@@ -11,10 +12,11 @@ interface RecentActivityFeedProps {
   compact?: boolean;
   autoRefresh?: boolean;
   refreshInterval?: number;
-  onActivityClick?: (activity: UserActivity) => void;
+  onActivityClick?: (activity: Activity) => void;
 }
 
 const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({
+  userId,
   limit = 10,
   filter,
   showHeader = true,
@@ -24,7 +26,7 @@ const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({
   refreshInterval = 30000,
   onActivityClick,
 }) => {
-  const [activities, setActivities] = useState<UserActivity[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -41,10 +43,10 @@ const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({
     setError(null);
 
     try {
-      const response = await getUserActivities({
-        page: pageNum,
+      const response = await getActivities(userId || '', {
         limit,
-        ...filter,
+        offset: (pageNum - 1) * limit,
+        activityType: filter?.activityType || '',
       });
 
       if (isRefresh || pageNum === 1) {
@@ -120,7 +122,7 @@ const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({
             className="inline-flex items-center gap-1 px-2 py-1 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
             aria-label="Refresh activities"
           >
-            <ArrowPathIcon className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             {refreshing ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>

@@ -464,7 +464,7 @@ const AppContent: React.FC = () => {
       const response = await apiService.exportChatToEmail(
         exportEmail,
         chatMessages,
-        user?.full_name || 'User'
+        user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : 'User'
       );
       
       if (response.success) {
