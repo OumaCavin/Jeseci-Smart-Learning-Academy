@@ -335,7 +335,6 @@
 **/tmp/
 **/*.tmp
 **/*.bak
-**/user_input_files/
 **/*.swp
 **/*~.nib
 **/local.properties
@@ -696,7 +695,6 @@
 **/tmp/
 **/*.tmp
 **/*.bak
-**/user_input_files/
 **/*.swp
 **/*~.nib
 **/local.properties
