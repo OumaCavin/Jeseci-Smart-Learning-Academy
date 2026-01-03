@@ -241,14 +241,19 @@ if command -v psql &> /dev/null; then
 
             # Drop existing schema objects to fix duplicate index errors (first-time setup only)
             print_info "Dropping existing schema '$DB_SCHEMA' to fix any duplicate objects..."
-            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "DROP SCHEMA IF EXISTS $DB_SCHEMA CASCADE;" 2>/dev/null || true
+            sudo -n -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "DROP SCHEMA IF EXISTS $DB_SCHEMA CASCADE;" 2>/dev/null || \
+                psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$PG_SUPERUSER" -d "$POSTGRES_DB" -c "DROP SCHEMA IF EXISTS $DB_SCHEMA CASCADE;" 2>/dev/null || true
 
             # Create the schema fresh
             print_info "Creating schema '$DB_SCHEMA'..."
-            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "CREATE SCHEMA $DB_SCHEMA;" 2>/dev/null || true
-            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "GRANT ALL ON SCHEMA $DB_SCHEMA TO $POSTGRES_USER;" 2>/dev/null || true
-            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON TABLES TO $POSTGRES_USER;" 2>/dev/null || true
-            sudo -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON SEQUENCES TO $POSTGRES_USER;" 2>/dev/null || true
+            sudo -n -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "CREATE SCHEMA $DB_SCHEMA;" 2>/dev/null || \
+                psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$PG_SUPERUSER" -d "$POSTGRES_DB" -c "CREATE SCHEMA $DB_SCHEMA;" 2>/dev/null || true
+            sudo -n -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "GRANT ALL ON SCHEMA $DB_SCHEMA TO $POSTGRES_USER;" 2>/dev/null || \
+                psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$PG_SUPERUSER" -d "$POSTGRES_DB" -c "GRANT ALL ON SCHEMA $DB_SCHEMA TO $POSTGRES_USER;" 2>/dev/null || true
+            sudo -n -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON TABLES TO $POSTGRES_USER;" 2>/dev/null || \
+                psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$PG_SUPERUSER" -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON TABLES TO $POSTGRES_USER;" 2>/dev/null || true
+            sudo -n -u "$PG_SUPERUSER" psql -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON SEQUENCES TO $POSTGRES_USER;" 2>/dev/null || \
+                psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$PG_SUPERUSER" -d "$POSTGRES_DB" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA $DB_SCHEMA GRANT ALL ON SEQUENCES TO $POSTGRES_USER;" 2>/dev/null || true
 
             # Use the centralized database initialization script
             PYTHON_OUTPUT=$(python3 -c "
