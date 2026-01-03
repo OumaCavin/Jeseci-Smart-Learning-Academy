@@ -122,6 +122,70 @@ export interface TestimonialsResponse {
   error?: string;
 }
 
+// Code Execution Interfaces
+export interface CodeSnippet {
+  snippet_id: string;
+  user_id: string;
+  title: string;
+  code: string;
+  language: string;
+  description?: string;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ExecutionRequest {
+  code: string;
+  language: string;
+  input?: string;
+  timeout?: number;
+}
+
+export interface ExecutionResponse {
+  success: boolean;
+  output: string;
+  error?: string;
+  execution_time: number;
+  memory_used?: number;
+  logs?: string[];
+}
+
+export interface ExecutionLog {
+  log_id: string;
+  user_id: string;
+  snippet_id?: string;
+  code: string;
+  language: string;
+  output: string;
+  status: 'success' | 'error' | 'timeout';
+  execution_time: number;
+  memory_used?: number;
+  created_at: string;
+}
+
+export interface CodeSnippetRequest {
+  title: string;
+  code: string;
+  language: string;
+  description?: string;
+  is_public?: boolean;
+}
+
+export interface CodeExecutionResponse {
+  success: boolean;
+  output?: string;
+  error?: string;
+  execution_time?: number;
+  memory_used?: number;
+}
+
+export interface SnippetsListResponse {
+  success: boolean;
+  snippets?: CodeSnippet[];
+  error?: string;
+}
+
 export interface Quiz {
   id: string;
   title: string;
@@ -541,6 +605,111 @@ class ApiService {
         featured_only: featuredOnly
       }),
     });
+  }
+
+  // Code Execution
+  async executeCode(code: string, language: string = 'jac', input?: string, timeout?: number): Promise<CodeExecutionResponse> {
+    return this.makeRequest('/walker/code_execute', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        language,
+        input: input || '',
+        timeout: timeout || 30
+      }),
+    });
+  }
+
+  // Legacy code execution with different response format
+  async executeJacCode(code: string): Promise<any> {
+    return this.makeRequest('/walker/code_execute', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        language: 'jac'
+      }),
+    });
+  }
+
+  async saveCodeSnippet(snippetData: CodeSnippetRequest): Promise<any> {
+    return this.makeRequest('/walker/code_snippet', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'save',
+        ...snippetData
+      }),
+    });
+  }
+
+  async getCodeSnippets(userId?: string): Promise<SnippetsListResponse> {
+    return this.makeRequest('/walker/code_snippet', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'list',
+        user_id: userId || this.authToken ? undefined : undefined
+      }),
+    });
+  }
+
+  async getCodeSnippet(snippetId: string): Promise<any> {
+    return this.makeRequest('/walker/code_snippet', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'get',
+        snippet_id: snippetId
+      }),
+    });
+  }
+
+  async deleteCodeSnippet(snippetId: string): Promise<any> {
+    return this.makeRequest('/walker/code_snippet', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'delete',
+        snippet_id: snippetId
+      }),
+    });
+  }
+
+  // Code Editor legacy methods (for backward compatibility with CodeEditor component)
+  async getUserSnippets(): Promise<any> {
+    try {
+      const response = await this.makeRequest('/walker/code_snippet', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'list' }),
+      });
+      return { success: true, snippets: response };
+    } catch (error) {
+      return { success: false, error: 'Failed to load snippets', snippets: [] };
+    }
+  }
+
+  async getCodeFolders(): Promise<any> {
+    // Return empty folders for now - folder management can be added later
+    return { success: true, folders: [] };
+  }
+
+  async getExecutionHistory(): Promise<any> {
+    // Return empty history for now - execution logging can be enhanced later
+    return { success: true, history: [] };
+  }
+
+  async saveSnippet(data: { title: string; code: string; description?: string; snippet_id?: string }): Promise<any> {
+    return this.saveCodeSnippet({
+      title: data.title,
+      code: data.code,
+      description: data.description,
+      language: 'jac'
+    });
+  }
+
+  async createFolder(data: { name: string; description?: string; parent_folder_id?: string }): Promise<any> {
+    // Folder creation can be implemented later
+    return { success: true, folder: { id: Date.now().toString(), name: data.name } };
+  }
+
+  async deleteSnippet(snippetId: string): Promise<any> {
+    return this.deleteCodeSnippet(snippetId);
   }
 }
 
