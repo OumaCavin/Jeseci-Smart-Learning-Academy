@@ -1240,6 +1240,157 @@ def create_platform_stats_table(cursor):
     logger.info("✓ Platform stats table created: platform_stats")
 
 
+def create_collaboration_tables(cursor):
+    """Create collaboration and community feature tables"""
+    logger.info("Creating collaboration tables...")
+    
+    # User connections table (friends system)
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.user_connections (
+            id SERIAL PRIMARY KEY,
+            connection_id VARCHAR(64) UNIQUE NOT NULL,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            connected_user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'blocked')),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, connected_user_id)
+        )
+    """)
+    
+    # Forums table (forum categories)
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.forums (
+            id SERIAL PRIMARY KEY,
+            forum_id VARCHAR(64) UNIQUE NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            description TEXT,
+            category VARCHAR(50) DEFAULT 'general',
+            icon VARCHAR(100) DEFAULT '💬',
+            is_active BOOLEAN DEFAULT TRUE,
+            sort_order INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Forum threads table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.forum_threads (
+            id SERIAL PRIMARY KEY,
+            thread_id VARCHAR(64) UNIQUE NOT NULL,
+            forum_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.forums(forum_id) ON DELETE CASCADE,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            title VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            is_pinned BOOLEAN DEFAULT FALSE,
+            is_locked BOOLEAN DEFAULT FALSE,
+            view_count INTEGER DEFAULT 0,
+            reply_count INTEGER DEFAULT 0,
+            last_reply_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Forum posts table (replies)
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.forum_posts (
+            id SERIAL PRIMARY KEY,
+            post_id VARCHAR(64) UNIQUE NOT NULL,
+            thread_id VARCHAR(64) NOT NULL REFERENCES {DB_SCHEMA}.forum_threads(thread_id) ON DELETE CASCADE,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            parent_post_id VARCHAR(64) REFERENCES {DB_SCHEMA}.forum_posts(post_id) ON DELETE CASCADE,
+            content TEXT NOT NULL,
+            like_count INTEGER DEFAULT 0,
+            is_accepted_answer BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Content comments table (comments on lessons/courses)
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.content_comments (
+            id SERIAL PRIMARY KEY,
+            comment_id VARCHAR(64) UNIQUE NOT NULL,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            content_id VARCHAR(100) NOT NULL,
+            content_type VARCHAR(50) NOT NULL CHECK (content_type IN ('lesson', 'course', 'concept', 'learning_path')),
+            parent_comment_id VARCHAR(64) REFERENCES {DB_SCHEMA}.content_comments(comment_id) ON DELETE CASCADE,
+            content TEXT NOT NULL,
+            like_count INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Create indexes for efficient querying
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_user_connections_user 
+        ON {DB_SCHEMA}.user_connections(user_id, status)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_user_connections_pending 
+        ON {DB_SCHEMA}.user_connections(connected_user_id, status) WHERE status = 'pending'
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_forums_active 
+        ON {DB_SCHEMA}.forums(is_active, sort_order)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_forum_threads_forum 
+        ON {DB_SCHEMA}.forum_threads(forum_id, created_at DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_forum_threads_user 
+        ON {DB_SCHEMA}.forum_threads(user_id)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_forum_posts_thread 
+        ON {DB_SCHEMA}.forum_posts(thread_id, created_at ASC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_forum_posts_user 
+        ON {DB_SCHEMA}.forum_posts(user_id)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_content_comments_content 
+        ON {DB_SCHEMA}.content_comments(content_id, content_type, created_at DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_content_comments_user 
+        ON {DB_SCHEMA}.content_comments(user_id)
+    """)
+    
+    # Seed default forums if table is empty
+    cursor.execute(f"SELECT COUNT(*) FROM {DB_SCHEMA}.forums")
+    if cursor.fetchone()[0] == 0:
+        default_forums = [
+            ('General Discussion', 'General topics and community announcements', 'general', '💬', 1),
+            ('Help & Questions', 'Ask questions and get help from the community', 'help', '❓', 2),
+            ('Jac Programming', 'Discuss Jac language and OSP concepts', 'programming', '📚', 3),
+            ('Learning Tips', 'Share and discover learning strategies', 'tips', '💡', 4),
+            ('Showcase', 'Share your projects and achievements', 'showcase', '🏆', 5),
+            ('Announcements', 'Official platform announcements', 'announcements', '📢', 0),
+        ]
+        for name, desc, category, icon, sort_order in default_forums:
+            cursor.execute(f"""
+                INSERT INTO {DB_SCHEMA}.forums (forum_id, name, description, category, icon, sort_order)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (f"forum_{category.lower().replace(' ', '_')}", name, desc, category, icon, sort_order))
+    
+    logger.info("✓ Collaboration tables created: user_connections, forums, forum_threads, forum_posts, content_comments")
+
+
 def create_indexes(cursor):
     """Create database indexes for performance"""
     logger.info("Creating database indexes...")
@@ -1325,6 +1476,7 @@ def initialize_database():
         create_chat_export_table(cursor)
         create_platform_stats_table(cursor)
         create_user_activities_table(cursor)
+        create_collaboration_tables(cursor)
         create_indexes(cursor)
         
         conn.commit()
