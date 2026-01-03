@@ -1704,3 +1704,833 @@ Content administrators have access to:
 ---
 
 *This documentation is maintained as part of the Jeseci Smart Learning Academy project. For updates or corrections, please submit a pull request or contact the development team.*
+
+
+---
+
+## 23. Database Module Guide
+
+### Overview
+
+The `backend/database/database.jac` module provides database connectivity for PostgreSQL and Neo4j through Python integration. It wraps Python database connection managers with Jaclang-compatible interfaces, enabling the application to work with both relational and graph databases seamlessly. This module is the foundation for all persistent data operations in the Jeseci Smart Learning Academy platform, handling everything from user management to learning path tracking and code snippet storage.
+
+### Module Structure
+
+The database module is structured around several key components that work together to provide a unified interface for database operations. Understanding this structure is essential for effective development and debugging. The module leverages Python's robust database connectivity through SQLAlchemy for PostgreSQL and the official Neo4j driver for graph operations, while exposing a clean Jaclang interface for use throughout the application.
+
+**Database Nodes**
+
+The module defines several node types that represent different aspects of the database system. These nodes serve as data containers and configuration holders, enabling type-safe and structured data management throughout the application. Each node type corresponds to a specific domain of the application's data model, from user progress tracking to learning path management.
+
+- **DatabaseStatus**: Tracks the connection status of both PostgreSQL and Neo4j databases, including timestamps for the last connectivity check. This node is crucial for health monitoring and connection pool management, providing real-time visibility into the availability of critical database services.
+- **ConceptNode**: Represents concepts in the knowledge graph with properties for concept ID, name, display name, category, difficulty level, description, and creation timestamp. These nodes form the building blocks of the learning graph, enabling sophisticated prerequisite tracking and personalized learning recommendations.
+- **LearningPathNode**: Represents learning paths in the graph with metadata including path ID, title, difficulty, estimated duration, and description. Learning paths aggregate multiple concepts into coherent learning experiences, guiding students through structured educational journeys.
+- **ProgressNode**: Tracks user progress on concepts with fields for user ID, concept ID, progress percentage, mastery level, and last access timestamp. This node enables the platform to remember where each student left off and provide continuity across learning sessions.
+- **DatabaseConfig**: Stores database configuration parameters such as PostgreSQL host, port, database name, Neo4j URI, and database name. This configuration node centralizes all connection parameters, making it easy to modify database settings without searching through multiple files.
+
+**Main Walker: DatabaseManager**
+
+The `DatabaseManager` walker provides all database operations for the application. This walker must be imported and instantiated to perform database operations. The walker encapsulates all the complex logic required for database interactions, presenting a simple and consistent interface for common operations. All database operations flow through this walker, ensuring centralized error handling, connection management, and transaction control.
+
+### Importing the Database Module
+
+To use database functionality in your Jaclang code, import the database manager as follows. This import statement makes all database capabilities available within your module, enabling immediate access to connection management, query execution, and data manipulation operations. The import pattern follows Jaclang's standard module import conventions, ensuring consistency across the codebase.
+
+```jac
+import from database.database { DatabaseManager, test_db_connections }
+```
+
+The import brings in two primary entities: the `DatabaseManager` walker that handles all database operations, and the `test_db_connections` walker that provides a quick way to verify database connectivity. These two entities form the foundation of all database interactions in the application.
+
+### Initialization
+
+Before performing any database operations, initialize the database connections. This initialization process establishes connection pools, verifies connectivity, and prepares the database layer for operational use. Proper initialization is critical for application stability and performance, as it ensures that all database connections are ready before the first query is executed.
+
+```jac
+walker InitDatabase {
+    can init with entry {
+        manager = py_db.DualWriteManager();
+        
+        report {
+            "initialized": True,
+            "message": "Database module ready"
+        };
+    }
+}
+```
+
+The initialization walker creates a `DualWriteManager` instance, which coordinates writes to both PostgreSQL and Neo4j simultaneously. This dual-write capability ensures that the relational and graph databases stay synchronized, preventing data inconsistencies that could arise from partial writes.
+
+Alternatively, you can test connections without full initialization. This lightweight approach is useful for health checks and diagnostic purposes, allowing you to verify database availability without committing to a full initialization cycle.
+
+```jac
+walker test_db_connections {
+    can run with entry {
+        result = py_db.test_all_connections();
+        report result;
+    }
+}
+```
+
+### PostgreSQL Operations
+
+The database module supports various PostgreSQL operations through the `DatabaseManager` walker. PostgreSQL serves as the primary relational database for the application, storing user data, course information, quiz results, and other structured content. The module provides both low-level query execution and high-level convenience methods for common operations.
+
+**Testing PostgreSQL Connection**
+
+```jac
+can test_postgresql with entry {
+    result = py_db.test_all_connections();
+    
+    report {
+        "connected": result['postgresql'],
+        "database": "postgresql",
+        "status": "healthy" if result['postgresql'] else "unavailable"
+    };
+}
+```
+
+This method performs a lightweight connectivity check against the PostgreSQL database. The check verifies that the database is accepting connections and responding to queries, providing a quick health indicator for monitoring and debugging purposes.
+
+**Executing Custom Queries**
+
+You can execute custom SQL queries using the `query_postgres` walker. This capability provides maximum flexibility for complex queries that go beyond the built-in convenience methods. When using custom queries, always use parameterized queries to prevent SQL injection attacks.
+
+```jac
+can query_postgres with entry {
+    query = "SELECT * FROM users WHERE active = true";
+    manager = py_db.get_postgres_manager();
+    db_result = manager.execute_query(query, None);
+    
+    if db_result {
+        report {
+            "success": True,
+            "data": db_result,
+            "count": len(db_result)
+        };
+    } else {
+        report {
+            "success": False,
+            "error": "Query execution failed"
+        };
+    }
+}
+```
+
+**Storing Contact Messages**
+
+The module provides a dedicated walker for storing contact form submissions. This demonstrates how the database module wraps common operations in convenient interfaces that handle all the details of query construction, parameter binding, and error handling.
+
+```jac
+can store_contact_message(contact_data: dict) -> dict {
+    """Store contact form submission in PostgreSQL database"""
+    
+    try {
+        manager = py_db.get_postgres_manager();
+        
+        # Insert contact message into database
+        query = """
+        INSERT INTO contact_messages (
+            message_id, name, email, subject, message, phone, 
+            contact_reason, timestamp, status, ip_address, user_agent
+        ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+        ) RETURNING message_id
+        """;
+        
+        params = (
+            contact_data['message_id'],
+            contact_data['name'],
+            contact_data['email'],
+            contact_data['subject'],
+            contact_data['message'],
+            contact_data['phone'],
+            contact_data['contact_reason'],
+            contact_data['timestamp'],
+            contact_data['status'],
+            contact_data['ip_address'],
+            contact_data['user_agent']
+        );
+        
+        result = manager.execute_query(query, params);
+        
+        if result and len(result) > 0 {
+            return {
+                "success": True,
+                "message_id": result[0]['message_id'],
+                "message": "Contact message stored successfully"
+            };
+        } else {
+            return {
+                "success": False,
+                "error": "Failed to store contact message"
+            };
+        }
+    } except (Exception as error) {
+        std.out("Contact storage error:", error);
+        return {
+            "success": False,
+            "error": "Database error: " + str(error)
+        };
+    }
+}
+```
+
+**Retrieving Contact Messages**
+
+To retrieve contact messages with optional filtering, use the `get_contact_messages` walker. This method supports pagination and status-based filtering, making it suitable for administrative interfaces that need to display message lists.
+
+```jac
+can get_contact_messages(params: dict) -> dict {
+    """Retrieve contact messages from database with filtering"""
+    
+    try {
+        manager = py_db.get_postgres_manager();
+        
+        limit = params.get('limit', 50);
+        status_filter = params.get('status', 'all');
+        
+        # Build query based on status filter
+        where_clause = "";
+        query_params = [];
+        
+        if status_filter != 'all' {
+            where_clause = "WHERE status = $1";
+            query_params.append(status_filter);
+        }
+        
+        query = f"""
+        SELECT 
+            message_id, name, email, subject, message, phone, 
+            contact_reason, timestamp, status, ip_address, user_agent
+        FROM contact_messages 
+        {where_clause}
+        ORDER BY timestamp DESC
+        LIMIT ${{len(query_params) + 1}}
+        """;
+        
+        query_params.append(limit);
+        
+        result = manager.execute_query(query, tuple(query_params));
+        
+        # Get total count and unread count
+        count_query = "SELECT COUNT(*) as total FROM contact_messages";
+        unread_query = "SELECT COUNT(*) as unread FROM contact_messages WHERE status = 'pending'";
+        
+        total_result = manager.execute_query(count_query, None);
+        unread_result = manager.execute_query(unread_query, None);
+        
+        return {
+            "success": True,
+            "messages": result or [],
+            "total": total_result[0]['total'] if total_result else 0,
+            "unread_count": unread_result[0]['unread'] if unread_result else 0
+        };
+        
+    } except (Exception as error) {
+        std.out("Contact retrieval error:", error);
+        return {
+            "success": False,
+            "error": "Database error: " + str(error)
+        };
+    }
+}
+```
+
+**Storing and Retrieving Testimonials**
+
+The database module includes support for managing testimonials. This feature enables the platform to collect and display student testimonials, providing social proof that helps prospective students make enrollment decisions.
+
+```jac
+can store_testimonial(testimonial_data: dict) -> dict {
+    """Store testimonial in PostgreSQL database"""
+    
+    try {
+        manager = py_db.get_postgres_manager();
+        
+        query = """
+        INSERT INTO testimonials (
+            name, role, company, content, rating, avatar_url, 
+            is_approved, is_active
+        ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8
+        ) RETURNING id
+        """;
+        
+        params = (
+            testimonial_data['name'],
+            testimonial_data.get('role'),
+            testimonial_data.get('company'),
+            testimonial_data['content'],
+            testimonial_data.get('rating', 5),
+            testimonial_data.get('avatar_url'),
+            testimonial_data.get('is_approved', False),
+            True
+        );
+        
+        result = manager.execute_query(query, params);
+        
+        if result and len(result) > 0 {
+            return {
+                "success": True,
+                "id": result[0]['id'],
+                "message": "Testimonial stored successfully"
+            };
+        } else {
+            return {
+                "success": False,
+                "error": "Failed to store testimonial"
+            };
+        }
+    } except (Exception as error) {
+        std.out("Testimonial storage error:", error);
+        return {
+            "success": False,
+            "error": "Database error: " + str(error)
+        };
+    }
+}
+
+can get_testimonials(params: dict) -> dict {
+    """Retrieve approved testimonials from database"""
+    
+    try {
+        manager = py_db.get_postgres_manager();
+        
+        query = """
+        SELECT id, name, role, company, content, rating, avatar_url, created_at
+        FROM testimonials 
+        WHERE is_approved = true AND is_active = true
+        ORDER BY created_at DESC
+        """;
+        
+        result = manager.execute_query(query, None);
+        
+        return {
+            "success": True,
+            "testimonials": result or [],
+            "total": len(result) if result else 0
+        };
+        
+    } catch (Exception as error) {
+        std.out("Testimonial retrieval error:", error);
+        return {
+            "success": False,
+            "error": "Database error: " + str(error),
+            "testimonials": []
+        };
+    }
+}
+```
+
+### Neo4j Graph Database Operations
+
+The module provides comprehensive support for Neo4j graph database operations. Neo4j serves as the knowledge graph layer, tracking concepts, their relationships, and student progress through the learning material. The graph-based approach enables sophisticated queries that would be difficult or impossible in a purely relational model.
+
+**Testing Neo4j Connection**
+
+```jac
+can test_neo4j with entry {
+    result = py_db.test_all_connections();
+    
+    report {
+        "connected": result['neo4j'],
+        "database": "neo4j",
+        "status": "healthy" if result['neo4j'] else "unavailable"
+    };
+}
+```
+
+**Syncing Concepts to the Graph**
+
+To sync a concept to the Neo4j graph, use the `sync_concept` walker. This operation creates or updates a concept node in the graph, ensuring that the knowledge representation stays synchronized with the application's understanding of each learning concept.
+
+```jac
+can sync_concept with entry {
+    concept_id = "unique_concept_id";
+    name = "concept_name";
+    display_name = "Concept Display Name";
+    category = "programming";
+    difficulty_level = "intermediate";
+    description = "Description of the concept";
+    
+    manager = py_db.get_dual_write_manager();
+    sync_result = manager.sync_concept_to_neo4j(
+        concept_id, name, display_name, category, difficulty_level, description
+    );
+    
+    report {
+        "success": sync_result != None,
+        "operation": "sync_concept",
+        "concept_id": concept_id
+    };
+}
+```
+
+**Creating Relationships**
+
+Create relationships between concepts in the graph using the `create_relationship` walker. Relationships are the edges that connect concept nodes, forming the structure of the knowledge graph. Common relationship types include PREREQUISITE (indicating what must be learned first), RELATED_TO (showing topical connections), and BUILDS_UPON (indicating progressive learning paths).
+
+```jac
+can create_relationship with entry {
+    source_id = "source_concept_id";
+    target_id = "target_concept_id";
+    relationship_type = "RELATED_TO";
+    strength = 1;
+    
+    manager = py_db.get_dual_write_manager();
+    result = manager.create_concept_relationship(
+        source_id, target_id, relationship_type, strength
+    );
+    
+    report {
+        "success": result != None,
+        "operation": "create_relationship",
+        "source": source_id,
+        "target": target_id,
+        "type": relationship_type
+    };
+}
+```
+
+**Getting Personalized Recommendations**
+
+Retrieve learning recommendations based on user progress using the `get_recommendations` walker. This is one of the most powerful features of the graph database integration, enabling personalized learning paths that adapt to each student's unique background and progress.
+
+```jac
+can get_recommendations with entry {
+    user_id = "user_123";
+    completed_ids = ["concept_1", "concept_2"];
+    limit = 5;
+    
+    manager = py_db.get_dual_write_manager();
+    result = manager.get_learning_recommendations(user_id, completed_ids, limit);
+    
+    report {
+        "success": result != None,
+        "data": result or [],
+        "user_id": user_id,
+        "limit": limit
+    };
+}
+```
+
+**Retrieving Concept Graphs**
+
+Get a subgraph around a specific concept using the `get_concept_graph` walker. This operation is useful for visualizing the relationships surrounding a concept, enabling students to understand how concepts connect to each other in the broader learning context.
+
+```jac
+can get_concept_graph with entry {
+    concept_id = "concept_1";
+    depth = 2;
+    
+    manager = py_db.get_dual_write_manager();
+    result = manager.get_concept_graph(concept_id, depth);
+    
+    report {
+        "success": result != None,
+        "data": result or [],
+        "concept_id": concept_id,
+        "depth": depth
+    };
+}
+```
+
+### Database Configuration
+
+The default database configuration is defined in the `DatabaseConfig` node. These values represent the development environment defaults and can be overridden through environment variables in production deployments. Understanding these defaults is important for local development and testing.
+
+- PostgreSQL Host: `localhost`
+- PostgreSQL Port: `5432`
+- PostgreSQL Database: `jeseci_learning_academy`
+- Neo4j URI: `bolt://localhost:7687`
+- Neo4j Database: `jeseci_academy`
+
+To modify these settings, update the `DatabaseConfig` node in `database.jac` or set environment variables for your deployment environment. Environment variable overrides take precedence over the configuration file values, enabling easy configuration management across different deployment environments.
+
+### Connection Management
+
+**Getting Database Status**
+
+```jac
+can get_status with entry {
+    result = py_db.test_all_connections();
+    
+    config = py_db.DatabaseConfig();
+    
+    report {
+        "postgresql": {
+            "connected": result['postgresql'],
+            "host": config.postgres_host,
+            "port": config.postgres_port,
+            "database": config.postgres_db
+        },
+        "neo4j": {
+            "connected": result['neo4j'],
+            "uri": config.neo4j_uri,
+            "database": config.neo4j_database
+        }
+    };
+}
+```
+
+**Closing Connections**
+
+Always close database connections when they are no longer needed. While the application typically manages connection pools that remain open between requests, explicit connection cleanup is important during application shutdown and in long-running processes to ensure proper resource release.
+
+```jac
+can close_connections with entry {
+    py_db.close_all_connections();
+    
+    report {
+        "success": True,
+        "message": "All database connections closed"
+    };
+}
+```
+
+---
+
+## 24. Git Workflow and Standards
+
+### Branch Management
+
+The project follows a standard branching strategy using Git. This strategy balances the need for collaboration with the requirement for code stability, enabling multiple developers to work simultaneously without interfering with each other's changes. The branching model is inspired by successful industry practices, particularly Git Flow, while remaining simple enough for small teams to manage effectively.
+
+The project uses two primary branch types that serve distinct purposes in the development lifecycle. The main branch contains production-ready code that has been thoroughly tested and reviewed. All features and fixes are merged into this branch only after completing the full development and review cycle. This ensures that the main branch always represents a stable, deployable state of the codebase.
+
+Feature branches are created from main for all new features, bug fixes, and improvements. These branches provide an isolated environment for development work, allowing developers to make multiple commits and run tests without affecting the shared codebase. Feature branches should be focused on a single change, making them easier to review and less likely to introduce conflicts.
+
+**Branch Naming Convention**
+
+Use kebab-case for branch names with category prefixes that clearly indicate the type of work being done. This convention makes it easy to identify the purpose of a branch at a glance, even when browsing a long list of branches. The prefix also helps organize branches in tools that group by prefix.
+
+| Prefix | Purpose | Example |
+|--------|---------|---------|
+| `feat/` | New features | `feat/user-authentication` |
+| `fix/` | Bug fixes | `fix/database-connection-issue` |
+| `docs/` | Documentation | `docs/update-api-documentation` |
+| `refactor/` | Code refactoring | `refactor/code-snippet-manager` |
+| `test/` | Test additions | `test/add-user-authentication-tests` |
+| `chore/` | Maintenance tasks | `chore/update-dependencies` |
+
+**Creating a Feature Branch**
+
+```bash
+# Ensure you're on the main branch
+git checkout main
+
+# Pull latest changes
+git pull origin main
+
+# Create a new feature branch
+git checkout -b feat/new-feature-name
+
+# Work on your feature, make commits
+git add .
+git commit -m "feat(feature-name): describe your changes"
+
+# Push to remote
+git push -u origin feat/new-feature-name
+```
+
+### Commit Message Standards
+
+All commit messages must be human-readable and describe the work performed. Avoid system-generated messages that provide no meaningful information about the change. Good commit messages are essential for understanding the history of the codebase, debugging issues, and conducting effective code reviews.
+
+**Commit Message Format**
+
+```
+<type>(<scope>): <description>
+```
+
+The format consists of three components: the type prefix that categorizes the change, an optional scope that identifies the affected module or component, and a concise description of what changed. This structured format enables automatic generation of changelogs and provides consistent, searchable commit messages.
+
+**Type Prefixes**
+
+The type prefix categorizes the nature of the change. Each type serves a specific purpose and helps maintain a clear commit history. Using the correct prefix makes it easier to find related changes and understand the evolution of the codebase.
+
+| Type | Description | Examples |
+|------|-------------|----------|
+| `feat` | A new feature | New user authentication, additional report type |
+| `fix` | A bug fix | Resolve null pointer exception, fix calculation error |
+| `docs` | Documentation changes | Update API docs, add code comments |
+| `style` | Formatting changes | Fix indentation, rename variables for clarity |
+| `refactor` | Code changes that neither fix bugs nor add features | Extract method, simplify logic |
+| `perf` | Performance improvements | Optimize query, reduce memory usage |
+| `test` | Adding or modifying tests | Add unit tests, fix flaky test |
+| `chore` | Maintenance tasks | Update dependencies, configure CI pipeline |
+
+**Good Commit Message Examples**
+
+```
+feat(auth): add user registration with email verification
+fix(database): resolve connection timeout issue in production
+docs(api): update endpoint documentation for user profile
+refactor(frontend): optimize code snippet manager rendering
+test(api): add integration tests for authentication flow
+chore(deps): update React to latest stable version
+```
+
+**Bad Commit Message Examples**
+
+```
+feat: update stuff
+fix: bug fixes
+Merge branch 'main' of github.com:repo/project
+Message: update
+```
+
+### Author Attribution
+
+All commits in this project are authored by **OumaCavin** (GitHub username). The git configuration ensures consistent attribution across all development work, maintaining a clear record of who made each change. This attribution is important for code review, accountability, and understanding the evolution of the codebase.
+
+**Git Configuration Commands**
+
+```bash
+# Set user name
+git config user.name "OumaCavin"
+
+# Set user email
+git config user.email "cavin.otieno012@gmail.com"
+
+# Verify configuration
+git config --get user.name
+git config --get user.email
+
+# Set main as default branch for new repos
+git branch -M main
+
+# Set push default to simple (pushes only current branch)
+git config push.default simple
+
+# Configure line ending handling (recommended for cross-platform)
+git config core.autocrlf input
+```
+
+### Pushing Changes
+
+When pushing changes to the remote repository, follow a consistent workflow that ensures all changes are properly staged and reviewed before becoming part of the shared codebase. The push operation transfers your local commits to the remote repository, making them available to other team members.
+
+**Standard Push Workflow**
+
+```bash
+# Stage all changes
+git add .
+
+# Verify staged changes
+git status
+
+# Create a descriptive commit message
+git commit -m "feat(frontend): add saved content library component"
+
+# Push to main branch
+git push -u origin main
+```
+
+**Using Personal Access Token**
+
+For this project, you can use a Personal Access Token (PAT) directly in the push command. This approach is useful for automated scripts or when configuring CI/CD pipelines that need to push changes. The token should be treated as a secret and never committed to the repository.
+
+```bash
+# Push with PAT embedded in URL
+git push https://[PAT]@github.com/username/repository.git main
+```
+
+**Pull Request Workflow**
+
+For significant changes, create a pull request rather than pushing directly to main. Pull requests enable code review, discussion, and automated testing before changes are merged into the main branch.
+
+1. Push your feature branch to the remote repository
+2. Navigate to the repository on GitHub
+3. Click "New Pull Request"
+4. Select your feature branch as the source
+5. Add a descriptive title and detailed description
+6. Request review from relevant team members
+7. Address review feedback and make additional commits if needed
+8. Merge the pull request once approved
+
+### Repository Exclusions
+
+The following directories and files are excluded from git tracking and should not be committed to the repository. These exclusions prevent accidental commits of sensitive data, temporary files, and development artifacts that have no place in the version-controlled codebase.
+
+| Item | Type | Reason |
+|------|------|--------|
+| `browser/` | Directory | Browser automation files and test artifacts |
+| `tmp/` | Directory | Temporary working directory for intermediate files |
+| `workspace.json` | File | Local workspace configuration |
+| `user_input_files/` | Directory | User-provided input files |
+
+These exclusions are configured in the `.gitignore` file to prevent accidental commits of sensitive or temporary data. The .gitignore file uses glob patterns to match files and directories that should be excluded from version control.
+
+**.gitignore Configuration**
+
+```gitignore
+# Browser automation files
+browser/
+
+# Temporary working directory
+tmp/
+
+# Workspace configuration (local only)
+workspace.json
+
+# User input files directory
+user_input_files/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Node.js artifacts
+node_modules/
+npm-debug.log
+
+# IDE configuration
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+```
+
+---
+
+## 25. Development Workflow
+
+### Setting Up Development Environment
+
+Follow these steps to set up a complete development environment for the Jeseci Smart Learning Academy project. This setup process prepares both the backend and frontend components for local development, testing, and debugging.
+
+1. **Clone the Repository**
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/jeseci-learning-academy.git
+cd jeseci-learning-academy
+```
+
+2. **Install Backend Dependencies**
+
+```bash
+# Navigate to backend directory
+cd backend
+
+# Create virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install Python dependencies
+pip install -r requirements.txt
+```
+
+3. **Install Frontend Dependencies**
+
+```bash
+# Navigate to frontend directory
+cd ../frontend
+
+# Install Node.js dependencies
+npm install
+```
+
+4. **Configure Database Connections**
+
+Create a `.env` file in the backend directory with your database configuration:
+
+```env
+# PostgreSQL Configuration
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=jeseci_learning_academy
+POSTGRES_USER=your_username
+POSTGRES_PASSWORD=your_password
+
+# Neo4j Configuration
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_password
+
+# Application Configuration
+JWT_SECRET=your-jwt-secret-key
+OPENAI_API_KEY=your-openai-api-key
+```
+
+5. **Initialize Database Schemas**
+
+```bash
+cd backend
+python -m database.initialize_database
+```
+
+### Running the Application
+
+**Backend Server**
+
+```bash
+cd backend
+jac run app.jac
+```
+
+The backend server will start on port 8000 by default. You can access the API documentation at `http://localhost:8000/docs` when the server is running.
+
+**Frontend Development Server**
+
+```bash
+cd frontend
+npm start
+```
+
+The frontend development server will start on port 3000 and open automatically in your default browser. The server supports hot reloading, automatically refreshing the browser when you save changes.
+
+### Testing
+
+The project includes comprehensive test coverage for both backend and frontend components. Running tests regularly helps catch regressions and ensures that new changes don't break existing functionality.
+
+**Backend Tests**
+
+```bash
+cd backend
+python -m pytest tests/
+```
+
+**Frontend Tests**
+
+```bash
+cd frontend
+npm test
+```
+
+### Code Review
+
+Before merging changes, ensure they meet the project's quality standards. Code review is a collaborative process that improves code quality, shares knowledge among team members, and maintains consistency across the codebase.
+
+**Pre-merge Checklist**
+
+- All tests pass locally and in CI
+- Code follows project conventions and style guidelines
+- Commit messages are descriptive and follow the standard format
+- Changes are properly documented with comments
+- No sensitive data or secrets are included
+- Relevant documentation is updated
+
+---
+
+## Document Information
+
+| Property | Value |
+|----------|-------|
+| **Last Updated** | 2026-01-04 |
+| **Author** | OumaCavin |
+| **Version** | 1.5 |
+| **Status** | Active |
+| **Changes** | Added comprehensive Database Module Guide and Git Workflow Standards documentation |
+
+---
+
+*This documentation is maintained as part of the Jeseci Smart Learning Academy project. For updates or corrections, please submit a pull request or contact the development team.*
