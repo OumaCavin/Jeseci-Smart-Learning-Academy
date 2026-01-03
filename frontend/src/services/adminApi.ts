@@ -620,6 +620,18 @@ class AdminApiService {
   }
 }
 
-// Create instance
-const adminApiService = new AdminApiService('http://localhost:8000');
+// Create instance with dynamic API URL for production
+const ADMIN_API_BASE_URL = (() => {
+  const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
+  
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:8000';
+  }
+  
+  // For production, use same origin (assumes reverse proxy)
+  return `${protocol}//${hostname}`;
+})();
+
+const adminApiService = new AdminApiService(ADMIN_API_BASE_URL);
 export default adminApiService;

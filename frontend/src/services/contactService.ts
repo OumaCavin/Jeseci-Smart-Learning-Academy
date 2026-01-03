@@ -4,6 +4,20 @@
  * and fallback to local storage for demo purposes
  */
 
+// Dynamic API endpoint configuration for production-ready deployment
+function getContactApiBaseUrl(): string {
+  const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
+  
+  // Use localhost for local development
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:8000';
+  }
+  
+  // For production, use same origin (assumes reverse proxy)
+  return `${protocol}//${hostname}`;
+}
+
 interface ContactFormData {
   name: string;
   email: string;
@@ -24,7 +38,7 @@ interface ContactSubmissionResponse {
 }
 
 class ContactService {
-  private readonly API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://api.jeseci.com';
+  private readonly API_BASE = import.meta.env.VITE_API_BASE_URL || getContactApiBaseUrl();
   private readonly FALLBACK_MODE = import.meta.env.VITE_CONTACT_FALLBACK_MODE === 'true';
   private readonly DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 

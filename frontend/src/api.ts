@@ -3,7 +3,22 @@
  * Handles all HTTP requests to the Jaclang REST API
  */
 
-const API_BASE_URL = 'http://localhost:8000';
+// Dynamic API endpoint configuration for production-ready deployment
+function getApiBaseUrl(): string {
+  const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
+  
+  // Use localhost for local development
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:8000';
+  }
+  
+  // For production deployments, use the same origin
+  // This assumes the backend runs on the same domain (e.g., via reverse proxy)
+  return `${protocol}//${hostname}`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export interface User {
   user_id: string;
