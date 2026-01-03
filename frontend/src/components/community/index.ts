@@ -11,7 +11,7 @@ export { default as ConnectionRequestModal } from './ConnectionRequestModal';
 // Forum Components
 export { default as ForumList } from './Forum/ForumList';
 export { default as ThreadList } from './Forum/ThreadList';
-export { default as ThreadDetail } from './Forum/ThreadDetail';
+export { type default as ThreadDetail } from './Forum/ThreadDetail';
 export { default as PostCard } from './Forum/PostCard';
 export { default as CreateThreadModal } from './Forum/CreateThreadModal';
 export { default as CreatePostModal } from './Forum/CreatePostModal';

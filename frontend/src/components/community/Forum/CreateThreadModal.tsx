@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { X, Loader } from 'lucide-react';
-import { Forum, createThread } from '../../services/collaborationService';
+import { Forum, createThread } from '../../../services/collaborationService';
 
 interface CreateThreadModalProps {
   forums: Forum[];

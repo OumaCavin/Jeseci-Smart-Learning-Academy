@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { Bell } from 'lucide-react';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 interface NotificationBellProps {
   className?: string;

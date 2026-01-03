@@ -18,9 +18,9 @@ import {
   Flame,
   Bot
 } from 'lucide-react';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { NotificationItem } from './NotificationItem';
-import { NotificationType, NOTIFICATION_TYPE_CONFIG } from '../services/notificationService';
+import { NotificationType, NOTIFICATION_TYPE_CONFIG } from '../../services/notificationService';
 import { Link } from 'react-router-dom';
 
 type FilterTab = 'all' | 'unread' | NotificationType;
@@ -58,7 +58,7 @@ export const NotificationCenter: React.FC = () => {
 
   // Fetch notifications based on active filter
   useEffect(() => {
-    const options = {
+    const options: { limit: number; filterType: '' | NotificationType; unreadOnly: boolean } = {
       limit: 50,
       filterType: (activeTab === 'all' || activeTab === 'unread') ? '' : activeTab as NotificationType,
       unreadOnly: activeTab === 'unread',

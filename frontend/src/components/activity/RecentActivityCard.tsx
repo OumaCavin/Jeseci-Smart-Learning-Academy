@@ -84,10 +84,13 @@ const RecentActivityCard: React.FC<RecentActivityCardProps> = ({
           description: activity.description || 'You earned a badge',
         };
       default:
-        return {
-          title: activity.type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-          description: activity.description || 'You performed an activity',
-        };
+        {
+          const activityType = activity.type as string;
+          return {
+            title: activityType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+            description: activity.description || 'You performed an activity',
+          };
+        }
     }
   };
 

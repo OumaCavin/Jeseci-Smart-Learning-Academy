@@ -16,8 +16,8 @@ import {
   Loader,
   Check
 } from 'lucide-react';
-import { useNotifications } from '../contexts/NotificationContext';
-import { NotificationType } from '../services/notificationService';
+import { useNotifications } from '../../contexts/NotificationContext';
+import { NotificationType } from '../../services/notificationService';
 
 const NOTIFICATION_TYPES: { id: NotificationType; label: string; description: string; icon: React.ReactNode }[] = [
   {

@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, MessageSquare, Eye, Clock, Lock, Pin, Loader } from 'lucide-react';
-import { getThread, createPost, likeForumPost, ThreadDetail, ForumPost } from '../../services/collaborationService';
+import { getThread, createPost, likeForumPost, ForumPost, type ThreadDetail } from '../../../services/collaborationService';
 import PostCard from './PostCard';
 import CreatePostModal from './CreatePostModal';
 

@@ -94,6 +94,34 @@ export interface Concept {
   description?: string;
 }
 
+export interface PlatformStats {
+  total_users: number;
+  total_courses: number;
+  total_lessons: number;
+  active_learners_today: number;
+}
+
+export interface PlatformStatsResponse {
+  success: boolean;
+  stats?: PlatformStats;
+  error?: string;
+}
+
+export interface Testimonial {
+  id: string;
+  name: string;
+  role: string;
+  content: string;
+  avatar_url?: string;
+  rating: number;
+}
+
+export interface TestimonialsResponse {
+  success: boolean;
+  testimonials: Testimonial[];
+  error?: string;
+}
+
 export interface Quiz {
   id: string;
   title: string;
@@ -493,6 +521,24 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify({
         format: format
+      }),
+    });
+  }
+
+  // Platform Stats
+  async getPlatformStats(): Promise<PlatformStatsResponse> {
+    return this.makeRequest('/walker/platform_stats', {
+      method: 'GET',
+    });
+  }
+
+  // Testimonials
+  async getTestimonials(limit: number = 6, featuredOnly: boolean = false): Promise<TestimonialsResponse> {
+    return this.makeRequest('/walker/testimonials', {
+      method: 'POST',
+      body: JSON.stringify({
+        limit,
+        featured_only: featuredOnly
       }),
     });
   }

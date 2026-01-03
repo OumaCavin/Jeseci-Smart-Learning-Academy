@@ -80,6 +80,11 @@ export interface LogActivityResponse {
   error?: string;
 }
 
+// Activity filter type
+export interface ActivityFilter {
+  activityType?: ActivityType | '';
+}
+
 // Activity type configuration
 export const ACTIVITY_TYPE_CONFIG: Record<ActivityType, { icon: string; color: string; label: string }> = {
   LESSON_COMPLETED: { icon: 'book-open', color: 'blue', label: 'Lesson Completed' },

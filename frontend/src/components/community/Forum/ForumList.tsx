@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { MessageCircle, Plus, Eye, MessageSquare } from 'lucide-react';
-import { Forum } from '../../services/collaborationService';
+import { Forum } from '../../../services/collaborationService';
 
 interface ForumListProps {
   forums: Forum[];

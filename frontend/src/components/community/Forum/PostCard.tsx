@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { Heart, MessageSquare, Check, Clock, MoreHorizontal } from 'lucide-react';
-import { ForumPost } from '../../services/collaborationService';
+import { ForumPost } from '../../../services/collaborationService';
 import { formatDistanceToNow } from 'date-fns';
 
 interface PostCardProps {
