@@ -133,18 +133,50 @@ Be conversational, helpful, and educational. Always prioritize clarity and accur
     } catch (error: any) {
       console.error('OpenAI API Error:', error);
       
-      // Return a helpful fallback response
+      // Check if API key is missing
+      if (!this.apiKey) {
+        return {
+          content: `I'm currently operating in offline mode without AI capabilities. However, I can still help you with Jac Language and Object-Spatial Programming using my built-in knowledge!
+
+**Quick Reference - Jac Language Fundamentals:**
+
+• **Walkers**: Mobile computation entities that traverse graphs, moving between nodes and edges to perform operations
+• **Nodes**: Stateful entities that hold data in OSP - the building blocks of your graph structure
+• **Edges**: Typed relationships between nodes that define connections and can carry their own properties
+• **Object-Spatial Programming (OSP)**: A paradigm where computation moves TO the data instead of bringing data to computation
+• **Semantic Strings**: Text with explicit semantic context that helps AI models understand meaning
+• **Scale-Agnostic**: Code that works identically from single-user apps to distributed systems
+
+**Want to learn more? Try asking me about:**
+- "Explain walkers in detail"
+- "Show me node code examples"
+- "What are edges used for?"
+- "How does OSP work?"
+- "Jac syntax basics"
+
+**To enable full AI capabilities:**
+Add your OpenAI API key to the .env file as VITE_OPENAI_API_KEY for personalized, AI-powered responses!`,
+          confidence: 0.5,
+          suggestedActions: ['Explain walkers', 'Show node examples', 'What is OSP?', 'Jac syntax basics', 'Add API key']
+        };
+      }
+      
+      // Return a helpful fallback response for network errors
       return {
-        content: `I'm currently experiencing technical difficulties connecting to my AI capabilities. However, I can still help you with basic Jac Language concepts:
+        content: `I'm experiencing connectivity issues with the AI service at the moment. But don't worry - I can still help you learn Jac Language!
+
+**Jac Language Core Concepts:**
 
 • **Walkers**: Mobile computation entities that traverse graphs
-• **Nodes**: Stateful entities that hold data in OSP
+• **Nodes**: Stateful entities that hold data in OSP  
 • **Edges**: Typed relationships between nodes
 • **Object-Spatial Programming**: Bringing computation to data instead of data to computation
 
-Please try again in a moment, or feel free to ask about any of these fundamental concepts!`,
-        confidence: 0.3,
-        suggestedActions: ['Explain walkers', 'What is OSP?', 'Show syntax', 'Try again']
+**Available keyword topics:** walker, node, edge, osp, semantic, syntax, functions, collections, pattern_matching, scale_agnostic
+
+Just ask me about any of these topics, and I'll provide detailed explanations with code examples!`,
+        confidence: 0.4,
+        suggestedActions: ['Explain walkers', 'What is OSP?', 'Show syntax', 'Try again', 'Help topics']
       };
     }
   }
