@@ -22,6 +22,7 @@ import admin_ai_store as ai_store;
 import admin_analytics_store as analytics_store;
 import content_views_store as content_views_module;
 import notification_store as notification_module;
+import activity_store as activity_module;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -2140,6 +2141,285 @@ def send_verification_email(email: str, username: str, verification_token: str) 
 
 def send_welcome_email(email: str, username: str) -> dict {
     result = email_verification_module.send_welcome_email_sync(email, username);
+    report result;
+}
+
+# ==============================================================================
+# User Activity / Recent Activity Endpoints
+# ==============================================================================
+
+walker log_activity {
+    has user_id: str = "";
+    has activity_type: str;
+    has title: str;
+    has description: str = "";
+    has metadata: dict;
+    has xp_earned: int = 0;
+    
+    can log_activity with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        if not self.activity_type {
+            report {
+                "success": False,
+                "error": "Activity type is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        if not self.title {
+            report {
+                "success": False,
+                "error": "Title is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = activity_module.log_activity(
+                self.user_id,
+                self.activity_type,
+                self.title,
+                self.description if self.description else None,
+                self.metadata if self.metadata else {},
+                self.xp_earned if self.xp_earned > 0 else None
+            );
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "activity": result['activity'],
+                    "message": "Activity logged successfully"
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to log activity'),
+                    "code": "DATABASE_ERROR"
+                };
+            }
+        } except error {
+            std.out("Log activity error:", error);
+            report {
+                "success": False,
+                "error": "Failed to log activity",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker get_user_activities {
+    has user_id: str = "";
+    has limit: int = 20;
+    has offset: int = 0;
+    has activity_type: str = "";
+    has start_date: str = "";
+    has end_date: str = "";
+    
+    can get_user_activities with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = activity_module.get_user_activities(
+                self.user_id,
+                self.limit,
+                self.offset,
+                self.activity_type if self.activity_type else None,
+                self.start_date if self.start_date else None,
+                self.end_date if self.end_date else None
+            );
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "activities": result['activities'],
+                    "total_count": result['total_count'],
+                    "has_more": result['has_more']
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to fetch activities'),
+                    "code": "DATABASE_ERROR"
+                };
+            }
+        } except error {
+            std.out("Get user activities error:", error);
+            report {
+                "success": False,
+                "error": "Failed to fetch activities",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker get_activity_summary {
+    has user_id: str = "";
+    has timeframe: str = "week";
+    
+    can get_activity_summary with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        if self.timeframe not in ["day", "week", "month", "all"] {
+            report {
+                "success": False,
+                "error": "Invalid timeframe. Must be: day, week, month, or all",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = activity_module.get_activity_summary(self.user_id, self.timeframe);
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "summary": result['summary']
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to fetch activity summary'),
+                    "code": "DATABASE_ERROR"
+                };
+            }
+        } except error {
+            std.out("Get activity summary error:", error);
+            report {
+                "success": False,
+                "error": "Failed to fetch activity summary",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker get_activity_streak {
+    has user_id: str = "";
+    
+    can get_activity_streak with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = activity_module.get_activity_streak(self.user_id);
+            
+            if result['success'] {
+                report {
+                    "success": True,
+                    "streak": result['streak']
+                };
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Failed to fetch activity streak'),
+                    "code": "DATABASE_ERROR"
+                };
+            }
+        } except error {
+            std.out("Get activity streak error:", error);
+            report {
+                "success": False,
+                "error": "Failed to fetch activity streak",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+walker delete_user_activities {
+    has user_id: str = "";
+    has older_than_days: int = 365;
+    
+    can delete_user_activities with entry {
+        if not self.user_id {
+            report {
+                "success": False,
+                "error": "User ID is required",
+                "code": "VALIDATION_ERROR"
+            };
+            return;
+        }
+        
+        try {
+            result = activity_module.delete_user_activities(self.user_id, self.older_than_days);
+            report {
+                "success": result['success'],
+                "deleted_count": result.get('deleted_count', 0),
+                "message": result.get('message', 'Activities deleted')
+            };
+        } except error {
+            std.out("Delete user activities error:", error);
+            report {
+                "success": False,
+                "error": "Failed to delete activities",
+                "code": "INTERNAL_ERROR"
+            };
+        }
+    }
+}
+
+# Helper functions for common activity logging
+
+def log_lesson_completed(user_id: str, lesson_name: str, lesson_id: str, course_name: str = "", course_id: str = "") -> dict {
+    result = activity_module.log_lesson_completed(user_id, lesson_name, lesson_id, course_name, course_id);
+    report result;
+}
+
+def log_course_started(user_id: str, course_name: str, course_id: str) -> dict {
+    result = activity_module.log_course_started(user_id, course_name, course_id);
+    report result;
+}
+
+def log_quiz_passed(user_id: str, quiz_name: str, quiz_id: str, score: int, passing_score: int = 70) -> dict {
+    result = activity_module.log_quiz_passed(user_id, quiz_name, quiz_id, score, passing_score);
+    report result;
+}
+
+def log_achievement_earned(user_id: str, achievement_name: str, achievement_id: str, badge_icon: str = "") -> dict {
+    result = activity_module.log_achievement_earned(user_id, achievement_name, achievement_id, badge_icon);
+    report result;
+}
+
+def log_user_login(user_id: str) -> dict {
+    result = activity_module.log_login(user_id);
+    report result;
+}
+
+def log_content_viewed(user_id: str, content_name: str, content_id: str, content_type: str) -> dict {
+    result = activity_module.log_content_viewed(user_id, content_name, content_id, content_type);
     report result;
 }
 

@@ -7,6 +7,7 @@ import { NotificationProvider, useNotifications } from './contexts/NotificationC
 import { AdminLayout, DashboardOverview, UserManagement, ContentManager, QuizManager, AILab, AnalyticsReports } from './admin';
 import LandingPageWithNavigation, { HelpCenterPage, ContactPage, PrivacyPage, TermsPage } from './components/LandingPage';
 import { NotificationBell, NotificationDropdown, NotificationCenter, NotificationSettings } from './components/notifications';
+import { RecentActivityFeed } from './components/activity';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -944,18 +945,15 @@ const AppContent: React.FC = () => {
               </div>
             </div>
 
-            {userProgress?.recent_activity && userProgress?.recent_activity.length > 0 && (
-              <div className="recent-activity-section">
-                <h3>Recent Activity</h3>
-                {userProgress?.recent_activity.slice(0, 5).map((activity) => (
-                  <div key={activity.session_id} className="activity-item">
-                    <span className="activity-course">{activity.course_title}</span>
-                    <span className="activity-status">{activity.status}</span>
-                    <span className="activity-progress">{activity.progress}%</span>
-                  </div>
-                )) || []}
-              </div>
-            )}
+            <div className="recent-activity-section">
+              <h3>Recent Activity</h3>
+              <RecentActivityFeed 
+                limit={5}
+                compact={true}
+                showHeader={false}
+                showLoadMore={false}
+              />
+            </div>
 
             {achievements.length > 0 && (
               <div className="achievements-preview">
