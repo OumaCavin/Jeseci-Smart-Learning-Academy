@@ -1,9 +1,12 @@
 /**
  * Admin Context - Provides admin authentication state and methods
+ * Includes automatic session timeout after 3 minutes of inactivity
  */
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { apiService, User } from '../services/api';
+import { useSessionTimeout } from '../hooks/useSessionTimeout';
+import SessionTimeoutModal from '../components/SessionTimeoutModal';
 
 interface AdminContextType {
   isAdminAuthenticated: boolean;
@@ -12,6 +15,8 @@ interface AdminContextType {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   refreshAdminData: () => Promise<void>;
+  showSessionWarning: boolean;
+  sessionTimeRemaining: number;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -23,6 +28,37 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
   const [adminUser, setAdminUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Session timeout state
+  const [showSessionWarning, setShowSessionWarning] = useState(false);
+  const [sessionTimeRemaining, setSessionTimeRemaining] = useState(0);
+
+  // Handle logout from session timeout
+  const handleSessionTimeout = useCallback(() => {
+    console.log('Admin session timeout - logging out admin');
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    localStorage.removeItem(ADMIN_USER_KEY);
+    setAdminUser(null);
+    setIsAdminAuthenticated(false);
+    setShowSessionWarning(false);
+  }, []);
+
+  // Initialize session timeout when authenticated
+  const {
+    logout: sessionLogout,
+    resetSession,
+    warningTimeRemaining,
+    showWarning,
+    formatTime
+  } = useSessionTimeout(handleSessionTimeout);
+
+  // Update session warning state
+  useEffect(() => {
+    setShowSessionWarning(showWarning);
+    if (showWarning) {
+      setSessionTimeRemaining(Math.ceil(warningTimeRemaining / 1000));
+    }
+  }, [showWarning, warningTimeRemaining]);
 
   useEffect(() => {
     const initAdminAuth = async () => {
@@ -70,6 +106,9 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
           setAdminUser(userData);
           setIsAdminAuthenticated(true);
+
+          // Reset session timeout on admin login
+          resetSession();
         } else {
           throw new Error('Access denied. Admin privileges required.');
         }
@@ -86,6 +125,10 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     localStorage.removeItem(ADMIN_USER_KEY);
     setAdminUser(null);
     setIsAdminAuthenticated(false);
+    setShowSessionWarning(false);
+
+    // Clean up session timeout
+    sessionLogout();
   };
 
   const refreshAdminData = async () => {
@@ -113,10 +156,21 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         loading,
         login,
         logout,
-        refreshAdminData
+        refreshAdminData,
+        showSessionWarning,
+        sessionTimeRemaining
       }}
     >
       {children}
+      {/* Session Timeout Modal - Only show when authenticated and warning is active */}
+      {isAdminAuthenticated && showSessionWarning && (
+        <SessionTimeoutModal
+          show={showSessionWarning}
+          remainingSeconds={sessionTimeRemaining}
+          onStayLoggedIn={resetSession}
+          formatTime={formatTime}
+        />
+      )}
     </AdminContext.Provider>
   );
 };
