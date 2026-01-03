@@ -1145,8 +1145,79 @@ const LandingPage: React.FC<LandingPageProps> = ({ onShowLogin, onShowRegister, 
     }
   ];
 
-  const stats = [
-    { number: "10,000+", label: "Students Learning" },
+  // Dynamic platform statistics
+  const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState(false);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStatsLoading(true);
+        const response = await apiService.getPlatformStats();
+        if (response.success && response.stats) {
+          setPlatformStats(response);
+          setStatsError(false);
+        } else {
+          setStatsError(true);
+        }
+      } catch (error) {
+        console.error('Error fetching platform stats:', error);
+        setStatsError(true);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  // Format number with K/M suffix for large numbers
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K+';
+    }
+    return num.toString() + '+';
+  };
+
+  // Dynamic testimonials
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonialsLoading, setTestimonialsLoading] = useState(true);
+  const [testimonialsError, setTestimonialsError] = useState(false);
+
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        setTestimonialsLoading(true);
+        const response: TestimonialsResponse = await apiService.getTestimonials(6, false);
+        if (response.success && response.testimonials) {
+          setTestimonials(response.testimonials);
+          setTestimonialsError(false);
+        } else {
+          setTestimonialsError(true);
+        }
+      } catch (error) {
+        console.error('Error fetching testimonials:', error);
+        setTestimonialsError(true);
+      } finally {
+        setTestimonialsLoading(false);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
+
+  // Fallback stats when API fails
+  const displayStats = platformStats?.stats ? [
+    { number: formatNumber(platformStats.stats.students_count), label: "Students Learning" },
+    { number: formatNumber(platformStats.stats.concepts_count) + "+", label: "Learning Concepts" },
+    { number: formatNumber(platformStats.stats.courses_count) + "+", label: "Expert Courses" },
+    { number: platformStats.stats.success_rate + "%", label: "Success Rate" }
+  ] : [
+    { number: "1,000+", label: "Students Learning" },
     { number: "500+", label: "Learning Concepts" },
     { number: "50+", label: "Expert Courses" },
     { number: "95%", label: "Success Rate" }
@@ -1229,7 +1300,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onShowLogin, onShowRegister, 
       <section className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
+            {displayStats.map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                   {stat.number}
@@ -1331,39 +1402,74 @@ const LandingPage: React.FC<LandingPageProps> = ({ onShowLogin, onShowRegister, 
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Sarah Chen",
-                role: "Software Developer",
-                content: "The AI-powered content generation helped me learn complex concepts faster than any traditional course.",
-                rating: 5
-              },
-              {
-                name: "Marcus Johnson",
-                role: "Data Scientist",
-                content: "The personalized learning paths adapted perfectly to my skill level and learning style.",
-                rating: 5
-              },
-              {
-                name: "Emily Rodriguez",
-                role: "Student",
-                content: "I love the achievement system - it keeps me motivated to complete my learning goals.",
-                rating: 5
-              }
-            ].map((testimonial, index) => (
-              <div key={index} className="bg-white p-8 rounded-2xl shadow-lg">
-                <div className="flex items-center mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
+            {testimonialsLoading ? (
+              // Skeleton loading cards
+              Array.from({ length: 3 }).map((_, index) => (
+                <div key={`skeleton-${index}`} className="bg-white p-8 rounded-2xl shadow-lg animate-pulse">
+                  <div className="flex items-center mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="w-5 h-5 bg-gray-200 rounded mr-1"></div>
+                    ))}
+                  </div>
+                  <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                  <div className="h-3 bg-gray-200 rounded w-3/4 mb-6"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-1"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/3"></div>
                 </div>
-                <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
-                <div>
-                  <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                  <div className="text-sm text-gray-500">{testimonial.role}</div>
+              ))
+            ) : testimonialsError ? (
+              // Error state - show fallback testimonials
+              [
+                {
+                  name: "Sarah Chen",
+                  role: "Software Developer",
+                  content: "The AI-powered content generation helped me learn complex concepts faster than any traditional course.",
+                  rating: 5
+                },
+                {
+                  name: "Marcus Johnson",
+                  role: "Data Scientist",
+                  content: "The personalized learning paths adapted perfectly to my skill level and learning style.",
+                  rating: 5
+                },
+                {
+                  name: "Emily Rodriguez",
+                  role: "Student",
+                  content: "I love the achievement system - it keeps me motivated to complete my learning goals.",
+                  rating: 5
+                }
+              ].map((testimonial, index) => (
+                <div key={`fallback-${index}`} className="bg-white p-8 rounded-2xl shadow-lg">
+                  <div className="flex items-center mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
+                  <div>
+                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                    <div className="text-sm text-gray-500">{testimonial.role}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              // Dynamic testimonials from API
+              testimonials.map((testimonial, index) => (
+                <div key={testimonial.id || index} className="bg-white p-8 rounded-2xl shadow-lg">
+                  <div className="flex items-center mb-4">
+                    {[...Array(Math.min(testimonial.rating, 5))].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
+                  <div>
+                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                    <div className="text-sm text-gray-500">{testimonial.role}</div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
