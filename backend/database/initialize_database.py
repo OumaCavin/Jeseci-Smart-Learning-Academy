@@ -1867,6 +1867,82 @@ def create_collaboration_tables(cursor):
     logger.info("✓ Peer review tables created: peer_review_submissions, peer_review_assignments, peer_review_feedback")
 
 
+def create_code_snippets_tables(cursor):
+    """Create code snippets and execution history tables"""
+    logger.info("Creating code snippets tables...")
+    
+    # Code folders table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.code_folders (
+            id VARCHAR(64) PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            name VARCHAR(200) NOT NULL,
+            description TEXT,
+            parent_folder_id VARCHAR(64) REFERENCES {DB_SCHEMA}.code_folders(id) ON DELETE SET NULL,
+            color VARCHAR(20) DEFAULT '#3b82f6',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Code snippets table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.code_snippets (
+            id VARCHAR(64) PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            title VARCHAR(200) NOT NULL,
+            code_content TEXT NOT NULL,
+            language VARCHAR(50) DEFAULT 'jac',
+            description TEXT,
+            is_public BOOLEAN DEFAULT FALSE,
+            folder_id VARCHAR(64) REFERENCES {DB_SCHEMA}.code_folders(id) ON DELETE SET NULL,
+            execution_count INTEGER DEFAULT 0,
+            last_executed_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Execution history table
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.execution_history (
+            id VARCHAR(64) PRIMARY KEY,
+            snippet_id VARCHAR(64) REFERENCES {DB_SCHEMA}.code_snippets(id) ON DELETE SET NULL,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            code_content TEXT NOT NULL,
+            status VARCHAR(20) NOT NULL CHECK (status IN ('success', 'error', 'timeout', 'memory_exceeded')),
+            output TEXT,
+            error_message TEXT,
+            execution_time_ms INTEGER DEFAULT 0,
+            entry_point VARCHAR(100) DEFAULT 'init',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Create indexes
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_code_snippets_user 
+        ON {DB_SCHEMA}.code_snippets(user_id)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_code_snippets_folder 
+        ON {DB_SCHEMA}.code_snippets(folder_id)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_execution_history_user 
+        ON {DB_SCHEMA}.execution_history(user_id, created_at DESC)
+    """)
+    
+    cursor.execute(f"""
+        CREATE INDEX IF NOT EXISTS idx_{DB_SCHEMA}_execution_history_snippet 
+        ON {DB_SCHEMA}.execution_history(snippet_id, created_at DESC)
+    """)
+    
+    logger.info("✓ Code snippets tables created: code_folders, code_snippets, execution_history")
+
+
 def create_indexes(cursor):
     """Create database indexes for performance"""
     logger.info("Creating database indexes...")
@@ -1953,6 +2029,7 @@ def initialize_database():
         create_platform_stats_table(cursor)
         create_user_activities_table(cursor)
         create_collaboration_tables(cursor)
+        create_code_snippets_tables(cursor)
         create_indexes(cursor)
         
         conn.commit()
