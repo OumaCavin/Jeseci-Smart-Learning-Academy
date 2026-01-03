@@ -19,6 +19,10 @@ from neo4j import GraphDatabase
 # Import centralized logging configuration
 from logger_config import logger
 
+# Database schema configuration
+DB_SCHEMA = os.getenv("DB_SCHEMA", "jeseci_academy")
+
+
 class DatabaseConfig:
     """Database configuration holder"""
     
@@ -359,6 +363,15 @@ class DualWriteManager:
 postgres_manager = PostgresConnectionManager()
 neo4j_manager = Neo4jConnectionManager()
 dual_write_manager = DualWriteManager()
+
+
+def get_db_connection():
+    """Get a PostgreSQL database connection from the pool
+    
+    Returns a connection object that can be used for database operations.
+    Caller must return the connection to the pool after use.
+    """
+    return postgres_manager.get_connection()
 
 
 def get_postgres_manager():
