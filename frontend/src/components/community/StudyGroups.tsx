@@ -346,7 +346,10 @@ export const StudyGroupGoals: React.FC<StudyGroupGoalsProps> = ({ groupId }) => 
     if (!newGoal.title.trim()) return;
 
     try {
-      await advancedCollaborationService.createGroupGoal(groupId, newGoal.title, newGoal.description, newGoal.targetDate);
+      await advancedCollaborationService.createGroupGoal(groupId, newGoal.title, {
+        description: newGoal.description,
+        targetCompletionDate: newGoal.targetDate
+      });
       setShowForm(false);
       setNewGoal({ title: '', description: '', targetDate: '' });
       loadGoals();

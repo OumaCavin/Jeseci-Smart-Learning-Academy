@@ -24,49 +24,22 @@ import {
   Users,
   Info
 } from 'lucide-react';
-import advancedCollaborationService from '../../services/advancedCollaborationService';
+import advancedCollaborationService, {
+  ModerationReport as ServiceModerationReport,
+  ModerationAction as ServiceModerationAction,
+  ModerationStats as ServiceModerationStats,
+  ModerationQueueItem
+} from '../../services/advancedCollaborationService';
 
-// Type definitions
-interface ModerationReport {
-  id: number;
-  reporterId: number;
-  reporterUsername: string;
-  contentType: string;
-  contentId: number;
-  contentAuthorId: number;
-  contentAuthorUsername: string;
-  reason: string;
-  description: string;
-  status: 'pending' | 'reviewed' | 'resolved' | 'dismissed';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ModerationAction {
-  id: number;
-  moderatorId: number;
-  moderatorUsername: string;
-  reportId: number;
-  actionType: string;
-  reason: string;
-  duration: number | null;
-  createdAt: string;
-}
+// Type definitions (using service types)
+interface ModerationReport extends ServiceModerationReport {}
+interface ModerationAction extends ServiceModerationAction {}
+interface ModerationStats extends ServiceModerationStats {}
 
 interface ModerationQueue {
   totalPending: number;
   highPriorityCount: number;
   recentActions: number;
-}
-
-interface ModerationStats {
-  totalReports: number;
-  pendingReports: number;
-  resolvedReports: number;
-  dismissedReports: number;
-  avgResolutionTime: number;
-  topReasons: Array<{ reason: string; count: number }>;
 }
 
 interface ReportedContent {
@@ -88,7 +61,7 @@ const Moderation: React.FC = () => {
   const [reports, setReports] = useState<ModerationReport[]>([]);
   const [actions, setActions] = useState<ModerationAction[]>([]);
   const [stats, setStats] = useState<ModerationStats | null>(null);
-  const [queue, setQueue] = useState<ModerationQueue | null>(null);
+  const [queue, setQueue] = useState<ModerationQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<ModerationReport | null>(null);
