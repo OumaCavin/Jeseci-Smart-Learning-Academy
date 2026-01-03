@@ -663,7 +663,7 @@ const Moderation: React.FC = () => {
                         <div
                           className="bg-blue-500 h-2 rounded-full transition-all"
                           style={{
-                            width: `${(item.count / stats.totalReports) * 100}%`
+                            width: `${(item.count / (stats as any).total_reports) * 100}%`
                           }}
                         />
                       </div>
@@ -678,19 +678,19 @@ const Moderation: React.FC = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-4">Resolution Metrics</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-blue-600">{stats.totalReports}</p>
+                  <p className="text-3xl font-bold text-blue-600">{(stats as any).total_reports || 0}</p>
                   <p className="text-sm text-gray-600 mt-1">Total Reports</p>
                 </div>
                 <div className="text-center">
                   <p className="text-3xl font-bold text-green-600">
-                    {stats.totalReports > 0
-                      ? Math.round((stats.resolvedReports / stats.totalReports) * 100)
+                    {(stats as any).total_reports > 0
+                      ? Math.round(((stats as any).resolved_reports || 0) / (stats as any).total_reports * 100)
                       : 0}%
                   </p>
                   <p className="text-sm text-gray-600 mt-1">Resolution Rate</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-purple-600">{stats.avgResolutionTime}h</p>
+                  <p className="text-3xl font-bold text-purple-600">{(stats as any).avg_resolution_time || 0}h</p>
                   <p className="text-sm text-gray-600 mt-1">Avg Resolution Time</p>
                 </div>
               </div>
