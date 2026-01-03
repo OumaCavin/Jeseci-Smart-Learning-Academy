@@ -948,7 +948,7 @@ def create_notification_tables(cursor):
     cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.notifications (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            user_id UUID NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            user_id INTEGER NOT NULL REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
             type VARCHAR(50) NOT NULL CHECK (type IN (
                 'ACHIEVEMENT',
                 'COURSE_MILESTONE',
@@ -972,7 +972,7 @@ def create_notification_tables(cursor):
     # Notification preferences table
     cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.notification_preferences (
-            user_id UUID PRIMARY KEY REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
+            user_id INTEGER PRIMARY KEY REFERENCES {DB_SCHEMA}.users(id) ON DELETE CASCADE,
             email_enabled BOOLEAN DEFAULT TRUE,
             push_enabled BOOLEAN DEFAULT TRUE,
             types_config JSONB DEFAULT '{{

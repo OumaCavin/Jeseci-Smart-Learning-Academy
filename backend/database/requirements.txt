@@ -1,5 +1,5 @@
 # =============================================================================
-# Database Dependencies for Jeseci Smart Learning Companion
+# Database Dependencies for Jeseci Smart Learning Academy
 # =============================================================================
 # Required packages for PostgreSQL and Neo4j database connectivity
 # =============================================================================

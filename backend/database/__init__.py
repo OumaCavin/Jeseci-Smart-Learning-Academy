@@ -1,5 +1,5 @@
 """
-Database Connection Manager for Jeseci Smart Learning Companion
+Database Connection Manager for Jeseci Smart Learning Academy
 
 This module provides database connection utilities for PostgreSQL and Neo4j.
 It handles connection pooling, session management, and provides clean

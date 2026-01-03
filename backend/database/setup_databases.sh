@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# Database Setup Script for Jeseci Smart Learning Companion
+# Database Setup Script for Jeseci Smart Learning Academy
 # =============================================================================
 # This script sets up PostgreSQL and Neo4j databases for the application.
 # Author: Cavin Otieno
@@ -45,7 +45,7 @@ print_step() {
 }
 
 print_header() {
-    printf "\n${BLUE}DATABASE SETUP FOR JESECI SMART LEARNING COMPANION${NC}\n\n"
+    printf "\n${BLUE}DATABASE SETUP FOR JESECI SMART LEARNING ACADEMY${NC}\n\n"
 }
 
 print_header
