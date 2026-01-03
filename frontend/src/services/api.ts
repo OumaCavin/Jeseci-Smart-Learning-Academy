@@ -536,6 +536,22 @@ class ApiService {
     });
   }
 
+  // Chat Export
+  async exportChatToEmail(
+    email: string,
+    chatMessages: Array<{role: string; content: string; timestamp: string}>,
+    userName: string = "User"
+  ): Promise<any> {
+    return this.makeRequest('/walker/export_chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: email,
+        chat_messages: chatMessages,
+        user_name: userName
+      }),
+    });
+  }
+
   // Learning Sessions
   async startLearningSession(userId: string, moduleId: string): Promise<LearningSession> {
     return this.makeRequest('/walker/learning_session_start', {
