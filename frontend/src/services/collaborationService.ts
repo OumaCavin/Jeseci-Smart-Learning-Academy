@@ -5,7 +5,7 @@
  * including user connections, discussion forums, and content comments.
  */
 
-import { api } from '../api';
+import { apiService } from '../api';
 
 // ============================================================================
 // Types
@@ -132,7 +132,7 @@ export const sendConnectionRequest = async (targetUserId: number): Promise<{
   error?: string;
 }> => {
   try {
-    const response = await api.post('/walker/connection_create', {
+    const response = await apiService.post('/walker/connection_create', {
       target_user_id: targetUserId
     });
     return response.data;
@@ -158,7 +158,7 @@ export const respondToConnection = async (
   error?: string;
 }> => {
   try {
-    const response = await api.post('/walker/connection_respond', {
+    const response = await apiService.post('/walker/connection_respond', {
       connection_id: connectionId,
       action: action
     });
@@ -183,7 +183,7 @@ export const getConnections = async (
   total: number;
 }> => {
   try {
-    const response = await api.get('/walker/connections_list', {
+    const response = await apiService.get('/walker/connections_list', {
       params: { status }
     });
     return response.data;
@@ -206,7 +206,7 @@ export const getConnectionRequests = async (): Promise<{
   total: number;
 }> => {
   try {
-    const response = await api.get('/walker/connection_requests');
+    const response = await apiService.get('/walker/connection_requests');
     return response.data;
   } catch (error: any) {
     console.error('Error getting connection requests:', error);
@@ -227,7 +227,7 @@ export const removeConnection = async (connectionId: string): Promise<{
   error?: string;
 }> => {
   try {
-    const response = await api.post('/walker/connection_remove', {
+    const response = await apiService.post('/walker/connection_remove', {
       connection_id: connectionId
     });
     return response.data;
@@ -252,7 +252,7 @@ export const searchUsers = async (
   total: number;
 }> => {
   try {
-    const response = await api.get('/walker/users_search', {
+    const response = await apiService.get('/walker/users_search', {
       params: { query, limit }
     });
     return response.data;
@@ -279,7 +279,7 @@ export const getForums = async (): Promise<{
   total: number;
 }> => {
   try {
-    const response = await api.get('/walker/forums_list');
+    const response = await apiService.get('/walker/forums_list');
     return response.data;
   } catch (error: any) {
     console.error('Error getting forums:', error);
@@ -306,7 +306,7 @@ export const createThread = async (
   error?: string;
 }> => {
   try {
-    const response = await api.post('/walker/forum_thread_create', {
+    const response = await apiService.post('/walker/forum_thread_create', {
       forum_id: forumId,
       title: title,
       content: content
@@ -330,7 +330,7 @@ export const getThreads = async (
   limit: number = 20
 ): Promise<ThreadListResponse> => {
   try {
-    const response = await api.get('/walker/forum_threads', {
+    const response = await apiService.get('/walker/forum_threads', {
       params: { forum_id: forumId, page, limit }
     });
     return response.data;
@@ -349,7 +349,7 @@ export const getThreads = async (
  */
 export const getThread = async (threadId: string): Promise<ThreadResponse> => {
   try {
-    const response = await api.get('/walker/forum_thread', {
+    const response = await apiService.get('/walker/forum_thread', {
       params: { thread_id: threadId }
     });
     return response.data;
@@ -377,7 +377,7 @@ export const createPost = async (
   error?: string;
 }> => {
   try {
-    const response = await api.post('/walker/forum_post_create', {
+    const response = await apiService.post('/walker/forum_post_create', {
       thread_id: threadId,
       content: content,
       parent_post_id: parentPostId || ''
@@ -401,7 +401,7 @@ export const likeForumPost = async (postId: string): Promise<{
   error?: string;
 }> => {
   try {
-    const response = await api.post('/walker/forum_post_like', {
+    const response = await apiService.post('/walker/forum_post_like', {
       post_id: postId
     });
     return response.data;
@@ -435,7 +435,7 @@ export const addComment = async (
   error?: string;
 }> => {
   try {
-    const response = await api.post('/walker/content_comment_add', {
+    const response = await apiService.post('/walker/content_comment_add', {
       content_id: contentId,
       content_type: contentType,
       content: content,
@@ -466,7 +466,7 @@ export const getContentComments = async (
   error?: string;
 }> => {
   try {
-    const response = await api.get('/walker/content_comments', {
+    const response = await apiService.get('/walker/content_comments', {
       params: { content_id: contentId, content_type: contentType, page, limit }
     });
     return response.data;
@@ -489,7 +489,7 @@ export const likeComment = async (commentId: string): Promise<{
   error?: string;
 }> => {
   try {
-    const response = await api.post('/walker/content_comment_like', {
+    const response = await apiService.post('/walker/content_comment_like', {
       comment_id: commentId
     });
     return response.data;

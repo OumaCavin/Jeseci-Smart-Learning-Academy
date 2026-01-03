@@ -369,6 +369,32 @@ class ApiService {
     }
   }
 
+  async post<T = any>(endpoint: string, body: any): Promise<T> {
+    return this.makeRequest<T>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async get<T = any>(endpoint: string, options?: { params?: Record<string, any> }): Promise<T> {
+    let url = endpoint;
+    if (options?.params) {
+      const searchParams = new URLSearchParams();
+      Object.entries(options.params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+      const queryString = searchParams.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
+    return this.makeRequest<T>(url, {
+      method: 'GET',
+    });
+  }
+
   // Health and Status
   async healthCheck(): Promise<any> {
     return this.makeRequest('/walker/health_check', {

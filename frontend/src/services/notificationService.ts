@@ -1,7 +1,7 @@
 // Notification Service for Jeseci Smart Learning Academy
 // Handles all API communication for in-app notifications
 
-import { apiService } from './api';
+import { apiService } from '../api';
 
 // Notification type definitions
 export interface Notification {
