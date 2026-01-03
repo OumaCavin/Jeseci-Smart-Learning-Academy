@@ -10,9 +10,11 @@ import { NotificationBell, NotificationDropdown, NotificationCenter, Notificatio
 import { RecentActivityFeed } from './components/activity';
 import { CommunityDashboard } from './components/community';
 import CodeEditor from './components/CodeEditor';
+import CodeSnippetManager from './components/CodeSnippetManager';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import ProfileSettings from './pages/ProfileSettings';
 import './App.css';
 
 // =============================================================================
@@ -928,6 +930,12 @@ const AppContent: React.FC = () => {
         <button className={activeTab === 'code' ? 'active' : ''} onClick={() => setActiveTab('code')}>
           Code Editor
         </button>
+        <button className={activeTab === 'snippets' ? 'active' : ''} onClick={() => setActiveTab('snippets')}>
+          Snippets
+        </button>
+        <button className={activeTab === 'settings' ? 'active' : ''} onClick={() => setActiveTab('settings')}>
+          Settings
+        </button>
       </div>
 
       <div className="dashboard-content">
@@ -1435,6 +1443,26 @@ const AppContent: React.FC = () => {
             <div className="code-editor-container" style={{ height: 'calc(100vh - 300px)', minHeight: '500px' }}>
               <CodeEditor />
             </div>
+          </div>
+        )}
+
+        {/* CODE SNIPPET MANAGER */}
+        {activeTab === 'snippets' && (
+          <div className="snippets-section">
+            <div className="section-header">
+              <h2>Code Snippet Manager</h2>
+              <p>Organize, version, test, and debug your code snippets</p>
+            </div>
+            <div className="snippet-manager-container" style={{ height: 'calc(100vh - 300px)', minHeight: '500px' }}>
+              <CodeSnippetManager />
+            </div>
+          </div>
+        )}
+
+        {/* SETTINGS */}
+        {activeTab === 'settings' && (
+          <div className="settings-section">
+            <ProfileSettings />
           </div>
         )}
       </div>

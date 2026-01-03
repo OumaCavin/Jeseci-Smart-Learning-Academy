@@ -666,6 +666,513 @@ class ApiService {
       }),
     });
   }
+
+  // =============================================================================
+  // CODE SNIPPET MANAGEMENT
+  // =============================================================================
+
+  async executeCode(code: string, entryPoint: string = "main"): Promise<any> {
+    return this.makeRequest('/walker/execute_code', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        entry_point: entryPoint
+      }),
+    });
+  }
+
+  async compileCode(code: string): Promise<any> {
+    return this.makeRequest('/walker/compile_code', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+  }
+
+  async saveSnippet(snippet: {
+    title: string;
+    code: string;
+    description?: string;
+    is_public?: boolean;
+    folder_id?: string;
+    snippet_id?: string;
+  }): Promise<any> {
+    return this.makeRequest('/walker/save_snippet', {
+      method: 'POST',
+      body: JSON.stringify(snippet),
+    });
+  }
+
+  async getSnippets(folderId?: string, limit: number = 50, offset: number = 0): Promise<any> {
+    return this.makeRequest('/walker/get_snippets', {
+      method: 'POST',
+      body: JSON.stringify({
+        folder_id: folderId || "",
+        limit,
+        offset
+      }),
+    });
+  }
+
+  async getSnippet(snippetId: string): Promise<any> {
+    return this.makeRequest('/walker/get_snippet', {
+      method: 'POST',
+      body: JSON.stringify({ snippet_id: snippetId }),
+    });
+  }
+
+  async deleteSnippet(snippetId: string): Promise<any> {
+    return this.makeRequest('/walker/delete_snippet', {
+      method: 'POST',
+      body: JSON.stringify({ snippet_id: snippetId }),
+    });
+  }
+
+  async getExecutionHistory(limit: number = 20, offset: number = 0): Promise<any> {
+    return this.makeRequest('/walker/get_execution_history', {
+      method: 'POST',
+      body: JSON.stringify({ limit, offset }),
+    });
+  }
+
+  // =============================================================================
+  // FOLDER MANAGEMENT
+  // =============================================================================
+
+  async createFolder(name: string, description?: string, parentFolderId?: string, color?: string): Promise<any> {
+    return this.makeRequest('/walker/create_folder', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        description: description || "",
+        parent_folder_id: parentFolderId || "",
+        color: color || "#3b82f6"
+      }),
+    });
+  }
+
+  async getFolders(parentFolderId?: string): Promise<any> {
+    return this.makeRequest('/walker/get_folders', {
+      method: 'POST',
+      body: JSON.stringify({
+        parent_folder_id: parentFolderId || ""
+      }),
+    });
+  }
+
+  // =============================================================================
+  // VERSION CONTROL
+  // =============================================================================
+
+  async snippetVersion(action: string, params: {
+    snippet_id?: string;
+    version_id?: string;
+    code?: string;
+    title?: string;
+    version_number?: number;
+    description?: string;
+    change_summary?: string;
+  } = {}): Promise<any> {
+    return this.makeRequest('/walker/snippet_version', {
+      method: 'POST',
+      body: JSON.stringify({
+        action,
+        ...params
+      }),
+    });
+  }
+
+  // =============================================================================
+  // TEST CASE MANAGEMENT
+  // =============================================================================
+
+  async testCase(action: string, params: {
+    snippet_id?: string;
+    test_case_id?: string;
+    name?: string;
+    input_data?: string;
+    expected_output?: string;
+    is_hidden?: boolean;
+    order_index?: number;
+    timeout_ms?: number;
+  } = {}): Promise<any> {
+    return this.makeRequest('/walker/test_case', {
+      method: 'POST',
+      body: JSON.stringify({
+        action,
+        ...params
+      }),
+    });
+  }
+
+  // =============================================================================
+  // DEBUG SESSION MANAGEMENT
+  // =============================================================================
+
+  async debugSession(action: string, params: {
+    session_id?: string;
+    snippet_id?: string;
+    breakpoint_line?: number;
+    variables?: string[];
+    current_line?: number;
+    command?: string;
+  } = {}): Promise<any> {
+    return this.makeRequest('/walker/debug_session', {
+      method: 'POST',
+      body: JSON.stringify({
+        action,
+        ...params
+      }),
+    });
+  }
+
+  // =============================================================================
+  // USER PROFILE MANAGEMENT
+  // =============================================================================
+
+  async getUserProfile(): Promise<any> {
+    return this.makeRequest('/walker/user_profile', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async updateProfile(profileData: {
+    first_name?: string;
+    last_name?: string;
+    bio?: string;
+    avatar_url?: string;
+  }): Promise<any> {
+    return this.makeRequest('/walker/update_profile', {
+      method: 'POST',
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  async updatePreferences(preferences: {
+    learning_style?: string;
+    skill_level?: string;
+    daily_goal_minutes?: number;
+    preferred_difficulty?: string;
+    preferred_content_type?: string;
+    notifications_enabled?: boolean;
+    email_reminders?: boolean;
+    dark_mode?: boolean;
+    auto_play_videos?: boolean;
+  }): Promise<any> {
+    return this.makeRequest('/walker/update_preferences', {
+      method: 'POST',
+      body: JSON.stringify(preferences),
+    });
+  }
+
+  async getLearningStreak(): Promise<any> {
+    return this.makeRequest('/walker/learning_streak', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  // =============================================================================
+  // NOTIFICATION SYSTEM
+  // =============================================================================
+
+  async getNotifications(): Promise<any> {
+    return this.makeRequest('/walker/notifications', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async getNotificationDetails(notificationId: string): Promise<any> {
+    return this.makeRequest('/walker/notification_details', {
+      method: 'POST',
+      body: JSON.stringify({ notification_id: notificationId }),
+    });
+  }
+
+  async markNotificationRead(notificationId: string): Promise<any> {
+    return this.makeRequest('/walker/notifications_mark_read', {
+      method: 'POST',
+      body: JSON.stringify({ notification_id: notificationId }),
+    });
+  }
+
+  async markAllNotificationsRead(): Promise<any> {
+    return this.makeRequest('/walker/notifications_mark_all_read', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async deleteNotification(notificationId: string): Promise<any> {
+    return this.makeRequest('/walker/notifications_delete', {
+      method: 'POST',
+      body: JSON.stringify({ notification_id: notificationId }),
+    });
+  }
+
+  async getNotificationSettings(): Promise<any> {
+    return this.makeRequest('/walker/notification_settings', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async updateNotificationSettings(settings: {
+    email_notifications?: boolean;
+    push_notifications?: boolean;
+    course_updates?: boolean;
+    community_mentions?: boolean;
+    achievement_alerts?: boolean;
+    weekly_digest?: boolean;
+    marketing_emails?: boolean;
+  }): Promise<any> {
+    return this.makeRequest('/walker/notification_preferences', {
+      method: 'POST',
+      body: JSON.stringify(settings),
+    });
+  }
+
+  // =============================================================================
+  // COMMUNITY FEATURES
+  // =============================================================================
+
+  async getCommunityUsers(limit: number = 20, offset: number = 0): Promise<any> {
+    return this.makeRequest('/walker/community_users', {
+      method: 'POST',
+      body: JSON.stringify({ limit, offset }),
+    });
+  }
+
+  async getCommunityPosts(limit: number = 20, offset: number = 0): Promise<any> {
+    return this.makeRequest('/walker/community_posts', {
+      method: 'POST',
+      body: JSON.stringify({ limit, offset }),
+    });
+  }
+
+  async createCommunityPost(postData: {
+    content: string;
+    tags?: string[];
+    is_public?: boolean;
+  }): Promise<any> {
+    return this.makeRequest('/walker/community_create_post', {
+      method: 'POST',
+      body: JSON.stringify(postData),
+    });
+  }
+
+  async getCommunityComments(postId: string): Promise<any> {
+    return this.makeRequest('/walker/community_comments', {
+      method: 'POST',
+      body: JSON.stringify({ post_id: postId }),
+    });
+  }
+
+  async addCommunityComment(postId: string, content: string, parentCommentId?: string): Promise<any> {
+    return this.makeRequest('/walker/community_add_comment', {
+      method: 'POST',
+      body: JSON.stringify({
+        post_id: postId,
+        content,
+        parent_comment_id: parentCommentId || ""
+      }),
+    });
+  }
+
+  async addCommunityReaction(postId: string, reactionType: string): Promise<any> {
+    return this.makeRequest('/walker/community_reactions', {
+      method: 'POST',
+      body: JSON.stringify({
+        post_id: postId,
+        reaction_type: reactionType,
+        action: "add"
+      }),
+    });
+  }
+
+  async removeCommunityReaction(postId: string, reactionType: string): Promise<any> {
+    return this.makeRequest('/walker/community_reactions', {
+      method: 'POST',
+      body: JSON.stringify({
+        post_id: postId,
+        reaction_type: reactionType,
+        action: "remove"
+      }),
+    });
+  }
+
+  async followUser(userId: string): Promise<any> {
+    return this.makeRequest('/walker/community_follows', {
+      method: 'POST',
+      body: JSON.stringify({
+        target_user_id: userId,
+        action: "follow"
+      }),
+    });
+  }
+
+  async unfollowUser(userId: string): Promise<any> {
+    return this.makeRequest('/walker/community_follows', {
+      method: 'POST',
+      body: JSON.stringify({
+        target_user_id: userId,
+        action: "unfollow"
+      }),
+    });
+  }
+
+  async getFollowing(limit: number = 20, offset: number = 0): Promise<any> {
+    return this.makeRequest('/walker/community_follows', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: "list",
+        limit,
+        offset
+      }),
+    });
+  }
+
+  async getFollowers(userId: string, limit: number = 20, offset: number = 0): Promise<any> {
+    return this.makeRequest('/walker/community_follows', {
+      method: 'POST',
+      body: JSON.stringify({
+        target_user_id: userId,
+        action: "followers",
+        limit,
+        offset
+      }),
+    });
+  }
+
+  async sendCommunityMessage(userId: string, content: string): Promise<any> {
+    return this.makeRequest('/walker/community_messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        target_user_id: userId,
+        content,
+        action: "send"
+      }),
+    });
+  }
+
+  async getCommunityMessages(userId: string, limit: number = 50, offset: number = 0): Promise<any> {
+    return this.makeRequest('/walker/community_messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        target_user_id: userId,
+        action: "list",
+        limit,
+        offset
+      }),
+    });
+  }
+
+  async getTrendingContent(): Promise<any> {
+    return this.makeRequest('/walker/community_trending', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async getCommunityFeed(limit: number = 20, offset: number = 0): Promise<any> {
+    return this.makeRequest('/walker/community_feed', {
+      method: 'POST',
+      body: JSON.stringify({ limit, offset }),
+    });
+  }
+
+  async getCommunityAnalytics(): Promise<any> {
+    return this.makeRequest('/walker/community_analytics', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  // =============================================================================
+  // CONTENT INTERACTIONS
+  // =============================================================================
+
+  async getContentViews(): Promise<any> {
+    return this.makeRequest('/walker/content_views', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async likeContent(contentId: string, contentType: string): Promise<any> {
+    return this.makeRequest('/walker/content_like', {
+      method: 'POST',
+      body: JSON.stringify({
+        content_id: contentId,
+        content_type: contentType,
+        action: "like"
+      }),
+    });
+  }
+
+  async unlikeContent(contentId: string, contentType: string): Promise<any> {
+    return this.makeRequest('/walker/content_like', {
+      method: 'POST',
+      body: JSON.stringify({
+        content_id: contentId,
+        content_type: contentType,
+        action: "unlike"
+      }),
+    });
+  }
+
+  async saveContent(contentId: string, contentType: string, folderId?: string): Promise<any> {
+    return this.makeRequest('/walker/content_save', {
+      method: 'POST',
+      body: JSON.stringify({
+        content_id: contentId,
+        content_type: contentType,
+        folder_id: folderId || "",
+        action: "save"
+      }),
+    });
+  }
+
+  async unsaveContent(contentId: string, contentType: string): Promise<any> {
+    return this.makeRequest('/walker/content_save', {
+      method: 'POST',
+      body: JSON.stringify({
+        content_id: contentId,
+        content_type: contentType,
+        action: "unsave"
+      }),
+    });
+  }
+
+  async getSavedContent(): Promise<any> {
+    return this.makeRequest('/walker/content_save', {
+      method: 'POST',
+      body: JSON.stringify({ action: "list" }),
+    });
+  }
+
+  async shareContent(contentId: string, contentType: string, platform?: string): Promise<any> {
+    return this.makeRequest('/walker/content_share', {
+      method: 'POST',
+      body: JSON.stringify({
+        content_id: contentId,
+        content_type: contentType,
+        platform: platform || "link"
+      }),
+    });
+  }
+
+  // =============================================================================
+  // ACTIVITY TRACKING
+  // =============================================================================
+
+  async getRecentActivity(limit: number = 10): Promise<any> {
+    return this.makeRequest('/walker/recent_activity', {
+      method: 'POST',
+      body: JSON.stringify({ limit }),
+    });
+  }
 }
 
 export const apiService = new ApiService();
