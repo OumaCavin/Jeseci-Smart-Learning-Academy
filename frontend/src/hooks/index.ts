@@ -89,3 +89,17 @@ export type {
   UseSystemHealthOptions,
   UseSystemHealthReturn 
 } from './admin/useSystemHealth';
+
+// Phase 4: AI Learning
+export { useSkillGraph } from './ai/useSkillGraph';
+export type { 
+  UseSkillGraphOptions,
+  UseSkillGraphReturn 
+} from './ai/useSkillGraph';
+
+// Phase 4: Video Communication
+export { useWebRTC } from './communication/useWebRTC';
+export type { 
+  UseWebRTCOptions,
+  UseWebRTCReturn 
+} from './communication/useWebRTC';
