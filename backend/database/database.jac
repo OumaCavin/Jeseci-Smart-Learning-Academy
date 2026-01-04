@@ -8,9 +8,7 @@
 ##   import from database.database { DatabaseManager, test_db_connections }
 ##
 
-import from python { PyModule }
-
-glob py_db = PyModule("backend.database");
+import backend.database as py_db;
 
 ## Database Connection Status
 node DatabaseStatus {
