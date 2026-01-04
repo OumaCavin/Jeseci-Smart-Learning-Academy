@@ -333,9 +333,8 @@ const GraphKnowledgeExplorer: React.FC = () => {
                 <span className="badge type">{selectedNode.type}</span>
                 {selectedNode.category && (
                   <span className="badge category">{selectedNode.category}</span>
-               Node.difficulty && (
-                  <span )}
-                {selected className={`badge difficulty ${selectedNode.difficulty}`}>
+                {selectedNode.difficulty && (
+                  <span className={`badge difficulty ${selectedNode.difficulty}`}>
                     {selectedNode.difficulty}
                   </span>
                 )}
