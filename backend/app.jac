@@ -6151,12 +6151,12 @@ walker peer_review_get_feedback {
 # JAC CODE EXECUTION ENGINE ENDPOINTS
 # ==============================================================================
 
-walker execute_code {
+walker code_execute {
     has code: str = "";
     has entry_point: str = "init";
     has snippet_id: str = "";
     
-    can execute_code with entry {
+    can code_execute with entry {
         import code_execution as code_exec_module;
         import code_execution_store as code_store_module;
         
@@ -6224,6 +6224,90 @@ walker compile_code {
             "ir_output": ir_output,
             "error": error
         };
+    }
+}
+
+# ==============================================================================
+# Code Snippet Management
+# ==============================================================================
+
+walker code_snippet {
+    has action: str = "list";
+    has snippet_id: str = "";
+    has title: str = "";
+    has code: str = "";
+    has description: str = "";
+    has is_public: bool = false;
+    has folder_id: str = "";
+    has user_id: str = "";
+    
+    can code_snippet with entry {
+        import code_execution_store as code_store_module;
+        
+        user_id = ctx().get('user_id');
+        
+        if self.action == "save" {
+            # Save or update a code snippet
+            if not self.title {
+                report {
+                    "success": false,
+                    "error": "Title is required"
+                };
+                return;
+            }
+            
+            result = code_store_module.save_snippet(
+                user_id=user_id,
+                title=self.title,
+                code=self.code,
+                description=self.description,
+                is_public=self.is_public,
+                folder_id=self.folder_id,
+                snippet_id=self.snippet_id if self.snippet_id else ""
+            );
+            
+            report result;
+        }
+        elif self.action == "list" {
+            # List user's snippets
+            result = code_store_module.get_user_snippets(user_id=user_id);
+            report result;
+        }
+        elif self.action == "get" {
+            # Get a specific snippet
+            if not self.snippet_id {
+                report {
+                    "success": false,
+                    "error": "Snippet ID is required"
+                };
+                return;
+            }
+            
+            result = code_store_module.get_snippet(snippet_id=self.snippet_id);
+            report result;
+        }
+        elif self.action == "delete" {
+            # Delete a snippet
+            if not self.snippet_id {
+                report {
+                    "success": false,
+                    "error": "Snippet ID is required"
+                };
+                return;
+            }
+            
+            result = code_store_module.delete_snippet(
+                user_id=user_id,
+                snippet_id=self.snippet_id
+            );
+            report result;
+        }
+        else {
+            report {
+                "success": false,
+                "error": "Invalid action: " + self.action
+            };
+        }
     }
 }
 
