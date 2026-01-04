@@ -547,8 +547,7 @@ walker ai_generate_content {
         import datetime;
         
         try {
-            import from python { PyModule }
-            ai_module = PyModule("ai_generator");
+            import ai_generator as ai_module;
             
             # Convert list to comma-separated string
             related_concepts_str = ",".join(self.related_concepts) if self.related_concepts else "";
@@ -1043,8 +1042,7 @@ walker chat {
         import datetime;
         
         try {
-            import from python { PyModule }
-            ai_module = PyModule("ai_generator");
+            import ai_generator as ai_module;
             result = ai_module.sync_chat_with_ai(self.message, self.context);
             
             report result;
@@ -1104,8 +1102,7 @@ walker export_chat {
         }
         
         try {
-            import from python { PyModule }
-            chat_export_module = PyModule("chat_export");
+            import chat_export as chat_export_module;
             
             # Convert list to JSON string for Python module
             chat_messages_json = json.dumps(self.chat_messages);
@@ -1142,7 +1139,6 @@ walker export_chat {
 walker graph_init {
     can graph_init with entry {
         try {
-            import from python { PyModule }
             result = db_module.test_all_connections();
             
             report {
