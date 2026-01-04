@@ -30,11 +30,11 @@ export interface RoomConfig {
 export interface MediaDevice {
   deviceId: string;
   label: string;
-  kind: 'audioinput' | 'audiooutput' | 'video interface ChatMessage {
-input';
+  kind: 'audioinput' | 'audiooutput' | 'videoinput';
 }
 
-export  id: string;
+export interface ChatMessage {
+  id: string;
   senderId: string;
   senderName: string;
   content: string;
