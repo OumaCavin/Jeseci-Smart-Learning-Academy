@@ -74,7 +74,7 @@ def check_jac_available() -> tuple[bool, str]:
     except subprocess.TimeoutExpired:
         return False, "jac command timed out"
     except Exception as e:
-        return False, str(e)
+        return False, f"Error checking jac availability: {str(e)}"
 
 
 def parse_jac_errors(stderr: str) -> List[Dict[str, Any]]:
@@ -178,7 +178,7 @@ def execute_jac_command(args: List[str], source_code: str) -> tuple[str, str, in
     except FileNotFoundError:
         return '', 'jac command not found. Please install jaclang.', 1
     except Exception as e:
-        return '', str(e), 1
+        return '', f'Error executing jac command: {str(e)}', 1
     finally:
         # Clean up temporary file
         try:
@@ -194,7 +194,10 @@ def execute_jac_command(args: List[str], source_code: str) -> tuple[str, str, in
 @jaclang_router.get("/health", response_model=HealthResponse)
 async def jaclang_health_check():
     """Check the health of the Jaclang service."""
-    available, version = check_jac_available()
+    try:
+        available, version = check_jac_available()
+    except Exception as e:
+        available, version = False, str(e)
     
     return HealthResponse(
         service="Jaclang Editor Intelligence",
@@ -212,51 +215,65 @@ async def validate_jac_code(request: ValidateRequest):
     This endpoint accepts Jaclang source code and returns any syntax
     errors found by the `jac check` command.
     """
-    source_code = request.source_code
-    
-    if not source_code or not source_code.strip():
-        return ValidateResponse(
-            valid=True,
-            errors=[],
-            message="Empty code is valid"
-        )
-    
-    # Check if jac is available
-    available, _ = check_jac_available()
-    if not available:
-        # Return a warning but don't fail - the editor should still work
+    try:
+        source_code = request.source_code
+        
+        if not source_code or not source_code.strip():
+            return ValidateResponse(
+                valid=True,
+                errors=[],
+                message="Empty code is valid"
+            )
+        
+        # Check if jac is available
+        available, _ = check_jac_available()
+        if not available:
+            # Return a warning but don't fail - the editor should still work
+            return ValidateResponse(
+                valid=True,  # Consider empty/missing jac as valid for editor usability
+                errors=[{
+                    'line': 1,
+                    'column': 1,
+                    'message': 'Jaclang CLI not available. Code validation will be skipped.',
+                    'severity': 'Warning',
+                    'raw': 'Jaclang not installed'
+                }],
+                message="Jaclang CLI not available"
+            )
+        
+        # Execute jac check command
+        stdout, stderr, returncode = execute_jac_command(['check'], source_code)
+        
+        # Parse errors from stderr
+        errors = parse_jac_errors(stderr)
+        
+        # If returncode is 0, there are no errors
+        if returncode == 0 and not errors:
+            return ValidateResponse(
+                valid=True,
+                errors=[],
+                message="Code is syntactically valid"
+            )
+        
+        # If returncode is non-zero or we have errors, report them
         return ValidateResponse(
             valid=False,
+            errors=errors,
+            message=f"Found {len(errors)} syntax error(s)" if errors else "Validation failed"
+        )
+    except Exception as e:
+        # Return a valid response with a warning instead of crashing
+        return ValidateResponse(
+            valid=True,
             errors=[{
                 'line': 1,
                 'column': 1,
-                'message': 'Jaclang CLI not available. Please install jaclang package.',
+                'message': f'Validation service error: {str(e)}',
                 'severity': 'Warning',
-                'raw': 'Jaclang not installed'
+                'raw': str(e)
             }],
-            message="Jaclang CLI not available"
+            message=f"Validation encountered an error: {str(e)}"
         )
-    
-    # Execute jac check command
-    stdout, stderr, returncode = execute_jac_command(['check'], source_code)
-    
-    # Parse errors from stderr
-    errors = parse_jac_errors(stderr)
-    
-    # If returncode is 0, there are no errors
-    if returncode == 0 and not errors:
-        return ValidateResponse(
-            valid=True,
-            errors=[],
-            message="Code is syntactically valid"
-        )
-    
-    # If returncode is non-zero or we have errors, report them
-    return ValidateResponse(
-        valid=False,
-        errors=errors,
-        message=f"Found {len(errors)} syntax error(s)" if errors else "Validation failed"
-    )
 
 
 @jaclang_router.post("/format", response_model=FormatResponse)
@@ -267,94 +284,102 @@ async def format_jac_code(request: FormatRequest):
     This endpoint accepts Jaclang source code and returns the formatted
     version using the `jac format` command.
     """
-    source_code = request.source_code
-    
-    if not source_code or not source_code.strip():
-        return FormatResponse(
-            formatted_code="",
-            changed=False,
-            error="Empty code cannot be formatted"
-        )
-    
-    # Check if jac is available
-    available, _ = check_jac_available()
-    if not available:
-        return FormatResponse(
-            formatted_code=source_code,
-            changed=False,
-            error="Jaclang CLI not available. Please install jaclang package."
-        )
-    
-    # Execute jac format command
-    stdout, stderr, returncode = execute_jac_command(['format'], source_code)
-    
-    # Read the formatted code from the file
-    # jac format modifies the file in place, so we need to get the result
-    # The stdout will contain the path of the formatted file
-    
-    # For now, let's use a different approach - jac format outputs to the file
-    # We need to get the formatted content from stdout if available
-    
-    if returncode != 0:
-        # Check if it's a parse error (can't format invalid code)
-        if 'parse' in stderr.lower() or 'syntax' in stderr.lower():
-            return FormatResponse(
-                formatted_code=source_code,
-                changed=False,
-                error=f"Cannot format code with syntax errors: {stderr}"
-            )
-        else:
-            return FormatResponse(
-                formatted_code=source_code,
-                changed=False,
-                error=f"Formatting failed: {stderr}"
-            )
-    
-    # jac format modifies the file in place. Since we've deleted the temp file,
-    # we need to get the formatted content another way.
-    # Let's try with the --stdin flag if available, or use a different approach
-    
-    # Alternative: format to stdout if supported
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.jac', delete=False) as tmp:
-        tmp.write(source_code)
-        tmp_path = tmp.name
-    
     try:
-        # Try jac format with output to stdout
-        result = subprocess.run(
-            ['jac', 'format', '--check', tmp_path] if '--check' in subprocess.run(
-                ['jac', 'format', '--help'],
-                capture_output=True,
-                text=True
-            ).stdout else ['jac', 'format', tmp_path],
-            capture_output=True,
-            text=True,
-            timeout=30
-        )
+        source_code = request.source_code
         
-        # Read the file content back (jac format modifies in place)
-        with open(tmp_path, 'r') as f:
-            formatted_code = f.read()
+        if not source_code or not source_code.strip():
+            return FormatResponse(
+                formatted_code="",
+                changed=False,
+                error="Empty code cannot be formatted"
+            )
         
-        # Check if formatting changed anything
-        changed = formatted_code != source_code
+        # Check if jac is available
+        available, _ = check_jac_available()
+        if not available:
+            return FormatResponse(
+                formatted_code=source_code,
+                changed=False,
+                error="Jaclang CLI not available. Please install jaclang package."
+            )
         
-        return FormatResponse(
-            formatted_code=formatted_code,
-            changed=changed,
-            error=None
-        )
-    except Exception as e:
-        return FormatResponse(
-            formatted_code=source_code,
-            changed=False,
-            error=str(e)
-        )
-    finally:
+        # Execute jac format command
+        stdout, stderr, returncode = execute_jac_command(['format'], source_code)
+        
+        # Read the formatted code from the file
+        # jac format modifies the file in place, so we need to get the result
+        # The stdout will contain the path of the formatted file
+        
+        # For now, let's use a different approach - jac format outputs to the file
+        # We need to get the formatted content from stdout if available
+        
+        if returncode != 0:
+            # Check if it's a parse error (can't format invalid code)
+            if 'parse' in stderr.lower() or 'syntax' in stderr.lower():
+                return FormatResponse(
+                    formatted_code=source_code,
+                    changed=False,
+                    error=f"Cannot format code with syntax errors: {stderr}"
+                )
+            else:
+                return FormatResponse(
+                    formatted_code=source_code,
+                    changed=False,
+                    error=f"Formatting failed: {stderr}"
+                )
+        
+        # jac format modifies the file in place. Since we've deleted the temp file,
+        # we need to get the formatted content another way.
+        # Let's try with the --stdin flag if available, or use a different approach
+        
+        # Alternative: format to stdout if supported
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.jac', delete=False) as tmp:
+            tmp.write(source_code)
+            tmp_path = tmp.name
+        
         try:
-            os.unlink(tmp_path)
-        except OSError:
-            pass
+            # Try jac format with output to stdout
+            result = subprocess.run(
+                ['jac', 'format', '--check', tmp_path] if '--check' in subprocess.run(
+                    ['jac', 'format', '--help'],
+                    capture_output=True,
+                    text=True
+                ).stdout else ['jac', 'format', tmp_path],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            # Read the file content back (jac format modifies in place)
+            with open(tmp_path, 'r') as f:
+                formatted_code = f.read()
+            
+            # Check if formatting changed anything
+            changed = formatted_code != source_code
+            
+            return FormatResponse(
+                formatted_code=formatted_code,
+                changed=changed,
+                error=None
+            )
+        except Exception as e:
+            return FormatResponse(
+                formatted_code=source_code,
+                changed=False,
+                error=str(e)
+            )
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+    except Exception as e:
+        # Return original code with error message instead of crashing
+        return FormatResponse(
+            formatted_code=request.source_code,
+            changed=False,
+            error=f"Formatting service error: {str(e)}"
+        )
 
 
 @jaclang_router.post("/validate-and-format")
@@ -366,53 +391,68 @@ async def validate_and_format_jac_code(request: ValidateRequest):
     formats it if valid. Returns both the validation result and
     the formatted code.
     """
-    source_code = request.source_code
-    
-    if not source_code or not source_code.strip():
+    try:
+        source_code = request.source_code
+        
+        if not source_code or not source_code.strip():
+            return {
+                "valid": True,
+                "errors": [],
+                "formatted_code": source_code,
+                "changed": False,
+                "message": "Empty code is valid"
+            }
+        
+        # Check if jac is available
+        available, _ = check_jac_available()
+        if not available:
+            return {
+                "valid": True,
+                "errors": [{
+                    'line': 1,
+                    'column': 1,
+                    'message': 'Jaclang CLI not available. Code validation will be skipped.',
+                    'severity': 'Warning'
+                }],
+                "formatted_code": source_code,
+                "changed": False,
+                "message": "Jaclang CLI not available"
+            }
+        
+        # First, validate the code
+        validate_response = await validate_jac_code(ValidateRequest(source_code=source_code))
+        
+        if not validate_response.valid:
+            # If there are errors, don't format
+            return {
+                "valid": False,
+                "errors": validate_response.errors,
+                "formatted_code": source_code,
+                "changed": False,
+                "message": validate_response.message
+            }
+        
+        # Code is valid, so we can format it
+        format_response = await format_jac_code(FormatRequest(source_code=source_code))
+        
         return {
             "valid": True,
             "errors": [],
-            "formatted_code": source_code,
-            "changed": False,
-            "message": "Empty code is valid"
+            "formatted_code": format_response.formatted_code,
+            "changed": format_response.changed,
+            "message": "Code is valid and has been formatted" if format_response.changed else "Code is valid and properly formatted"
         }
-    
-    # Check if jac is available
-    available, _ = check_jac_available()
-    if not available:
+    except Exception as e:
+        # Return error response instead of crashing
         return {
-            "valid": False,
+            "valid": True,
             "errors": [{
                 'line': 1,
                 'column': 1,
-                'message': 'Jaclang CLI not available. Please install jaclang package.',
+                'message': f'Service error: {str(e)}',
                 'severity': 'Warning'
             }],
-            "formatted_code": source_code,
+            "formatted_code": request.source_code,
             "changed": False,
-            "message": "Jaclang CLI not available"
+            "message": f"Operation encountered an error: {str(e)}"
         }
-    
-    # First, validate the code
-    validate_response = await validate_jac_code(ValidateRequest(source_code=source_code))
-    
-    if not validate_response.valid:
-        # If there are errors, don't format
-        return {
-            "valid": False,
-            "errors": validate_response.errors,
-            "formatted_code": source_code,
-            "changed": False,
-            "message": validate_response.message
-        }
-    
-    # Code is valid, so we can format it
-    format_response = await format_jac_code(FormatRequest(source_code=source_code))
-    
-    return {
-        "valid": True,
-        "errors": [],
-        "formatted_code": format_response.formatted_code,
-        "changed": format_response.changed,
-        "message": "Code is valid and has been formatted" if format_response.changed else "Code is valid and properly formatted"
-    }
