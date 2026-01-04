@@ -8164,6 +8164,69 @@ walker notification_details {
 }
 
 # ==============================================================================
+# Notification Settings Walkers - Match Frontend API
+# ==============================================================================
+
+walker notification_settings {
+    can notification_settings with entry {
+        import notification_store as notif_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = notif_module.get_notification_settings(user_id=user_id);
+        
+        report result;
+    }
+}
+
+walker notification_preferences {
+    has email_notifications: bool = true;
+    has push_notifications: bool = true;
+    has course_updates: bool = true;
+    has community_mentions: bool = true;
+    has achievement_alerts: bool = true;
+    has weekly_digest: bool = false;
+    has marketing_emails: bool = false;
+    
+    can notification_preferences with entry {
+        import notification_store as notif_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        preferences = {
+            "email_notifications": self.email_notifications,
+            "push_notifications": self.push_notifications,
+            "course_updates": self.course_updates,
+            "community_mentions": self.community_mentions,
+            "achievement_alerts": self.achievement_alerts,
+            "weekly_digest": self.weekly_digest,
+            "marketing_emails": self.marketing_emails
+        };
+        
+        result = notif_module.update_notification_preferences(
+            user_id=user_id,
+            preferences=preferences
+        );
+        
+        report result;
+    }
+}
+
+# ==============================================================================
 # Admin Fix Walkers - Missing/Mismatched Walkers
 # ==============================================================================
 
