@@ -673,6 +673,31 @@ _trace = []
         return result
 
 
+def execute_jac_code(code: str, entry_point: str = "init",
+                     timeout: int = None, memory_mb: int = None) -> ExecutionResult:
+    """
+    Execute Jaclang code with the specified options.
+    
+    This is a convenience wrapper around execute_code for Jaclang specifically.
+    
+    Args:
+        code: Jaclang code to execute
+        entry_point: Entry point walker/function
+        timeout: Execution timeout in seconds
+        memory_mb: Memory limit in MB
+        
+    Returns:
+        ExecutionResult with execution details
+    """
+    return execute_code(
+        code=code,
+        language="jac",
+        entry_point=entry_point,
+        timeout=timeout,
+        memory_mb=memory_mb
+    )
+
+
 def execute_code(code: str, language: str = "jac", entry_point: str = "init",
                  mode: str = "run", input_data: str = None,
                  timeout: int = None, memory_mb: int = None,
