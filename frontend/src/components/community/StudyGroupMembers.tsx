@@ -510,24 +510,6 @@ const StudyGroupMembers: React.FC<StudyGroupMembersProps> = ({
               {/* Admin Actions */}
               {(isOwner || isAdmin) && (
                 <div className="mt-6 pt-4 border-t border-gray-200 space-y-2">
-                  <button
-                    onClick={() => {
-                      // Open chat with member
-                    }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  >
-                    <MessageSquare size={18} />
-                    Send Message
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Send invite/email
-                    }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <Mail size={18} />
-                    Send Invite
-                  </button>
                   {(isOwner || isAdmin) && selectedMember.role !== 'owner' && (
                     <>
                       {selectedMember.role === 'member' ? (

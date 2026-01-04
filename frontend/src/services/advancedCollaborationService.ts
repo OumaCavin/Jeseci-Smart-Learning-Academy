@@ -323,6 +323,90 @@ export interface PeerReviewFeedback {
   created_at: string;
 }
 
+// Types for Admin
+export interface UserActivityStats {
+  totalUsers: number;
+  activeUsers: number;
+  newUsersToday: number;
+  newUsersThisWeek: number;
+  avgSessionDuration: number;
+  topActiveUsers: Array<{
+    userId: string;
+    username: string;
+    actionsCount: number;
+    lastActive: string;
+  }>;
+  usersByRole: Array<{
+    role: string;
+    count: number;
+  }>;
+  activityByHour: Array<{
+    hour: number;
+    count: number;
+  }>;
+}
+
+export interface UserActivityLog {
+  userId: string;
+  username: string;
+  action: string;
+  details: string;
+  timestamp: string;
+  ipAddress: string;
+}
+
+export interface DatabaseStats {
+  totalSize: string;
+  totalTables: number;
+  totalRows: number;
+  activeConnections: number;
+  avgQueryTime: number;
+  uptime: string;
+}
+
+export interface TableInfo {
+  tableName: string;
+  rows: number;
+  size: string;
+  indexes: number;
+  lastModified: string;
+}
+
+export interface TableActivity {
+  tableName: string;
+  reads: number;
+  writes: number;
+  updates: number;
+  deletes: number;
+  avgQueryTime: number;
+  peakConnections: number;
+}
+
+export interface CacheStats {
+  totalSize: string;
+  entryCount: number;
+  hitRate: number;
+  missRate: number;
+  lastCleared: string;
+  memoryUsage: string;
+}
+
+export interface CacheEntry {
+  key: string;
+  type: string;
+  size: string;
+  createdAt: string;
+  lastAccessed: string;
+  hitCount: number;
+}
+
+export interface CacheRegion {
+  name: string;
+  entryCount: number;
+  size: string;
+  hitRate: number;
+}
+
 // API Response types
 interface ApiResponse<T> {
   success: boolean;
@@ -1199,6 +1283,171 @@ class AdvancedCollaborationService {
     } catch (error) {
       console.error('Error fetching submission feedback:', error);
       return { success: false, error: 'Failed to fetch feedback', data: [] };
+    }
+  }
+
+  // =============================================================================
+  // ADMIN API CALLS
+  // =============================================================================
+
+  /**
+   * Get user activity statistics
+   */
+  async getUserActivityStats(): Promise<ApiResponse<UserActivityStats>> {
+    try {
+      const response = await apiService.post('/walker/admin_user_activity_stats', {});
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user activity stats:', error);
+      return { 
+        success: true, 
+        data: {
+          totalUsers: 0,
+          activeUsers: 0,
+          newUsersToday: 0,
+          newUsersThisWeek: 0,
+          avgSessionDuration: 0,
+          topActiveUsers: [],
+          usersByRole: [],
+          activityByHour: []
+        }
+      };
+    }
+  }
+
+  /**
+   * Get user activity log
+   */
+  async getUserActivityLog(
+    options?: { limit?: number; dateRange?: string }
+  ): Promise<ApiResponse<UserActivityLog[]>> {
+    try {
+      const response = await apiService.post('/walker/admin_user_activity_log', {
+        limit: options?.limit || 100,
+        date_range: options?.dateRange || 'week'
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user activity log:', error);
+      return { success: false, error: 'Failed to fetch activity log', data: [] };
+    }
+  }
+
+  /**
+   * Get database statistics
+   */
+  async getDatabaseStats(): Promise<ApiResponse<DatabaseStats>> {
+    try {
+      const response = await apiService.post('/walker/admin_database_stats', {});
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching database stats:', error);
+      return {
+        success: true,
+        data: {
+          totalSize: '0 MB',
+          totalTables: 0,
+          totalRows: 0,
+          activeConnections: 0,
+          avgQueryTime: 0,
+          uptime: '0h'
+        }
+      };
+    }
+  }
+
+  /**
+   * Get table information
+   */
+  async getTableInfo(): Promise<ApiResponse<TableInfo[]>> {
+    try {
+      const response = await apiService.post('/walker/admin_table_info', {});
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching table info:', error);
+      return { success: false, error: 'Failed to fetch table info', data: [] };
+    }
+  }
+
+  /**
+   * Get table activity metrics
+   */
+  async getTableActivity(): Promise<ApiResponse<TableActivity[]>> {
+    try {
+      const response = await apiService.post('/walker/admin_table_activity', {});
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching table activity:', error);
+      return { success: false, error: 'Failed to fetch table activity', data: [] };
+    }
+  }
+
+  /**
+   * Get cache statistics
+   */
+  async getCacheStats(): Promise<ApiResponse<CacheStats>> {
+    try {
+      const response = await apiService.post('/walker/admin_cache_stats', {});
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching cache stats:', error);
+      return {
+        success: true,
+        data: {
+          totalSize: '0 MB',
+          entryCount: 0,
+          hitRate: 0,
+          missRate: 0,
+          lastCleared: new Date().toISOString(),
+          memoryUsage: '0 MB'
+        }
+      };
+    }
+  }
+
+  /**
+   * Get cache entries
+   */
+  async getCacheEntries(
+    options?: { limit?: number; region?: string }
+  ): Promise<ApiResponse<CacheEntry[]>> {
+    try {
+      const response = await apiService.post('/walker/admin_cache_entries', {
+        limit: options?.limit || 100,
+        region: options?.region || ''
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching cache entries:', error);
+      return { success: false, error: 'Failed to fetch cache entries', data: [] };
+    }
+  }
+
+  /**
+   * Get cache regions
+   */
+  async getCacheRegions(): Promise<ApiResponse<CacheRegion[]>> {
+    try {
+      const response = await apiService.post('/walker/admin_cache_regions', {});
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching cache regions:', error);
+      return { success: false, error: 'Failed to fetch cache regions', data: [] };
+    }
+  }
+
+  /**
+   * Clear content cache
+   */
+  async clearContentCache(region?: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await apiService.post('/walker/admin_clear_content_cache', {
+        region: region || ''
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+      return { success: false, error: 'Failed to clear cache' };
     }
   }
 
