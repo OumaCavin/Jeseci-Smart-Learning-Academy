@@ -103,6 +103,8 @@ walker user_create {
     has password: str;
     has first_name: str = "";
     has last_name: str = "";
+    has learning_style: str = "visual";
+    has skill_level: str = "beginner";
     
     can user_create with entry {
         import user_auth as auth_module;
@@ -148,8 +150,8 @@ walker user_create {
             password=self.password,
             first_name=self.first_name if self.first_name else "",
             last_name=self.last_name if self.last_name else "",
-            learning_style="visual",
-            skill_level="beginner",
+            learning_style=self.learning_style,
+            skill_level=self.skill_level,
             is_admin=False,
             admin_role="student",
             skip_verification=False,
@@ -279,8 +281,8 @@ walker user_register {
             password=self.password,
             first_name=self.first_name if self.first_name else "",
             last_name=self.last_name if self.last_name else "",
-            learning_style="visual",
-            skill_level="beginner",
+            learning_style=self.learning_style,
+            skill_level=self.skill_level,
             is_admin=False,
             admin_role="student",
             skip_verification=False,
