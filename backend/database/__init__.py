@@ -22,6 +22,9 @@ from logger_config import logger
 # Database schema configuration
 DB_SCHEMA = os.getenv("DB_SCHEMA", "jeseci_academy")
 
+# Import testimonial functions from testimonials_store
+from testimonials_store import get_approved_testimonials as sync_get_approved_testimonials
+
 
 class DatabaseConfig:
     """Database configuration holder"""
@@ -402,3 +405,18 @@ def test_all_connections():
         "neo4j": neo4j_manager.test_connection()
     }
     return results
+
+
+# Testimonial functions
+def get_approved_testimonials(limit: int = 6, featured_only: bool = False) -> dict:
+    """
+    Get approved testimonials from the database
+
+    Args:
+        limit: Maximum number of testimonials to return
+        featured_only: If True, only return featured testimonials
+
+    Returns:
+        Dict with success status, testimonials list, and total count
+    """
+    return sync_get_approved_testimonials(limit, featured_only)
