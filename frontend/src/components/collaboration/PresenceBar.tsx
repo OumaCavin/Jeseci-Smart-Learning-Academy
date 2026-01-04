@@ -254,4 +254,3 @@ export function PresenceBar({
   );
 }
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
