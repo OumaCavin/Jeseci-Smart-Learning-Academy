@@ -420,7 +420,7 @@ export function SchedulerProvider({ children }: { children: ReactNode }) {
       type: template.type,
       cronExpression: CRON_PRESETS[template.cronPreset as keyof typeof CRON_PRESETS] || template.cronPreset,
       action: {
-        type: template.defaultConfig.actionType || 'custom',
+        type: (template.defaultConfig.actionType as string) || 'custom',
         config: { ...template.defaultConfig, ...customConfig } as Record<string, unknown>,
       },
     });
