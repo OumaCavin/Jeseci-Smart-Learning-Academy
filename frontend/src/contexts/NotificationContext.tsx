@@ -4,8 +4,31 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { notificationService, Notification, NotificationPreferences, NotificationType } from '../services/notificationService';
 
+// Re-export Notification type for convenience
+export type { Notification as NotificationType } from '../services/notificationService';
+
+export interface ToastNotification {
+  id: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  title: string;
+  message?: string;
+  duration?: number;
+  action?: { label: string; onClick: () => void };
+}
+
+export interface Conversation {
+  id: string;
+  participantId: string;
+  participantName: string;
+  participantAvatar?: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  isOnline: boolean;
+}
+
 // Context type definition
-interface NotificationContextType {
+export interface NotificationContextType {
   // State
   notifications: Notification[];
   unreadCount: number;

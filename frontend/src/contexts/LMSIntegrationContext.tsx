@@ -65,6 +65,12 @@ export interface SyncError {
   retryable: boolean;
 }
 
+export interface GradeSync {
+  studentId: string;
+  grade: number;
+  feedback?: string;
+}
+
 export interface LMSIntegrationState {
   // Provider state
   providers: LMSProvider[];
@@ -114,7 +120,7 @@ export interface OAuthConfig {
   tokenUrl: string;
 }
 
-interface LMSIntegrationContextType {
+export interface LMSIntegrationContextType {
   // Provider management
   providers: LMSProvider[];
   selectedProvider: LMSProvider | null;
@@ -530,12 +536,6 @@ export function LMSIntegrationProvider({ children }: { children: React.ReactNode
     setAssignments(data);
   }, []);
 
-  interface GradeSync {
-    studentId: string;
-    grade: number;
-    feedback?: string;
-  }
-
   const syncAssignmentGrades = useCallback(async (assignmentId: string, grades: GradeSync[]) => {
     if (!selectedProvider) return;
     
@@ -772,5 +772,3 @@ export function useLMSIntegration() {
   }
   return context;
 }
-
-import { createContext, useContext, useCallback, useState, useMemo } from 'react';

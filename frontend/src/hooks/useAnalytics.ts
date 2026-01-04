@@ -377,5 +377,3 @@ export function useStudentAnalytics(options: UseStudentAnalyticsOptions = {}): U
     sortBy
   };
 }
-
-import { useCallback, useState, useEffect } from 'react';

@@ -802,4 +802,3 @@ export function useLMSIntegration(options: UseLMSIntegrationOptions = {}): UseLM
   };
 }
 
-import { useCallback, useState, useRef, useEffect } from 'react';

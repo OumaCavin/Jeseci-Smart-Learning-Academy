@@ -110,7 +110,7 @@ export { AIProvider as AILearningProvider, useAI as useAILearning } from './AILe
 export type {
   SkillNode,
   LearningRecommendation,
-  LearningPath,
+  AILearningPath,
   UserLearningProfile,
   AIRecommendationConfig,
   AIContextType as AILearningContextType

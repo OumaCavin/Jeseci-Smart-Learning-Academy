@@ -15,6 +15,20 @@ export interface Badge {
   maxProgress?: number;
 }
 
+export interface UserBadge extends Badge {
+  unlockedAt: string;
+  progress?: number;
+}
+
+export interface XPTransaction {
+  id: string;
+  amount: number;
+  source: string;
+  description: string;
+  timestamp: string;
+  type: 'earned' | 'spent' | 'bonus' | 'penalty';
+}
+
 export interface Achievement {
   badge: Badge;
   isNew: boolean;
@@ -116,7 +130,7 @@ export interface GamificationNotification {
   timestamp: string;
 }
 
-interface GamificationContextType {
+export interface GamificationContextType {
   // State
   state: GamificationState;
   
