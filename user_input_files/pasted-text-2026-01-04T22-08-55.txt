@@ -1,0 +1,124 @@
+index-PewrZT19.js:68 Session timeout manager initialized with 3-minute inactivity timeout
+index-PewrZT19.js:68 Session timeout manager initialized with 3-minute inactivity timeout
+index-PewrZT19.js:716 Backend health: Object
+index-PewrZT19.js:68 API extracted from reports: Object
+index-PewrZT19.js:68 API direct response: Object
+index-PewrZT19.js:716 Concepts API response: Array(12)
+index-PewrZT19.js:716 Learning Paths API response: Array(3)
+index-PewrZT19.js:716 Courses API response: Array(6)
+index-PewrZT19.js:716 Achievements API response: Array(5)
+index-PewrZT19.js:716 Quizzes API response: Array(2)
+index-PewrZT19.js:716 Analytics API response: Object
+index-PewrZT19.js:716 User data loaded successfully
+index-PewrZT19.js:68 API extracted from reports: Object
+index-PewrZT19.js:716 Concepts API response: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+index-PewrZT19.js:716 Learning Paths API response: (3) [{…}, {…}, {…}]
+index-PewrZT19.js:716 Courses API response: (6) [{…}, {…}, {…}, {…}, {…}, {…}]
+index-PewrZT19.js:716 Achievements API response: (5) [{…}, {…}, {…}, {…}, {…}]
+index-PewrZT19.js:716 Quizzes API response: (2) [{…}, {…}]
+index-PewrZT19.js:716 Analytics API response: {user_id: 'user_student1_b51ba0ca', learning_analytics: {…}, recommendations: Array(3), strengths: Array(2), areas_for_improvement: Array(2)}
+index-PewrZT19.js:716 User data loaded successfully
+index-PewrZT19.js:68 API direct response: {name: 'forums_list', info: {…}}
+index-PewrZT19.js:68 API direct response: {name: 'connection_requests', info: {…}}
+index-PewrZT19.js:68 API direct response: {name: 'connections_list', info: {…}}
+index-PewrZT19.js:632 Error loading community data: TypeError: Cannot read properties of undefined (reading 'success')
+    at index-PewrZT19.js:632:787567
+(anonymous) @ index-PewrZT19.js:632
+await in (anonymous)
+(anonymous) @ index-PewrZT19.js:632
+Ai @ index-PewrZT19.js:40
+uo @ index-PewrZT19.js:40
+Mx @ index-PewrZT19.js:40
+Tn @ index-PewrZT19.js:40
+b2 @ index-PewrZT19.js:40
+cn @ index-PewrZT19.js:38
+(anonymous) @ index-PewrZT19.js:40
+index-PewrZT19.js:68  POST http://localhost:8000/walker/user_profile 404 (Not Found)
+makeRequest @ index-PewrZT19.js:68
+getUserProfile @ index-PewrZT19.js:68
+_ @ index-PewrZT19.js:716
+(anonymous) @ index-PewrZT19.js:716
+Ai @ index-PewrZT19.js:40
+uo @ index-PewrZT19.js:40
+Mx @ index-PewrZT19.js:40
+Tn @ index-PewrZT19.js:40
+b2 @ index-PewrZT19.js:40
+cn @ index-PewrZT19.js:38
+(anonymous) @ index-PewrZT19.js:40
+index-PewrZT19.js:68 API request failed: /walker/user_profile Error: Walker 'user_profile' not found
+    at In.makeRequest (index-PewrZT19.js:68:5210)
+    at async Promise.all (:3000/index 0)
+    at async _ (index-PewrZT19.js:716:186880)
+makeRequest @ index-PewrZT19.js:68
+await in makeRequest
+getUserProfile @ index-PewrZT19.js:68
+_ @ index-PewrZT19.js:716
+(anonymous) @ index-PewrZT19.js:716
+Ai @ index-PewrZT19.js:40
+uo @ index-PewrZT19.js:40
+Mx @ index-PewrZT19.js:40
+Tn @ index-PewrZT19.js:40
+b2 @ index-PewrZT19.js:40
+cn @ index-PewrZT19.js:38
+(anonymous) @ index-PewrZT19.js:40
+index-PewrZT19.js:716 Error loading user data: Error: Walker 'user_profile' not found
+    at In.makeRequest (index-PewrZT19.js:68:5210)
+    at async Promise.all (:3000/index 0)
+    at async _ (index-PewrZT19.js:716:186880)
+_ @ index-PewrZT19.js:716
+await in _
+(anonymous) @ index-PewrZT19.js:716
+Ai @ index-PewrZT19.js:40
+uo @ index-PewrZT19.js:40
+Mx @ index-PewrZT19.js:40
+Tn @ index-PewrZT19.js:40
+b2 @ index-PewrZT19.js:40
+cn @ index-PewrZT19.js:38
+(anonymous) @ index-PewrZT19.js:40
+index-PewrZT19.js:68 API direct response: {error: "name 'false' is not defined", traceback: `Traceback (most recent call last):\n  File "/home/c…e 'false' is not defined. Did you mean: 'False'?\n`}
+index-PewrZT19.js:40 TypeError: C.filter is not a function
+    at Lf (index-PewrZT19.js:716:6714)
+    at Zm (index-PewrZT19.js:38:17338)
+    at dc (index-PewrZT19.js:40:3158)
+    at j2 (index-PewrZT19.js:40:45325)
+    at D2 (index-PewrZT19.js:40:40167)
+    at Dx (index-PewrZT19.js:40:40096)
+    at Bi (index-PewrZT19.js:40:39949)
+    at wc (index-PewrZT19.js:40:36258)
+    at v2 (index-PewrZT19.js:40:35206)
+    at S (index-PewrZT19.js:25:1632)
+cc @ index-PewrZT19.js:40
+Qr.n.callback @ index-PewrZT19.js:40
+yr @ index-PewrZT19.js:38
+f2 @ index-PewrZT19.js:40
+h2 @ index-PewrZT19.js:40
+bx @ index-PewrZT19.js:40
+Mx @ index-PewrZT19.js:40
+Tn @ index-PewrZT19.js:40
+v2 @ index-PewrZT19.js:40
+S @ index-PewrZT19.js:25
+$ @ index-PewrZT19.js:25
+index-PewrZT19.js:68  GET http://localhost:8000/api/jaclang/health 404 (Not Found)
+makeRequest @ index-PewrZT19.js:68
+getJaclangServiceHealth @ index-PewrZT19.js:68
+(anonymous) @ index-PewrZT19.js:689
+Ai @ index-PewrZT19.js:40
+uo @ index-PewrZT19.js:40
+Mx @ index-PewrZT19.js:40
+Tn @ index-PewrZT19.js:40
+b2 @ index-PewrZT19.js:40
+cn @ index-PewrZT19.js:38
+(anonymous) @ index-PewrZT19.js:40
+index-PewrZT19.js:68 API request failed: /api/jaclang/health Error: Not found
+    at Fu.makeRequest (index-PewrZT19.js:68:35410)
+makeRequest @ index-PewrZT19.js:68
+await in makeRequest
+getJaclangServiceHealth @ index-PewrZT19.js:68
+(anonymous) @ index-PewrZT19.js:689
+Ai @ index-PewrZT19.js:40
+uo @ index-PewrZT19.js:40
+Mx @ index-PewrZT19.js:40
+Tn @ index-PewrZT19.js:40
+b2 @ index-PewrZT19.js:40
+cn @ index-PewrZT19.js:38
+(anonymous) @ index-PewrZT19.js:40
