@@ -217,10 +217,10 @@ def get_user_activities(
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            # Build query - quote column names to avoid PostgreSQL reserved word issues
+            # Build query without quotes for PostgreSQL compatibility
             base_query = """
-                SELECT "id", "user_id", "activity_type", "title", "description", 
-                       "metadata", "xp_earned", "created_at"
+                SELECT id, user_id, activity_type, title, description, 
+                       metadata, xp_earned, created_at
                 FROM user_activities
                 WHERE user_id = %s
             """
@@ -240,7 +240,7 @@ def get_user_activities(
             
             # Get total count
             count_query = "SELECT COUNT(*) " + base_query.replace(
-                'SELECT "id", "user_id", "activity_type", "title", "description", "metadata", "xp_earned", "created_at"', ""
+                'SELECT id, user_id, activity_type, title, description, metadata, xp_earned, created_at', ""
             )
             cur.execute(count_query, params)
             total_count = cur.fetchone()[0]
