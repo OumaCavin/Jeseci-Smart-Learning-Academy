@@ -48,3 +48,44 @@ export type {
   UseStudentAnalyticsOptions,
   UseStudentAnalyticsReturn
 } from './useAnalytics';
+
+// Phase 3: AI Features
+export { useCodeAnalysis } from './ai/useCodeAnalysis';
+export type { 
+  AIAnalysisSuggestion,
+  CodeAnalysisResult,
+  UseCodeAnalysisOptions,
+  UseCodeAnalysisReturn 
+} from './ai/useCodeAnalysis';
+
+// Phase 3: Content Management
+export { useCourseBuilder } from './content/useCourseBuilder';
+export type { 
+  CourseModuleData,
+  ResourceData,
+  CourseData,
+  UseCourseBuilderOptions,
+  UseCourseBuilderReturn 
+} from './content/useCourseBuilder';
+
+// Phase 3: Assessment
+export { useExamSession } from './assessment/useExamSession';
+export type { 
+  ExamQuestion,
+  ExamSessionData,
+  ExamResult,
+  UseExamSessionOptions,
+  UseExamSessionReturn 
+} from './assessment/useExamSession';
+
+// Phase 3: System Administration
+export { useSystemHealth } from './admin/useSystemHealth';
+export type { 
+  SystemMetrics,
+  HealthComponent,
+  SystemHealth,
+  AuditLogEntry,
+  AuditLogFilter,
+  UseSystemHealthOptions,
+  UseSystemHealthReturn 
+} from './admin/useSystemHealth';
