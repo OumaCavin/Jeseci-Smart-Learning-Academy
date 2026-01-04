@@ -292,11 +292,15 @@ const CodeEditor: React.FC = () => {
   const loadSnippets = async () => {
     try {
       const response = await apiService.getUserSnippets();
-      if (response.success) {
+      if (response.success && Array.isArray(response.snippets)) {
         setSnippets(response.snippets);
+      } else if (response.success) {
+        // Handle case where response is the array directly
+        setSnippets(Array.isArray(response) ? response : []);
       }
     } catch (error) {
       console.error('Error loading snippets:', error);
+      setSnippets([]);
     }
   };
 
@@ -304,11 +308,15 @@ const CodeEditor: React.FC = () => {
   const loadFolders = async () => {
     try {
       const response = await apiService.getCodeFolders();
-      if (response.success) {
+      if (response.success && Array.isArray(response.folders)) {
         setFolders(response.folders);
+      } else if (response.success) {
+        // Handle case where response is the array directly
+        setFolders(Array.isArray(response) ? response : []);
       }
     } catch (error) {
       console.error('Error loading folders:', error);
+      setFolders([]);
     }
   };
 
