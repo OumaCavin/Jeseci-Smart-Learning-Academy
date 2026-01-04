@@ -4,7 +4,23 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { apiService, User, ProgressData, AnalyticsData, AIGeneratedContent, LearningPath, Concept, Quiz, Achievement, ChatMessage } from './services/api';
 import { AdminProvider, useAdmin } from './contexts/AdminContext';
 import { NotificationProvider, useNotifications } from './contexts/NotificationContext';
-import { AdminLayout, DashboardOverview, UserManagement, ContentManager, QuizManager, AILab, AnalyticsReports } from './admin';
+import { AdminLayout } from './admin';
+import { 
+  DashboardOverview, 
+  UserManagement, 
+  ContentManager, 
+  QuizManager, 
+  AILab, 
+  AnalyticsReports 
+} from './admin';
+import { 
+  AdminDashboard,
+  UserActivityPage,
+  TableActivityPage,
+  CacheManagementPage,
+  AuditLogsPage,
+  AuditHistoryPage
+} from './components/admin/AdminDashboard';
 import LandingPageWithNavigation, { HelpCenterPage, ContactPage, PrivacyPage, TermsPage } from './components/LandingPage';
 import { NotificationBell, NotificationDropdown, NotificationCenter, NotificationSettings } from './components/notifications';
 import { RecentActivityFeed } from './components/activity';
@@ -109,7 +125,7 @@ const AdminPage: React.FC = () => {
       {(props: { activeSection: string; onNavigate: (section: string) => void }) => {
         switch (props.activeSection) {
           case 'dashboard':
-            return <DashboardOverview activeSection={props.activeSection} onNavigate={props.onNavigate} />;
+            return <AdminDashboard activeSection={props.activeSection} onNavigate={props.onNavigate} />;
           case 'users':
             return <UserManagement activeSection={props.activeSection} />;
           case 'content':
@@ -120,8 +136,18 @@ const AdminPage: React.FC = () => {
             return <AILab activeSection={props.activeSection} />;
           case 'analytics':
             return <AnalyticsReports activeSection={props.activeSection} />;
+          case 'user-activity':
+            return <UserActivityPage onNavigate={props.onNavigate} />;
+          case 'table-activity':
+            return <TableActivityPage onNavigate={props.onNavigate} />;
+          case 'cache-management':
+            return <CacheManagementPage onNavigate={props.onNavigate} />;
+          case 'audit-logs':
+            return <AuditLogsPage onNavigate={props.onNavigate} />;
+          case 'audit-history':
+            return <AuditHistoryPage onNavigate={props.onNavigate} />;
           default:
-            return <DashboardOverview activeSection="dashboard" onNavigate={props.onNavigate} />;
+            return <AdminDashboard activeSection="dashboard" onNavigate={props.onNavigate} />;
         }
       }}
     </AdminLayout>

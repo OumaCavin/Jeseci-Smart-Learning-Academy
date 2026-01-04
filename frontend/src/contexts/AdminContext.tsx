@@ -1,6 +1,7 @@
 /**
  * Admin Context - Provides admin authentication state and methods
  * Includes automatic session timeout after 3 minutes of inactivity
+ * Provides permission-based authorization for admin features
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
@@ -8,15 +9,32 @@ import { apiService, User } from '../services/api';
 import { useSessionTimeout } from '../hooks/useSessionTimeout';
 import SessionTimeoutModal from '../components/SessionTimeoutModal';
 
+// Admin permission types
+interface AdminPermissions {
+  canManageUsers: boolean;
+  canManageContent: boolean;
+  canManageQuizzes: boolean;
+  canAccessAI: boolean;
+  canViewAnalytics: boolean;
+  canViewUserActivity: boolean;
+  canViewDatabaseActivity: boolean;
+  canManageCache: boolean;
+  canViewAuditLogs: boolean;
+  canViewAuditHistory: boolean;
+  canManageSystem: boolean;
+}
+
 interface AdminContextType {
   isAdminAuthenticated: boolean;
   adminUser: User | null;
   loading: boolean;
+  permissions: AdminPermissions | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   refreshAdminData: () => Promise<void>;
   showSessionWarning: boolean;
   sessionTimeRemaining: number;
+  hasPermission: (permission: keyof AdminPermissions) => boolean;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -24,10 +42,88 @@ const AdminContext = createContext<AdminContextType | undefined>(undefined);
 const ADMIN_TOKEN_KEY = 'jeseci_admin_token';
 const ADMIN_USER_KEY = 'jeseci_admin_user';
 
+// Default permissions based on admin role
+const getDefaultPermissions = (adminRole?: string): AdminPermissions => {
+  switch (adminRole) {
+    case 'super_admin':
+      return {
+        canManageUsers: true,
+        canManageContent: true,
+        canManageQuizzes: true,
+        canAccessAI: true,
+        canViewAnalytics: true,
+        canViewUserActivity: true,
+        canViewDatabaseActivity: true,
+        canManageCache: true,
+        canViewAuditLogs: true,
+        canViewAuditHistory: true,
+        canManageSystem: true
+      };
+    case 'content_admin':
+      return {
+        canManageUsers: false,
+        canManageContent: true,
+        canManageQuizzes: true,
+        canAccessAI: true,
+        canViewAnalytics: true,
+        canViewUserActivity: false,
+        canViewDatabaseActivity: false,
+        canManageCache: false,
+        canViewAuditLogs: false,
+        canViewAuditHistory: false,
+        canManageSystem: false
+      };
+    case 'moderator':
+      return {
+        canManageUsers: false,
+        canManageContent: true,
+        canManageQuizzes: false,
+        canAccessAI: false,
+        canViewAnalytics: false,
+        canViewUserActivity: false,
+        canViewDatabaseActivity: false,
+        canManageCache: false,
+        canViewAuditLogs: true,
+        canViewAuditHistory: true,
+        canManageSystem: false
+      };
+    case 'viewer':
+      return {
+        canManageUsers: false,
+        canManageContent: false,
+        canManageQuizzes: false,
+        canAccessAI: false,
+        canViewAnalytics: true,
+        canViewUserActivity: false,
+        canViewDatabaseActivity: false,
+        canManageCache: false,
+        canViewAuditLogs: false,
+        canViewAuditHistory: false,
+        canManageSystem: false
+      };
+    default:
+      // Default to full access for regular admin
+      return {
+        canManageUsers: true,
+        canManageContent: true,
+        canManageQuizzes: true,
+        canAccessAI: true,
+        canViewAnalytics: true,
+        canViewUserActivity: true,
+        canViewDatabaseActivity: true,
+        canManageCache: true,
+        canViewAuditLogs: true,
+        canViewAuditHistory: true,
+        canManageSystem: false
+      };
+  }
+};
+
 export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
   const [adminUser, setAdminUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [permissions, setPermissions] = useState<AdminPermissions | null>(null);
 
   // Session timeout state
   const [showSessionWarning, setShowSessionWarning] = useState(false);
@@ -73,6 +169,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           if (userData.is_admin) {
             setAdminUser(userData);
             setIsAdminAuthenticated(true);
+            setPermissions(getDefaultPermissions(userData.admin_role));
             console.log('Admin session restored successfully');
           } else {
             // User is not admin, clear storage
@@ -106,6 +203,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
           setAdminUser(userData);
           setIsAdminAuthenticated(true);
+          setPermissions(getDefaultPermissions(userData.admin_role));
 
           // Reset session timeout on admin login
           resetSession();
@@ -125,6 +223,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     localStorage.removeItem(ADMIN_USER_KEY);
     setAdminUser(null);
     setIsAdminAuthenticated(false);
+    setPermissions(null);
     setShowSessionWarning(false);
 
     // Clean up session timeout
@@ -138,6 +237,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         const response = await apiService.login(adminUser.username, '');
         if (response.success && response.user?.is_admin) {
           setAdminUser(response.user);
+          setPermissions(getDefaultPermissions(response.user.admin_role));
         } else {
           logout();
         }
@@ -148,17 +248,25 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  // Permission check helper
+  const hasPermission = useCallback((permission: keyof AdminPermissions): boolean => {
+    if (!permissions) return false;
+    return permissions[permission];
+  }, [permissions]);
+
   return (
     <AdminContext.Provider
       value={{
         isAdminAuthenticated,
         adminUser,
         loading,
+        permissions,
         login,
         logout,
         refreshAdminData,
         showSessionWarning,
-        sessionTimeRemaining
+        sessionTimeRemaining,
+        hasPermission
       }}
     >
       {children}

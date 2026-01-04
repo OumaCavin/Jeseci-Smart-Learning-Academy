@@ -22,6 +22,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { id: 'quizzes', label: 'Quizzes', icon: '📝' },
     { id: 'ai', label: 'AI Lab', icon: '🤖' },
     { id: 'analytics', label: 'Analytics', icon: '📈' },
+    { id: 'user-activity', label: 'User Activity', icon: '📊' },
+    { id: 'table-activity', label: 'DB Activity', icon: '🗄️' },
+    { id: 'cache-management', label: 'Cache', icon: '💾' },
+    { id: 'audit-logs', label: 'Audit Logs', icon: '📋' },
+    { id: 'audit-history', label: 'Audit History', icon: '📜' },
   ];
 
   const handleLogout = () => {
