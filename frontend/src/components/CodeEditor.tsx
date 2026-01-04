@@ -19,14 +19,14 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
 import type * as Monaco from 'monaco-editor';
-import { 
-  Play, 
-  Save, 
-  FolderOpen, 
-  Clock, 
-  Trash2, 
-  Copy, 
-  Check, 
+import {
+  Play,
+  Save,
+  FolderOpen,
+  Clock,
+  Trash2,
+  Copy,
+  Check,
   X,
   Terminal,
   AlertCircle,
@@ -52,9 +52,6 @@ import {
 } from 'lucide-react';
 import { apiService, JaclangValidationError, JaclangFormatResponse } from '../api';
 
-// Monaco marker severity mapping
-declare const monaco: typeof Monaco;
-
 // Debounce utility hook
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -79,12 +76,12 @@ const SUPPORTED_LANGUAGES = [
   { id: 'javascript', name: 'JavaScript', extension: 'js' }
 ];
 
-// Monaco marker severity mapping
-const SEVERITY_MAP = {
+// Helper function to get severity map (monaco must be loaded)
+const getSeverityMap = (monaco: typeof import('monaco-editor')) => ({
   'Error': monaco.MarkerSeverity.Error,
   'Warning': monaco.MarkerSeverity.Warning,
   'Info': monaco.MarkerSeverity.Info
-} as const;
+} as const);
 
 // Default code templates for each language
 const DEFAULT_CODE_TEMPLATES: Record<string, string> = {
@@ -384,8 +381,9 @@ const CodeEditor: React.FC = () => {
       if (monacoRef.current && editorRef.current) {
         const model = editorRef.current.getModel();
         if (model) {
+          const severityMap = getSeverityMap(monacoRef.current);
           const markers = result.errors.map(error => ({
-            severity: SEVERITY_MAP[error.severity] || monaco.MarkerSeverity.Error,
+            severity: severityMap[error.severity as keyof typeof severityMap] || monacoRef.current!.MarkerSeverity.Error,
             startLineNumber: error.line,
             startColumn: error.column,
             endLineNumber: error.line,
