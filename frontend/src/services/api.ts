@@ -1173,6 +1173,46 @@ class ApiService {
       body: JSON.stringify({ limit }),
     });
   }
+
+  // =============================================================================
+  // STATIC METHOD ALIASES (for backward compatibility)
+  // =============================================================================
+
+  static async getFollowers(userId?: string, limit: number = 20, offset: number = 0): Promise<any> {
+    const instance = new ApiService();
+    return userId ? instance.getFollowers(userId, limit, offset) : instance.getFollowing(limit, offset);
+  }
+
+  static async getFollowing(limit: number = 20, offset: number = 0): Promise<any> {
+    const instance = new ApiService();
+    return instance.getFollowing(limit, offset);
+  }
+
+  static async followUser(userId: string): Promise<any> {
+    const instance = new ApiService();
+    return instance.followUser(userId);
+  }
+
+  static async unfollowUser(userId: string): Promise<any> {
+    const instance = new ApiService();
+    return instance.unfollowUser(userId);
+  }
+
+  static async getSavedContent(): Promise<any> {
+    const instance = new ApiService();
+    return instance.getSavedContent();
+  }
+
+  static async removeSavedContent(contentId: string): Promise<any> {
+    const instance = new ApiService();
+    return instance.makeRequest('/walker/saved_content', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: "remove",
+        content_id: contentId
+      }),
+    });
+  }
 }
 
 export const apiService = new ApiService();
