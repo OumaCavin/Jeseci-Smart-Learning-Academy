@@ -253,7 +253,7 @@ class ApiService {
           const arrayKeys = ['data', 'results', 'items', 'concepts', 'paths', 
                             'courses', 'quizzes', 'achievements', 'modules',
                             'concepts_list', 'paths_list', 'courses_list',
-                            'snippets', 'files'];
+                            'snippets', 'files', 'activities'];
           for (const key of arrayKeys) {
             if (Array.isArray(report[key])) {
               return report[key] as unknown as T;
@@ -302,7 +302,7 @@ class ApiService {
           const arrayKeys = ['data', 'results', 'items', 'concepts', 'paths', 
                             'courses', 'quizzes', 'achievements', 'modules',
                             'concepts_list', 'paths_list', 'courses_list',
-                            'snippets', 'files'];
+                            'snippets', 'files', 'activities'];
           for (const key of arrayKeys) {
             if (Array.isArray(response[key])) {
               return response[key] as unknown as T;
