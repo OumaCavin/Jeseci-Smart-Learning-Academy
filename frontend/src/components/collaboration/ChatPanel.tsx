@@ -280,4 +280,5 @@ export function ChatPanel({
       </div>
     </div>
   );
+}
 
