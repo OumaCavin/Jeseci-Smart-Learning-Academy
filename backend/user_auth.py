@@ -28,8 +28,8 @@ from email_verification import (
     send_verification_email,
     send_welcome_email
 )
-from backend.database.neo4j_manager import Neo4jManager
-from backend.database.initialize_database import initialize_database
+from database.neo4j_manager import Neo4jManager
+from database.initialize_database import initialize_database
 
 # Import centralized logging configuration
 from logger_config import logger
