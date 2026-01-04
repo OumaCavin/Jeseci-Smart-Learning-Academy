@@ -6696,26 +6696,6 @@ walker reset_password {
     has confirm_password: str;
 
     can reset_password with entry {
-        import database as db_module;
-        import bcrypt;
-
-        if not self.token or not self.token.strip() {
-            report {
-                "success": False,
-                "error": "Reset token is required"
-            };
-            return;
-        }
-
-        if not self.new_password or len(self.new_password) < 8 {
-            report {
-                "success": False,
-walker reset_password {
-    has token: str;
-    has new_password: str;
-    has confirm_password: str;
-
-    can reset_password with entry {
         import password_reset as reset_module;
 
         if not self.token or not self.token.strip() {
