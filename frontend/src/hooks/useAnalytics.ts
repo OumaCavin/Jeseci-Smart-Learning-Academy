@@ -1,5 +1,8 @@
 import { useCallback, useState, useEffect } from 'react';
-import { useAnalytics, ExecutionMetric, LearningMetric, EngagementMetric, PerformanceTrend, ActivityDataPoint, StudentPerformance, CohortAnalytics, DateRange } from '../contexts/AnalyticsContext';
+import { useAnalytics as useAnalyticsContext, ExecutionMetric, LearningMetric, EngagementMetric, PerformanceTrend, ActivityDataPoint, StudentPerformance, CohortAnalytics, DateRange } from '../contexts/AnalyticsContext';
+
+// Re-export useAnalytics from context for components that import from hooks
+export const useAnalytics = useAnalyticsContext;
 
 export interface UsePerformanceMetricsOptions {
   userId?: string;
@@ -377,3 +380,5 @@ export function useStudentAnalytics(options: UseStudentAnalyticsOptions = {}): U
     sortBy
   };
 }
+// Re-export types from context for external use
+export type { ActivityDataPoint, StudentPerformance };

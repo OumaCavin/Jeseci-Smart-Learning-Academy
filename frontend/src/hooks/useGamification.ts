@@ -188,3 +188,5 @@ const LEVEL_THRESHOLDS = [
   { level: 15, title: 'Divine' }
 ];
 
+// Re-export types from context for external use
+export type { Badge, Challenge, XPGain };

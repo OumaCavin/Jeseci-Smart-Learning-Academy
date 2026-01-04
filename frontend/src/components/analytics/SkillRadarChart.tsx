@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { useAnalytics, SkillData } from '../../hooks/useAnalytics';
+import { useAnalytics } from '../../contexts/AnalyticsContext';
 
 // Generate polygon points for radar chart
 function generatePolygonPoints(

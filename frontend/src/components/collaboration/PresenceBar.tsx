@@ -49,7 +49,7 @@ export function PresenceBar({
     isUserTyping
   } = useCollaborationSession({ roomId });
 
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [showDropdown, setShowDropdown] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -125,7 +125,7 @@ export function PresenceBar({
             <button
               onClick={() => onParticipantClick?.(peer)}
               onMouseEnter={() => setShowDropdown(peer.userId)}
-              onMouseLeave={() => setShowDropdown(false)}
+              onMouseLeave={() => setShowDropdown(null)}
               className="relative group"
             >
               <div 

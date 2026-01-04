@@ -21,7 +21,7 @@ function throttle<T extends (...args: unknown[]) => unknown>(
 
 export interface UseCollaborationSessionOptions {
   roomId: string;
-  fileId: string;
+  fileId?: string;
   onPeerJoin?: (peer: Peer) => void;
   onPeerLeave?: (userId: string) => void;
   onOperation?: (operation: CodeOperation) => void;
@@ -96,6 +96,7 @@ export function useCollaborationSession(options: UseCollaborationSessionOptions)
   } = useCollaboration();
 
   const localPeerRef = useRef<Peer | null>(null);
+  const roomIdRef = useRef(roomId);
 
   // Create or join session
   const joinRoom = useCallback(async () => {
@@ -109,8 +110,8 @@ export function useCollaborationSession(options: UseCollaborationSessionOptions)
         // Create new session if doesn't exist
         const session = await createSession(`Collaboration Session`, fileId);
         if (session.id !== roomId) {
-          // If we created a new session, update roomId
-          roomId = session.id;
+          // If we created a new session, update the local ref
+          roomIdRef.current = session.id;
         }
       }
       
@@ -179,25 +180,25 @@ export function useCollaborationSession(options: UseCollaborationSessionOptions)
 
   // Sync with context state
   useEffect(() => {
-    setPeers(state.state.peers);
-    setDocumentVersion(state.state.documentVersion);
-    setSyncStatus(state.state.syncStatus);
-    setChatMessages(state.state.chatMessages);
-    setUnreadCount(state.state.unreadCount);
-    setConnectionQuality(state.state.connectionQuality);
-    setIsConnected(state.state.isConnected);
-    setIsConnecting(state.state.isConnecting);
+    setPeers(state.peers);
+    setDocumentVersion(state.documentVersion);
+    setSyncStatus(state.syncStatus);
+    setChatMessages(state.chatMessages);
+    setUnreadCount(state.unreadCount);
+    setConnectionQuality(state.connectionQuality);
+    setIsConnected(state.isConnected);
+    setIsConnecting(state.isConnecting);
     
     localPeerRef.current = {
-      userId: state.state.localUserId,
-      name: state.state.localUserName,
+      userId: state.localUserId,
+      name: state.localUserName,
       color: '#3B82F6',
       cursor: null,
       selection: null,
       isTyping: false,
       lastActive: new Date().toISOString()
     };
-  }, [state.state]);
+  }, [state]);
 
   // Auto-connect
   useEffect(() => {
@@ -214,18 +215,18 @@ export function useCollaborationSession(options: UseCollaborationSessionOptions)
 
   // Callback effects
   useEffect(() => {
-    const newPeer = peers.find(p => !state.state.peers.find(sp => sp.userId === p.userId));
+    const newPeer = peers.find(p => !state.peers.find(sp => sp.userId === p.userId));
     if (newPeer && onPeerJoin) {
       onPeerJoin(newPeer);
     }
   }, [peers, onPeerJoin]);
 
   useEffect(() => {
-    const leftPeer = state.state.peers.find(p => !peers.find(sp => sp.userId === p.userId));
+    const leftPeer = state.peers.find(p => !peers.find(sp => sp.userId === p.userId));
     if (leftPeer && onPeerLeave) {
       onPeerLeave(leftPeer.userId);
     }
-  }, [state.state.peers, peers, onPeerLeave]);
+  }, [state.peers, peers, onPeerLeave]);
 
   return {
     isConnected,
@@ -249,3 +250,5 @@ export function useCollaborationSession(options: UseCollaborationSessionOptions)
     getActivePeers
   };
 }
+// Re-export types from context for external use
+export type { ChatMessage, Peer };

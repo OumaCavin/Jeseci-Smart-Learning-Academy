@@ -10,7 +10,7 @@ import { useSessionTimeout } from '../hooks/useSessionTimeout';
 import SessionTimeoutModal from '../components/SessionTimeoutModal';
 
 // Admin permission types
-interface AdminPermissions {
+export interface AdminPermissions {
   canManageUsers: boolean;
   canManageContent: boolean;
   canManageQuizzes: boolean;

@@ -33,8 +33,8 @@ import advancedCollaborationService, {
   StudyGroupGoal,
   StudyGroupMessage
 } from '../../services/advancedCollaborationService';
-import { StudyGroupMembers } from './StudyGroupMembers';
-import { StudyGroupEvents } from './StudyGroupEvents';
+import StudyGroupMembers from './StudyGroupMembers';
+import StudyGroupEvents from './StudyGroupEvents';
 
 // Props interfaces
 interface StudyGroupListProps {

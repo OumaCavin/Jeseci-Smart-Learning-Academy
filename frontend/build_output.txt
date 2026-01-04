@@ -1,0 +1,282 @@
+
+> react_repo@0.0.0 build /workspace/frontend
+> pnpm install --prefer-offline && rm -rf node_modules/.vite-temp && tsc -b && vite build
+
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +428
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 428, reused 0, downloaded 4, added 0
+Progress: resolved 428, reused 0, downloaded 14, added 0
+Progress: resolved 428, reused 0, downloaded 68, added 33
+Progress: resolved 428, reused 0, downloaded 108, added 62
+Progress: resolved 428, reused 0, downloaded 127, added 82
+Progress: resolved 428, reused 0, downloaded 150, added 101
+Progress: resolved 428, reused 0, downloaded 193, added 129
+Progress: resolved 428, reused 0, downloaded 239, added 139
+Progress: resolved 428, reused 0, downloaded 274, added 161
+Progress: resolved 428, reused 0, downloaded 308, added 182
+Progress: resolved 428, reused 0, downloaded 359, added 204
+Progress: resolved 428, reused 0, downloaded 374, added 211
+Progress: resolved 428, reused 0, downloaded 404, added 245
+Progress: resolved 428, reused 0, downloaded 418, added 288
+Progress: resolved 428, reused 0, downloaded 421, added 328
+Progress: resolved 428, reused 0, downloaded 423, added 380
+Progress: resolved 428, reused 0, downloaded 423, added 418
+Progress: resolved 428, reused 0, downloaded 424, added 420
+Progress: resolved 428, reused 0, downloaded 426, added 422
+Progress: resolved 428, reused 0, downloaded 426, added 424
+Progress: resolved 428, reused 0, downloaded 426, added 425
+Progress: resolved 428, reused 0, downloaded 426, added 426
+Progress: resolved 428, reused 0, downloaded 427, added 426
+Progress: resolved 428, reused 0, downloaded 428, added 426
+Progress: resolved 428, reused 0, downloaded 428, added 427
+Progress: resolved 428, reused 0, downloaded 428, added 428
+Progress: resolved 428, reused 0, downloaded 428, added 428, done
+
+dependencies:
++ @hookform/resolvers 3.10.0
++ @monaco-editor/react 4.7.0
++ @radix-ui/react-accordion 1.2.4
++ @radix-ui/react-alert-dialog 1.1.7
++ @radix-ui/react-aspect-ratio 1.1.3
++ @radix-ui/react-avatar 1.1.4
++ @radix-ui/react-checkbox 1.1.5
++ @radix-ui/react-collapsible 1.1.4
++ @radix-ui/react-context-menu 2.2.7
++ @radix-ui/react-dialog 1.1.7
++ @radix-ui/react-dropdown-menu 2.1.7
++ @radix-ui/react-hover-card 1.1.7
++ @radix-ui/react-label 2.1.3
++ @radix-ui/react-menubar 1.1.7
++ @radix-ui/react-navigation-menu 1.2.6
++ @radix-ui/react-popover 1.1.7
++ @radix-ui/react-progress 1.1.3
++ @radix-ui/react-radio-group 1.2.4
++ @radix-ui/react-scroll-area 1.2.4
++ @radix-ui/react-select 2.1.7
++ @radix-ui/react-separator 1.1.3
++ @radix-ui/react-slider 1.2.4
++ @radix-ui/react-slot 1.2.0
++ @radix-ui/react-switch 1.1.4
++ @radix-ui/react-tabs 1.1.4
++ @radix-ui/react-toast 1.2.7
++ @radix-ui/react-toggle 1.1.3
++ @radix-ui/react-toggle-group 1.1.3
++ @radix-ui/react-tooltip 1.2.0
++ class-variance-authority 0.7.1
++ clsx 2.1.1
++ cmdk 1.0.0
++ date-fns 3.6.0
++ embla-carousel-react 8.6.0
++ input-otp 1.4.2
++ lucide-react 0.364.0
++ next-themes 0.4.6
++ playwright 1.57.0
++ react 18.3.1
++ react-day-picker 8.10.1
++ react-dom 18.3.1
++ react-hook-form 7.55.0
++ react-resizable-panels 2.1.7
++ react-router-dom 6.30.0
++ recharts 2.15.2
++ sonner 1.7.4
++ tailwind-merge 2.6.0
++ tailwindcss-animate 1.0.7
++ vaul 1.1.2
++ zod 3.24.2
+
+devDependencies:
++ @eslint/js 9.24.0
++ @types/node 22.14.1
++ @types/react 18.3.20
++ @types/react-dom 18.3.6
++ @types/react-router-dom 5.3.3
++ @vitejs/plugin-react 4.3.4
++ autoprefixer 10.4.20
++ eslint 9.24.0
++ eslint-plugin-react-hooks 5.2.0
++ eslint-plugin-react-refresh 0.4.19
++ globals 15.15.0
++ postcss 8.4.49
++ tailwindcss 3.4.16
++ typescript 5.6.3
++ typescript-eslint 8.29.1
++ vite 6.2.6
++ vite-plugin-source-identifier 1.1.2
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: esbuild.                                            │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 49s using pnpm v10.12.4
+src/App.tsx(17,3): error TS2614: Module '"./components/admin/AdminDashboard"' has no exported member 'AdminDashboard'. Did you mean to use 'import AdminDashboard from "./components/admin/AdminDashboard"' instead?
+src/components/CodeEditor.tsx(55,7): error TS2451: Cannot redeclare block-scoped variable 'SEVERITY_MAP'.
+src/components/CodeEditor.tsx(56,12): error TS2304: Cannot find name 'monaco'.
+src/components/CodeEditor.tsx(57,14): error TS2304: Cannot find name 'monaco'.
+src/components/CodeEditor.tsx(58,11): error TS2304: Cannot find name 'monaco'.
+src/components/CodeEditor.tsx(86,7): error TS2451: Cannot redeclare block-scoped variable 'SEVERITY_MAP'.
+src/components/CodeEditor.tsx(87,12): error TS2304: Cannot find name 'monaco'.
+src/components/CodeEditor.tsx(88,14): error TS2304: Cannot find name 'monaco'.
+src/components/CodeEditor.tsx(89,11): error TS2304: Cannot find name 'monaco'.
+src/components/CodeEditor.tsx(279,42): error TS2307: Cannot find module 'monaco-editor' or its corresponding type declarations.
+src/components/CodeEditor.tsx(307,7): error TS2448: Block-scoped variable 'clearValidationMarkers' used before its declaration.
+src/components/CodeEditor.tsx(403,55): error TS2304: Cannot find name 'monaco'.
+src/components/admin/AdminAuditHistory.tsx(67,38): error TS2339: Property 'getAuditHistoryStats' does not exist on type 'AdvancedCollaborationService'.
+src/components/admin/AdminAuditHistory.tsx(68,38): error TS2339: Property 'getAuditHistory' does not exist on type 'AdvancedCollaborationService'.
+src/components/admin/AdminAuditLogs.tsx(66,38): error TS2339: Property 'getAuditLogStats' does not exist on type 'AdvancedCollaborationService'.
+src/components/admin/AdminAuditLogs.tsx(67,38): error TS2339: Property 'getAuditLogs' does not exist on type 'AdvancedCollaborationService'.
+src/components/admin/AdminDashboard.tsx(7,35): error TS2307: Cannot find module '../AdminUserActivity' or its corresponding type declarations.
+src/components/admin/AdminDashboard.tsx(8,36): error TS2307: Cannot find module '../AdminTableActivity' or its corresponding type declarations.
+src/components/admin/AdminDashboard.tsx(9,38): error TS2307: Cannot find module '../AdminCacheManagement' or its corresponding type declarations.
+src/components/admin/AdminDashboard.tsx(10,32): error TS2307: Cannot find module '../AdminAuditLogs' or its corresponding type declarations.
+src/components/admin/AdminDashboard.tsx(11,35): error TS2307: Cannot find module '../AdminAuditHistory' or its corresponding type declarations.
+src/components/analytics/ActivityHeatmap.tsx(2,10): error TS2459: Module '"../../hooks/useAnalytics"' declares 'useAnalytics' locally, but it is not exported.
+src/components/analytics/ActivityHeatmap.tsx(2,24): error TS2459: Module '"../../hooks/useAnalytics"' declares 'ActivityDataPoint' locally, but it is not exported.
+src/components/analytics/InstructorOverview.tsx(2,31): error TS2459: Module '"../../hooks/useAnalytics"' declares 'StudentPerformance' locally, but it is not exported.
+src/components/analytics/InstructorOverview.tsx(95,19): error TS2345: Argument of type 'string | number | symbol' is not assignable to parameter of type 'keyof StudentPerformance'.
+  Type 'string' is not assignable to type 'keyof StudentPerformance'.
+src/components/analytics/SkillRadarChart.tsx(2,10): error TS2459: Module '"../../hooks/useAnalytics"' declares 'useAnalytics' locally, but it is not exported.
+src/components/analytics/SkillRadarChart.tsx(2,24): error TS2305: Module '"../../hooks/useAnalytics"' has no exported member 'SkillData'.
+src/components/collaboration/ChatPanel.tsx(2,35): error TS2459: Module '"../../hooks/useCollaborationSession"' declares 'ChatMessage' locally, but it is not exported.
+src/components/collaboration/ChatPanel.tsx(58,31): error TS2345: Argument of type '{ roomId: string; autoConnect: false; }' is not assignable to parameter of type 'UseCollaborationSessionOptions'.
+  Property 'fileId' is missing in type '{ roomId: string; autoConnect: false; }' but required in type 'UseCollaborationSessionOptions'.
+src/components/collaboration/PresenceBar.tsx(2,35): error TS2459: Module '"../../hooks/useCollaborationSession"' declares 'Peer' locally, but it is not exported.
+src/components/collaboration/PresenceBar.tsx(50,31): error TS2345: Argument of type '{ roomId: string; }' is not assignable to parameter of type 'UseCollaborationSessionOptions'.
+  Property 'fileId' is missing in type '{ roomId: string; }' but required in type 'UseCollaborationSessionOptions'.
+src/components/collaboration/PresenceBar.tsx(127,51): error TS2345: Argument of type 'string' is not assignable to parameter of type 'SetStateAction<boolean>'.
+src/components/collaboration/PresenceBar.tsx(160,16): error TS2367: This comparison appears to be unintentional because the types 'boolean' and 'string' have no overlap.
+src/components/community/MentorRequestsReceived.tsx(9,3): error TS2305: Module '"lucide-react"' has no exported member 'LoadingSpinner'.
+src/components/community/MentorsDirectory.tsx(12,3): error TS2305: Module '"lucide-react"' has no exported member 'LoadingSpinner'.
+src/components/community/Mentorship.tsx(35,10): error TS2614: Module '"./MentorsDirectory"' has no exported member 'MentorsDirectory'. Did you mean to use 'import MentorsDirectory from "./MentorsDirectory"' instead?
+src/components/community/Mentorship.tsx(36,10): error TS2395: Individual declarations in merged declaration 'MentorshipRequests' must be all exported or all local.
+src/components/community/Mentorship.tsx(36,10): error TS2614: Module '"./MentorshipRequests"' has no exported member 'MentorshipRequests'. Did you mean to use 'import MentorshipRequests from "./MentorshipRequests"' instead?
+src/components/community/Mentorship.tsx(37,10): error TS2614: Module '"./MentorRequestsReceived"' has no exported member 'MentorRequestsReceived'. Did you mean to use 'import MentorRequestsReceived from "./MentorRequestsReceived"' instead?
+src/components/community/Mentorship.tsx(272,14): error TS2395: Individual declarations in merged declaration 'MentorshipRequests' must be all exported or all local.
+src/components/community/MentorshipRequests.tsx(9,3): error TS2305: Module '"lucide-react"' has no exported member 'LoadingSpinner'.
+src/components/community/Moderation.tsx(33,10): error TS2614: Module '"./ModerationReports"' has no exported member 'ModerationReports'. Did you mean to use 'import ModerationReports from "./ModerationReports"' instead?
+src/components/community/Moderation.tsx(34,10): error TS2614: Module '"./ModerationActionsHistory"' has no exported member 'ModerationActionsHistory'. Did you mean to use 'import ModerationActionsHistory from "./ModerationActionsHistory"' instead?
+src/components/community/ModerationActionsHistory.tsx(7,3): error TS2305: Module '"lucide-react"' has no exported member 'LoadingSpinner'.
+src/components/community/ModerationReports.tsx(8,3): error TS2305: Module '"lucide-react"' has no exported member 'LoadingSpinner'.
+src/components/community/PeerReview.tsx(33,10): error TS2614: Module '"./PeerReviewActions"' has no exported member 'PeerReviewActions'. Did you mean to use 'import PeerReviewActions from "./PeerReviewActions"' instead?
+src/components/community/PeerReviewActions.tsx(10,3): error TS2305: Module '"lucide-react"' has no exported member 'LoadingSpinner'.
+src/components/community/StudyGroupEvents.tsx(11,3): error TS2305: Module '"lucide-react"' has no exported member 'LoadingSpinner'.
+src/components/community/StudyGroupMembers.tsx(15,3): error TS2305: Module '"lucide-react"' has no exported member 'LoadingSpinner'.
+src/components/community/StudyGroupMembers.tsx(36,11): error TS2430: Interface 'MemberWithProfile' incorrectly extends interface 'StudyGroupMember'.
+  Property 'last_active_at' is optional in type 'MemberWithProfile' but required in type 'StudyGroupMember'.
+src/components/community/StudyGroups.tsx(36,10): error TS2614: Module '"./StudyGroupMembers"' has no exported member 'StudyGroupMembers'. Did you mean to use 'import StudyGroupMembers from "./StudyGroupMembers"' instead?
+src/components/community/StudyGroups.tsx(37,10): error TS2614: Module '"./StudyGroupEvents"' has no exported member 'StudyGroupEvents'. Did you mean to use 'import StudyGroupEvents from "./StudyGroupEvents"' instead?
+src/components/dashboard/LiveActivityFeed.tsx(164,8): error TS2304: Cannot find name 'toLowerCase'.
+src/components/dashboard/RealTimeMetricsGrid.tsx(159,28): error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{ metricId: string; value: number; timestamp: string; }'.
+  Type '{}' is missing the following properties from type '{ metricId: string; value: number; timestamp: string; }': metricId, value, timestamp
+src/components/dashboard/index.ts(8,3): error TS2305: Module '"./RealTimeMetricsGrid"' has no exported member 'ActivityItem'.
+src/components/features/admin/ReportBuilder.tsx(2,79): error TS2307: Cannot find module '../../contexts/ReportBuilderContext' or its corresponding type declarations.
+src/components/features/admin/ReportBuilder.tsx(241,76): error TS2304: Cannot find name 'ReportQuery'.
+src/components/features/admin/SchedulerBoard.tsx(2,63): error TS2307: Cannot find module '../../contexts/SchedulerContext' or its corresponding type declarations.
+src/components/features/admin/SchedulerBoard.tsx(399,62): error TS2339: Property 'error' does not exist on type '{ isValid: boolean; humanReadable: string; }'.
+src/components/features/admin/UserManagementTable.tsx(2,54): error TS2307: Cannot find module '../../contexts/AdminContext' or its corresponding type declarations.
+src/components/features/admin/UserManagementTable.tsx(60,21): error TS2339: Property 'includes' does not exist on type 'string | number | symbol'.
+  Property 'includes' does not exist on type 'number'.
+src/components/features/admin/UserManagementTable.tsx(61,43): error TS2339: Property 'split' does not exist on type 'string | number | symbol'.
+  Property 'split' does not exist on type 'number'.
+src/components/features/admin/index.ts(3,15): error TS2724: '"./UserManagementTable"' has no exported member named 'UserManagementTableProps'. Did you mean 'UserManagementTable'?
+src/components/features/ai/AICodeAssistant.tsx(2,55): error TS2307: Cannot find module '../../hooks/ai/useCodeAnalysis' or its corresponding type declarations.
+src/components/features/ai/KnowledgeGraph.tsx(2,42): error TS2307: Cannot find module '../../hooks/ai/useSkillGraph' or its corresponding type declarations.
+src/components/features/ai/index.ts(3,15): error TS2724: '"./AICodeAssistant"' has no exported member named 'AICodeAssistantProps'. Did you mean 'AICodeAssistant'?
+src/components/features/ai/index.ts(6,15): error TS2724: '"./KnowledgeGraph"' has no exported member named 'KnowledgeGraphProps'. Did you mean 'KnowledgeGraph'?
+src/components/features/assessment/ExamRunner.tsx(2,46): error TS2307: Cannot find module '../../hooks/assessment/useExamSession' or its corresponding type declarations.
+src/components/features/assessment/index.ts(3,15): error TS2724: '"./ExamRunner"' has no exported member named 'ExamRunnerProps'. Did you mean 'ExamRunner'?
+src/components/features/builder/CurriculumBuilderBoard.tsx(2,66): error TS2307: Cannot find module '../../hooks/content/useCourseBuilder' or its corresponding type declarations.
+src/components/features/builder/index.ts(3,15): error TS2724: '"./CurriculumBuilderBoard"' has no exported member named 'CurriculumBuilderBoardProps'. Did you mean 'CurriculumBuilderBoard'?
+src/components/features/communication/VideoRoom.tsx(2,27): error TS2307: Cannot find module '../../hooks/communication/useWebRTC' or its corresponding type declarations.
+src/components/gamification/XPBar.tsx(2,27): error TS2459: Module '"../../hooks/useGamification"' declares 'Badge' locally, but it is not exported.
+src/components/gamification/XPBar.tsx(2,34): error TS2459: Module '"../../hooks/useGamification"' declares 'Challenge' locally, but it is not exported.
+src/components/gamification/XPBar.tsx(2,45): error TS2459: Module '"../../hooks/useGamification"' declares 'XPGain' locally, but it is not exported.
+src/components/lms/LMSConfigurationWizard.tsx(102,5): error TS2339: Property 'getOAuthConfig' does not exist on type 'UseLMSIntegrationReturn'.
+src/components/lms/LMSConfigurationWizard.tsx(366,61): error TS2353: Object literal may only specify known properties, and 'apiKey' does not exist in type 'SetStateAction<Partial<LMSProvider>>'.
+src/components/lms/LMSConfigurationWizard.tsx(387,63): error TS2353: Object literal may only specify known properties, and 'username' does not exist in type 'SetStateAction<Partial<LMSProvider>>'.
+src/components/lms/LMSConfigurationWizard.tsx(401,63): error TS2353: Object literal may only specify known properties, and 'password' does not exist in type 'SetStateAction<Partial<LMSProvider>>'.
+src/contexts/AIContext.tsx(104,11): error TS2339: Property 'emit' does not exist on type 'UseWebSocketReturn'.
+src/contexts/AIContext.tsx(104,17): error TS2339: Property 'on' does not exist on type 'UseWebSocketReturn'.
+src/contexts/AIContext.tsx(104,21): error TS2339: Property 'off' does not exist on type 'UseWebSocketReturn'.
+src/contexts/AIContext.tsx(104,42): error TS2554: Expected 1 arguments, but got 0.
+src/contexts/AILearningContext.tsx(126,22): error TS2451: Cannot redeclare block-scoped variable 'setActivePath'.
+src/contexts/AILearningContext.tsx(355,9): error TS2451: Cannot redeclare block-scoped variable 'setActivePath'.
+src/contexts/AILearningContext.tsx(455,5): error TS2322: Type 'Dispatch<SetStateAction<AILearningPath>>' is not assignable to type '(pathId: string) => Promise<void>'.
+  Types of parameters 'value' and 'pathId' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<AILearningPath>'.
+src/contexts/AssessmentContext.tsx(212,11): error TS2322: Type '{ id: string; title: string; description: string; type?: "quiz" | "exam" | "practice" | "challenge"; questions: Question[]; settings: { timeLimit?: number; allowBackNavigation: boolean; showResults: boolean; showCorrectAnswers: boolean; shuffleQuestions: boolean; shuffleOptions: boolean; passingScore: number; maxAtt...' is not assignable to type 'Assessment'.
+  Property 'type' is optional in type '{ id: string; title: string; description: string; type?: "quiz" | "exam" | "practice" | "challenge"; questions: Question[]; settings: { timeLimit?: number; allowBackNavigation: boolean; ... 8 more ...; cameraRequired: boolean; }; availability: { ...; }; metadata: { ...; }; }' but required in type 'Assessment'.
+src/contexts/AssessmentContext.tsx(702,5): error TS2322: Type '() => Promise<AssessmentSession>' is not assignable to type '() => Promise<void>'.
+  Type 'Promise<AssessmentSession>' is not assignable to type 'Promise<void>'.
+    Type 'AssessmentSession' is not assignable to type 'void'.
+src/contexts/CodeExecutionContext.tsx(81,25): error TS2345: Argument of type '(prev: string[]) => unknown[]' is not assignable to parameter of type 'SetStateAction<string[]>'.
+  Type '(prev: string[]) => unknown[]' is not assignable to type '(prevState: string[]) => string[]'.
+    Type 'unknown[]' is not assignable to type 'string[]'.
+      Type 'unknown' is not assignable to type 'string'.
+src/contexts/CodeExecutionContext.tsx(83,26): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<ExecutionResponse>'.
+src/contexts/CodeExecutionContext.tsx(87,28): error TS2698: Spread types may only be created from object types.
+src/contexts/CodeExecutionContext.tsx(170,36): error TS2693: 'WebSocketConnectionState' only refers to a type, but is being used as a value here.
+src/contexts/CodeExecutionContext.tsx(172,9): error TS2820: Type '"execution.start"' is not assignable to type 'WebSocketMessageType'. Did you mean '"execution.started"'?
+src/contexts/CodeExecutionContext.tsx(189,9): error TS2820: Type '"execution.cancel"' is not assignable to type 'WebSocketMessageType'. Did you mean '"execution.cancelled"'?
+src/contexts/CollaborationContext.tsx(195,29): error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{ session: CollaborationSession; peers: Peer[]; }'.
+  Type '{}' is missing the following properties from type '{ session: CollaborationSession; peers: Peer[]; }': session, peers
+src/contexts/CollaborationContext.tsx(198,26): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Peer'.
+  Type '{}' is missing the following properties from type 'Peer': userId, name, color, cursor, and 3 more.
+src/contexts/CollaborationContext.tsx(201,24): error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{ userId: string; }'.
+  Property 'userId' is missing in type '{}' but required in type '{ userId: string; }'.
+src/contexts/CollaborationContext.tsx(204,28): error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{ userId: string; cursor: CursorPosition; }'.
+  Type '{}' is missing the following properties from type '{ userId: string; cursor: CursorPosition; }': userId, cursor
+src/contexts/CollaborationContext.tsx(207,31): error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{ userId: string; selection: SelectionRange; }'.
+  Type '{}' is missing the following properties from type '{ userId: string; selection: SelectionRange; }': userId, selection
+src/contexts/CollaborationContext.tsx(210,25): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'CodeOperation'.
+  Type '{}' is missing the following properties from type 'CodeOperation': id, type, position, version, and 2 more.
+src/contexts/CollaborationContext.tsx(213,27): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'ChatMessage'.
+  Type '{}' is missing the following properties from type 'ChatMessage': id, userId, userName, content, and 2 more.
+src/contexts/CollaborationContext.tsx(219,93): error TS2339: Property 'version' does not exist on type 'unknown'.
+src/contexts/CollaborationContext.tsx(222,18): error TS2345: Argument of type '(prev: CollaborationState) => { connectionQuality: unknown; currentSession: CollaborationSession; isConnected: boolean; isConnecting: boolean; ... 7 more ...; syncStatus: "offline" | ... 2 more ... | "syncing"; }' is not assignable to parameter of type 'SetStateAction<CollaborationState>'.
+  Type '(prev: CollaborationState) => { connectionQuality: unknown; currentSession: CollaborationSession; isConnected: boolean; isConnecting: boolean; ... 7 more ...; syncStatus: "offline" | ... 2 more ... | "syncing"; }' is not assignable to type '(prevState: CollaborationState) => CollaborationState'.
+    Call signature return types '{ connectionQuality: unknown; currentSession: CollaborationSession; isConnected: boolean; isConnecting: boolean; peers: Peer[]; localUserId: string; localUserName: string; ... 4 more ...; syncStatus: "offline" | ... 2 more ... | "syncing"; }' and 'CollaborationState' are incompatible.
+      The types of 'connectionQuality' are incompatible between these types.
+        Type 'unknown' is not assignable to type '"excellent" | "good" | "poor" | "disconnected"'.
+src/contexts/CurriculumContext.tsx(290,10): error TS2678: Type '"SET_UNSAAVED_CHANGES"' is not comparable to type '"SET_LOADING" | "SET_ERROR" | "SET_COURSES" | "SET_LEARNING_PATHS" | "SELECT_COURSE" | "SELECT_MODULE" | "CREATE_DRAFT_COURSE" | "UPDATE_DRAFT_COURSE" | "ADD_MODULE_TO_DRAFT" | ... 13 more ... | "ARCHIVE_COURSE"'.
+src/contexts/CurriculumContext.tsx(291,52): error TS2339: Property 'payload' does not exist on type 'never'.
+src/contexts/CurriculumContext.tsx(398,11): error TS2322: Type '{ id: string; title: string; description: string; thumbnail?: string; category?: string; tags: string[]; modules: CourseModule[]; settings: { isPublic: boolean; allowLateSubmission: boolean; enableDiscussions: boolean; passingScore: number; }; metadata: { createdAt: string; updatedAt: string; authorId: string; versi...' is not assignable to type 'Course'.
+  Property 'category' is optional in type '{ id: string; title: string; description: string; thumbnail?: string; category?: string; tags: string[]; modules: CourseModule[]; settings: { isPublic: boolean; allowLateSubmission: boolean; enableDiscussions: boolean; passingScore: number; }; metadata: { ...; }; }' but required in type 'Course'.
+src/contexts/CurriculumContext.tsx(499,11): error TS2322: Type '{ id: string; title: string; description: string; courses: { courseId: string; order: number; required: boolean; unlockCondition?: { type: "prerequisite" | "time"; courseId?: string; daysAfterEnrollment?: number; }; }[]; targetAudience: "beginner" | "intermediate" | "advanced" | "all"; estimatedDuration?: number; sk...' is not assignable to type 'LearningPath'.
+  Property 'estimatedDuration' is optional in type '{ id: string; title: string; description: string; courses: { courseId: string; order: number; required: boolean; unlockCondition?: { type: "time" | "prerequisite"; courseId?: string; daysAfterEnrollment?: number; }; }[]; targetAudience: "beginner" | ... 2 more ... | "all"; estimatedDuration?: number; skills: string[...' but required in type 'LearningPath'.
+src/contexts/CurriculumContext.tsx(603,16): error TS2339: Property 'prerequisites' does not exist on type 'CourseModule'.
+src/contexts/GamificationContext.tsx(621,14): error TS2345: Argument of type '(prev: GamificationState) => { notifications: GamificationNotification[]; unreadCount: (n: any) => number; currentXP: number; totalXP: number; ... 8 more ...; pendingXPGains: XPGain[]; }' is not assignable to parameter of type 'SetStateAction<GamificationState>'.
+  Type '(prev: GamificationState) => { notifications: GamificationNotification[]; unreadCount: (n: any) => number; currentXP: number; totalXP: number; ... 8 more ...; pendingXPGains: XPGain[]; }' is not assignable to type '(prevState: GamificationState) => GamificationState'.
+    Call signature return types '{ notifications: GamificationNotification[]; unreadCount: (n: any) => number; currentXP: number; totalXP: number; level: UserLevel; streak: StreakData; ... 6 more ...; pendingXPGains: XPGain[]; }' and 'GamificationState' are incompatible.
+      The types of 'unreadCount' are incompatible between these types.
+        Type '(n: any) => number' is not assignable to type 'number'.
+src/contexts/SchedulerContext.tsx(423,9): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/hooks/communication/useWebRTC.ts(186,29): error TS2339: Property 'availableDevices' does not exist on type 'VideoRoomState'.
+src/hooks/communication/useWebRTC.ts(187,28): error TS2339: Property 'selectedDevices' does not exist on type 'VideoRoomState'.
+src/hooks/content/useCourseBuilder.ts(199,27): error TS2448: Block-scoped variable 'validateCourse' used before its declaration.
+src/hooks/index.ts(8,3): error TS2724: '"./useWebSocket"' has no exported member named 'UseWebSocketReturn'. Did you mean 'useWebSocket'?
+src/hooks/useAdminPermissions.tsx(6,10): error TS2614: Module '"../contexts/AdminContext"' has no exported member 'AdminPermissions'. Did you mean to use 'import AdminPermissions from "../contexts/AdminContext"' instead?
+src/hooks/useAnalytics.ts(50,5): error TS2339: Property 'refresh' does not exist on type 'AnalyticsContextType'.
+src/hooks/useAnalytics.ts(170,5): error TS2339: Property 'refresh' does not exist on type 'AnalyticsContextType'.
+src/hooks/useAnalytics.ts(297,5): error TS2339: Property 'refresh' does not exist on type 'AnalyticsContextType'.
+src/hooks/useCollaborationSession.ts(113,11): error TS2588: Cannot assign to 'roomId' because it is a constant.
+src/hooks/useCollaborationSession.ts(182,20): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(183,30): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(184,25): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(185,27): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(186,26): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(187,32): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(188,26): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(189,27): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(192,21): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(193,19): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(200,13): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(217,44): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(224,28): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+src/hooks/useCollaborationSession.ts(228,13): error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+ ELIFECYCLE  Command failed with exit code 2.

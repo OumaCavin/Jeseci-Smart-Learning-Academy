@@ -3,7 +3,7 @@
  */
 
 import { useAdmin } from '../contexts/AdminContext';
-import { AdminPermissions } from '../contexts/AdminContext';
+import type { AdminPermissions } from '../contexts/AdminContext';
 
 interface UseAdminPermissionsReturn {
   permissions: AdminPermissions | null;

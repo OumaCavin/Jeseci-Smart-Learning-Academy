@@ -62,7 +62,7 @@ export interface WebSocketConfig {
   authToken?: string;
 }
 
-interface UseWebSocketReturn {
+export interface UseWebSocketReturn {
   sendMessage: (message: WebSocketMessage) => boolean;
   isConnected: boolean;
   connectionState: WebSocketConnectionState;
