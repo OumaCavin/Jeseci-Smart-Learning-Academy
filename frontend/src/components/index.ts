@@ -6,3 +6,8 @@ export * from './dashboard';
 export * from './collaboration';
 export * from './gamification';
 export * from './analytics';
+// Phase 3 components
+export * from './features/ai';
+export * from './features/builder';
+export * from './features/assessment';
+export * from './features/admin';
