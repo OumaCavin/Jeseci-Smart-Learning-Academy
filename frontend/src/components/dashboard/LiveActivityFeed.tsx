@@ -136,10 +136,20 @@ export function LiveActivityFeed({
       const response = await fetch('/api/activities?limit=50');
       if (response.ok) {
         const data = await response.json();
-        setActivities(data);
+        // Ensure we set an array even if the API returns an error response
+        if (data.success && Array.isArray(data.activities)) {
+          setActivities(data.activities);
+        } else {
+          console.error('Failed to fetch activities:', data.error || 'Unknown error');
+          setActivities([]);
+        }
+      } else {
+        console.error('Failed to fetch activities: HTTP', response.status);
+        setActivities([]);
       }
     } catch (error) {
       console.error('Failed to fetch activities:', error);
+      setActivities([]);
     } finally {
       setIsLoading(false);
     }
