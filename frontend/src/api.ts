@@ -731,13 +731,13 @@ class ApiService {
   }
 
   // Code Execution
-  async executeCode(code: string, language: string = 'jac', input?: string, timeout?: number): Promise<CodeExecutionResponse> {
+  async executeCode(code: string, language: string = 'jac', mode: string = 'run', timeout?: number): Promise<CodeExecutionResponse> {
     return this.makeRequest('/walker/code_execute', {
       method: 'POST',
       body: JSON.stringify({
         code,
         language,
-        input: input || '',
+        mode,
         timeout: timeout || 30
       }),
     });

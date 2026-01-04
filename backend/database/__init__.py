@@ -428,3 +428,93 @@ def get_approved_testimonials(limit: int = 6, featured_only: bool = False) -> di
         Dict with testimonials data
     """
     return sync_get_approved_testimonials(limit, featured_only)
+
+
+# =============================================================================
+# Database Migration Management
+# =============================================================================
+
+def run_database_migrations():
+    """
+    Run any pending database migrations.
+    
+    This function checks for migration tables and executes SQL migrations
+    that haven't been run yet. Migrations are stored in the migrations/
+    directory with numeric prefixes.
+    """
+    import os
+    import re
+    
+    migrations_dir = os.path.join(os.path.dirname(__file__), '..', 'migrations')
+    
+    # Get list of migration files sorted by number
+    migration_files = sorted([
+        f for f in os.listdir(migrations_dir) 
+        if f.endswith('.sql') and re.match(r'^\d+_', f)
+    ])
+    
+    conn = get_db_connection()
+    if not conn:
+        logger.error("Cannot run migrations - no database connection")
+        return False
+    
+    try:
+        cursor = conn.cursor()
+        
+        # Create migrations tracking table if it doesn't exist
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+                id SERIAL PRIMARY KEY,
+                migration_name VARCHAR(255) UNIQUE NOT NULL,
+                executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        
+        # Get already executed migrations
+        cursor.execute("SELECT migration_name FROM schema_migrations")
+        executed = {row[0] for row in cursor.fetchall()}
+        
+        # Run pending migrations
+        migrations_run = 0
+        for migration_file in migration_files:
+            if migration_file not in executed:
+                logger.info(f"Running migration: {migration_file}")
+                
+                with open(os.path.join(migrations_dir, migration_file), 'r') as f:
+                    sql = f.read()
+                
+                # Execute the migration SQL
+                cursor.execute(sql)
+                conn.commit()
+                
+                # Record the migration
+                cursor.execute(
+                    "INSERT INTO schema_migrations (migration_name) VALUES (%s)",
+                    (migration_file,)
+                )
+                conn.commit()
+                
+                logger.info(f"✓ Migration {migration_file} completed successfully")
+                migrations_run += 1
+        
+        if migrations_run > 0:
+            logger.info(f"Completed {migrations_run} migration(s)")
+        else:
+            logger.info("No pending migrations - database is up to date")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Migration error: {e}")
+        if conn:
+            conn.rollback()
+        return False
+    finally:
+        if conn:
+            conn.close()
+
+
+# Auto-run migrations on module import
+# Uncomment the line below to enable automatic migration on startup
+# run_database_migrations()
