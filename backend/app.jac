@@ -6852,9 +6852,6 @@ walker verify_email {
     has token: str;
 
     can verify_email with entry {
-        import email_verification as email_verification_module;
-        import password_reset as reset_module;
-
         if not self.token or not self.token.strip() {
             report {"success": False, "error": "Verification token is required"} ;
             return;
@@ -6866,13 +6863,34 @@ walker verify_email {
             return;
         }
 
-        # In a full implementation, this would use email_verification_module functions
-        # For now, return a structured response
-        report {
-            "success": True,
-            "message": "Email verification functionality requires database integration",
-            "note": "This endpoint needs email_verification_module to be extended with verify_token function"
-        } ;
+        # Use the proper auth module for email verification
+        import user_auth as auth_module;
+
+        try {
+            result = auth_module.verify_email(self.token);
+
+            if result['success'] {
+                report {
+                    "success": True,
+                    "message": result.get('message', 'Email verified successfully!'),
+                    "user_id": result.get('user_id'),
+                    "username": result.get('username')
+                } ;
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'Invalid or expired token'),
+                    "code": result.get('code', 'INVALID_TOKEN')
+                } ;
+            }
+        } except error {
+            std.out("Email verification error:", error);
+            report {
+                "success": False,
+                "error": "An error occurred during email verification",
+                "code": "VERIFICATION_ERROR"
+            } ;
+        }
     }
 }
 
