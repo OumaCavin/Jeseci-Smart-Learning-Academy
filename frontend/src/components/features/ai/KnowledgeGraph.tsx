@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { useSkillGraph, SkillNode } from '../../hooks/ai/useSkillGraph';
 import './KnowledgeGraph.css';
 
-interface KnowledgeGraphProps {
+export interface KnowledgeGraphProps {
   onNodeClick?: (node: SkillNode) => void;
   onNodeHover?: (node: SkillNode | null) => void;
   height?: number | string;

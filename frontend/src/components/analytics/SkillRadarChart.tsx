@@ -1,6 +1,26 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useAnalytics } from '../../contexts/AnalyticsContext';
 
+export interface SkillCategory {
+  id: string;
+  name: string;
+  category: string;
+  skills: Array<{
+    id: string;
+    name: string;
+    level: number;
+    subSkills?: Array<{ name: string; level: number }>;
+  }>;
+}
+
+export interface SkillData {
+  id: string;
+  name: string;
+  level: number;
+  category?: string;
+  subSkills?: Array<{ name: string; level: number }>;
+}
+
 // Generate polygon points for radar chart
 function generatePolygonPoints(
   centerX: number,
@@ -19,7 +39,7 @@ function generatePolygonPoints(
 }
 
 interface SkillRadarChartProps {
-  skillsData: SkillData[];
+  skillsData: SkillCategory[];
   size?: number;
   maxLevel?: number;
   showLabels?: boolean;

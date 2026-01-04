@@ -621,7 +621,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
     setState(prev => ({
       ...prev,
       notifications: prev.notifications.filter(n => n.id !== notificationId),
-      unreadCount: n => Math.max(0, n - 1)
+      unreadCount: Math.max(0, prev.unreadCount - 1)
     }));
   }, []);
 

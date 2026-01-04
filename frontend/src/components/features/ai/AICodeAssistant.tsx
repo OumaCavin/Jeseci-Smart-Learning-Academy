@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useCodeAnalysis, AIAnalysisSuggestion } from '../../hooks/ai/useCodeAnalysis';
 import './AICodeAssistant.css';
 
-interface AICodeAssistantProps {
+export interface AICodeAssistantProps {
   code: string;
   language: string;
   onApplyFix?: (suggestion: AIAnalysisSuggestion, fixedCode: string) => void;

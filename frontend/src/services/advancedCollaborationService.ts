@@ -1621,6 +1621,105 @@ class AdvancedCollaborationService {
       return { success: false, error: 'Failed to create submission' };
     }
   }
+
+  // Audit History Methods
+  async getAuditHistoryStats(): Promise<ApiResponse<{
+    totalActions: number;
+    actionsByType: Record<string, number>;
+    actionsByUser: Array<{ user_id: number; username: string; action_count: number }>;
+    dailyActivity: Array<{ date: string; count: number }>;
+  }>> {
+    try {
+      const response = await apiService.get('/admin/audit_history_stats');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching audit history stats:', error);
+      return { 
+        success: true, 
+        data: {
+          totalActions: 0,
+          actionsByType: {},
+          actionsByUser: [],
+          dailyActivity: []
+        }
+      };
+    }
+  }
+
+  async getAuditHistory(params: {
+    page?: number;
+    limit?: number;
+    userId?: number;
+    actionType?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {}): Promise<ApiResponse<Array<{
+    id: string;
+    user_id: number;
+    username: string;
+    action: string;
+    resource_type: string;
+    resource_id: string;
+    details: Record<string, unknown>;
+    ip_address: string;
+    user_agent: string;
+    created_at: string;
+  }>>> {
+    try {
+      const response = await apiService.get('/admin/audit_history', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching audit history:', error);
+      return { success: false, error: 'Failed to fetch audit history', data: [] };
+    }
+  }
+
+  async getAuditLogStats(): Promise<ApiResponse<{
+    totalLogs: number;
+    logsByLevel: Record<string, number>;
+    logsBySource: Record<string, number>;
+    recentErrors: Array<{ timestamp: string; level: string; message: string }>;
+  }>> {
+    try {
+      const response = await apiService.get('/admin/audit_log_stats');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching audit log stats:', error);
+      return {
+        success: true,
+        data: {
+          totalLogs: 0,
+          logsByLevel: {},
+          logsBySource: {},
+          recentErrors: []
+        }
+      };
+    }
+  }
+
+  async getAuditLogs(params: {
+    page?: number;
+    limit?: number;
+    level?: string;
+    source?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {}): Promise<ApiResponse<Array<{
+    id: string;
+    timestamp: string;
+    level: string;
+    source: string;
+    message: string;
+    context: Record<string, unknown>;
+  }>>> {
+    try {
+      const response = await apiService.get('/admin/audit_logs', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      return { success: false, error: 'Failed to fetch audit logs', data: [] };
+    }
+  }
 }
 
 // Export singleton instance

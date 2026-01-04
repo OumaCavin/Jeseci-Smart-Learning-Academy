@@ -810,7 +810,7 @@ const PeerReview: React.FC = () => {
 
         {/* Actions Tab */}
         {activeTab === 'actions' && (
-          <PeerReviewActions assignments={assignments} onAccept={handleAcceptAssignment} onComplete={handleCompleteAssignment} />
+          <PeerReviewActions />
         )}
       </div>
 

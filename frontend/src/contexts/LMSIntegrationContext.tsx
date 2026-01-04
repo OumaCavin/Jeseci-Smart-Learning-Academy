@@ -12,6 +12,10 @@ export interface LMSProvider {
   lastSync?: string;
   courseCount?: number;
   studentCount?: number;
+  // Credentials (not stored in DB, used temporarily during configuration)
+  apiKey?: string;
+  username?: string;
+  password?: string;
 }
 
 export interface LMSCourse {

@@ -84,6 +84,8 @@ export function useWebRTC(options: UseWebRTCOptions): UseWebRTCReturn {
     startRecording,
     stopRecording,
     getPeerById,
+    availableDevices,
+    selectedDevices,
   } = useVideoRoom();
 
   const [connectionQuality, setConnectionQuality] = useState<'excellent' | 'good' | 'fair' | 'poor' | 'disconnected'>('disconnected');

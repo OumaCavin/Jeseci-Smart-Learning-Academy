@@ -26,6 +26,7 @@ export interface CourseModule {
   description: string;
   order: number;
   resources: Resource[];
+  prerequisites: string[];
   unlockCondition?: {
     type: 'prerequisite' | 'completion' | 'time' | 'score';
     moduleId?: string;
@@ -287,7 +288,7 @@ function curriculumReducer(state: CurriculumState, action: CurriculumAction): Cu
             hasUnsavedChanges: true,
           }
         : state;
-    case 'SET_UNSAAVED_CHANGES':
+    case 'SET_UNSAVED_CHANGES':
       return { ...state, hasUnsavedChanges: action.payload };
     case 'CLEAR_DRAFT':
       return { ...state, draftCourse: null, draftPath: null, hasUnsavedChanges: false };
@@ -399,7 +400,8 @@ export function CurriculumProvider({ children }: { children: ReactNode }) {
       id: `course-${Date.now()}`,
       title: course.title || 'Untitled Course',
       description: course.description || '',
-      modules: [],
+      category: course.category || 'General',
+      modules: course.modules || [],
       settings: {
         isPublic: false,
         allowLateSubmission: true,
@@ -415,8 +417,9 @@ export function CurriculumProvider({ children }: { children: ReactNode }) {
         version: 1,
         enrollmentCount: 0,
         averageRating: 0,
+        ...course.metadata,
       },
-      ...course,
+      thumbnail: course.thumbnail,
     };
     
     dispatch({ type: 'CREATE_DRAFT_COURSE', payload: newCourse });
@@ -500,16 +503,17 @@ export function CurriculumProvider({ children }: { children: ReactNode }) {
       id: `path-${Date.now()}`,
       title: path.title || 'Untitled Learning Path',
       description: path.description || '',
-      courses: [],
-      targetAudience: 'all',
-      skills: [],
+      courses: path.courses || [],
+      targetAudience: path.targetAudience || 'all',
+      estimatedDuration: path.estimatedDuration || 0,
+      skills: path.skills || [],
       metadata: {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         authorId: 'current-user',
         enrollmentCount: 0,
+        ...path.metadata,
       },
-      ...path,
     };
     
     dispatch({ type: 'CREATE_DRAFT_PATH', payload: newPath });

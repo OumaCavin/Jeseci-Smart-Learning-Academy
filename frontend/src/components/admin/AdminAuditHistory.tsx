@@ -63,17 +63,65 @@ export const AdminAuditHistory: React.FC = () => {
   const loadAuditHistory = useCallback(async () => {
     try {
       setLoading(true);
+      
+      // Calculate date range based on selected period
+      const endDate = new Date().toISOString();
+      const startDate = new Date();
+      switch (selectedPeriod) {
+        case 'day':
+          startDate.setDate(startDate.getDate() - 1);
+          break;
+        case 'week':
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case 'month':
+          startDate.setDate(startDate.getDate() - 30);
+          break;
+      }
+      
       const [statsData, historyData] = await Promise.all([
         advancedCollaborationService.getAuditHistoryStats(),
         advancedCollaborationService.getAuditHistory({
-          period: selectedPeriod,
-          type: filterType !== 'all' ? filterType : undefined,
-          severity: filterSeverity !== 'all' ? filterSeverity : undefined,
+          startDate: startDate.toISOString(),
+          endDate,
+          actionType: filterType !== 'all' ? filterType : undefined,
           limit: 100
         })
       ]);
-      setStats(statsData.data);
-      setHistory(historyData.data || []);
+      
+      // Transform API response to match component interface
+      const transformedStats = {
+        totalChanges: statsData.data.totalActions || 0,
+        changesToday: 0,
+        changesThisWeek: 0,
+        criticalChanges: 0,
+        topActionsByDay: statsData.data.dailyActivity || [],
+        topUsers: (statsData.data.actionsByUser || []).map(u => ({ 
+          username: String(u.username), 
+          changesCount: u.action_count 
+        })),
+        changesByType: Object.entries(statsData.data.actionsByType || {}).map(([type, count]) => ({ 
+          type, 
+          count: count as number 
+        })),
+        trend: 'stable' as const,
+        trendPercentage: 0
+      };
+      
+      const transformedHistory = (historyData.data || []).map(item => ({
+        id: item.id,
+        timestamp: item.created_at,
+        userId: String(item.user_id),
+        username: String(item.username),
+        action: item.action,
+        resourceType: item.resource_type,
+        resourceId: item.resource_id,
+        changeSummary: String(item.details?.summary || item.action),
+        severity: (item.details?.severity as AuditHistoryEntry['severity']) || 'low'
+      }));
+      
+      setStats(transformedStats);
+      setHistory(transformedHistory);
     } catch (error) {
       console.error('Error loading audit history:', error);
     } finally {

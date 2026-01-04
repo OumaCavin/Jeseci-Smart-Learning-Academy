@@ -78,13 +78,16 @@ export function CodeExecutionProvider({ children }: { children: React.ReactNode 
     maxReconnectAttempts: 5,
     onMessage: useCallback((message: WebSocketMessage) => {
       if (message.type === 'execution.stream') {
-        setResultStream(prev => [...prev, message.payload]);
+        const payload = message.payload as string;
+        setResultStream(prev => [...prev, payload]);
       } else if (message.type === 'execution.completed') {
-        setCurrentResult(message.payload);
+        const payload = message.payload as ExecutionResponse;
+        setCurrentResult(payload);
         setIsExecuting(false);
         setCurrentSession(prev => prev ? { ...prev, status: 'completed' } : null);
       } else if (message.type === 'execution.error') {
-        setCurrentResult({ ...message.payload, success: false });
+        const payload = message.payload as Partial<ExecutionResponse>;
+        setCurrentResult({ ...payload, success: false } as ExecutionResponse);
         setIsExecuting(false);
         setCurrentSession(prev => prev ? { ...prev, status: 'error' } : null);
       }
@@ -167,14 +170,15 @@ export function CodeExecutionProvider({ children }: { children: React.ReactNode 
     
     setExecutionHistory(prev => [...prev.slice(-49), session]);
 
-    if (wsConnected && wsState === WebSocketConnectionState.OPEN) {
+    if (wsConnected && wsState === 'open') {
       sendMessage({
-        type: 'execution.start',
+        type: 'execution.started',
         payload: {
           ...request,
           sessionId,
           stream: true
-        }
+        },
+        timestamp: new Date().toISOString()
       });
     } else {
       // Fallback to REST if WebSocket not available
@@ -186,8 +190,9 @@ export function CodeExecutionProvider({ children }: { children: React.ReactNode 
   const cancelExecution = useCallback(() => {
     if (currentSession) {
       sendMessage({
-        type: 'execution.cancel',
-        payload: { sessionId: currentSession.id }
+        type: 'execution.cancelled',
+        payload: { sessionId: currentSession.id },
+        timestamp: new Date().toISOString()
       });
       setIsExecuting(false);
       setCurrentSession(prev => prev ? { ...prev, status: 'idle' } : null);

@@ -192,34 +192,34 @@ export function CollaborationProvider({ children }: { children: React.ReactNode 
   const handleIncomingMessage = useCallback((message: WebSocketMessage) => {
     switch (message.type) {
       case 'collab.session.joined':
-        handleSessionJoined(message.payload);
+        handleSessionJoined(message.payload as { session: CollaborationSession; peers: Peer[] });
         break;
       case 'collab.peer.joined':
-        handlePeerJoined(message.payload);
+        handlePeerJoined(message.payload as Peer);
         break;
       case 'collab.peer.left':
-        handlePeerLeft(message.payload);
+        handlePeerLeft(message.payload as { userId: string });
         break;
       case 'collab.cursor.update':
-        handleCursorUpdate(message.payload);
+        handleCursorUpdate(message.payload as { userId: string; cursor: CursorPosition });
         break;
       case 'collab.selection.update':
-        handleSelectionUpdate(message.payload);
+        handleSelectionUpdate(message.payload as { userId: string; selection: SelectionRange | null });
         break;
       case 'collab.operation':
-        handleOperation(message.payload);
+        handleOperation(message.payload as CodeOperation);
         break;
       case 'collab.chat.message':
-        handleChatMessage(message.payload);
+        handleChatMessage(message.payload as ChatMessage);
         break;
       case 'collab.sync.progress':
         setState(prev => ({ ...prev, syncStatus: 'syncing' }));
         break;
       case 'collab.sync.completed':
-        setState(prev => ({ ...prev, syncStatus: 'synced', documentVersion: message.payload.version }));
+        setState(prev => ({ ...prev, syncStatus: 'synced', documentVersion: (message.payload as { version: number }).version }));
         break;
       case 'collab.connection.quality':
-        setState(prev => ({ ...prev, connectionQuality: message.payload }));
+        setState(prev => ({ ...prev, connectionQuality: (message.payload as 'excellent' | 'good' | 'poor' | 'disconnected') }));
         break;
     }
   }, []);

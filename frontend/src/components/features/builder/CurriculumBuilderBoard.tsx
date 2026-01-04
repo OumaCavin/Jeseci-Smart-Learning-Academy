@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useCourseBuilder, CourseModuleData, ResourceData } from '../../hooks/content/useCourseBuilder';
 import './CurriculumBuilder.css';
 
-interface CurriculumBuilderBoardProps {
+export interface CurriculumBuilderBoardProps {
   courseId?: string;
   onSave?: (course: ReturnType<typeof useCourseBuilder>['course']) => void;
   onPublish?: (courseId: string) => void;

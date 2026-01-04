@@ -499,12 +499,12 @@ const Moderation: React.FC = () => {
 
         {/* Reports Tab */}
         {activeTab === 'reports' && (
-          <ModerationReports reports={reports} onDismiss={handleDismissReport} />
+          <ModerationReports />
         )}
 
         {/* Actions History Tab */}
         {activeTab === 'actions_history' && (
-          <ModerationActionsHistory actions={actions} />
+          <ModerationActionsHistory />
         )}
 
         {/* Stats Tab */}

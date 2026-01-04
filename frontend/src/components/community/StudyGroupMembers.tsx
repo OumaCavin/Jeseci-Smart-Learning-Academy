@@ -33,12 +33,17 @@ interface StudyGroupMembersProps {
   onClose?: () => void;
 }
 
-interface MemberWithProfile extends StudyGroupMember {
+interface MemberWithProfile {
+  membership_id: string;
+  group_id: string;
+  user_id: number;
+  role: 'owner' | 'admin' | 'member';
+  joined_at: string;
+  last_active_at: string;
   username?: string;
   first_name?: string;
   last_name?: string;
   avatar_url?: string;
-  last_active_at?: string;
 }
 
 const StudyGroupMembers: React.FC<StudyGroupMembersProps> = ({

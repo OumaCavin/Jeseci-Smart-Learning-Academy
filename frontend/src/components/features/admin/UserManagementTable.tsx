@@ -56,9 +56,10 @@ export function UserManagementTable({
   const sortedUsers = useMemo(() => {
     return [...users].sort((a, b) => {
       let aVal: unknown, bVal: unknown;
+      const sortFieldStr = String(sortField);
       
-      if (sortField.includes('.')) {
-        const [parent, child] = sortField.split('.') as [keyof SystemUser, string];
+      if (sortFieldStr.includes('.')) {
+        const [parent, child] = sortFieldStr.split('.') as [keyof SystemUser, string];
         aVal = (a[parent] as Record<string, unknown>)?.[child];
         bVal = (b[parent] as Record<string, unknown>)?.[child];
       } else {

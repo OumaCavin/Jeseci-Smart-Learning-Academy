@@ -213,6 +213,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       id: `assessment-${Date.now()}`,
       title: assessment.title || 'Untitled Assessment',
       description: assessment.description || '',
+      type: assessment.type || 'quiz',
       questions: assessment.questions || [],
       settings: {
         allowBackNavigation: true,
@@ -237,8 +238,8 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
         authorId: 'current-user',
         totalAttempts: 0,
         averageScore: 0,
+        ...assessment.metadata,
       },
-      ...assessment,
     };
     
     setAssessments(prev => [...prev, newAssessment]);
@@ -448,7 +449,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
   }, [currentSession, currentAssessment]);
 
   // Finish session
-  const finishSession = useCallback(async () => {
+  const finishSessionImpl = useCallback(async () => {
     if (!currentSession || !currentAssessment) return;
 
     // Calculate score
@@ -514,7 +515,6 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       clearInterval(heartbeatRef.current);
     }
 
-    return submittedSession;
   }, [currentSession, currentAssessment]);
 
   // Abandon session
@@ -552,7 +552,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       setTimeRemaining(prev => {
         if (prev <= 1) {
           // Time's up - auto submit
-          finishSession();
+          finishSessionImpl();
           if (timerRef.current) {
             clearInterval(timerRef.current);
             timerRef.current = null;
@@ -562,7 +562,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
         return prev - 1;
       });
     }, 1000);
-  }, [finishSession]);
+  }, [finishSessionImpl]);
 
   // Pause timer
   const pauseTimer = useCallback(() => {
@@ -699,7 +699,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     startSession,
     submitAnswer,
     navigateQuestion,
-    finishSession,
+    finishSession: finishSessionImpl,
     abandonSession,
     getSessionReview,
     startTimer,
