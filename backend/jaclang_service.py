@@ -5,7 +5,7 @@ Jaclang Editor Intelligence Service
 This module provides real-time syntax validation and code formatting
 for Jaclang code by bridging the frontend editor with the `jac` CLI tools.
 
-Author: MiniMax Agent
+Author: Cavin Otieno
 """
 
 import os
