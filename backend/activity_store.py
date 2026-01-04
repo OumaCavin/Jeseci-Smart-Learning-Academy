@@ -219,8 +219,8 @@ def get_user_activities(
         with conn.cursor() as cur:
             # Build query without quotes for PostgreSQL compatibility
             base_query = """
-                SELECT id, user_id, activity_type, title, description, 
-                       metadata, xp_earned, created_at
+                SELECT "id", "user_id", "activity_type", "title", "description", 
+                       "metadata", "xp_earned", "created_at"
                 FROM user_activities
                 WHERE user_id = %s
             """

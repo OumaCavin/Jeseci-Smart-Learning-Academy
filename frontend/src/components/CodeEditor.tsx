@@ -576,7 +576,7 @@ const CodeEditor: React.FC = () => {
         
         if (mode === 'grade') {
           outputText = `✅ Auto-grading Results\n\n`;
-          if (result.test_results) {
+          if (result.test_results && Array.isArray(result.test_results)) {
             const passed = result.test_results.filter((t: any) => t.passed).length;
             const total = result.test_results.length;
             outputText += `Tests: ${passed}/${total} passed\n\n`;
@@ -587,6 +587,8 @@ const CodeEditor: React.FC = () => {
                 outputText += `   Got: ${test.actual_output}\n`;
               }
             });
+          } else {
+            outputText += `No test results available.\n`;
           }
         } else {
           outputText = `✅ Execution successful!\n\n${result.output || 'No output'}`;
@@ -867,7 +869,7 @@ const CodeEditor: React.FC = () => {
         
         {/* Snippets list */}
         <div className="flex-1 overflow-y-auto">
-          {snippets
+          {(snippets || [])
             .filter(s => !selectedFolder || s.folder_id === selectedFolder)
             .map(snippet => (
               <div 
