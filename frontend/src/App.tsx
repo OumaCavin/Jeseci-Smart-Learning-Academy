@@ -412,10 +412,22 @@ const AppContent: React.FC = () => {
     } catch (error: any) {
       // Display detailed error message from the backend
       const errorMessage = error.message || 'Registration failed';
+      
+      // Handle verification required case (special error code from AuthContext)
+      if (errorMessage.includes('REGISTRATION_SUCCESS_VERIFICATION_REQUIRED')) {
+        const actualMessage = errorMessage.replace('REGISTRATION_SUCCESS_VERIFICATION_REQUIRED:', '');
+        setMessage(actualMessage);
+        // Redirect to verify email page
+        window.location.href = `/verify-email?email=${encodeURIComponent(userData.email)}`;
+        return;
+      }
+      
       if (errorMessage.includes('already exists')) {
         setMessage('This username or email is already registered. Please try logging in or use different credentials.');
       } else if (errorMessage.includes('password')) {
         setMessage('Password requirement error: ' + errorMessage);
+      } else if (errorMessage.includes('verify')) {
+        setMessage(errorMessage);
       } else if (errorMessage.includes('email')) {
         setMessage('Email validation error: ' + errorMessage);
       } else if (errorMessage.includes('input') || errorMessage.includes('required')) {
