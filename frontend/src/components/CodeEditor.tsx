@@ -12,10 +12,12 @@
  * - Educational error suggestions
  * - Save/Load snippets
  * - Execution history
+ * - Real-time Jaclang syntax validation
+ * - Automatic code formatting
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import Editor from '@monaco-editor/react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import Editor, { OnMount } from '@monaco-editor/react';
 import { 
   Play, 
   Save, 
@@ -41,9 +43,37 @@ import {
   ChevronLeft,
   Loader,
   Lightbulb,
-  BookOpen
+  BookOpen,
+  Wand2,
+  CheckCircle2,
+  AlertTriangle,
+  Zap
 } from 'lucide-react';
-import { apiService } from '../api';
+import { apiService, JaclangValidationError, JaclangFormatResponse } from '../api';
+
+// Monaco marker severity mapping
+const SEVERITY_MAP = {
+  'Error': monaco.MarkerSeverity.Error,
+  'Warning': monaco.MarkerSeverity.Warning,
+  'Info': monaco.MarkerSeverity.Info
+} as const;
+
+// Debounce utility hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 // Supported programming languages
 const SUPPORTED_LANGUAGES = [
@@ -51,6 +81,13 @@ const SUPPORTED_LANGUAGES = [
   { id: 'python', name: 'Python', extension: 'py' },
   { id: 'javascript', name: 'JavaScript', extension: 'js' }
 ];
+
+// Monaco marker severity mapping
+const SEVERITY_MAP = {
+  'Error': monaco.MarkerSeverity.Error,
+  'Warning': monaco.MarkerSeverity.Warning,
+  'Info': monaco.MarkerSeverity.Info
+} as const;
 
 // Default code templates for each language
 const DEFAULT_CODE_TEMPLATES: Record<string, string> = {
@@ -227,14 +264,47 @@ const CodeEditor: React.FC = () => {
   const [newTestExpected, setNewTestExpected] = useState<string>('');
   const [isHiddenTest, setIsHiddenTest] = useState<boolean>(false);
   
+  // Jaclang validation state
+  const [isValidating, setIsValidating] = useState<boolean>(false);
+  const [validationErrors, setValidationErrors] = useState<JaclangValidationError[]>([]);
+  const [isValidCode, setIsValidCode] = useState<boolean>(true);
+  const [isFormatting, setIsFormatting] = useState<boolean>(false);
+  const [formatResult, setFormatResult] = useState<JaclangFormatResponse | null>(null);
+  const [validationServiceAvailable, setValidationServiceAvailable] = useState<boolean>(true);
+  
+  // Refs for managing validation requests
+  const validationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const latestCodeRef = useRef<string>(code);
   const editorRef = useRef<any>(null);
+  const monacoRef = useRef<typeof import('monaco-editor') | null>(null);
 
   // Load data on mount
   useEffect(() => {
     loadSnippets();
     loadFolders();
     loadExecutionHistory();
+    
+    // Check if validation service is available
+    apiService.getJaclangServiceHealth()
+      .then(health => {
+        setValidationServiceAvailable(health.jac_available);
+      })
+      .catch(() => {
+        setValidationServiceAvailable(false);
+      });
   }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Clear any pending validation timeout
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+      // Clear validation markers
+      clearValidationMarkers();
+    };
+  }, [clearValidationMarkers]);
 
   // Load snippets from API
   const loadSnippets = async () => {
@@ -296,15 +366,205 @@ const CodeEditor: React.FC = () => {
     }
   };
 
+  // ============================================================================
+  // Jaclang Validation and Formatting Functions
+  // ============================================================================
+
+  /**
+   * Validate Jaclang code for syntax errors
+   */
+  const validateJacCode = useCallback(async (codeToValidate: string) => {
+    if (language !== 'jac' || !codeToValidate.trim()) {
+      setValidationErrors([]);
+      setIsValidCode(true);
+      return;
+    }
+
+    // Update the latest code ref
+    latestCodeRef.current = codeToValidate;
+    setIsValidating(true);
+
+    try {
+      const result = await apiService.validateJacCode(codeToValidate);
+      
+      // Check if this is still the latest code (prevent race conditions)
+      if (latestCodeRef.current !== codeToValidate) {
+        return;
+      }
+      
+      setValidationErrors(result.errors || []);
+      setIsValidCode(result.valid);
+      
+      // Update Monaco markers for errors
+      if (monacoRef.current && editorRef.current) {
+        const model = editorRef.current.getModel();
+        if (model) {
+          const markers = result.errors.map(error => ({
+            severity: SEVERITY_MAP[error.severity] || monaco.MarkerSeverity.Error,
+            startLineNumber: error.line,
+            startColumn: error.column,
+            endLineNumber: error.line,
+            endColumn: error.column + 1,
+            message: error.message,
+            source: 'jaclang-validator'
+          }));
+          
+          monacoRef.current.editor.setModelMarkers(model, 'jaclang', markers);
+        }
+      }
+      
+      if (!result.valid && result.errors.length > 0) {
+        // Show first error in output
+        const firstError = result.errors[0];
+        setOutput(`❌ Syntax Error at line ${firstError.line}, column ${firstError.column}:\n${firstError.message}`);
+        setStatus('error');
+      } else if (result.valid) {
+        // Clear error output if code is valid
+        if (status === 'error' && output.includes('Syntax Error')) {
+          setOutput('');
+          setStatus('ready');
+        }
+      }
+    } catch (error) {
+      console.error('Validation error:', error);
+      setValidationServiceAvailable(false);
+      // Silently fail - don't break the editor if validation is unavailable
+    } finally {
+      setIsValidating(false);
+    }
+  }, [language, status, output]);
+
+  /**
+   * Format Jaclang code using the backend service
+   */
+  const formatJacCode = useCallback(async () => {
+    if (language !== 'jac' || !code.trim()) {
+      return;
+    }
+
+    setIsFormatting(true);
+    setFormatResult(null);
+
+    try {
+      const result = await apiService.formatJacCode(code);
+      setFormatResult(result);
+
+      if (result.error) {
+        // Show error in output
+        setOutput(`❌ Formatting Error:\n${result.error}`);
+        setStatus('error');
+      } else if (result.changed) {
+        // Apply formatted code
+        setCode(result.formatted_code);
+        
+        // Re-validate the formatted code
+        await validateJacCode(result.formatted_code);
+        
+        // Show success message
+        setOutput(`✅ Code formatted successfully!\n\n${result.formatted_code}`);
+        setStatus('success');
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          if (status === 'success' && output.includes('formatted successfully')) {
+            setOutput('');
+            setStatus('ready');
+          }
+        }, 3000);
+      } else {
+        // Code was already properly formatted
+        setOutput('✅ Code is already properly formatted!');
+        setStatus('success');
+        
+        setTimeout(() => {
+          if (status === 'success') {
+            setOutput('');
+            setStatus('ready');
+          }
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Formatting error:', error);
+      setOutput(`❌ Formatting failed: ${error}`);
+      setStatus('error');
+    } finally {
+      setIsFormatting(false);
+    }
+  }, [language, code, status, output]);
+
+  /**
+   * Debounced validation trigger
+   */
+  const triggerValidation = useCallback((newCode: string) => {
+    // Clear any pending validation
+    if (validationTimeoutRef.current) {
+      clearTimeout(validationTimeoutRef.current);
+    }
+
+    // Debounce validation - wait 800ms after typing stops
+    validationTimeoutRef.current = setTimeout(() => {
+      validateJacCode(newCode);
+    }, 800);
+  }, [validateJacCode]);
+
+  /**
+   * Clear all validation markers
+   */
+  const clearValidationMarkers = useCallback(() => {
+    if (monacoRef.current && editorRef.current) {
+      const model = editorRef.current.getModel();
+      if (model) {
+        monacoRef.current.editor.setModelMarkers(model, 'jaclang', []);
+      }
+    }
+    setValidationErrors([]);
+    setIsValidCode(true);
+  }, []);
+
   // Handle editor mount
-  const handleEditorDidMount = (editor: any) => {
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
+    
+    // Register keyboard shortcut for formatting (Shift+Alt+F or Cmd+Shift+F)
+    editor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
+      formatJacCode();
+    });
+    
+    // Add command for Cmd+Shift+P (Mac) or Ctrl+Shift+P (Windows/Linux) to format
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyP, () => {
+      formatJacCode();
+    });
+    
+    // Initial validation for Jac code
+    if (language === 'jac' && code.trim()) {
+      validateJacCode(code);
+    }
   };
 
   // Handle language change
   const handleLanguageChange = (newLanguage: string) => {
+    // Clear validation markers when changing languages
+    clearValidationMarkers();
+    
     setLanguage(newLanguage);
     setCode(DEFAULT_CODE_TEMPLATES[newLanguage] || '');
+    
+    // Validate new Jac code if switching to Jac
+    if (newLanguage === 'jac' && code.trim()) {
+      validateJacCode(DEFAULT_CODE_TEMPLATES['jac']);
+    }
+  };
+
+  // Handle code change with validation trigger
+  const handleCodeChange = (value: string | undefined) => {
+    const newCode = value || '';
+    setCode(newCode);
+    
+    // Trigger debounced validation for Jac code
+    if (language === 'jac') {
+      triggerValidation(newCode);
+    }
   };
 
   // Execute code
@@ -553,9 +813,13 @@ const CodeEditor: React.FC = () => {
     }
   };
 
-  // Format code
+  // Format code using Jaclang backend service
   const formatCode = () => {
-    if (editorRef.current) {
+    if (language === 'jac') {
+      // Use backend Jaclang formatting
+      formatJacCode();
+    } else if (editorRef.current) {
+      // Fall back to Monaco's built-in formatting for other languages
       editorRef.current.getAction('editor.action.formatDocument').run();
     }
   };
@@ -908,11 +1172,41 @@ const CodeEditor: React.FC = () => {
             {/* Format code */}
             <button 
               onClick={formatCode}
-              className="p-2 rounded hover:bg-gray-700 text-gray-400 hover:text-white"
-              title="Format Code"
+              disabled={isFormatting || language !== 'jac'}
+              className={`p-2 rounded hover:bg-gray-700 ${
+                isFormatting ? 'text-yellow-400 animate-pulse' : 'text-gray-400 hover:text-white'
+              }`}
+              title={isFormatting ? 'Formatting...' : 'Format Code (Shift+Alt+F)'}
             >
-              <FileCode size={18} />
+              {isFormatting ? <Loader size={18} className="animate-spin" /> : <Wand2 size={18} />}
             </button>
+            
+            {/* Jaclang validation status */}
+            {language === 'jac' && (
+              <div className="flex items-center gap-2">
+                {isValidating ? (
+                  <div className="flex items-center gap-1.5 text-yellow-400 text-sm">
+                    <Loader size={14} className="animate-spin" />
+                    <span>Validating...</span>
+                  </div>
+                ) : !validationServiceAvailable ? (
+                  <div className="flex items-center gap-1.5 text-gray-500 text-sm" title="Validation service unavailable">
+                    <AlertTriangle size={14} />
+                    <span>No validation</span>
+                  </div>
+                ) : isValidCode ? (
+                  <div className="flex items-center gap-1.5 text-green-400 text-sm" title="Code is valid">
+                    <CheckCircle2 size={14} />
+                    <span>Valid</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-red-400 text-sm" title={`${validationErrors.length} error(s) found`}>
+                    <AlertCircle size={14} />
+                    <span>{validationErrors.length} error(s)</span>
+                  </div>
+                )}
+              </div>
+            )}
             
             {/* Divider */}
             <div className="h-6 w-px bg-gray-600"></div>
@@ -977,7 +1271,7 @@ const CodeEditor: React.FC = () => {
               defaultLanguage={getMonacoLanguage()}
               language={getMonacoLanguage()}
               value={code}
-              onChange={(value) => setCode(value || '')}
+              onChange={handleCodeChange}
               onMount={handleEditorDidMount}
               theme="vs-dark"
               options={{
@@ -998,6 +1292,64 @@ const CodeEditor: React.FC = () => {
                 padding: { top: 16, bottom: 16 }
               }}
             />
+            
+            {/* Status Bar */}
+            <div className="bg-gray-900 border-t border-gray-700 px-4 py-1.5 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-4">
+                {/* Line/Column info - from editor */}
+                <span className="text-gray-500">
+                  {editorRef.current && `Ln ${editorRef.current.getPosition()?.lineNumber || 1}, Col ${editorRef.current.getPosition()?.column || 1}`}
+                </span>
+                
+                {/* Language info */}
+                <span className="text-gray-500">
+                  {SUPPORTED_LANGUAGES.find(l => l.id === language)?.name}
+                </span>
+                
+                {/* Validation status for Jaclang */}
+                {language === 'jac' && (
+                  <>
+                    <span className="text-gray-600">|</span>
+                    {isValidating ? (
+                      <span className="text-yellow-400 flex items-center gap-1">
+                        <Loader size={12} className="animate-spin" />
+                        Validating...
+                      </span>
+                    ) : !validationServiceAvailable ? (
+                      <span className="text-gray-500 flex items-center gap-1" title="Jaclang validation service unavailable">
+                        <AlertTriangle size={12} />
+                        Validation unavailable
+                      </span>
+                    ) : isValidCode ? (
+                      <span className="text-green-400 flex items-center gap-1">
+                        <CheckCircle2 size={12} />
+                        No errors
+                      </span>
+                    ) : (
+                      <span className="text-red-400 flex items-center gap-1">
+                        <AlertCircle size={12} />
+                        {validationErrors.length} syntax error{validationErrors.length !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-4">
+                {/* Formatting info */}
+                {language === 'jac' && formatResult?.changed && (
+                  <span className="text-blue-400 flex items-center gap-1">
+                    <Zap size={12} />
+                    Code formatted
+                  </span>
+                )}
+                
+                {/* Keyboard shortcut hint */}
+                <span className="text-gray-600">
+                  {language === 'jac' ? 'Shift+Alt+F to format' : 'Format available'}
+                </span>
+              </div>
+            </div>
           </div>
           
           {/* Output Panel */}

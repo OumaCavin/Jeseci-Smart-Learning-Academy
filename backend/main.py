@@ -34,6 +34,7 @@ from ai_predictive import ai_predictive_router
 from realtime_admin import realtime_router
 from lms_integration import lms_router
 from system_core import system_router
+from jaclang_service import jaclang_router
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -63,6 +64,7 @@ app.include_router(ai_predictive_router)
 app.include_router(realtime_router)
 app.include_router(lms_router)
 app.include_router(system_router)
+app.include_router(jaclang_router)
 
 # =============================================================================
 # Pydantic Models for HTTP API
