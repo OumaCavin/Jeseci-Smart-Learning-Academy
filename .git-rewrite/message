@@ -1,0 +1,8 @@
+docs(integration): add comprehensive JAC-FastAPI integration guide
+
+- Document JAC-FastAPI bridge architecture and implementation
+- Provide Academy vs Companion database configuration details
+- Include setup instructions and troubleshooting guide
+- Document all JAC service integration points
+- Add API endpoint documentation and examples
+- Explain full-stack JAC development approach
