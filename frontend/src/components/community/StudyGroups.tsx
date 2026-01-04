@@ -542,8 +542,20 @@ const StudyGroups: React.FC = () => {
 
           {activeView === 'notes' && <StudyGroupNotes groupId={selectedGroup.group_id} />}
           {activeView === 'goals' && <StudyGroupGoals groupId={selectedGroup.group_id} />}
-          {activeView === 'members' && <StudyGroupMembers groupId={selectedGroup.group_id} />}
-          {activeView === 'events' && <StudyGroupEvents groupId={selectedGroup.group_id} />}
+          {activeView === 'members' && (
+            <StudyGroupMembers 
+              groupId={selectedGroup.group_id} 
+              groupName={selectedGroup.name}
+              isOwner={selectedGroup.created_by === 1}
+              isAdmin={true}
+              currentUserId={1}
+              onLeave={() => {
+                setSelectedGroup(null);
+                setActiveView('list');
+              }}
+            />
+          )}
+          {activeView === 'events' && <StudyGroupEvents groupId={selectedGroup.group_id} groupName={selectedGroup.name} isAdmin={true} />}
         </div>
       ) : (
         <StudyGroupList onGroupSelect={(group) => setSelectedGroup(group)} />
