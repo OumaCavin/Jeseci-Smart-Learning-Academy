@@ -900,6 +900,19 @@
 **/.claude/debug/**
 
 # ==============================================================================
+# PROJECT ROOT CLEANUP
+# ==============================================================================
+# Unwanted files in project root
+shell_output_save/
+.git-rewrite/
+browser/
+pyproject.toml
+tmp/
+uv.lock
+workspace.json
+user_input_files/
+
+# ==============================================================================
 # NESTED GIT REPOSITORIES
 # ==============================================================================
 # Temporarily renamed .git directories (used by WorkspaceGitManager)
