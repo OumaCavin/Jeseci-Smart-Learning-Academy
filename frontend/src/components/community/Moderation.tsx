@@ -30,6 +30,8 @@ import advancedCollaborationService, {
   ModerationStats as ServiceModerationStats,
   ModerationQueueItem
 } from '../../services/advancedCollaborationService';
+import { ModerationReports } from './ModerationReports';
+import { ModerationActionsHistory } from './ModerationActionsHistory';
 
 // Type definitions (using service types)
 interface ModerationReport extends ServiceModerationReport {}
@@ -57,7 +59,7 @@ interface ReportedContent {
 
 const Moderation: React.FC = () => {
   // State management
-  const [activeTab, setActiveTab] = useState<'queue' | 'reports' | 'actions' | 'stats'>('queue');
+  const [activeTab, setActiveTab] = useState<'queue' | 'reports' | 'actions_history' | 'stats'>('queue');
   const [reports, setReports] = useState<ModerationReport[]>([]);
   const [actions, setActions] = useState<ModerationAction[]>([]);
   const [stats, setStats] = useState<ModerationStats | null>(null);
@@ -339,16 +341,16 @@ const Moderation: React.FC = () => {
             </div>
           </button>
           <button
-            onClick={() => setActiveTab('actions')}
+            onClick={() => setActiveTab('actions_history')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'actions'
+              activeTab === 'actions_history'
                 ? 'bg-white text-gray-900 shadow'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
-              Action History
+              Actions History
             </div>
           </button>
           <button
@@ -497,149 +499,12 @@ const Moderation: React.FC = () => {
 
         {/* Reports Tab */}
         {activeTab === 'reports' && (
-          <div className="space-y-4">
-            {/* Status Filter */}
-            <div className="bg-white rounded-lg shadow p-4 flex flex-wrap gap-4 items-center">
-              <span className="text-sm font-medium text-gray-700">Filter by status:</span>
-              {['all', 'pending', 'reviewed', 'resolved', 'dismissed'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setFilterStatus(status)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                    filterStatus === status
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            {/* All Reports Table */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Report ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Content Author
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Reason
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Priority
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {reports
-                    .filter((r) => filterStatus === 'all' || r.status === filterStatus)
-                    .map((report) => (
-                      <tr key={report.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          #{report.id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                              <User className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <div className="ml-3">
-                              <p className="text-sm font-medium text-gray-900">
-                                {report.contentAuthorUsername}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {report.reason}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getPriorityColor(report.priority)}`}>
-                            {report.priority}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(report.status)}`}>
-                            {report.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(report.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => setSelectedReport(report)}
-                            className="text-blue-600 hover:text-blue-900"
-                          >
-                            View
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <ModerationReports reports={reports} onDismiss={handleDismissReport} />
         )}
 
-        {/* Actions Tab */}
-        {activeTab === 'actions' && (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Moderation Action History</h3>
-            </div>
-            {actions.length === 0 ? (
-              <div className="p-8 text-center">
-                <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No moderation actions recorded yet</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-200">
-                {actions.map((action) => (
-                  <div key={action.id} className="p-4 hover:bg-gray-50">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                        {getActionTypeIcon(action.action_type)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-gray-900">
-                            {action.moderator_username}
-                          </span>
-                          <span className="text-gray-500">took action:</span>
-                          <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs font-medium rounded">
-                            {action.action_type.toUpperCase()}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{action.reason}</p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>Report #{action.report_id}</span>
-                          {action.duration && (
-                            <span>Duration: {action.duration} days</span>
-                          )}
-                          <span>{new Date(action.created_at).toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Actions History Tab */}
+        {activeTab === 'actions_history' && (
+          <ModerationActionsHistory actions={actions} />
         )}
 
         {/* Stats Tab */}

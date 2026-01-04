@@ -30,6 +30,7 @@ import advancedCollaborationService, {
   PeerReviewAssignment as ServicePeerReviewAssignment,
   PeerReviewFeedback as ServicePeerReviewFeedback
 } from '../../services/advancedCollaborationService';
+import { PeerReviewActions } from './PeerReviewActions';
 
 // Type definitions (using service types)
 interface PeerReviewSubmission extends ServicePeerReviewSubmission {}
@@ -55,7 +56,7 @@ interface ContentItem {
 
 const PeerReview: React.FC = () => {
   // State management
-  const [activeTab, setActiveTab] = useState<'submissions' | 'assignments' | 'feedback' | 'stats'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'assignments' | 'feedback' | 'stats' | 'actions'>('submissions');
   const [submissions, setSubmissions] = useState<PeerReviewSubmission[]>([]);
   const [assignments, setAssignments] = useState<PeerReviewAssignment[]>([]);
   const [feedback, setFeedback] = useState<PeerReviewFeedback[]>([]);
@@ -426,6 +427,19 @@ const PeerReview: React.FC = () => {
               Statistics
             </div>
           </button>
+          <button
+            onClick={() => setActiveTab('actions')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'actions'
+                ? 'bg-white text-gray-900 shadow'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              Actions
+            </div>
+          </button>
         </div>
 
         {/* Submissions Tab */}
@@ -792,6 +806,11 @@ const PeerReview: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Actions Tab */}
+        {activeTab === 'actions' && (
+          <PeerReviewActions assignments={assignments} onAccept={handleAcceptAssignment} onComplete={handleCompleteAssignment} />
         )}
       </div>
 

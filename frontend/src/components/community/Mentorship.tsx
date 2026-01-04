@@ -32,6 +32,9 @@ import advancedCollaborationService, {
   MentorshipRequest,
   MentorshipSession
 } from '../../services/advancedCollaborationService';
+import { MentorsDirectory } from './MentorsDirectory';
+import { MentorshipRequests } from './MentorshipRequests';
+import { MentorRequestsReceived } from './MentorRequestsReceived';
 
 // Props interfaces
 interface MentorSearchProps {
@@ -434,7 +437,7 @@ export const MentorshipRequests: React.FC<MentorshipRequestsProps> = ({ onReques
 
 // Main Mentorship Component
 const Mentorship: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'find' | 'requests' | 'sessions'>('find');
+  const [activeTab, setActiveTab] = useState<'directory' | 'my_requests' | 'requests_received' | 'sessions'>('directory');
 
   return (
     <div className="space-y-6">
@@ -443,9 +446,9 @@ const Mentorship: React.FC = () => {
         <div className="border-b border-gray-200">
           <nav className="flex">
             <button
-              onClick={() => setActiveTab('find')}
+              onClick={() => setActiveTab('directory')}
               className={`flex-1 py-4 px-6 text-center font-medium text-sm transition-colors ${
-                activeTab === 'find'
+                activeTab === 'directory'
                   ? 'border-b-2 border-blue-600 text-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
@@ -454,15 +457,26 @@ const Mentorship: React.FC = () => {
               Find Mentors
             </button>
             <button
-              onClick={() => setActiveTab('requests')}
+              onClick={() => setActiveTab('my_requests')}
               className={`flex-1 py-4 px-6 text-center font-medium text-sm transition-colors ${
-                activeTab === 'requests'
+                activeTab === 'my_requests'
                   ? 'border-b-2 border-blue-600 text-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               <Users className="w-4 h-4 inline-block mr-2" />
-              Requests
+              My Requests
+            </button>
+            <button
+              onClick={() => setActiveTab('requests_received')}
+              className={`flex-1 py-4 px-6 text-center font-medium text-sm transition-colors ${
+                activeTab === 'requests_received'
+                  ? 'border-b-2 border-blue-600 text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Users className="w-4 h-4 inline-block mr-2" />
+              Requests Received
             </button>
             <button
               onClick={() => setActiveTab('sessions')}
@@ -479,8 +493,9 @@ const Mentorship: React.FC = () => {
         </div>
 
         <div className="p-6">
-          {activeTab === 'find' && <MentorSearch />}
-          {activeTab === 'requests' && <MentorshipRequests />}
+          {activeTab === 'directory' && <MentorsDirectory />}
+          {activeTab === 'my_requests' && <MentorshipRequests />}
+          {activeTab === 'requests_received' && <MentorRequestsReceived />}
           {activeTab === 'sessions' && (
             <div className="text-center py-8">
               <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
