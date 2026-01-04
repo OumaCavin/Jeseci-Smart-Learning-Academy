@@ -14,6 +14,25 @@ export interface Peer {
   lastActive: string;
 }
 
+export interface CollaboratorPresence {
+  userId: string;
+  name: string;
+  avatar?: string;
+  color: string;
+  status: 'online' | 'away' | 'busy' | 'offline';
+  lastSeen: string;
+}
+
+export interface CollaboratorState {
+  isConnected: boolean;
+  peers: Peer[];
+  localUserId: string;
+  localUserName: string;
+  documentVersion: number;
+  syncStatus: 'synced' | 'syncing' | 'conflict' | 'offline';
+  connectionQuality: 'excellent' | 'good' | 'poor' | 'disconnected';
+}
+
 export interface CursorPosition {
   lineNumber: number;
   column: number;
@@ -83,7 +102,7 @@ export interface CollaborationState {
   connectionQuality: 'excellent' | 'good' | 'poor' | 'disconnected';
 }
 
-interface CollaborationContextType {
+export interface CollaborationContextType {
   // State
   state: CollaborationState;
   

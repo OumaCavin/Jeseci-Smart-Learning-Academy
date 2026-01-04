@@ -310,7 +310,7 @@ function curriculumReducer(state: CurriculumState, action: CurriculumAction): Cu
   }
 }
 
-interface CurriculumContextType extends CurriculumState {
+export interface CurriculumContextType extends CurriculumState {
   // Course operations
   fetchCourses: () => Promise<void>;
   fetchCourseById: (courseId: string) => Promise<Course | null>;

@@ -188,4 +188,3 @@ const LEVEL_THRESHOLDS = [
   { level: 15, title: 'Divine' }
 ];
 
-import { useCallback, useState, useEffect } from 'react';

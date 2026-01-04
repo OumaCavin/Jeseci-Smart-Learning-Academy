@@ -35,7 +35,7 @@ export interface ExecutionSession {
   language: string;
 }
 
-interface CodeExecutionContextType {
+export interface CodeExecutionContextType {
   // Execution state
   isExecuting: boolean;
   currentSession: ExecutionSession | null;

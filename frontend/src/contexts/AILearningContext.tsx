@@ -36,7 +36,7 @@ export interface LearningRecommendation {
   };
 }
 
-export interface LearningPath {
+export interface AILearningPath {
   id: string;
   title: string;
   description: string;
@@ -57,7 +57,7 @@ export interface LearningPath {
 export interface UserLearningProfile {
   userId: string;
   currentSkillGraph: SkillNode[];
-  activePath: LearningPath | null;
+  activePath: AILearningPath | null;
   recommendations: LearningRecommendation[];
   learningVelocity: number; // hours per week
   preferredLearningStyle: 'visual' | 'practical' | 'theoretical' | 'mixed';
@@ -83,7 +83,7 @@ export interface AIContextType {
   // State
   skillGraph: SkillNode[];
   recommendations: LearningRecommendation[];
-  activePath: LearningPath | null;
+  activePath: AILearningPath | null;
   userProfile: UserLearningProfile | null;
   isLoading: boolean;
   error: string | null;
@@ -102,7 +102,7 @@ export interface AIContextType {
   reorderRecommendations: (fromIndex: number, toIndex: number) => void;
   
   // Path Operations
-  fetchLearningPaths: () => Promise<LearningPath[]>;
+  fetchLearningPaths: () => Promise<AILearningPath[]>;
   setActivePath: (pathId: string) => Promise<void>;
   updatePathProgress: (pathId: string, moduleId: string, completed: boolean) => Promise<void>;
   getNextRecommendedModule: () => LearningRecommendation | null;
@@ -123,7 +123,7 @@ const AIContext = createContext<AIContextType | undefined>(undefined);
 export function AIProvider({ children }: { children: ReactNode }) {
   const [skillGraph, setSkillGraph] = useState<SkillNode[]>([]);
   const [recommendations, setRecommendations] = useState<LearningRecommendation[]>([]);
-  const [activePath, setActivePath] = useState<LearningPath | null>(null);
+  const [activePath, setActivePath] = useState<AILearningPath | null>(null);
   const [userProfile, setUserProfile] = useState<UserLearningProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -329,7 +329,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Fetch learning paths
-  const fetchLearningPaths = useCallback(async (): Promise<LearningPath[]> => {
+  const fetchLearningPaths = useCallback(async (): Promise<AILearningPath[]> => {
     return [
       {
         id: 'path-fullstack',

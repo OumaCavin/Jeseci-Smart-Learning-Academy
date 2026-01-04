@@ -24,7 +24,86 @@ interface AdminPermissions {
   canManageSystem: boolean;
 }
 
-interface AdminContextType {
+export interface SystemUser {
+  id: string;
+  username: string;
+  email: string;
+  role: 'admin' | 'super_admin' | 'moderator';
+  permissions: AdminPermissions;
+  lastLogin?: string;
+  createdAt: string;
+  isActive: boolean;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  userId: string;
+  userName: string;
+  action: string;
+  resource: string;
+  resourceId?: string;
+  details?: Record<string, unknown>;
+  ipAddress: string;
+  userAgent: string;
+  timestamp: string;
+  status: 'success' | 'failure';
+}
+
+export interface SystemMetrics {
+  totalUsers: number;
+  activeUsers: number;
+  totalCourses: number;
+  activeCourses: number;
+  totalExecutions: number;
+  avgExecutionTime: number;
+  storageUsed: number;
+  memoryUsed: number;
+  cpuUsage: number;
+  uptime: number;
+}
+
+export interface SystemHealth {
+  status: 'healthy' | 'warning' | 'critical';
+  checks: Array<{
+    name: string;
+    status: 'pass' | 'fail' | 'warn';
+    message?: string;
+    lastChecked: string;
+  }>;
+  lastUpdated: string;
+}
+
+export interface UserFilter {
+  search?: string;
+  role?: string;
+  status?: 'active' | 'inactive' | 'banned';
+  dateRange?: { start: string; end: string };
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  page: number;
+  pageSize: number;
+}
+
+export interface AuditLogFilter {
+  userId?: string;
+  action?: string;
+  resource?: string;
+  status?: 'success' | 'failure';
+  dateRange?: { start: string; end: string };
+  ipAddress?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  page: number;
+  pageSize: number;
+}
+
+export interface BulkUserAction {
+  action: 'activate' | 'deactivate' | 'ban' | 'unban' | 'delete' | 'role';
+  userIds: string[];
+  reason?: string;
+}
+
+export interface AdminContextType {
   isAdminAuthenticated: boolean;
   adminUser: User | null;
   loading: boolean;

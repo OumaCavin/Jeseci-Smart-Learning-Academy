@@ -95,6 +95,60 @@ export interface ActivityDataPoint {
   label?: string;
 }
 
+export interface SkillMetrics {
+  overallLevel: number;
+  categoryScores: Array<{ category: string; score: number; level: number }>;
+  strongAreas: string[];
+  improvementAreas: string[];
+  skillBreakdown: Array<{
+    skillId: string;
+    skillName: string;
+    level: number;
+    practiceCount: number;
+    successRate: number;
+  }>;
+}
+
+export interface StudentAnalytics {
+  studentId: string;
+  studentName: string;
+  overallProgress: number;
+  totalXP: number;
+  currentLevel: number;
+  completedConcepts: number;
+  totalConcepts: number;
+  averageScore: number;
+  totalTimeSpent: number;
+  streakDays: number;
+  recentActivity: ActivityDataPoint[];
+  skillLevels: SkillMetrics;
+  strengths: string[];
+  areasForImprovement: string[];
+}
+
+export interface CourseAnalytics {
+  courseId: string;
+  courseName: string;
+  totalStudents: number;
+  activeStudents: number;
+  completionRate: number;
+  averageScore: number;
+  averageTimeToComplete: number;
+  dropOffPoints: Array<{ module: string; dropOffRate: number }>;
+  conceptPerformance: LearningMetric[];
+  engagementTrend: ActivityDataPoint[];
+}
+
+export interface EngagementData {
+  dailyActiveUsers: number;
+  weeklyActiveUsers: number;
+  monthlyActiveUsers: number;
+  averageSessionDuration: number;
+  totalSessions: number;
+  peakActivityHours: Array<{ hour: number; activity: number }>;
+  engagementTrend: ActivityDataPoint[];
+}
+
 export interface SkillData {
   category: string;
   skills: Array<{
@@ -140,7 +194,7 @@ export interface AnalyticsState {
   lastUpdated: string | null;
 }
 
-interface AnalyticsContextType {
+export interface AnalyticsContextType {
   // State
   state: AnalyticsState;
   
