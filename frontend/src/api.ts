@@ -383,6 +383,33 @@ export interface AIGeneratedContent {
   source?: string;
 }
 
+export interface JaclangValidationError {
+  line: number;
+  column: number;
+  message: string;
+  severity: 'Error' | 'Warning' | 'Info';
+  raw?: string;
+}
+
+export interface JaclangValidationResponse {
+  valid: boolean;
+  errors: JaclangValidationError[];
+  message: string;
+}
+
+export interface JaclangFormatResponse {
+  formatted_code: string;
+  changed: boolean;
+  error?: string;
+}
+
+export interface JaclangServiceHealth {
+  service: string;
+  status: string;
+  jac_available: boolean;
+  version: string;
+}
+
 class ApiService {
   private baseUrl: string;
   private authToken: string | null = null;
@@ -877,6 +904,67 @@ class ApiService {
       body: JSON.stringify({
         action: action,
         session_id: sessionId
+      }),
+    });
+  }
+
+  // ============================================================================
+  // Jaclang Editor Intelligence Service
+  // ============================================================================
+
+  /**
+   * Check the health of the Jaclang service
+   */
+  async getJaclangServiceHealth(): Promise<JaclangServiceHealth> {
+    return this.makeRequest('/api/jaclang/health', {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * Validate Jaclang source code for syntax errors
+   * @param sourceCode - The Jaclang code to validate
+   * @returns Validation result with any syntax errors
+   */
+  async validateJacCode(sourceCode: string): Promise<JaclangValidationResponse> {
+    return this.makeRequest('/api/jaclang/validate', {
+      method: 'POST',
+      body: JSON.stringify({
+        source_code: sourceCode
+      }),
+    });
+  }
+
+  /**
+   * Format Jaclang source code according to language standards
+   * @param sourceCode - The Jaclang code to format
+   * @returns Formatted code and whether it changed
+   */
+  async formatJacCode(sourceCode: string): Promise<JaclangFormatResponse> {
+    return this.makeRequest('/api/jaclang/format', {
+      method: 'POST',
+      body: JSON.stringify({
+        source_code: sourceCode
+      }),
+    });
+  }
+
+  /**
+   * Validate and format Jaclang code in a single request
+   * @param sourceCode - The Jaclang code to validate and format
+   * @returns Combined validation and formatting result
+   */
+  async validateAndFormatJacCode(sourceCode: string): Promise<{
+    valid: boolean;
+    errors: JaclangValidationError[];
+    formatted_code: string;
+    changed: boolean;
+    message: string;
+  }> {
+    return this.makeRequest('/api/jaclang/validate-and-format', {
+      method: 'POST',
+      body: JSON.stringify({
+        source_code: sourceCode
       }),
     });
   }
