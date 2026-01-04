@@ -161,7 +161,7 @@ export function LiveActivityFeed({
       return (
         activity.title.toLowerCase().includes(query) ||
         activity.description.toLowerCase().includes(query) ||
-       toLowerCase(). activity.userName?.includes(query)
+        activity.userName?.toLowerCase().includes(query)
       );
     }
     

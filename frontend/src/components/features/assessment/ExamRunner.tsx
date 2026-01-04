@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useExamSession, ExamQuestion } from '../../hooks/assessment/useExamSession';
 import './ExamRunner.css';
 
-interface ExamRunnerProps {
+export interface ExamRunnerProps {
   assessmentId: string;
   onComplete?: (result: Awaited<ReturnType<typeof useExamSession>['finishExam']>) => void;
   onExit?: () => void;

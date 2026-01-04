@@ -352,7 +352,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Set active learning path
-  const setActivePath = useCallback(async (pathId: string) => {
+  const selectActivePath = useCallback(async (pathId: string) => {
     const paths = await fetchLearningPaths();
     const path = paths.find(p => p.id === pathId);
     if (path) {
@@ -452,7 +452,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
     acceptRecommendation,
     reorderRecommendations,
     fetchLearningPaths,
-    setActivePath,
+    setActivePath: selectActivePath,
     updatePathProgress,
     getNextRecommendedModule,
     fetchUserProfile,

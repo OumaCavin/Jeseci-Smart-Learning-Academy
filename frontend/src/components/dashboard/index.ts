@@ -1,9 +1,8 @@
 // Dashboard Components exports
 export { RealTimeMetricsGrid } from './RealTimeMetricsGrid';
-export { LiveActivityFeed } from './LiveActivityFeed';
+export { LiveActivityFeed, type ActivityItem } from './LiveActivityFeed';
 export type { 
   MetricCard, 
   MetricDataPoint,
-  RealTimeMetrics,
-  ActivityItem 
+  RealTimeMetrics
 } from './RealTimeMetricsGrid';

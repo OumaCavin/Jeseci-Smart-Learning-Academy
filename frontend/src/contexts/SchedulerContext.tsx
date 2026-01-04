@@ -421,7 +421,7 @@ export function SchedulerProvider({ children }: { children: ReactNode }) {
       cronExpression: CRON_PRESETS[template.cronPreset as keyof typeof CRON_PRESETS] || template.cronPreset,
       action: {
         type: template.defaultConfig.actionType || 'custom',
-        config: { ...template.defaultConfig, ...customConfig },
+        config: { ...template.defaultConfig, ...customConfig } as Record<string, unknown>,
       },
     });
   }, [templates, createTask]);

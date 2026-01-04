@@ -156,7 +156,7 @@ export function RealTimeMetricsGrid({
     autoConnect: true,
     onMessage: useCallback((message: WebSocketMessage) => {
       if (message.type === 'dashboard.metric') {
-        handleMetricUpdate(message.payload);
+        handleMetricUpdate(message.payload as { metricId: string; value: number; timestamp: string });
       }
     }, [])
   });

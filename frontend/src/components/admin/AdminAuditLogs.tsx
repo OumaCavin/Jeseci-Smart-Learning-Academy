@@ -65,22 +65,54 @@ export const AdminAuditLogs: React.FC = () => {
       const [statsData, logsData] = await Promise.all([
         advancedCollaborationService.getAuditLogStats(),
         advancedCollaborationService.getAuditLogs({
-          search: searchQuery || undefined,
-          action: filterAction !== 'all' ? filterAction : undefined,
-          status: filterStatus !== 'all' ? filterStatus : undefined,
-          dateFrom: dateFrom || undefined,
-          dateTo: dateTo || undefined,
+          startDate: dateFrom || undefined,
+          endDate: dateTo || undefined,
           limit: 200
         })
       ]);
-      setStats(statsData.data);
-      setLogs(logsData.data || []);
+      
+      // Transform API response to match component interface
+      const transformedStats = {
+        totalEntries: statsData.data.totalLogs || 0,
+        entriesToday: 0,
+        entriesThisWeek: 0,
+        failuresToday: 0,
+        topActions: Object.entries(statsData.data.logsByLevel || {}).map(([action, count]) => ({ 
+          action, 
+          count: count as number 
+        })),
+        topUsers: Object.entries(statsData.data.logsBySource || {}).map(([source, count]) => ({ 
+          username: source, 
+          count: count as number 
+        }))
+      };
+      
+      const transformedLogs = (logsData.data || []).map(item => {
+        const status: AuditLogEntry['status'] = item.level === 'error' ? 'failure' : item.level === 'warn' ? 'warning' : 'success';
+        return {
+          id: item.id,
+          timestamp: item.timestamp,
+          userId: 'system',
+          username: 'System',
+          action: item.level,
+          resource: item.source,
+          resourceType: 'log',
+          ipAddress: '',
+          userAgent: '',
+          status,
+          details: item.message,
+          metadata: item.context
+        };
+      });
+      
+      setStats(transformedStats);
+      setLogs(transformedLogs);
     } catch (error) {
       console.error('Error loading audit logs:', error);
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, filterAction, filterStatus, dateFrom, dateTo]);
+  }, [dateFrom, dateTo]);
 
   useEffect(() => {
     loadAuditLogs();
