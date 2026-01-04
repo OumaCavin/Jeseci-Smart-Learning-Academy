@@ -11,3 +11,7 @@ export * from './features/ai';
 export * from './features/builder';
 export * from './features/assessment';
 export * from './features/admin';
+// Phase 4 components
+export * from './features/ai';
+export * from './features/communication';
+export * from './features/admin';
