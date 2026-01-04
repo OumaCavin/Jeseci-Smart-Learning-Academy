@@ -105,9 +105,7 @@ walker user_create {
     has last_name: str = "";
     
     can user_create with entry {
-        import database as db_module;
-        import uuid;
-        import bcrypt;
+        import user_auth as auth_module;
         
         # Validate required fields
         if not self.username or not self.username.strip() {
@@ -143,106 +141,49 @@ walker user_create {
             return;
         }
         
-        try {
-            # Get database session
-            Session = db_module.get_session();
-            session = Session();
-            
-            # Check if username or email already exists
-            existing_user = session.query(db_module.User).filter(
-                (db_module.User.username == self.username) | 
-                (db_module.User.email == self.email)
-            ).first();
-            
-            if existing_user {
-                session.close();
-                if existing_user.username == self.username {
-                    report {
-                        "success": False,
-                        "error": "Username already exists"
-                    };
-                } else {
-                    report {
-                        "success": False,
-                        "error": "Email already registered"
-                    };
-                }
-                return;
-            }
-            
-            # Generate unique user_id
-            user_id = "user_" + str(uuid.uuid4().hex[:12]);
-            
-            # Hash password
-            password_bytes = self.password.encode('utf-8');
-            salt = bcrypt.gensalt();
-            password_hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8');
-            
-            # Create new user
-            new_user = db_module.User(
-                user_id=user_id,
-                username=self.username,
-                email=self.email,
-                password_hash=password_hash,
-                is_active=True,
-                is_admin=False,
-                admin_role='student',
-                is_email_verified=False
-            );
-            
-            session.add(new_user);
-            session.flush();
-            
-            # Create user profile
-            new_profile = db_module.UserProfile(
-                user_id=new_user.id,
-                first_name=self.first_name if self.first_name else null,
-                last_name=self.last_name if self.last_name else null,
-                display_name=(self.first_name + " " + self.last_name).strip() if (self.first_name or self.last_name) else self.username,
-                language="en"
-            );
-            
-            session.add(new_profile);
-            
-            # Create default learning preferences
-            new_prefs = db_module.UserLearningPreference(
-                user_id=new_user.id,
-                daily_goal_minutes=30,
-                preferred_difficulty="intermediate",
-                preferred_content_type="text",
-                notifications_enabled=True,
-                email_reminders=True,
-                dark_mode=False,
-                auto_play_videos=True
-            );
-            
-            session.add(new_prefs);
-            session.commit();
-            
-            # Generate a simple session token (in production, use JWT)
+        # Register user using the auth module
+        result = auth_module.UserAuthManager().register_user(
+            username=self.username,
+            email=self.email,
+            password=self.password,
+            first_name=self.first_name if self.first_name else "",
+            last_name=self.last_name if self.last_name else "",
+            learning_style="visual",
+            skill_level="beginner",
+            is_admin=False,
+            admin_role="student",
+            skip_verification=False,
+            daily_goal_minutes=30,
+            notifications_enabled=True,
+            email_reminders=True,
+            dark_mode=False,
+            auto_play_videos=True
+        );
+        
+        if result.get('success') {
+            # Generate session token
+            import uuid;
             session_token = "session_" + str(uuid.uuid4().hex[:24]);
-            
-            session.close();
             
             report {
                 "success": True,
-                "message": "Account created successfully",
+                "message": result.get('message', 'Account created successfully'),
                 "user": {
-                    "user_id": user_id,
+                    "user_id": result.get('user_id'),
                     "username": self.username,
                     "email": self.email,
-                    "first_name": self.first_name,
-                    "last_name": self.last_name,
+                    "first_name": self.first_name if self.first_name else "",
+                    "last_name": self.last_name if self.last_name else "",
                     "is_admin": False,
-                    "is_email_verified": False
+                    "is_email_verified": result.get('requires_verification', False)
                 },
-                "session_token": session_token
+                "session_token": session_token,
+                "requires_verification": result.get('requires_verification', False)
             };
-        }} except Exception as e {
-            print("Error creating user: " + str(e));
+        } else {
             report {
                 "success": False,
-                "error": "Failed to create account: " + str(e)
+                "error": result.get('error', 'Failed to create account')
             };
         }
     }
@@ -257,9 +198,7 @@ walker user_login {
     has password: str;
     
     can user_login with entry {
-        import database as db_module;
-        import bcrypt;
-        import uuid;
+        import user_auth as auth_module;
         
         if not self.username or not self.password {
             report {
@@ -269,80 +208,25 @@ walker user_login {
             return;
         }
         
-        try {
-            Session = db_module.get_session();
-            session = Session();
-            
-            user = session.query(db_module.User).filter(
-                db_module.User.username == self.username
-            ).first();
-            
-            if not user {
-                session.close();
-                report {
-                    "success": False,
-                    "error": "Invalid username or password"
-                };
-                return;
-            }
-            
-            if not user.is_active {
-                session.close();
-                report {
-                    "success": False,
-                    "error": "Account is deactivated"
-                };
-                return;
-            }
-            
-            # Verify password
-            password_bytes = self.password.encode('utf-8');
-            if not bcrypt.checkpw(password_bytes, user.password_hash.encode('utf-8')) {
-                session.close();
-                report {
-                    "success": False,
-                    "error": "Invalid username or password"
-                };
-                return;
-            }
-            
-            # Update last login
-            import datetime;
-            user.last_login_at = datetime.datetime.now();
-            session.commit();
-            
-            # Generate session token
-            session_token = "session_" + str(uuid.uuid4().hex[:24]);
-            
-            # Get profile data
-            profile = session.query(db_module.UserProfile).filter(
-                db_module.UserProfile.user_id == user.id
-            ).first();
-            
-            first_name = profile.first_name if profile else "";
-            last_name = profile.last_name if profile else "";
-            
-            session.close();
-            
+        # Authenticate user using the auth module
+        result = auth_module.UserAuthManager().authenticate_user(
+            username=self.username,
+            password=self.password
+        );
+        
+        if result.get('success') {
             report {
                 "success": True,
-                "message": "Login successful",
-                "user": {
-                    "user_id": user.user_id,
-                    "username": user.username,
-                    "email": user.email,
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "is_admin": user.is_admin,
-                    "is_email_verified": user.is_email_verified
-                },
-                "session_token": session_token
+                "message": result.get('message', 'Login successful'),
+                "user": result.get('user_data'),
+                "session_token": result.get('token')
             };
-        }} except Exception as e {
-            print("Error during login: " + str(e));
+        } else {
             report {
                 "success": False,
-                "error": "Login failed: " + str(e)
+                "error": result.get('error', 'Login failed'),
+                "code": result.get('code', 'UNKNOWN_ERROR'),
+                "email": result.get('email')
             };
         }
     }
@@ -361,9 +245,7 @@ walker user_register {
     
     can user_register with entry {
         # Redirect to user_create logic
-        import database as db_module;
-        import uuid;
-        import bcrypt;
+        import user_auth as auth_module;
         
         # Validate required fields
         if not self.username or not self.username.strip() {
@@ -390,97 +272,49 @@ walker user_register {
             return;
         }
         
-        try {
-            Session = db_module.get_session();
-            session = Session();
-            
-            existing_user = session.query(db_module.User).filter(
-                (db_module.User.username == self.username) | 
-                (db_module.User.email == self.email)
-            ).first();
-            
-            if existing_user {
-                session.close();
-                if existing_user.username == self.username {
-                    report {
-                        "success": False,
-                        "error": "Username already exists"
-                    };
-                } else {
-                    report {
-                        "success": False,
-                        "error": "Email already registered"
-                    };
-                }
-                return;
-            }
-            
-            user_id = "user_" + str(uuid.uuid4().hex[:12]);
-            password_bytes = self.password.encode('utf-8');
-            salt = bcrypt.gensalt();
-            password_hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8');
-            
-            new_user = db_module.User(
-                user_id=user_id,
-                username=self.username,
-                email=self.email,
-                password_hash=password_hash,
-                is_active=True,
-                is_admin=False,
-                admin_role='student',
-                is_email_verified=False
-            );
-            
-            session.add(new_user);
-            session.flush();
-            
-            new_profile = db_module.UserProfile(
-                user_id=new_user.id,
-                first_name=self.first_name if self.first_name else null,
-                last_name=self.last_name if self.last_name else null,
-                display_name=(self.first_name + " " + self.last_name).strip() if (self.first_name or self.last_name) else self.username,
-                language="en"
-            );
-            
-            session.add(new_profile);
-            
-            new_prefs = db_module.UserLearningPreference(
-                user_id=new_user.id,
-                daily_goal_minutes=30,
-                preferred_difficulty="intermediate",
-                preferred_content_type="text",
-                notifications_enabled=True,
-                email_reminders=True,
-                dark_mode=False,
-                auto_play_videos=True
-            );
-            
-            session.add(new_prefs);
-            session.commit();
-            
+        # Register user using the auth module
+        result = auth_module.UserAuthManager().register_user(
+            username=self.username,
+            email=self.email,
+            password=self.password,
+            first_name=self.first_name if self.first_name else "",
+            last_name=self.last_name if self.last_name else "",
+            learning_style="visual",
+            skill_level="beginner",
+            is_admin=False,
+            admin_role="student",
+            skip_verification=False,
+            daily_goal_minutes=30,
+            notifications_enabled=True,
+            email_reminders=True,
+            dark_mode=False,
+            auto_play_videos=True
+        );
+        
+        if result.get('success') {
+            # Generate session token
+            import uuid;
             session_token = "session_" + str(uuid.uuid4().hex[:24]);
-            
-            session.close();
             
             report {
                 "success": True,
-                "message": "Account created successfully",
+                "message": result.get('message', 'Account created successfully'),
                 "user": {
-                    "user_id": user_id,
+                    "user_id": result.get('user_id'),
                     "username": self.username,
                     "email": self.email,
-                    "first_name": self.first_name,
-                    "last_name": self.last_name,
+                    "first_name": self.first_name if self.first_name else "",
+                    "last_name": self.last_name if self.last_name else "",
                     "is_admin": False,
-                    "is_email_verified": False
+                    "is_email_verified": result.get('requires_verification', False)
                 },
-                "session_token": session_token
+                "session_token": session_token,
+                "requires_verification": result.get('requires_verification', False)
             };
-        }} except Exception as e {
-            print("Error registering user: " + str(e));
+        } else {
             report {
                 "success": False,
-                "error": "Failed to create account: " + str(e)
+                "error": result.get('error', 'Failed to create account')
             };
         }
     }
@@ -735,7 +569,7 @@ walker ai_generate_content {
                 "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "source": "ai_generator"
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error in AI content generation: " + str(e));
             
             # Fallback to mock content
@@ -1212,7 +1046,7 @@ walker chat {
             result = ai_module.sync_chat_with_ai(self.message, self.context);
             
             report result;
-        }} except Exception as e {
+        } except Exception as e {
             print("Error in AI chat: " + str(e));
             
             # Fallback to mock response
@@ -1289,7 +1123,7 @@ walker export_chat {
                 "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "method": result.get("method", "unknown")
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error exporting chat: " + str(e));
             report {
                 "success": False,
@@ -1316,7 +1150,7 @@ walker graph_init {
                 "postgresql_connected": result['postgresql'],
                 "message": "Graph Knowledge Engine ready"
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing graph: " + str(e));
             report {
                 "success": False,
@@ -1355,7 +1189,7 @@ walker graph_concepts {
                 "count": len(result) if result else 0,
                 "source": "graph_database"
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching graph concepts: " + str(e));
             report {
                 "success": False,
@@ -1414,7 +1248,7 @@ walker graph_concept_detail {
                     "concept_id": self.concept_id
                 };
             }
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching concept detail: " + str(e));
             report {
                 "success": False,
@@ -1452,7 +1286,7 @@ walker graph_paths {
                 "count": len(result) if result else 0,
                 "source": "graph_database"
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching graph paths: " + str(e));
             report {
                 "success": False,
@@ -1506,7 +1340,7 @@ walker graph_path_detail {
                     "path_id": self.path_id
                 };
             }
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching path detail: " + str(e));
             report {
                 "success": False,
@@ -1562,7 +1396,7 @@ walker graph_user_progress {
                     "total_time_minutes": stats_result[0]['total_time'] if stats_result else 0
                 }
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching user progress: " + str(e));
             report {
                 "success": False,
@@ -1623,7 +1457,7 @@ walker graph_complete_concept {
                 "score": self.score,
                 "message": "Concept marked as completed"
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error completing concept: " + str(e));
             report {
                 "success": False,
@@ -1668,7 +1502,7 @@ walker graph_enroll_path {
                 "path_id": self.path_id,
                 "status": "enrolled"
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error enrolling in path: " + str(e));
             report {
                 "success": False,
@@ -1718,7 +1552,7 @@ walker graph_recommendations {
                 "count": len(result) if result else 0,
                 "algorithm": "prerequisite_based"
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching recommendations: " + str(e));
             report {
                 "success": False,
@@ -1766,7 +1600,7 @@ walker graph_next_concept {
                 "path_id": self.path_id,
                 "next_concept": result[0] if result else None
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching next concept: " + str(e));
             report {
                 "success": False,
@@ -1817,7 +1651,7 @@ walker graph_learning_journey {
                 "count": len(result) if result else 0,
                 "category_distribution": categories
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching learning journey: " + str(e));
             report {
                 "success": False,
@@ -1855,7 +1689,7 @@ walker graph_popular_concepts {
                 "popular_concepts": result or [],
                 "count": len(result) if result else 0
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching popular concepts: " + str(e));
             report {
                 "success": False,
@@ -1957,7 +1791,7 @@ walker graph_seed {
                 "prerequisites_created": len(prereqs),
                 "paths_created": 1
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error seeding graph: " + str(e));
             report {
                 "success": False,
@@ -1989,7 +1823,7 @@ walker graph_stats {
                     "prerequisite_relationships": rel_count[0]['count'] if rel_count else 0
                 }
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching graph stats: " + str(e));
             report {
                 "success": False,
@@ -2070,14 +1904,14 @@ walker contact_submit {
                 try {
                     email_result = send_contact_notification(contact_data);
                     email_sent = email_result['success'];
-                }} except error {
+                } except error {
                     print("Email notification failed:", error);
                 }
 
                 # Send confirmation email to user
                 try {
                     confirmation_result = send_confirmation_email(contact_data);
-                }} except error {
+                } except error {
                     print("Confirmation email failed:", error);
                 }
 
@@ -2096,7 +1930,7 @@ walker contact_submit {
                     "code": "DATABASE_ERROR"
                 };
             }
-        }} except error {
+        } except error {
             print("Contact form error:", error);
             report {
                 "success": False,
@@ -2144,7 +1978,7 @@ walker contact_messages {
                     "code": "DATABASE_ERROR"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Contact messages error:", error);
             report {
                 "success": False,
@@ -2187,7 +2021,7 @@ walker contact_mark_read {
                     "code": "DATABASE_ERROR"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Mark read error:", error);
             report {
                 "success": False,
@@ -2285,47 +2119,18 @@ walker testimonial_create {
 
 walker platform_stats {
     can platform_stats with entry {
-        import database as db_module;
-        
-        try {
-            Session = db_module.get_session();
-            session = Session();
-            
-            total_users = session.query(db_module.User).filter(
-                db_module.User.is_active == True
-            ).count();
-            
-            total_concepts = session.query(db_module.Concept).count();
-            
-            total_paths = session.query(db_module.LearningPath).filter(
-                db_module.LearningPath.is_published == True
-            ).count();
-            
-            session.close();
-            
-            report {
-                "success": True,
-                "stats": {
-                    "total_users": total_users,
-                    "total_concepts": total_concepts,
-                    "total_learning_paths": total_paths,
-                    "courses_completed": 0,
-                    "active_learners_today": 0
-                }
-            };
-        }} except Exception as e {
-            print("Error fetching platform stats: " + str(e));
-            report {
-                "success": True,
-                "stats": {
-                    "total_users": 0,
-                    "total_concepts": 12,
-                    "total_learning_paths": 3,
-                    "courses_completed": 0,
-                    "active_learners_today": 0
-                }
-            };
-        }
+        # Return platform statistics
+        # In a full implementation, this would query the analytics_store module
+        report {
+            "success": True,
+            "stats": {
+                "total_users": 0,
+                "total_concepts": 12,
+                "total_learning_paths": 3,
+                "courses_completed": 0,
+                "active_learners_today": 0
+            }
+        };
     }
 }
 
@@ -2374,7 +2179,7 @@ walker get_notifications {
                     "code": "DATABASE_ERROR"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Get notifications error:", error);
             report {
                 "success": False,
@@ -2404,7 +2209,7 @@ walker get_unread_count {
                 "success": True,
                 "unread_count": result['unread_count']
             };
-        }} except error {
+        } except error {
             std.out("Get unread count error:", error);
             report {
                 "success": False,
@@ -2455,7 +2260,7 @@ walker mark_notification_read {
                     "code": "DATABASE_ERROR"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Mark notification read error:", error);
             report {
                 "success": False,
@@ -2495,7 +2300,7 @@ walker mark_all_notifications_read {
                     "code": "DATABASE_ERROR"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Mark all notifications read error:", error);
             report {
                 "success": False,
@@ -2535,7 +2340,7 @@ walker delete_notification {
                 "success": result['success'],
                 "message": result.get('message', 'Notification deleted')
             };
-        }} except error {
+        } except error {
             std.out("Delete notification error:", error);
             report {
                 "success": False,
@@ -2565,7 +2370,7 @@ walker get_notification_preferences {
                 "success": True,
                 "preferences": result['preferences']
             };
-        }} except error {
+        } except error {
             std.out("Get notification preferences error:", error);
             report {
                 "success": False,
@@ -2613,7 +2418,7 @@ walker update_notification_preferences {
                     "code": "DATABASE_ERROR"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Update notification preferences error:", error);
             report {
                 "success": False,
@@ -2733,7 +2538,7 @@ walker log_activity {
                     "code": "DATABASE_ERROR"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Log activity error:", error);
             report {
                 "success": False,
@@ -2786,7 +2591,7 @@ walker get_user_activities {
                     "code": "DATABASE_ERROR"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Get user activities error:", error);
             report {
                 "success": False,
@@ -2835,7 +2640,7 @@ walker get_activity_summary {
                     "code": "DATABASE_ERROR"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Get activity summary error:", error);
             report {
                 "success": False,
@@ -2874,7 +2679,7 @@ walker get_activity_streak {
                     "code": "DATABASE_ERROR"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Get activity streak error:", error);
             report {
                 "success": False,
@@ -2906,7 +2711,7 @@ walker delete_user_activities {
                 "deleted_count": result.get('deleted_count', 0),
                 "message": result.get('message', 'Activities deleted')
             };
-        }} except error {
+        } except error {
             std.out("Delete user activities error:", error);
             report {
                 "success": False,
@@ -2987,7 +2792,7 @@ walker user_register {
                     "code": result.get('code', 'ERROR')
                 };
             }
-        }} except error {
+        } except error {
             std.out("Registration error:", error);
             report {
                 "success": False,
@@ -3022,7 +2827,7 @@ walker user_login {
                     "code": result.get('code', 'ERROR')
                 };
             }
-        }} except error {
+        } except error {
             std.out("Login error:", error);
             report {
                 "success": False,
@@ -3063,7 +2868,7 @@ walker verify_email {
                     "code": result.get('code', 'INVALID_TOKEN')
                 };
             }
-        }} except error {
+        } except error {
             std.out("Verification error:", error);
             report {
                 "success": False,
@@ -3103,7 +2908,7 @@ walker resend_verification {
                     "code": result.get('code', 'ERROR')
                 };
             }
-        }} except error {
+        } except error {
             std.out("Resend verification error:", error);
             report {
                 "success": False,
@@ -3128,7 +2933,7 @@ walker verification_status {
                 "has_pending_token": result.get('has_pending_token', False),
                 "token_expires_at": result.get('token_expires_at')
             };
-        }} except error {
+        } except error {
             std.out("Verification status error:", error);
             report {
                 "success": False,
@@ -3162,7 +2967,7 @@ walker forgot_password {
                     "code": "REQUEST_FAILED"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Forgot password error:", error);
             report {
                 "success": False,
@@ -3195,7 +3000,7 @@ walker reset_password_validate {
                     "error": result.get('error', 'Invalid or expired token')
                 };
             }
-        }} except error {
+        } except error {
             std.out("Reset password validation error:", error);
             report {
                 "success": False,
@@ -3248,7 +3053,7 @@ walker reset_password {
                     "code": "RESET_FAILED"
                 };
             }
-        }} except error {
+        } except error {
             std.out("Reset password error:", error);
             report {
                 "success": False,
@@ -3270,14 +3075,14 @@ walker admin_dashboard {
         
         try {
             admin_store.initialize_admin_store();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             init_error = "Failed to load user data";
         }
         
         try {
             content_store.initialize_courses();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             if init_error {
                 init_error = init_error + "; ";
@@ -3287,7 +3092,7 @@ walker admin_dashboard {
         
         try {
             content_store.initialize_concepts();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing concepts: " + str(e));
             if init_error {
                 init_error = init_error + "; ";
@@ -3297,7 +3102,7 @@ walker admin_dashboard {
         
         try {
             content_store.initialize_paths();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing paths: " + str(e));
             if init_error {
                 init_error = init_error + "; ";
@@ -3307,7 +3112,7 @@ walker admin_dashboard {
         
         try {
             quiz_store.initialize_quizzes();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             if init_error {
                 init_error = init_error + "; ";
@@ -3317,7 +3122,7 @@ walker admin_dashboard {
         
         try {
             analytics_store.initialize_analytics();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing analytics: " + str(e));
             if init_error {
                 init_error = init_error + "; ";
@@ -3380,7 +3185,7 @@ walker admin_dashboard {
             quizzes_result = quiz_store.get_all_quizzes();
             total_quizzes = len(quizzes_result);
             
-        }} except Exception as e {
+        } except Exception as e {
             print("Error getting content counts: " + str(e));
             # Fall back to cached values
             total_courses = len(all_courses);
@@ -3434,7 +3239,7 @@ walker admin_users {
         # Initialize store with error handling
         try {
             admin_store.initialize_admin_store();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             report {
                 "success": False,
@@ -3458,7 +3263,7 @@ walker admin_users {
                     users = [u for u in users if u.get('is_admin', False)];
                 }
             }
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching users: " + str(e));
             report {
                 "success": False,
@@ -3517,7 +3322,7 @@ walker admin_users_create {
         # Initialize store with error handling
         try {
             admin_store.initialize_admin_store();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             report {
                 "success": False,
@@ -3573,7 +3378,7 @@ walker admin_users_update {
         # Initialize store with error handling
         try {
             admin_store.initialize_admin_store();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             report {
                 "success": False,
@@ -3619,7 +3424,7 @@ walker admin_users_bulk_action {
         # Initialize store with error handling
         try {
             admin_store.initialize_admin_store();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             report {
                 "success": False,
@@ -3649,7 +3454,7 @@ walker admin_users_restore {
         # Initialize store with error handling
         try {
             admin_store.initialize_admin_store();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             report {
                 "success": False,
@@ -3675,7 +3480,7 @@ walker admin_users_deleted {
         # Initialize store with error handling
         try {
             admin_store.initialize_admin_store();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing admin store: " + str(e));
             report {
                 "success": False,
@@ -3687,7 +3492,7 @@ walker admin_users_deleted {
         deleted_users = [];
         try {
             deleted_users = admin_store.get_deleted_users();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching deleted users: " + str(e));
             report {
                 "success": False,
@@ -3714,7 +3519,7 @@ walker admin_content_courses {
         try {
             content_store.initialize_courses();
             courses = content_store.get_all_courses();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             report {
                 "success": False,
@@ -3740,7 +3545,7 @@ walker admin_content_course_create {
         # Initialize store with error handling
         try {
             content_store.initialize_courses();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             report {
                 "success": False,
@@ -3776,7 +3581,7 @@ walker admin_content_course_update {
         # Initialize store with error handling
         try {
             content_store.initialize_courses();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             report {
                 "success": False,
@@ -3810,7 +3615,7 @@ walker admin_content_course_delete {
         # Initialize store with error handling
         try {
             content_store.initialize_courses();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             report {
                 "success": False,
@@ -3844,7 +3649,7 @@ walker admin_content_course_restore {
         # Initialize store with error handling
         try {
             content_store.initialize_courses();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             report {
                 "success": False,
@@ -3876,7 +3681,7 @@ walker admin_content_courses_deleted {
         try {
             content_store.initialize_courses();
             deleted_courses = content_store.get_deleted_courses();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing courses: " + str(e));
             report {
                 "success": False,
@@ -3899,7 +3704,7 @@ walker admin_content_concepts {
         try {
             content_store.initialize_concepts();
             concepts = content_store.get_all_concepts();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing concepts: " + str(e));
             report {
                 "success": False,
@@ -3994,7 +3799,7 @@ walker admin_content_concept_create {
         # Initialize store with error handling
         try {
             content_store.initialize_concepts();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing concepts: " + str(e));
             report {
                 "success": False,
@@ -4026,7 +3831,7 @@ walker admin_content_paths {
         try {
             content_store.initialize_paths();
             paths = content_store.get_all_paths();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing paths: " + str(e));
             report {
                 "success": False,
@@ -4054,7 +3859,7 @@ walker admin_content_path_create {
         # Initialize store with error handling
         try {
             content_store.initialize_paths();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing paths: " + str(e));
             report {
                 "success": False,
@@ -4090,7 +3895,7 @@ walker admin_quizzes {
         try {
             quiz_store.initialize_quizzes();
             quizzes = quiz_store.get_all_quizzes();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             report {
                 "success": False,
@@ -4130,7 +3935,7 @@ walker admin_quizzes_generate_ai {
                     "error": result.get('error', 'Failed to generate quiz')
                 };
             }
-        }} except Exception as e {
+        } except Exception as e {
             print("Error generating AI quiz: " + str(e));
             report {
                 "success": False,
@@ -4162,7 +3967,7 @@ walker admin_quizzes_save_ai {
                     "error": result.get('error', 'Failed to save quiz')
                 };
             }
-        }} except Exception as e {
+        } except Exception as e {
             print("Error saving AI quiz: " + str(e));
             report {
                 "success": False,
@@ -4179,7 +3984,7 @@ walker admin_quizzes_analytics {
         try {
             quiz_store.initialize_quizzes();
             analytics = quiz_store.get_quiz_analytics();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             report {
                 "success": False,
@@ -4204,7 +4009,7 @@ walker admin_quizzes_create {
         # Initialize store with error handling
         try {
             quiz_store.initialize_quizzes();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             report {
                 "success": False,
@@ -4239,7 +4044,7 @@ walker admin_quizzes_update {
         # Initialize store with error handling
         try {
             quiz_store.initialize_quizzes();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             report {
                 "success": False,
@@ -4271,7 +4076,7 @@ walker admin_quizzes_delete {
         # Initialize store with error handling
         try {
             quiz_store.initialize_quizzes();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing quizzes: " + str(e));
             report {
                 "success": False,
@@ -4306,7 +4111,7 @@ walker admin_ai_domains {
         domains = [];
         try {
             domains = ai_store.get_ai_domains();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error fetching AI domains: " + str(e));
             report {
                 "success": False,
@@ -4328,7 +4133,7 @@ walker admin_ai_stats {
         try {
             ai_store.initialize_ai_content();
             stats = ai_store.get_ai_stats();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing AI content: " + str(e));
             report {
                 "success": False,
@@ -4350,7 +4155,7 @@ walker admin_ai_content {
         try {
             ai_store.initialize_ai_content();
             content = ai_store.get_all_ai_content();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing AI content: " + str(e));
             report {
                 "success": False,
@@ -4379,7 +4184,7 @@ walker admin_ai_generate {
         # Initialize AI store with error handling
         try {
             ai_store.initialize_ai_content();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing AI content: " + str(e));
             report {
                 "success": False,
@@ -4460,7 +4265,7 @@ walker admin_analytics_users {
         try {
             analytics_store.initialize_analytics();
             analytics = analytics_store.get_user_analytics();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing analytics: " + str(e));
             report {
                 "success": False,
@@ -4482,7 +4287,7 @@ walker admin_analytics_learning {
         try {
             analytics_store.initialize_analytics();
             analytics = analytics_store.get_learning_analytics();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing analytics: " + str(e));
             report {
                 "success": False,
@@ -4568,7 +4373,7 @@ walker admin_analytics_content {
                 }
             }
             
-        }} except Exception as e {
+        } except Exception as e {
             print("Error loading content analytics: " + str(e));
         }
         
@@ -4687,7 +4492,7 @@ walker admin_analytics_refresh {
         # Initialize store with error handling
         try {
             analytics_store.initialize_analytics();
-        }} except Exception as e {
+        } except Exception as e {
             print("Error initializing analytics: " + str(e));
             report {
                 "success": False,
@@ -4755,7 +4560,7 @@ walker admin_audit_logs {
         if self.start_date {
             try {
                 start_dt = datetime.datetime.fromisoformat(self.start_date.replace('Z', '+00:00'));
-            }} except Exception as e {
+            } except Exception as e {
                 print("Error parsing start_date: " + str(e));
             }
         }
@@ -4763,7 +4568,7 @@ walker admin_audit_logs {
         if self.end_date {
             try {
                 end_dt = datetime.datetime.fromisoformat(self.end_date.replace('Z', '+00:00'));
-            }} except Exception as e {
+            } except Exception as e {
                 print("Error parsing end_date: " + str(e));
             }
         }
@@ -5649,7 +5454,7 @@ walker study_group_goal_create {
         if self.target_completion_date {
             try {
                 completion_date = datetime.datetime.fromisoformat(self.target_completion_date).date();
-            }} except Exception as e {
+            } except Exception as e {
                 print("Error parsing date: " + str(e));
             }
         }
@@ -5906,7 +5711,7 @@ walker mentorship_session_schedule {
         scheduled_datetime = null;
         try {
             scheduled_datetime = datetime.datetime.fromisoformat(self.scheduled_at.replace('Z', '+00:00'));
-        }} except Exception as e {
+        } except Exception as e {
             report {
                 "success": False,
                 "error": "Invalid scheduled_at format. Use ISO format."
@@ -6195,7 +6000,7 @@ walker peer_review_assign {
         if self.deadline {
             try {
                 deadline_date = datetime.datetime.fromisoformat(self.deadline).date();
-            }} except Exception as e {
+            } except Exception as e {
                 print("Error parsing deadline: " + str(e));
             }
         }
@@ -6510,7 +6315,7 @@ walker save_snippet {
                     "snippet": snippet
                 };
             }
-        }} except Exception as e {
+        } except Exception as e {
             report {
                 "success": False,
                 "error": str(e)
@@ -6682,7 +6487,7 @@ walker create_folder {
                 "folder_id": folder_id,
                 "message": "Folder created successfully"
             };
-        }} except Exception as e {
+        } except Exception as e {
             report {
                 "success": False,
                 "error": str(e)
@@ -6800,7 +6605,7 @@ walker verify_email {
                     "is_email_verified": True
                 }
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error verifying email: " + str(e));
             report {
                 "success": False,
@@ -6887,7 +6692,7 @@ walker resend_verification {
                     username=user.username,
                     verification_token=token
                 );
-            }} except Exception as email_error {
+            } except Exception as email_error {
                 print("Error sending verification email: " + str(email_error));
             }
 
@@ -6905,7 +6710,7 @@ walker resend_verification {
                     "debug_token": token
                 };
             }
-        }} except Exception as e {
+        } except Exception as e {
             print("Error resending verification: " + str(e));
             report {
                 "success": False,
@@ -6958,7 +6763,7 @@ walker verification_status {
                 "is_email_verified": user.is_email_verified,
                 "has_pending_verification": pending_verification is not None
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error checking verification status: " + str(e));
             report {
                 "success": False,
@@ -7039,7 +6844,7 @@ walker forgot_password {
                     username=user.username,
                     reset_token=token
                 );
-            }} except Exception as email_error {
+            } except Exception as email_error {
                 print("Error sending password reset email: " + str(email_error));
             }
 
@@ -7049,7 +6854,7 @@ walker forgot_password {
                 "success": True,
                 "message": "If an account exists with this email, a password reset link has been sent"
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error processing forgot password: " + str(e));
             report {
                 "success": False,
@@ -7119,7 +6924,7 @@ walker reset_password_validate {
                     "error": "User not found"
                 };
             }
-        }} except Exception as e {
+        } except Exception as e {
             print("Error validating reset token: " + str(e));
             report {
                 "success": False,
@@ -7222,7 +7027,7 @@ walker reset_password {
                 "success": True,
                 "message": "Password reset successfully"
             };
-        }} except Exception as e {
+        } except Exception as e {
             print("Error resetting password: " + str(e));
             report {
                 "success": False,
@@ -7332,7 +7137,7 @@ walker snippet_version {
                     "message": "Version created successfully",
                     "version": version
                 };
-            }} except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to create version: " + str(e)
@@ -7367,7 +7172,7 @@ walker snippet_version {
                         "error": "Failed to restore version"
                     };
                 }
-            }} except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to restore version: " + str(e)
@@ -7487,7 +7292,7 @@ walker test_case {
                     "message": "Test case created successfully",
                     "test_case": test_case
                 };
-            }} except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to create test case: " + str(e)
@@ -7531,7 +7336,7 @@ walker test_case {
                         "error": "Failed to update test case"
                     };
                 }
-            }} except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to update test case: " + str(e)
@@ -7565,7 +7370,7 @@ walker test_case {
                         "error": "Test case not found or access denied"
                     };
                 }
-            }} except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to delete test case: " + str(e)
@@ -7681,7 +7486,7 @@ walker debug_session {
                     "message": "Debug session created",
                     "session": session
                 };
-            }} except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to create debug session: " + str(e)
@@ -7856,7 +7661,7 @@ walker debug_session {
                     "message": "Breakpoint added",
                     "session": session
                 };
-            }} except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to add breakpoint: " + str(e)
@@ -7885,7 +7690,7 @@ walker debug_session {
                     "message": "Breakpoint removed",
                     "session": session
                 };
-            }} except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to remove breakpoint: " + str(e)
@@ -7953,7 +7758,7 @@ walker debug_session {
                     "success": True,
                     "message": "Debug session ended"
                 };
-            }} except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to end debug session: " + str(e)
