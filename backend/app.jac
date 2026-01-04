@@ -2039,10 +2039,13 @@ walker contact_mark_read {
 # ==============================================================================
 
 walker testimonials {
+    has limit: int = 6;
+    has featured_only: bool = false;
+    
     can testimonials with entry {
         import database as db_module;
         
-        result = db_module.get_testimonials({});
+        result = db_module.get_approved_testimonials(self.limit, self.featured_only);
         
         if result['success'] {
             report {
