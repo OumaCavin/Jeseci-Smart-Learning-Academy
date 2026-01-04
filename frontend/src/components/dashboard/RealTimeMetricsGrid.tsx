@@ -365,4 +365,3 @@ function getDefaultMetrics(): RealTimeMetrics {
   };
 }
 
-import React, { useState, useCallback, useEffect } from 'react';

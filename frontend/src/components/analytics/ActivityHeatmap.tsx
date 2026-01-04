@@ -218,4 +218,3 @@ export function ActivityHeatmap({
   );
 }
 
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';

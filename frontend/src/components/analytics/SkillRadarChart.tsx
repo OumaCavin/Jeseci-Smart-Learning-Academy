@@ -307,4 +307,3 @@ export function SkillRadarChart({
   );
 }
 
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';

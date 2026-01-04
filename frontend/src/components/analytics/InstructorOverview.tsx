@@ -374,4 +374,3 @@ function formatDate(dateString: string): string {
   return date.toLocaleDateString();
 }
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
