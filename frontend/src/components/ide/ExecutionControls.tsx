@@ -179,13 +179,10 @@ export function ExecutionControls({
         <button
           onClick={isExecuting ? onCancel : onExecute}
           disabled={!isExecuting && !canExecute}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg font-medium text-sm
-                    transition-all ${
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg font-medium text-sm transition-all ${
             isExecuting
-              ? 'bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/30 
-                 dark:hover:bg-red-900/50 dark:text-red-400'
-              : 'bg-green-600 hover:bg-green-700 text-white shadow-sm
-                 disabled:opacity-50 disabled:cursor-not-allowed'
+              ? 'bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400'
+              : 'bg-green-600 hover:bg-green-700 text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed'
           }`}
         >
           {isExecuting ? (
@@ -348,5 +345,3 @@ export function ExecutionControls({
     </div>
   );
 }
-
-import React, { useState, useCallback } from 'react';
