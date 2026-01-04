@@ -42,18 +42,27 @@ const VerifyEmail: React.FC = () => {
 
   const verifyEmail = async (verificationToken: string) => {
     try {
+      console.log('Verifying email with token:', verificationToken);
       const response = await apiService.verifyEmail(verificationToken);
+      console.log('Verification response:', response);
       
       if (response.success) {
         setStatus('success');
         setMessage(response.message || 'Your email has been verified successfully!');
       } else {
         setStatus('error');
-        setMessage(response.error || 'Verification failed. The token may be invalid or expired.');
+        setMessage(response.error || response.message || 'Verification failed. The token may be invalid or expired.');
+        console.error('Verification failed:', response);
       }
     } catch (error: any) {
       setStatus('error');
-      setMessage(error.message || 'An error occurred during verification.');
+      console.error('Verification error:', error);
+      // Check if it's a network error or API error
+      if (error.message) {
+        setMessage(error.message);
+      } else {
+        setMessage('An error occurred during verification. Please try again.');
+      }
     }
   };
 

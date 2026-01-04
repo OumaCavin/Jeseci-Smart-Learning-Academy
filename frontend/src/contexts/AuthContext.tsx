@@ -172,7 +172,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (response.success && response.user) {
         const newUserData = response.user;
         const authToken = response.access_token || response.token;
+        const requiresVerification = response.requires_verification;
 
+        // If email verification is required, store user data but don't authenticate
+        if (requiresVerification) {
+          // Store user data for later use after verification
+          localStorage.setItem(AUTH_USER_KEY, JSON.stringify(newUserData));
+          localStorage.setItem(AUTH_PENDING_VERIFICATION, 'true');
+          localStorage.setItem(AUTH_PENDING_EMAIL, newUserData.email || '');
+          
+          // Set user in context but don't authenticate
+          setUser(newUserData);
+          setIsAuthenticated(false);
+          
+          // Throw success signal that frontend can handle
+          throw new Error('REGISTRATION_SUCCESS_VERIFICATION_REQUIRED:' + (response.message || 'Please check your email to verify your account.'));
+        }
+
+        // Normal registration with immediate login
         if (!authToken) {
           throw new Error('No token received from server');
         }
@@ -180,6 +197,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Store in localStorage for session persistence
         localStorage.setItem(AUTH_TOKEN_KEY, authToken);
         localStorage.setItem(AUTH_USER_KEY, JSON.stringify(newUserData));
+        localStorage.removeItem(AUTH_PENDING_VERIFICATION);
+        localStorage.removeItem(AUTH_PENDING_EMAIL);
 
         setToken(authToken);
         setUser(newUserData);
@@ -198,8 +217,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           throw new Error('Please check your input. All fields are required and must be valid.');
         } else if (errorMessage.includes('password')) {
           throw new Error('Password requirements not met. Please ensure your password meets the criteria.');
-        } else if (errorMessage.includes('email')) {
+        } else if ((errorMessage.includes('email') && !errorMessage.includes('verify')) || errorMessage.includes('Invalid email')) {
           throw new Error('Invalid email format. Please enter a valid email address.');
+        } else if (errorMessage.includes('verify')) {
+          throw new Error('Email verification required. Please check your inbox for the verification link.');
         } else {
           throw new Error(errorMessage || 'Registration failed due to an unknown server error.');
         }

@@ -445,12 +445,27 @@ class ApiService {
     });
     console.log('Registration response:', result);
     
-    // If registration was successful, perform auto-login to get access_token
+    // If registration was successful
     if (result.success) {
-      console.log('Registration successful, performing auto-login...');
-      const loginResult = await this.login(userData.username, userData.password);
-      console.log('Auto-login result:', loginResult);
-      return loginResult;
+      console.log('Registration successful, email verification required:', result.requires_verification);
+      
+      // Only auto-login if email verification is NOT required
+      if (!result.requires_verification) {
+        console.log('Performing auto-login...');
+        const loginResult = await this.login(userData.username, userData.password);
+        console.log('Auto-login result:', loginResult);
+        return loginResult;
+      } else {
+        // Email verification required - return the registration success but no token
+        console.log('Email verification required, returning registration result');
+        return {
+          success: true,
+          user: result.user,
+          requires_verification: true,
+          message: result.message || 'Registration successful. Please check your email to verify your account.',
+          error: null
+        };
+      }
     }
     
     return result;

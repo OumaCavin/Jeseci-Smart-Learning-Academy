@@ -165,7 +165,7 @@ walker user_create {
                     "first_name": self.first_name if self.first_name else "",
                     "last_name": self.last_name if self.last_name else "",
                     "is_admin": False,
-                    "is_email_verified": result.get('requires_verification', False)
+                    "is_email_verified": result.get('is_email_verified', False)
                 },
                 "session_token": session_token,
                 "requires_verification": result.get('requires_verification', False)
@@ -283,7 +283,7 @@ walker user_register {
                     "first_name": self.first_name if self.first_name else "",
                     "last_name": self.last_name if self.last_name else "",
                     "is_admin": False,
-                    "is_email_verified": result.get('requires_verification', False)
+                    "is_email_verified": result.get('is_email_verified', False)
                 },
                 "session_token": session_token,
                 "requires_verification": result.get('requires_verification', False)
