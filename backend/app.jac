@@ -143,7 +143,7 @@ walker user_create {
             return;
         }
         
-        try:
+        try {
             # Get database session
             Session = db_module.get_session();
             session = Session();
@@ -191,13 +191,13 @@ walker user_create {
             );
             
             session.add(new_user);
-            session.flush();  # Get the user ID
+            session.flush();
             
             # Create user profile
             new_profile = db_module.UserProfile(
                 user_id=new_user.id,
-                first_name=self.first_name if self.first_name else None,
-                last_name=self.last_name if self.last_name else None,
+                first_name=self.first_name if self.first_name else null,
+                last_name=self.last_name if self.last_name else null,
                 display_name=(self.first_name + " " + self.last_name).strip() if (self.first_name or self.last_name) else self.username,
                 language="en"
             );
@@ -238,13 +238,13 @@ walker user_create {
                 },
                 "session_token": session_token
             };
-            
-        except Exception as e:
+        } except Exception as e {
             print("Error creating user: " + str(e));
             report {
                 "success": False,
                 "error": "Failed to create account: " + str(e)
             };
+        }
     }
 }
 
@@ -269,7 +269,7 @@ walker user_login {
             return;
         }
         
-        try:
+        try {
             Session = db_module.get_session();
             session = Session();
             
@@ -297,7 +297,7 @@ walker user_login {
             
             # Verify password
             password_bytes = self.password.encode('utf-8');
-            if not bcrypt.checkpw(password_bytes, user.password_hash.encode('utf-8')):
+            if not bcrypt.checkpw(password_bytes, user.password_hash.encode('utf-8')) {
                 session.close();
                 report {
                     "success": False,
@@ -338,13 +338,13 @@ walker user_login {
                 },
                 "session_token": session_token
             };
-            
-        except Exception as e:
+        } except Exception as e {
             print("Error during login: " + str(e));
             report {
                 "success": False,
                 "error": "Login failed: " + str(e)
             };
+        }
     }
 }
 
@@ -390,7 +390,7 @@ walker user_register {
             return;
         }
         
-        try:
+        try {
             Session = db_module.get_session();
             session = Session();
             
@@ -436,8 +436,8 @@ walker user_register {
             
             new_profile = db_module.UserProfile(
                 user_id=new_user.id,
-                first_name=self.first_name if self.first_name else None,
-                last_name=self.last_name if self.last_name else None,
+                first_name=self.first_name if self.first_name else null,
+                last_name=self.last_name if self.last_name else null,
                 display_name=(self.first_name + " " + self.last_name).strip() if (self.first_name or self.last_name) else self.username,
                 language="en"
             );
@@ -476,13 +476,13 @@ walker user_register {
                 },
                 "session_token": session_token
             };
-            
-        except Exception as e:
+        } except Exception as e {
             print("Error registering user: " + str(e));
             report {
                 "success": False,
                 "error": "Failed to create account: " + str(e)
             };
+        }
     }
 }
 
@@ -2287,7 +2287,7 @@ walker platform_stats {
     can platform_stats with entry {
         import database as db_module;
         
-        try:
+        try {
             Session = db_module.get_session();
             session = Session();
             
@@ -2313,7 +2313,7 @@ walker platform_stats {
                     "active_learners_today": 0
                 }
             };
-        except Exception as e:
+        } except Exception as e {
             print("Error fetching platform stats: " + str(e));
             report {
                 "success": True,
@@ -2325,6 +2325,7 @@ walker platform_stats {
                     "active_learners_today": 0
                 }
             };
+        }
     }
 }
 
@@ -6735,7 +6736,7 @@ walker verify_email {
             return;
         }
 
-        try:
+        try {
             Session = db_module.get_session();
             session = Session();
 
@@ -6755,7 +6756,7 @@ walker verify_email {
 
             # Check if token is expired
             import datetime;
-            if verification.expires_at and verification.expires_at < datetime.datetime.now():
+            if verification.expires_at and verification.expires_at < datetime.datetime.now() {
                 session.close();
                 report {
                     "success": False,
@@ -6797,13 +6798,13 @@ walker verify_email {
                     "is_email_verified": True
                 }
             };
-
-        except Exception as e:
+        } except Exception as e {
             print("Error verifying email: " + str(e));
             report {
                 "success": False,
                 "error": "Failed to verify email: " + str(e)
             };
+        }
     }
 }
 
@@ -6823,7 +6824,7 @@ walker resend_verification {
             return;
         }
 
-        try:
+        try {
             Session = db_module.get_session();
             session = Session();
 
@@ -6855,8 +6856,9 @@ walker resend_verification {
             existing_tokens = session.query(db_module.EmailVerification).filter(
                 db_module.EmailVerification.user_id == user.id
             ).all();
-            for token in existing_tokens:
+            for token in existing_tokens {
                 session.delete(token);
+            }
 
             # Create new verification token
             import secrets;
@@ -6876,15 +6878,16 @@ walker resend_verification {
 
             # Send verification email
             email_sent = False;
-            try:
+            try {
                 email_module = email_verification_module.EmailVerificationModule();
                 email_sent = email_module.send_verification_email(
                     user_email=user.email,
                     username=user.username,
                     verification_token=token
                 );
-            except Exception as email_error:
+            } except Exception as email_error {
                 print("Error sending verification email: " + str(email_error));
+            }
 
             session.close();
 
@@ -6900,13 +6903,13 @@ walker resend_verification {
                     "debug_token": token
                 };
             }
-
-        except Exception as e:
+        } except Exception as e {
             print("Error resending verification: " + str(e));
             report {
                 "success": False,
                 "error": "Failed to resend verification email: " + str(e)
             };
+        }
     }
 }
 
@@ -6924,7 +6927,7 @@ walker verification_status {
             return;
         }
 
-        try:
+        try {
             Session = db_module.get_session();
             session = Session();
 
@@ -6953,13 +6956,13 @@ walker verification_status {
                 "is_email_verified": user.is_email_verified,
                 "has_pending_verification": pending_verification is not None
             };
-
-        except Exception as e:
+        } except Exception as e {
             print("Error checking verification status: " + str(e));
             report {
                 "success": False,
                 "error": "Failed to check verification status: " + str(e)
             };
+        }
     }
 }
 
@@ -6983,7 +6986,7 @@ walker forgot_password {
             return;
         }
 
-        try:
+        try {
             Session = db_module.get_session();
             session = Session();
 
@@ -7005,8 +7008,9 @@ walker forgot_password {
             existing_tokens = session.query(db_module.PasswordReset).filter(
                 db_module.PasswordReset.user_id == user.id
             ).all();
-            for token in existing_tokens:
+            for token in existing_tokens {
                 session.delete(token);
+            }
 
             # Create new reset token
             import secrets;
@@ -7026,15 +7030,16 @@ walker forgot_password {
 
             # Send reset email
             email_sent = False;
-            try:
+            try {
                 reset_module_instance = reset_module.PasswordResetModule();
                 email_sent = reset_module_instance.send_password_reset_email(
                     user_email=user.email,
                     username=user.username,
                     reset_token=token
                 );
-            except Exception as email_error:
+            } except Exception as email_error {
                 print("Error sending password reset email: " + str(email_error));
+            }
 
             session.close();
 
@@ -7042,8 +7047,7 @@ walker forgot_password {
                 "success": True,
                 "message": "If an account exists with this email, a password reset link has been sent"
             };
-
-        except Exception as e:
+        } except Exception as e {
             print("Error processing forgot password: " + str(e));
             report {
                 "success": False,
@@ -7066,7 +7070,7 @@ walker reset_password_validate {
             return;
         }
 
-        try:
+        try {
             Session = db_module.get_session();
             session = Session();
 
@@ -7085,7 +7089,7 @@ walker reset_password_validate {
             }
 
             import datetime;
-            if reset_token.expires_at and reset_token.expires_at < datetime.datetime.now():
+            if reset_token.expires_at and reset_token.expires_at < datetime.datetime.now() {
                 session.close();
                 report {
                     "success": False,
@@ -7113,13 +7117,13 @@ walker reset_password_validate {
                     "error": "User not found"
                 };
             }
-
-        except Exception as e:
+        } except Exception as e {
             print("Error validating reset token: " + str(e));
             report {
                 "success": False,
                 "error": "Failed to validate reset token: " + str(e)
             };
+        }
     }
 }
 
@@ -7156,7 +7160,7 @@ walker reset_password {
             return;
         }
 
-        try:
+        try {
             Session = db_module.get_session();
             session = Session();
 
@@ -7175,7 +7179,7 @@ walker reset_password {
             }
 
             import datetime;
-            if reset_token.expires_at and reset_token.expires_at < datetime.datetime.now():
+            if reset_token.expires_at and reset_token.expires_at < datetime.datetime.now() {
                 session.close();
                 report {
                     "success": False,
@@ -7216,8 +7220,7 @@ walker reset_password {
                 "success": True,
                 "message": "Password reset successfully"
             };
-
-        except Exception as e:
+        } except Exception as e {
             print("Error resetting password: " + str(e));
             report {
                 "success": False,
@@ -7309,7 +7312,7 @@ walker snippet_version {
                 return;
             }
 
-            try:
+            try {
                 import datetime;
                 version = code_store_module.create_snippet_version(
                     snippet_id=self.snippet_id,
@@ -7327,7 +7330,7 @@ walker snippet_version {
                     "message": "Version created successfully",
                     "version": version
                 };
-            except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to create version: " + str(e)
@@ -7345,7 +7348,7 @@ walker snippet_version {
                 return;
             }
 
-            try:
+            try {
                 restored = code_store_module.restore_snippet_version(
                     version_id=self.version_id,
                     user_id=user_id
@@ -7463,7 +7466,7 @@ walker test_case {
                 return;
             }
 
-            try:
+            try {
                 import datetime;
                 test_case = code_store_module.create_test_case(
                     snippet_id=self.snippet_id,
@@ -7482,7 +7485,7 @@ walker test_case {
                     "message": "Test case created successfully",
                     "test_case": test_case
                 };
-            except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to create test case: " + str(e)
@@ -7500,7 +7503,7 @@ walker test_case {
                 return;
             }
 
-            try:
+            try {
                 updated = code_store_module.update_test_case(
                     test_case_id=self.test_case_id,
                     name=self.name if self.name else null,
@@ -7544,7 +7547,7 @@ walker test_case {
                 return;
             }
 
-            try:
+            try {
                 deleted = code_store_module.delete_test_case(
                     test_case_id=self.test_case_id
                 );
@@ -7560,7 +7563,7 @@ walker test_case {
                         "error": "Test case not found or access denied"
                     };
                 }
-            except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to delete test case: " + str(e)
@@ -7662,7 +7665,7 @@ walker debug_session {
                 return;
             }
 
-            try:
+            try {
                 import datetime;
                 session = code_store_module.create_debug_session(
                     snippet_id=self.snippet_id,
@@ -7676,7 +7679,7 @@ walker debug_session {
                     "message": "Debug session created",
                     "session": session
                 };
-            except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to create debug session: " + str(e)
@@ -7840,7 +7843,7 @@ walker debug_session {
                 return;
             }
 
-            try:
+            try {
                 session = code_store_module.add_breakpoint(
                     session_id=self.session_id,
                     line_number=self.breakpoint_line
@@ -7851,7 +7854,7 @@ walker debug_session {
                     "message": "Breakpoint added",
                     "session": session
                 };
-            except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to add breakpoint: " + str(e)
@@ -7869,7 +7872,7 @@ walker debug_session {
                 return;
             }
 
-            try:
+            try {
                 session = code_store_module.remove_breakpoint(
                     session_id=self.session_id,
                     line_number=self.breakpoint_line
@@ -7880,7 +7883,7 @@ walker debug_session {
                     "message": "Breakpoint removed",
                     "session": session
                 };
-            except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to remove breakpoint: " + str(e)
@@ -7936,7 +7939,7 @@ walker debug_session {
                 return;
             }
 
-            try:
+            try {
                 import datetime;
                 code_store_module.update_debug_session(
                     session_id=self.session_id,
@@ -7948,7 +7951,7 @@ walker debug_session {
                     "success": True,
                     "message": "Debug session ended"
                 };
-            except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to end debug session: " + str(e)
