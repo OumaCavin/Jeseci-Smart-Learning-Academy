@@ -23,7 +23,20 @@ export type WebSocketMessageType =
   | 'lms.sync.completed'
   | 'lms.sync.error'
   | 'agent.message'
-  | 'agent.status';
+  | 'agent.status'
+  // Collaboration message types
+  | 'collab.join'
+  | 'collab.leave'
+  | 'collab.session.joined'
+  | 'collab.peer.joined'
+  | 'collab.peer.left'
+  | 'collab.cursor.update'
+  | 'collab.selection.update'
+  | 'collab.operation'
+  | 'collab.chat.message'
+  | 'collab.sync.progress'
+  | 'collab.sync.completed'
+  | 'collab.connection.quality';
 
 export type WebSocketConnectionState = 'connecting' | 'open' | 'closing' | 'closed' | 'error' | 'reconnecting';
 

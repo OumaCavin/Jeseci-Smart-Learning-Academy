@@ -10,7 +10,7 @@ import {
   OAuthConfig
 } from '../contexts/LMSIntegrationContext';
 
-interface UseLMSIntegrationOptions {
+export interface UseLMSIntegrationOptions {
   autoFetchCourses?: boolean;
   autoFetchStudents?: boolean;
   onSyncProgress?: (progress: SyncProgress) => void;
@@ -18,7 +18,7 @@ interface UseLMSIntegrationOptions {
   onSyncError?: (error: Error) => void;
 }
 
-interface UseLMSIntegrationReturn {
+export interface UseLMSIntegrationReturn {
   // Provider state
   providers: LMSProvider[];
   selectedProvider: LMSProvider | null;

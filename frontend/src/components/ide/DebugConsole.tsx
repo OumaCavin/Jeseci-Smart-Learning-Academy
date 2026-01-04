@@ -372,5 +372,3 @@ export function DebugConsole({
     </div>
   );
 }
-
-import React, { useState, useCallback, useRef, useEffect } from 'react';

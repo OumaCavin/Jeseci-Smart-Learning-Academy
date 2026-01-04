@@ -1,14 +1,14 @@
 import { useCallback, useState, useEffect } from 'react';
-import { useGamification, Badge, Challenge, Leaderboard, XPGain } from '../contexts/GamificationContext';
+import { useGamification as useGamificationContext, Badge, Challenge, Leaderboard, XPGain } from '../contexts/GamificationContext';
 
-interface UseGamificationOptions {
+export interface UseGamificationOptions {
   autoLoad?: boolean;
   onLevelUp?: (newLevel: number, title: string) => void;
   onBadgeUnlock?: (badge: Badge) => void;
   onXPGain?: (amount: number, source: string) => void;
 }
 
-interface UseGamificationReturn {
+export interface UseGamificationReturn {
   // User progress
   currentXP: number;
   totalXP: number;
@@ -74,7 +74,7 @@ export function useGamification(options: UseGamificationOptions = {}): UseGamifi
     updateChallengeProgress,
     completeChallenge,
     loadUserProgress
-  } = useGamification();
+  } = useGamificationContext();
 
   // Auto-load progress
   useEffect(() => {

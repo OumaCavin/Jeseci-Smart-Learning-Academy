@@ -1,14 +1,14 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useAI, SkillNode, LearningRecommendation, LearningPath } from '../../contexts/AILearningContext';
+import { useAI, SkillNode, LearningRecommendation, AILearningPath } from '../../contexts/AILearningContext';
 
-interface UseSkillGraphOptions {
+export interface UseSkillGraphOptions {
   autoRefresh?: boolean;
   refreshInterval?: number;
   showCompletedSkills?: boolean;
   showLockedSkills?: boolean;
 }
 
-interface UseSkillGraphReturn {
+export interface UseSkillGraphReturn {
   // Graph Data
   nodes: SkillNode[];
   links: { source: string; target: string; }[];

@@ -1,13 +1,13 @@
 import { useCallback, useState, useEffect } from 'react';
 import { useAnalytics, ExecutionMetric, LearningMetric, EngagementMetric, PerformanceTrend, ActivityDataPoint, StudentPerformance, CohortAnalytics, DateRange } from '../contexts/AnalyticsContext';
 
-interface UsePerformanceMetricsOptions {
+export interface UsePerformanceMetricsOptions {
   userId?: string;
   language?: string;
   autoFetch?: boolean;
 }
 
-interface UsePerformanceMetricsReturn {
+export interface UsePerformanceMetricsReturn {
   // Metrics
   executionMetrics: ExecutionMetric | null;
   learningMetrics: LearningMetric[];
@@ -116,13 +116,13 @@ export function usePerformanceMetrics(options: UsePerformanceMetricsOptions = {}
   };
 }
 
-interface UseEngagementDataOptions {
+export interface UseEngagementDataOptions {
   cohortId?: string;
   dateRange?: DateRange;
   autoFetch?: boolean;
 }
 
-interface UseEngagementDataReturn {
+export interface UseEngagementDataReturn {
   // Metrics
   engagementMetrics: EngagementMetric | null;
   activityData: ActivityDataPoint[];
@@ -251,14 +251,14 @@ export function useEngagementData(options: UseEngagementDataOptions = {}): UseEn
   };
 }
 
-interface UseStudentAnalyticsOptions {
+export interface UseStudentAnalyticsOptions {
   cohortId?: string;
   courseId?: string;
   autoFetch?: boolean;
   riskThreshold?: number;
 }
 
-interface UseStudentAnalyticsReturn {
+export interface UseStudentAnalyticsReturn {
   // Students
   students: StudentPerformance[];
   atRiskStudents: StudentPerformance[];

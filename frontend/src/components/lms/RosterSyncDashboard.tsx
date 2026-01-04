@@ -405,5 +405,3 @@ export function RosterSyncDashboard({
     </div>
   );
 }
-
-import React, { useState, useCallback } from 'react';

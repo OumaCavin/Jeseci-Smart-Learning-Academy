@@ -580,4 +580,3 @@ export function LMSConfigurationWizard({ onComplete, onCancel, editProviderId }:
   );
 }
 
-import React, { useState, useCallback } from 'react';
