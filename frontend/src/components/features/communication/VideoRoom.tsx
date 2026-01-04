@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useWebRTC } from '../../hooks/communication/useWebRTC';
 import './VideoRoom.css';
 
-interface VideoRoomProps {
+export interface VideoRoomProps {
   roomId: string;
   userId: string;
   userName: string;

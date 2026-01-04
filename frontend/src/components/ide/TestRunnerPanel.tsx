@@ -418,5 +418,3 @@ export function TestRunnerPanel({
     </div>
   );
 }
-
-import React, { useState, useCallback, useEffect, useRef } from 'react';

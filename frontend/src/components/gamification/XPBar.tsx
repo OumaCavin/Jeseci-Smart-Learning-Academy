@@ -356,4 +356,3 @@ export function StreakCounter({
   );
 }
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';

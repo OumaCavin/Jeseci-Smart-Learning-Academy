@@ -97,11 +97,9 @@ export type {
 
 export { NotificationProvider, useNotifications } from './NotificationContext';
 export type {
-  Notification,
+  NotificationType,
   ToastNotification,
-  ChatMessage as NotificationChatMessage,
   Conversation,
-  NotificationPreferences,
   NotificationContextType
 } from './NotificationContext';
 

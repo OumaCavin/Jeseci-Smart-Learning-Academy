@@ -21,7 +21,7 @@ function debounce<T extends (...args: unknown[]) => unknown>(
   };
 }
 
-interface UseCodeExecutionOptions {
+export interface UseCodeExecutionOptions {
   autoCancel?: boolean;
   maxHistorySize?: number;
   saveToHistory?: boolean;
@@ -30,7 +30,7 @@ interface UseCodeExecutionOptions {
   onStream?: (chunk: string) => void;
 }
 
-interface UseCodeExecutionReturn {
+export interface UseCodeExecutionReturn {
   // State
   isExecuting: boolean;
   currentSession: ExecutionSession | null;

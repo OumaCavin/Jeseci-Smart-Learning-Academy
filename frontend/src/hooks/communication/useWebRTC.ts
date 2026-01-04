@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useVideoRoom, MediaDevice, Peer } from '../../contexts/VideoRoomContext';
 
-interface UseWebRTCOptions {
+export interface UseWebRTCOptions {
   roomId: string;
   userId: string;
   userName: string;
@@ -11,7 +11,7 @@ interface UseWebRTCOptions {
   onError?: (error: Error) => void;
 }
 
-interface UseWebRTCReturn {
+export interface UseWebRTCReturn {
   // Connection State
   isConnected: boolean;
   isConnecting: boolean;

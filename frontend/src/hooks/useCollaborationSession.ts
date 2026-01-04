@@ -19,7 +19,7 @@ function throttle<T extends (...args: unknown[]) => unknown>(
   };
 }
 
-interface UseCollaborationSessionOptions {
+export interface UseCollaborationSessionOptions {
   roomId: string;
   fileId: string;
   onPeerJoin?: (peer: Peer) => void;
@@ -29,7 +29,7 @@ interface UseCollaborationSessionOptions {
   autoConnect?: boolean;
 }
 
-interface UseCollaborationSessionReturn {
+export interface UseCollaborationSessionReturn {
   // Connection state
   isConnected: boolean;
   isConnecting: boolean;
