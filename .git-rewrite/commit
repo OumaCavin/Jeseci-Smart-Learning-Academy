@@ -1,0 +1,10 @@
+tree 70bad0692476939ac4f49e237ec87e188fcd91bd
+parent 103ea26e0a30fced2ea27bb39c60e71d75614e59
+author OumaCavin <cavin.otieno012@gmail.com> 1767560952 +0800
+committer OumaCavin <cavin.otieno012@gmail.com> 1767561001 +0800
+
+fix(database): resolve ImportError in testimonials import
+
+- Import sync_get_approved_testimonials directly from testimonials_store
+- Add wrapper function get_approved_testimonials for Jaclang compatibility
+- Fixes ImportError: cannot import name 'get_approved_testimonials'
