@@ -1,0 +1,5 @@
+fix(database): resolve ImportError in testimonials import
+
+- Import sync_get_approved_testimonials directly from testimonials_store
+- Add wrapper function get_approved_testimonials for Jaclang compatibility
+- Fixes ImportError: cannot import name 'get_approved_testimonials'
