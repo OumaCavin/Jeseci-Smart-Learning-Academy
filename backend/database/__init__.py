@@ -22,9 +22,6 @@ from logger_config import logger
 # Database schema configuration
 DB_SCHEMA = os.getenv("DB_SCHEMA", "jeseci_academy")
 
-# Import testimonial functions from testimonials_store
-from testimonials_store import get_approved_testimonials as sync_get_approved_testimonials
-
 
 class DatabaseConfig:
     """Database configuration holder"""
