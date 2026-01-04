@@ -13,8 +13,7 @@ import {
   AILab, 
   AnalyticsReports 
 } from './admin';
-import { 
-  AdminDashboard,
+import AdminDashboard, {
   UserActivityPage,
   TableActivityPage,
   CacheManagementPage,

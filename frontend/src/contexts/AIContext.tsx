@@ -101,7 +101,10 @@ export function AIProvider({ children }: { children: ReactNode }) {
   });
   const [recentSuggestions, setRecentSuggestions] = useState<AIAnalysisResult[]>([]);
   
-  const { emit, on, off, isConnected } = useWebSocket();
+  const { sendMessage, isConnected } = useWebSocket({
+    url: `${process.env.REACT_APP_WS_URL || 'ws://localhost:3001'}/ai`,
+    autoConnect: false,
+  });
 
   // Analyze code with AI
   const analyzeCode = useCallback(async (

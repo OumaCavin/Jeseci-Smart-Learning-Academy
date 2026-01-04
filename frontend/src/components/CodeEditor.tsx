@@ -18,6 +18,7 @@
 
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
+import type * as Monaco from 'monaco-editor';
 import { 
   Play, 
   Save, 
@@ -52,11 +53,7 @@ import {
 import { apiService, JaclangValidationError, JaclangFormatResponse } from '../api';
 
 // Monaco marker severity mapping
-const SEVERITY_MAP = {
-  'Error': monaco.MarkerSeverity.Error,
-  'Warning': monaco.MarkerSeverity.Warning,
-  'Info': monaco.MarkerSeverity.Info
-} as const;
+declare const monaco: typeof Monaco;
 
 // Debounce utility hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -294,18 +291,6 @@ const CodeEditor: React.FC = () => {
       });
   }, []);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      // Clear any pending validation timeout
-      if (validationTimeoutRef.current) {
-        clearTimeout(validationTimeoutRef.current);
-      }
-      // Clear validation markers
-      clearValidationMarkers();
-    };
-  }, [clearValidationMarkers]);
-
   // Load snippets from API
   const loadSnippets = async () => {
     try {
@@ -520,6 +505,18 @@ const CodeEditor: React.FC = () => {
     setValidationErrors([]);
     setIsValidCode(true);
   }, []);
+
+  // Cleanup effect - moved after clearValidationMarkers declaration
+  useEffect(() => {
+    return () => {
+      // Clear any pending validation timeout
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+      // Clear validation markers
+      clearValidationMarkers();
+    };
+  }, [clearValidationMarkers]);
 
   // Handle editor mount
   const handleEditorDidMount: OnMount = (editor, monaco) => {

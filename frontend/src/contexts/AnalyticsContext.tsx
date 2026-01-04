@@ -216,6 +216,7 @@ export interface AnalyticsContextType {
   fetchStudentPerformance: () => Promise<void>;
   fetchCohortAnalytics: (cohortId: string) => Promise<void>;
   refreshAll: () => Promise<void>;
+  refresh: () => Promise<void>;
   
   // Skill Assessment
   assessSkillLevel: (skillId: string, assessmentData: unknown) => Promise<number>;
@@ -812,6 +813,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     fetchStudentPerformance,
     fetchCohortAnalytics,
     refreshAll,
+    refresh: refreshAll,
     assessSkillLevel,
     getSkillRecommendations,
     generateReport,
@@ -822,7 +824,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   }), [state, setDateRange, setCohortFilter, setCourseFilter, setUserFilter, setLanguageFilter,
       resetFilters, fetchExecutionMetrics, fetchLearningMetrics, fetchEngagementMetrics,
       fetchPerformanceTrends, fetchActivityData, fetchSkillsData, fetchStudentPerformance,
-      fetchCohortAnalytics, refreshAll, assessSkillLevel, getSkillRecommendations,
+      fetchCohortAnalytics, refreshAll, refreshAll, assessSkillLevel, getSkillRecommendations,
       generateReport, saveReportConfig, exportReport, getDatePreset, clearCache]);
 
   return (

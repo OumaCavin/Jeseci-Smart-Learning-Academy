@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { useAnalytics, ActivityDataPoint } from '../../hooks/useAnalytics';
+import { useAnalytics, ActivityDataPoint } from '../../contexts/AnalyticsContext';
 
 // Helper function to generate color based on intensity
 function getColorForIntensity(intensity: number, maxIntensity: number): string {

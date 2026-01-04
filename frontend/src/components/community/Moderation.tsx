@@ -30,8 +30,8 @@ import advancedCollaborationService, {
   ModerationStats as ServiceModerationStats,
   ModerationQueueItem
 } from '../../services/advancedCollaborationService';
-import { ModerationReports } from './ModerationReports';
-import { ModerationActionsHistory } from './ModerationActionsHistory';
+import ModerationReports from './ModerationReports';
+import ModerationActionsHistory from './ModerationActionsHistory';
 
 // Type definitions (using service types)
 interface ModerationReport extends ServiceModerationReport {}

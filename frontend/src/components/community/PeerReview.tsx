@@ -30,7 +30,7 @@ import advancedCollaborationService, {
   PeerReviewAssignment as ServicePeerReviewAssignment,
   PeerReviewFeedback as ServicePeerReviewFeedback
 } from '../../services/advancedCollaborationService';
-import { PeerReviewActions } from './PeerReviewActions';
+import PeerReviewActions from './PeerReviewActions';
 
 // Type definitions (using service types)
 interface PeerReviewSubmission extends ServicePeerReviewSubmission {}

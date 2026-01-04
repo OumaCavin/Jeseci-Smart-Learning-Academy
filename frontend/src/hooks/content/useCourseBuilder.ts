@@ -132,6 +132,35 @@ export function useCourseBuilder(options: UseCourseBuilderOptions = {}): UseCour
     }
   }, []);
 
+  // Validate course - moved before publishCourse
+  const validateCourse = useCallback((): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    if (!course) {
+      errors.push('No course data available');
+      return { isValid: false, errors };
+    }
+    
+    if (!course.title.trim()) {
+      errors.push('Course title is required');
+    }
+    
+    if (course.modules.length === 0) {
+      errors.push('Course must have at least one module');
+    }
+    
+    course.modules.forEach((module, index) => {
+      if (!module.title.trim()) {
+        errors.push(`Module ${index + 1} needs a title`);
+      }
+      if (module.resources.length === 0) {
+        errors.push(`Module "${module.title}" needs at least one resource`);
+      }
+    });
+    
+    return { isValid: errors.length === 0, errors };
+  }, [course]);
+
   // Create new course
   const createCourse = useCallback((data: Partial<CourseData>) => {
     const newCourse: CourseData = {
@@ -444,35 +473,6 @@ export function useCourseBuilder(options: UseCourseBuilderOptions = {}): UseCour
   const selectResource = useCallback((resourceId: string | null) => {
     setSelectedResourceId(resourceId);
   }, []);
-
-  // Validate course
-  const validateCourse = useCallback((): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
-    
-    if (!course) {
-      errors.push('No course data available');
-      return { isValid: false, errors };
-    }
-    
-    if (!course.title.trim()) {
-      errors.push('Course title is required');
-    }
-    
-    if (course.modules.length === 0) {
-      errors.push('Course must have at least one module');
-    }
-    
-    course.modules.forEach((module, index) => {
-      if (!module.title.trim()) {
-        errors.push(`Module ${index + 1} needs a title`);
-      }
-      if (module.resources.length === 0) {
-        errors.push(`Module "${module.title}" needs at least one resource`);
-      }
-    });
-    
-    return { isValid: errors.length === 0, errors };
-  }, [course]);
 
   // Validate specific module
   const validateModule = useCallback((moduleId: string): { isValid: boolean; errors: string[] } => {

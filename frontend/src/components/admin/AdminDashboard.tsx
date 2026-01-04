@@ -4,11 +4,11 @@
 
 import React, { useState } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
-import { AdminUserActivity } from '../AdminUserActivity';
-import { AdminTableActivity } from '../AdminTableActivity';
-import { AdminCacheManagement } from '../AdminCacheManagement';
-import { AdminAuditLogs } from '../AdminAuditLogs';
-import { AdminAuditHistory } from '../AdminAuditHistory';
+import { AdminUserActivity } from './AdminUserActivity';
+import { AdminTableActivity } from './AdminTableActivity';
+import { AdminCacheManagement } from './AdminCacheManagement';
+import { AdminAuditLogs } from './AdminAuditLogs';
+import { AdminAuditHistory } from './AdminAuditHistory';
 import './AdminDashboard.css';
 
 interface AdminDashboardProps {

@@ -24,14 +24,19 @@ export type {
 export { useCollaborationSession } from './useCollaborationSession';
 export type { 
   UseCollaborationSessionOptions,
-  UseCollaborationSessionReturn 
+  UseCollaborationSessionReturn,
+  ChatMessage,
+  Peer
 } from './useCollaborationSession';
 
 // Phase 2: Gamification
 export { useGamification } from './useGamification';
 export type { 
   UseGamificationOptions,
-  UseGamificationReturn 
+  UseGamificationReturn,
+  Badge,
+  Challenge,
+  XPGain
 } from './useGamification';
 
 // Phase 2: Analytics
@@ -46,7 +51,9 @@ export type {
   UseEngagementDataOptions,
   UseEngagementDataReturn,
   UseStudentAnalyticsOptions,
-  UseStudentAnalyticsReturn
+  UseStudentAnalyticsReturn,
+  ActivityDataPoint,
+  StudentPerformance
 } from './useAnalytics';
 
 // Phase 3: AI Features

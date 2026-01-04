@@ -6,7 +6,7 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  LoadingSpinner,
+  Loader,
   MessageSquare,
   ChevronDown,
   Filter,
@@ -129,7 +129,7 @@ const MentorshipRequests: React.FC<MentorshipRequestsProps> = ({ onClose }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <LoadingSpinner size={40} className="animate-spin text-blue-500" />
+        <Loader size={40} className="animate-spin text-blue-500" />
       </div>
     );
   }
