@@ -407,16 +407,27 @@ def test_all_connections():
     return results
 
 
-# Testimonial functions
+def test_all_connections():
+    """Test all database connections"""
+    results = {
+        "postgresql": postgres_manager.test_connection(),
+        "neo4j": neo4j_manager.test_connection()
+    }
+    return results
+
+
+# Testimonials functionality
+from testimonials_store import sync_get_approved_testimonials
+
 def get_approved_testimonials(limit: int = 6, featured_only: bool = False) -> dict:
     """
-    Get approved testimonials from the database
-
+    Get approved testimonials for display
+    
     Args:
         limit: Maximum number of testimonials to return
         featured_only: If True, only return featured testimonials
-
+        
     Returns:
-        Dict with success status, testimonials list, and total count
+        Dict with testimonials data
     """
     return sync_get_approved_testimonials(limit, featured_only)
