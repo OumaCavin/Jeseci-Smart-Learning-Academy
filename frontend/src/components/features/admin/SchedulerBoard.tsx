@@ -35,7 +35,7 @@ export function SchedulerBoard({ onTaskSelect }: SchedulerBoardProps) {
     cronExpression: '0 0 * * *',
     enabled: false,
   });
-  const [cronValidation, setCronValidation] = useState<{ isValid: boolean; humanReadable: string }>({ isValid: true, humanReadable: '' });
+  const [cronValidation, setCronValidation] = useState<{ isValid: boolean; humanReadable: string; error?: string }>({ isValid: true, humanReadable: '' });
 
   const stats = getTaskStats();
 
@@ -396,7 +396,7 @@ export function SchedulerBoard({ onTaskSelect }: SchedulerBoardProps) {
               {cronValidation.isValid ? (
                 <span className="cron-preview">{cronValidation.humanReadable}</span>
               ) : (
-                <span className="cron-error">{cronValidation.error}</span>
+                <span className="cron-error">{cronValidation.error || 'Invalid cron expression'}</span>
               )}
             </div>
             

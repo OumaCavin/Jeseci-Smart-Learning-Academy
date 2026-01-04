@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useReportBuilder, ReportMetric, ReportDimension, ReportFilter } from '../../contexts/ReportBuilderContext';
+import { useReportBuilder, ReportMetric, ReportDimension, ReportFilter, ReportQuery } from '../../contexts/ReportBuilderContext';
 import './ReportBuilder.css';
 
 interface ReportBuilderProps {

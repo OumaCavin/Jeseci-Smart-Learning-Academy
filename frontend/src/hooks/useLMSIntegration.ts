@@ -36,6 +36,7 @@ export interface UseLMSIntegrationReturn {
   // OAuth actions
   initiateOAuth: (providerId: string) => void;
   handleOAuthCallback: (code: string, state: string) => Promise<boolean>;
+  getOAuthConfig: (providerId: string) => Promise<OAuthConfig | null>;
   
   // Course state
   courses: LMSCourse[];
@@ -317,6 +318,23 @@ export function useLMSIntegration(options: UseLMSIntegrationOptions = {}): UseLM
       return false;
     }
   }, [selectedProvider, updateProvider]);
+
+  // Get OAuth config for a provider
+  const getOAuthConfig = useCallback(async (providerId: string): Promise<OAuthConfig | null> => {
+    try {
+      const response = await fetch(`${apiBase}/providers/${providerId}/oauth/config`);
+      
+      if (!response.ok) {
+        if (response.status === 404) return null;
+        throw new Error('Failed to fetch OAuth config');
+      }
+      
+      return await response.json();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch OAuth config');
+      return null;
+    }
+  }, []);
 
   // Course management
   const fetchCourses = useCallback(async () => {
@@ -770,6 +788,7 @@ export function useLMSIntegration(options: UseLMSIntegrationOptions = {}): UseLM
     testConnection,
     initiateOAuth,
     handleOAuthCallback,
+    getOAuthConfig,
     courses,
     isLoadingCourses,
     fetchCourses,
