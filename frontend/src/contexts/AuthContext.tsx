@@ -36,6 +36,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Storage keys
 const AUTH_TOKEN_KEY = 'jeseci_auth_token';
 const AUTH_USER_KEY = 'jeseci_auth_user';
+const AUTH_PENDING_VERIFICATION = 'jeseci_pending_verification';
+const AUTH_PENDING_EMAIL = 'jeseci_pending_email';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
