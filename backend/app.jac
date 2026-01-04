@@ -4654,28 +4654,30 @@ walker get_content_view_analytics {
                 "content_type": self.content_type,
                 "statistics": stats
             };
-        } else if self.content_type {
-            # Get popular content for specific type
-            popular = content_views_module.get_popular_content(
-                content_type=self.content_type,
-                limit=self.limit,
-                period=self.period
-            );
-
-            report {
-                "success": True,
-                "content_type": self.content_type,
-                "period": self.period,
-                "popular_content": popular
-            };
         } else {
-            # Get all content view summary
-            all_summary = content_views_module.get_all_views_summary();
+            if self.content_type {
+                # Get popular content for specific type
+                popular = content_views_module.get_popular_content(
+                    content_type=self.content_type,
+                    limit=self.limit,
+                    period=self.period
+                );
 
-            report {
-                "success": True,
-                "all_content_views": all_summary
-            };
+                report {
+                    "success": True,
+                    "content_type": self.content_type,
+                    "period": self.period,
+                    "popular_content": popular
+                };
+            } else {
+                # Get all content view summary
+                all_summary = content_views_module.get_all_views_summary();
+
+                report {
+                    "success": True,
+                    "all_content_views": all_summary
+                };
+            }
         }
     }
 }
