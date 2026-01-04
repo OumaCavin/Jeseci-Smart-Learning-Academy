@@ -84,7 +84,9 @@ const GraphKnowledgeExplorer: React.FC = () => {
   const loadRecommendations = async () => {
     try {
       const response = await apiService.snippetVersion('list', {});
-      // Placeholder for recommendations
+      // Load AI recommendations based on user progress and learning path
+      // This would typically call a recommendation engine API
+      // For now, using sample data as placeholder
       setRecommendations([
         { id: 'rec1', title: 'Advanced Walker Patterns', reason: 'Based on your progress' },
         { id: 'rec2', title: 'Graph Algorithms', reason: 'Popular among learners' },
@@ -92,6 +94,8 @@ const GraphKnowledgeExplorer: React.FC = () => {
       ]);
     } catch (error) {
       console.error('Error loading recommendations:', error);
+      // Fallback to empty state if API fails
+      setRecommendations([]);
     }
   };
 
