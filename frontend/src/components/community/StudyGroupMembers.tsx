@@ -12,7 +12,12 @@ import {
   X,
   CheckCircle,
   AlertCircle,
-  LoadingSpinner
+  LoadingSpinner,
+  LogOut,
+  UserPlus,
+  Send,
+  Copy,
+  Check
 } from 'lucide-react';
 import advancedCollaborationService, {
   StudyGroupMember
@@ -23,6 +28,8 @@ interface StudyGroupMembersProps {
   groupName: string;
   isOwner?: boolean;
   isAdmin?: boolean;
+  currentUserId?: number;
+  onLeave?: () => void;
   onClose?: () => void;
 }
 
@@ -39,6 +46,8 @@ const StudyGroupMembers: React.FC<StudyGroupMembersProps> = ({
   groupName,
   isOwner = false,
   isAdmin = false,
+  currentUserId,
+  onLeave,
   onClose
 }) => {
   const [members, setMembers] = useState<MemberWithProfile[]>([]);
@@ -48,8 +57,16 @@ const StudyGroupMembers: React.FC<StudyGroupMembersProps> = ({
   const [filterRole, setFilterRole] = useState<string>('all');
   const [selectedMember, setSelectedMember] = useState<MemberWithProfile | null>(null);
   const [showMemberModal, setShowMemberModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  // Invite form state
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteMessage, setInviteMessage] = useState('');
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
 
   const fetchMembers = useCallback(async () => {
     try {
@@ -176,6 +193,95 @@ const StudyGroupMembers: React.FC<StudyGroupMembersProps> = ({
     }
   };
 
+  const handleLeaveGroup = async () => {
+    if (!confirm(`Are you sure you want to leave "${groupName}"? You will no longer have access to group content and activities.`)) {
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      setError(null);
+
+      const response = await advancedCollaborationService.leaveGroup(groupId);
+
+      if (response.success) {
+        setSuccessMessage('You have left the group successfully');
+        if (onLeave) {
+          onLeave();
+        }
+      } else {
+        setError(response.error || 'Failed to leave group');
+      }
+    } catch (err) {
+      setError('An error occurred while leaving group');
+      console.error('Error leaving group:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleInviteMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!inviteEmail.trim()) {
+      setError('Please enter an email address');
+      return;
+    }
+
+    try {
+      setInviteLoading(true);
+      setError(null);
+
+      const response = await advancedCollaborationService.inviteToGroup(
+        groupId,
+        inviteEmail,
+        inviteMessage
+      );
+
+      if (response.success) {
+        setSuccessMessage('Invitation sent successfully');
+        setInviteEmail('');
+        setInviteMessage('');
+        
+        // If the response contains an invite link, save it
+        if (response.data && typeof response.data === 'object' && 'invite_link' in response.data) {
+          setInviteLink((response.data as { invite_link: string }).invite_link);
+        }
+        
+        setShowInviteModal(false);
+      } else {
+        setError(response.error || 'Failed to send invitation');
+      }
+    } catch (err) {
+      setError('An error occurred while sending invitation');
+      console.error('Error inviting member:', err);
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const handleCopyInviteLink = async () => {
+    try {
+      // Generate invite link if we don't have one
+      let link = inviteLink;
+      if (!link) {
+        const response = await advancedCollaborationService.createGroupInviteLink(groupId);
+        if (response.success && response.data && typeof response.data === 'object' && 'invite_link' in response.data) {
+          link = (response.data as { invite_link: string }).invite_link;
+          setInviteLink(link);
+        }
+      }
+      
+      if (link) {
+        await navigator.clipboard.writeText(link);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch (err) {
+      console.error('Error copying invite link:', err);
+    }
+  };
+
   const filteredMembers = members.filter(member => {
     const matchesSearch = !searchQuery ||
       member.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -212,12 +318,31 @@ const StudyGroupMembers: React.FC<StudyGroupMembersProps> = ({
             <p className="text-sm text-gray-500">{groupName}</p>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <X size={20} className="text-gray-500" />
-        </button>
+        <div className="flex items-center gap-2">
+          {(isOwner || isAdmin) && (
+            <button
+              onClick={() => setShowInviteModal(true)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              <UserPlus size={16} />
+              Invite
+            </button>
+          )}
+          <button
+            onClick={handleLeaveGroup}
+            disabled={actionLoading}
+            className="flex items-center gap-2 px-3 py-1.5 border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+          >
+            <LogOut size={16} />
+            Leave
+          </button>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X size={20} className="text-gray-500" />
+          </button>
+        </div>
       </div>
 
       {/* Success/Error Messages */}
@@ -445,6 +570,112 @@ const StudyGroupMembers: React.FC<StudyGroupMembersProps> = ({
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Member Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <UserPlus size={20} className="text-blue-500" />
+                  Invite New Member
+                </h3>
+                <button
+                  onClick={() => setShowInviteModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+
+              <form onSubmit={handleInviteMember} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="friend@example.com"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Personal Message (Optional)
+                  </label>
+                  <textarea
+                    value={inviteMessage}
+                    onChange={(e) => setInviteMessage(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="I'd like to invite you to join our study group..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="pt-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-gray-500">Or share invite link</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCopyInviteLink}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      {copied ? (
+                        <>
+                          <Check size={18} className="text-green-500" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={18} />
+                          Copy Invite Link
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowInviteModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={inviteLoading}
+                    className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {inviteLoading ? (
+                      'Sending...'
+                    ) : (
+                      <>
+                        <Send size={18} />
+                        Send Invite
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

@@ -118,6 +118,20 @@ export interface StudyGroupDiscussion {
   created_at: string;
 }
 
+export interface GroupEvent {
+  event_id: string;
+  group_id: string;
+  title: string;
+  description: string;
+  event_time: string;
+  duration_minutes: number;
+  created_by: number;
+  creator_name: string;
+  created_at: string;
+  participant_count?: number;
+  is_participating?: boolean;
+}
+
 // Types for Mentorship
 export interface MentorshipProfile {
   user_id: number;
@@ -560,6 +574,184 @@ class AdvancedCollaborationService {
     } catch (error) {
       console.error('Error sending group message:', error);
       return { success: false, error: 'Failed to send message' };
+    }
+  }
+
+  /**
+   * Get members of a study group
+   */
+  async getGroupMembers(groupId: string): Promise<ApiResponse<StudyGroupMember[]>> {
+    try {
+      const response = await apiService.post('/walker/study_group_members', { group_id: groupId });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching group members:', error);
+      return { success: false, error: 'Failed to fetch members', data: [] };
+    }
+  }
+
+  /**
+   * Remove a member from a study group
+   */
+  async removeGroupMember(
+    groupId: string,
+    userId: string
+  ): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await apiService.post('/walker/study_group_member_remove', {
+        group_id: groupId,
+        user_id: userId
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error removing group member:', error);
+      return { success: false, error: 'Failed to remove member' };
+    }
+  }
+
+  /**
+   * Update a member's role in a study group
+   */
+  async updateGroupMemberRole(
+    groupId: string,
+    userId: string,
+    role: 'admin' | 'member'
+  ): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await apiService.post('/walker/study_group_member_role', {
+        group_id: groupId,
+        user_id: userId,
+        role
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating member role:', error);
+      return { success: false, error: 'Failed to update role' };
+    }
+  }
+
+  /**
+   * Leave a study group
+   */
+  async leaveGroup(groupId: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await apiService.post('/walker/study_group_leave', { group_id: groupId });
+      return response.data;
+    } catch (error) {
+      console.error('Error leaving study group:', error);
+      return { success: false, error: 'Failed to leave group' };
+    }
+  }
+
+  /**
+   * Invite a user to a study group via email
+   */
+  async inviteToGroup(
+    groupId: string,
+    email: string,
+    message?: string
+  ): Promise<ApiResponse<{ invite_id: string; invite_link?: string }>> {
+    try {
+      const response = await apiService.post('/walker/study_group_invite', {
+        group_id: groupId,
+        email,
+        message: message || ''
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error inviting to group:', error);
+      return { success: false, error: 'Failed to send invitation' };
+    }
+  }
+
+  /**
+   * Create an invite link for a study group
+   */
+  async createGroupInviteLink(groupId: string): Promise<ApiResponse<{ invite_link: string }>> {
+    try {
+      const response = await apiService.post('/walker/study_group_invite_link', { group_id: groupId });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating invite link:', error);
+      return { success: false, error: 'Failed to create invite link' };
+    }
+  }
+
+  /**
+   * Get events for a study group
+   */
+  async getStudyGroupEvents(groupId: string): Promise<ApiResponse<GroupEvent[]>> {
+    try {
+      const response = await apiService.post('/walker/study_group_events', { group_id: groupId });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching group events:', error);
+      return { success: false, error: 'Failed to fetch events', data: [] };
+    }
+  }
+
+  /**
+   * Create an event in a study group
+   */
+  async createStudyGroupEvent(
+    groupId: string,
+    title: string,
+    options?: {
+      description?: string;
+      eventTime?: string;
+      durationMinutes?: number;
+    }
+  ): Promise<ApiResponse<{ event: GroupEvent }>> {
+    try {
+      const response = await apiService.post('/walker/study_group_event_create', {
+        group_id: groupId,
+        title,
+        description: options?.description || '',
+        event_time: options?.eventTime || '',
+        duration_minutes: options?.durationMinutes || 60
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating group event:', error);
+      return { success: false, error: 'Failed to create event' };
+    }
+  }
+
+  /**
+   * Join a study group event
+   */
+  async joinStudyGroupEvent(
+    groupId: string,
+    eventId: string
+  ): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await apiService.post('/walker/study_group_event_join', {
+        group_id: groupId,
+        event_id: eventId
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error joining group event:', error);
+      return { success: false, error: 'Failed to join event' };
+    }
+  }
+
+  /**
+   * Leave a study group event
+   */
+  async leaveStudyGroupEvent(
+    groupId: string,
+    eventId: string
+  ): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await apiService.post('/walker/study_group_event_leave', {
+        group_id: groupId,
+        event_id: eventId
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error leaving group event:', error);
+      return { success: false, error: 'Failed to leave event' };
     }
   }
 
