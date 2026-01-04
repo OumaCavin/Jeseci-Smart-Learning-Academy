@@ -6636,8 +6636,6 @@ walker forgot_password {
     has email: str;
 
     can forgot_password with entry {
-        import database as db_module;
-        import uuid;
         import password_reset as reset_module;
 
         if not self.email or not self.email.strip() {
@@ -6648,73 +6646,14 @@ walker forgot_password {
             return;
         }
 
-        try {
-            Session = db_module.get_session();
-            session = Session();
+        # Use the reset_module's create_reset_request function
+        result = reset_module.create_reset_request(self.email);
 
-            user = session.query(db_module.User).filter(
-                db_module.User.email == self.email
-            ).first();
-
-            # Always return success to prevent email enumeration
-            if not user {
-                session.close();
-                report {
-                    "success": True,
-                    "message": "If an account exists with this email, a password reset link has been sent"
-                };
-                return;
-            }
-
-            # Delete existing reset tokens
-            existing_tokens = session.query(db_module.PasswordReset).filter(
-                db_module.PasswordReset.user_id == user.id
-            ).all();
-            for token in existing_tokens {
-                session.delete(token);
-            }
-
-            # Create new reset token
-            import secrets;
-            token = secrets.token_urlsafe(32);
-            import datetime;
-            expires_at = datetime.datetime.now() + datetime.timedelta(hours=1);
-
-            reset_token = db_module.PasswordReset(
-                user_id=user.id,
-                token=token,
-                expires_at=expires_at,
-                created_at=datetime.datetime.now(),
-                is_used=False
-            );
-            session.add(reset_token);
-            session.commit();
-
-            # Send reset email
-            email_sent = False;
-            try {
-                reset_module_instance = reset_module.PasswordResetModule();
-                email_sent = reset_module_instance.send_password_reset_email(
-                    user_email=user.email,
-                    username=user.username,
-                    reset_token=token
-                );
-            } except Exception as email_error {
-                print("Error sending password reset email: " + str(email_error));
-            }
-
-            session.close();
-
-            report {
-                "success": True,
-                "message": "If an account exists with this email, a password reset link has been sent"
-            };
-        } except Exception as e {
-            print("Error processing forgot password: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to process password reset request: " + str(e)
-            };
+        # Always return success to prevent email enumeration
+        report {
+            "success": True,
+            "message": "If an account exists with this email, a password reset link has been sent"
+        };
     }
 }
 
@@ -6771,6 +6710,25 @@ walker reset_password {
         if not self.new_password or len(self.new_password) < 8 {
             report {
                 "success": False,
+walker reset_password {
+    has token: str;
+    has new_password: str;
+    has confirm_password: str;
+
+    can reset_password with entry {
+        import password_reset as reset_module;
+
+        if not self.token or not self.token.strip() {
+            report {
+                "success": False,
+                "error": "Reset token is required"
+            };
+            return;
+        }
+
+        if not self.new_password or len(self.new_password) < 8 {
+            report {
+                "success": False,
                 "error": "Password must be at least 8 characters"
             };
             return;
@@ -6784,72 +6742,20 @@ walker reset_password {
             return;
         }
 
-        try {
-            Session = db_module.get_session();
-            session = Session();
+        # Use the reset_module's reset_user_password function
+        result = reset_module.reset_user_password(self.token, self.new_password);
 
-            reset_token = session.query(db_module.PasswordReset).filter(
-                db_module.PasswordReset.token == self.token,
-                db_module.PasswordReset.is_used == False
-            ).first();
-
-            if not reset_token {
-                session.close();
-                report {
-                    "success": False,
-                    "error": "Invalid or expired reset token"
-                };
-                return;
-            }
-
-            import datetime;
-            if reset_token.expires_at and reset_token.expires_at < datetime.datetime.now() {
-                session.close();
-                report {
-                    "success": False,
-                    "error": "Reset token has expired"
-                };
-                return;
-            }
-
-            user = session.query(db_module.User).filter(
-                db_module.User.id == reset_token.user_id
-            ).first();
-
-            if not user {
-                session.close();
-                report {
-                    "success": False,
-                    "error": "User not found"
-                };
-                return;
-            }
-
-            # Hash new password
-            password_bytes = self.new_password.encode('utf-8');
-            salt = bcrypt.gensalt();
-            password_hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8');
-
-            # Update user password
-            user.password_hash = password_hash;
-
-            # Mark token as used
-            reset_token.is_used = True;
-            reset_token.used_at = datetime.datetime.now();
-
-            session.commit();
-            session.close();
-
+        if result.get('success') {
             report {
                 "success": True,
                 "message": "Password reset successfully"
             };
-        } except Exception as e {
-            print("Error resetting password: " + str(e));
+        } else {
             report {
                 "success": False,
-                "error": "Failed to reset password: " + str(e)
+                "error": result.get('error', 'Failed to reset password')
             };
+        }
     }
 }
 
