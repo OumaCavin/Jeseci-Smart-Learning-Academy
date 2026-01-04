@@ -7561,3 +7561,783 @@ walker debug_session {
         };
     }
 }
+
+# ==============================================================================
+# Community Features - Missing Walkers
+# ==============================================================================
+
+walker community_users {
+    has filter_type: str = "all";
+    has search_query: str = "";
+    has limit: int = 20;
+    has offset: int = 0;
+    
+    can community_users with entry {
+        import advanced_collaboration_store as collab_module;
+        
+        result = collab_module.get_community_users(
+            filter_type=self.filter_type,
+            search_query=self.search_query,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report result;
+    }
+}
+
+walker community_posts {
+    has user_id: str = "";
+    has limit: int = 10;
+    has offset: int = 0;
+    has filter_type: str = "recent";
+    
+    can community_posts with entry {
+        import advanced_collaboration_store as collab_module;
+        
+        result = collab_module.get_community_posts(
+            user_id=self.user_id,
+            limit=self.limit,
+            offset=self.offset,
+            filter_type=self.filter_type
+        );
+        
+        report result;
+    }
+}
+
+walker community_create_post {
+    has content: str = "";
+    has media_urls: list = [];
+    has tags: list = [];
+    has is_public: bool = true;
+    
+    can community_create_post with entry {
+        import advanced_collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = collab_module.create_community_post(
+            user_id=user_id,
+            content=self.content,
+            media_urls=self.media_urls,
+            tags=self.tags,
+            is_public=self.is_public
+        );
+        
+        report result;
+    }
+}
+
+walker community_comments {
+    has post_id: str = "";
+    has limit: int = 50;
+    has offset: int = 0;
+    
+    can community_comments with entry {
+        import advanced_collaboration_store as collab_module;
+        
+        result = collab_module.get_community_comments(
+            post_id=self.post_id,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report result;
+    }
+}
+
+walker community_add_comment {
+    has post_id: str = "";
+    has text: str = "";
+    has parent_id: str = "";
+    
+    can community_add_comment with entry {
+        import advanced_collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = collab_module.add_community_comment(
+            user_id=user_id,
+            post_id=self.post_id,
+            text=self.text,
+            parent_id=self.parent_id
+        );
+        
+        report result;
+    }
+}
+
+walker community_reactions {
+    has target_id: str = "";
+    has target_type: str = "post";
+    has reaction_type: str = "like";
+    has action: str = "toggle";
+    
+    can community_reactions with entry {
+        import advanced_collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if self.action == "toggle" {
+            result = collab_module.toggle_reaction(
+                user_id=user_id,
+                target_id=self.target_id,
+                target_type=self.target_type,
+                reaction_type=self.reaction_type
+            );
+        } elif self.action == "get" {
+            result = collab_module.get_reactions(
+                target_id=self.target_id,
+                target_type=self.target_type
+            );
+        } else {
+            result = {
+                "success": false,
+                "error": "Unknown action: " + self.action
+            };
+        }
+        
+        report result;
+    }
+}
+
+walker community_follows {
+    has target_user_id: str = "";
+    has action: str = "follow";
+    
+    can community_follows with entry {
+        import advanced_collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if self.action == "follow" {
+            result = collab_module.follow_user(
+                user_id=user_id,
+                target_user_id=self.target_user_id
+            );
+        } elif self.action == "unfollow" {
+            result = collab_module.unfollow_user(
+                user_id=user_id,
+                target_user_id=self.target_user_id
+            );
+        } elif self.action == "check" {
+            result = collab_module.check_follow_status(
+                user_id=user_id,
+                target_user_id=self.target_user_id
+            );
+        } elif self.action == "followers" {
+            result = collab_module.get_followers(user_id=self.target_user_id);
+        } elif self.action == "following" {
+            result = collab_module.get_following(user_id=self.target_user_id);
+        } else {
+            result = {
+                "success": false,
+                "error": "Unknown action: " + self.action
+            };
+        }
+        
+        report result;
+    }
+}
+
+walker community_messages {
+    has thread_id: str = "";
+    has recipient_id: str = "";
+    has limit: int = 50;
+    has offset: int = 0;
+    
+    can community_messages with entry {
+        import advanced_collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if self.thread_id {
+            result = collab_module.get_thread_messages(
+                thread_id=self.thread_id,
+                limit=self.limit,
+                offset=self.offset
+            );
+        } elif self.recipient_id {
+            result = collab_module.get_messages_with_user(
+                user_id=user_id,
+                recipient_id=self.recipient_id,
+                limit=self.limit,
+                offset=self.offset
+            );
+        } else {
+            result = collab_module.get_message_threads(
+                user_id=user_id,
+                limit=self.limit,
+                offset=self.offset
+            );
+        }
+        
+        report result;
+    }
+}
+
+walker community_trending {
+    has category: str = "";
+    has limit: int = 10;
+    
+    can community_trending with entry {
+        import advanced_collaboration_store as collab_module;
+        
+        result = collab_module.get_trending_content(
+            category=self.category,
+            limit=self.limit
+        );
+        
+        report result;
+    }
+}
+
+walker community_feed {
+    has cursor: str = "";
+    has limit: int = 20;
+    
+    can community_feed with entry {
+        import advanced_collaboration_store as collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = collab_module.get_community_feed(
+            user_id=user_id,
+            cursor=self.cursor,
+            limit=self.limit
+        );
+        
+        report result;
+    }
+}
+
+walker community_analytics {
+    has timeframe: str = "week";
+    has user_id: str = "";
+    
+    can community_analytics with entry {
+        import advanced_collaboration_store as collab_module;
+        
+        result = collab_module.get_community_analytics(
+            timeframe=self.timeframe,
+            user_id=self.user_id
+        );
+        
+        report result;
+    }
+}
+
+# ==============================================================================
+# Content Interaction Walkers - Missing Walkers
+# ==============================================================================
+
+walker content_views {
+    has content_id: str = "";
+    has content_type: str = "course";
+    
+    can content_views with entry {
+        import content_views_store as views_module;
+        
+        user_id = ctx().get('user_id');
+        
+        result = views_module.record_content_view(
+            user_id=user_id,
+            content_id=self.content_id,
+            content_type=self.content_type
+        );
+        
+        report result;
+    }
+}
+
+walker content_like {
+    has content_id: str = "";
+    has content_type: str = "course";
+    has status: bool = true;
+    
+    can content_like with entry {
+        import content_views_store as views_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = views_module.toggle_content_like(
+            user_id=user_id,
+            content_id=self.content_id,
+            content_type=self.content_type,
+            status=self.status
+        );
+        
+        report result;
+    }
+}
+
+walker content_save {
+    has content_id: str = "";
+    has content_type: str = "course";
+    has collection_id: str = "";
+    has action: str = "toggle";
+    
+    can content_save with entry {
+        import content_views_store as views_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if self.action == "toggle" {
+            result = views_module.toggle_content_save(
+                user_id=user_id,
+                content_id=self.content_id,
+                content_type=self.content_type
+            );
+        } elif self.action == "save" {
+            result = views_module.save_content(
+                user_id=user_id,
+                content_id=self.content_id,
+                content_type=self.content_type,
+                collection_id=self.collection_id
+            );
+        } elif self.action == "remove" {
+            result = views_module.unsave_content(
+                user_id=user_id,
+                content_id=self.content_id,
+                content_type=self.content_type
+            );
+        } else {
+            result = {
+                "success": false,
+                "error": "Unknown action: " + self.action
+            };
+        }
+        
+        report result;
+    }
+}
+
+walker content_share {
+    has content_id: str = "";
+    has content_type: str = "course";
+    has platform: str = "link";
+    
+    can content_share with entry {
+        import content_views_store as views_module;
+        
+        user_id = ctx().get('user_id');
+        
+        result = views_module.record_content_share(
+            user_id=user_id,
+            content_id=self.content_id,
+            content_type=self.content_type,
+            platform=self.platform
+        );
+        
+        report result;
+    }
+}
+
+# ==============================================================================
+# User Management Walkers - Missing Walkers
+# ==============================================================================
+
+walker update_profile {
+    has first_name: str = "";
+    has last_name: str = "";
+    has bio: str = "";
+    has avatar_url: str = "";
+    has display_name: str = "";
+    
+    can update_profile with entry {
+        import user_auth as auth_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = auth_module.update_user_profile(
+            user_id=user_id,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            bio=self.bio,
+            avatar_url=self.avatar_url,
+            display_name=self.display_name
+        );
+        
+        report result;
+    }
+}
+
+walker update_preferences {
+    has theme: str = "light";
+    has notifications_enabled: bool = true;
+    has email_notifications: bool = true;
+    has privacy_settings: dict = {};
+    has language: str = "en";
+    
+    can update_preferences with entry {
+        import user_auth as auth_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = auth_module.update_user_preferences(
+            user_id=user_id,
+            theme=self.theme,
+            notifications_enabled=self.notifications_enabled,
+            email_notifications=self.email_notifications,
+            privacy_settings=self.privacy_settings,
+            language=self.language
+        );
+        
+        report result;
+    }
+}
+
+walker learning_streak {
+    can learning_streak with entry {
+        import activity_store as activity_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = activity_module.get_learning_streak(user_id=user_id);
+        
+        report result;
+    }
+}
+
+# ==============================================================================
+# Activity Walkers - Missing Walkers
+# ==============================================================================
+
+walker recent_activity {
+    has limit: int = 20;
+    has activity_type: str = "";
+    
+    can recent_activity with entry {
+        import activity_store as activity_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = activity_module.get_recent_activity(
+            user_id=user_id,
+            limit=self.limit,
+            activity_type=self.activity_type
+        );
+        
+        report result;
+    }
+}
+
+walker saved_content {
+    has filter_type: str = "all";
+    has limit: int = 20;
+    has offset: int = 0;
+    
+    can saved_content with entry {
+        import content_views_store as views_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = views_module.get_saved_content(
+            user_id=user_id,
+            filter_type=self.filter_type,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report result;
+    }
+}
+
+# ==============================================================================
+# Notification Detail Walker - Missing Walker
+# ==============================================================================
+
+walker notification_details {
+    has notification_id: str = "";
+    
+    can notification_details with entry {
+        import notification_store as notif_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = notif_module.get_notification_details(
+            user_id=user_id,
+            notification_id=self.notification_id
+        );
+        
+        report result;
+    }
+}
+
+# ==============================================================================
+# Admin Fix Walkers - Missing/Mismatched Walkers
+# ==============================================================================
+
+walker admin_content_course_create {
+    has title: str = "";
+    has description: str = "";
+    has modules: list = [];
+    has difficulty: str = "beginner";
+    has is_published: bool = false;
+    
+    can admin_content_course_create with entry {
+        import admin_content_store as admin_content_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = admin_content_module.create_course(
+            admin_id=user_id,
+            title=self.title,
+            description=self.description,
+            modules=self.modules,
+            difficulty=self.difficulty,
+            is_published=self.is_published
+        );
+        
+        report result;
+    }
+}
+
+walker admin_content_concept_create {
+    has title: str = "";
+    has body: str = "";
+    has parent_course_id: str = "";
+    has domain: str = "general";
+    has difficulty: str = "beginner";
+    has is_published: bool = false;
+    
+    can admin_content_concept_create with entry {
+        import admin_content_store as admin_content_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": false,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = admin_content_module.create_concept(
+            admin_id=user_id,
+            title=self.title,
+            body=self.body,
+            parent_course_id=self.parent_course_id,
+            domain=self.domain,
+            difficulty=self.difficulty,
+            is_published=self.is_published
+        );
+        
+        report result;
+    }
+}
+
+walker admin_audit_logs {
+    has user_id: str = "";
+    has action_type: str = "";
+    has date_from: str = "";
+    has date_to: str = "";
+    has limit: int = 100;
+    has offset: int = 0;
+    
+    can admin_audit_logs with entry {
+        import audit_logger as audit_module;
+        
+        admin_id = ctx().get('user_id');
+        
+        result = audit_module.get_audit_logs(
+            admin_id=admin_id,
+            user_id=self.user_id,
+            action_type=self.action_type,
+            date_from=self.date_from,
+            date_to=self.date_to,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report result;
+    }
+}
+
+walker admin_audit_history {
+    has target_id: str = "";
+    has target_type: str = "";
+    has limit: int = 50;
+    
+    can admin_audit_history with entry {
+        import audit_logger as audit_module;
+        
+        admin_id = ctx().get('user_id');
+        
+        result = audit_module.get_audit_history(
+            admin_id=admin_id,
+            target_id=self.target_id,
+            target_type=self.target_type,
+            limit=self.limit
+        );
+        
+        report result;
+    }
+}
+
+walker admin_user_activity {
+    has metric_type: str = "daily_active";
+    has date_from: str = "";
+    has date_to: str = "";
+    has limit: int = 30;
+    
+    can admin_user_activity with entry {
+        import admin_analytics_store as admin_analytics_module;
+        
+        admin_id = ctx().get('user_id');
+        
+        result = admin_analytics_module.get_user_activity_metrics(
+            admin_id=admin_id,
+            metric_type=self.metric_type,
+            date_from=self.date_from,
+            date_to=self.date_to,
+            limit=self.limit
+        );
+        
+        report result;
+    }
+}
+
+walker admin_table_activity {
+    has table_name: str = "";
+    has limit: int = 100;
+    has offset: int = 0;
+    
+    can admin_table_activity with entry {
+        import admin_analytics_store as admin_analytics_module;
+        
+        admin_id = ctx().get('user_id');
+        
+        result = admin_analytics_module.get_table_activity(
+            admin_id=admin_id,
+            table_name=self.table_name,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report result;
+    }
+}
+
+walker admin_clear_content_cache {
+    has content_type: str = "all";
+    
+    can admin_clear_content_cache with entry {
+        import admin_content_store as admin_content_module;
+        
+        admin_id = ctx().get('user_id');
+        
+        result = admin_content_module.clear_content_cache(
+            admin_id=admin_id,
+            content_type=self.content_type
+        );
+        
+        report result;
+    }
+}
