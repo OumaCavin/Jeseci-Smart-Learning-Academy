@@ -7365,7 +7365,7 @@ walker snippet_version {
                         "error": "Failed to restore version"
                     };
                 }
-            except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to restore version: " + str(e)
@@ -7529,7 +7529,7 @@ walker test_case {
                         "error": "Failed to update test case"
                     };
                 }
-            except Exception as e {
+            } except Exception as e {
                 report {
                     "success": False,
                     "error": "Failed to update test case: " + str(e)
