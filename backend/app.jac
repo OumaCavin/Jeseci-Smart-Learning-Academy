@@ -5309,6 +5309,7 @@ walker study_group_create {
 }
 
 walker study_groups_list {
+    has search_query: str = "";
     has topic: str = "";
     has limit: int = 20;
     has offset: int = 0;
@@ -5391,6 +5392,7 @@ walker study_group_note_create {
     has title: str;
     has content: str;
     has tags: list = [];
+    has parent_id: str = "";
     
     can study_group_note_create with entry {
         import advanced_collaboration_store as adv_collab_module;
@@ -5505,6 +5507,7 @@ walker study_group_messages {
 walker study_group_message_send {
     has group_id: str;
     has content: str;
+    has parent_id: str = "";
     has message_type: str = "text";
     has file_url: str = "";
     
@@ -5534,6 +5537,164 @@ walker study_group_message_send {
             content=self.content,
             message_type=self.message_type,
             file_url=self.file_url if self.file_url else null
+        );
+        
+        report result;
+    }
+}
+
+walker study_group_leave {
+    has group_id: str = "";
+    
+    can study_group_leave with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.group_id {
+            report {
+                "success": False,
+                "error": "group_id is required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.leave_study_group(
+            user_id=user_id,
+            group_id=self.group_id
+        );
+        
+        report result;
+    }
+}
+
+walker study_group_members {
+    has group_id: str = "";
+    has limit: int = 50;
+    has offset: int = 0;
+    
+    can study_group_members with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        if not self.group_id {
+            report {
+                "success": False,
+                "error": "group_id is required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.get_study_group_members(
+            group_id=self.group_id,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report result;
+    }
+}
+
+walker study_group_events {
+    has group_id: str = "";
+    has limit: int = 20;
+    has offset: int = 0;
+    
+    can study_group_events with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        if not self.group_id {
+            report {
+                "success": False,
+                "error": "group_id is required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.get_study_group_events(
+            group_id=self.group_id,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report result;
+    }
+}
+
+walker study_group_event_create {
+    has group_id: str = "";
+    has title: str = "";
+    has description: str = "";
+    has event_time: str = "";
+    has duration_minutes: int = 60;
+    
+    can study_group_event_create with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.group_id or not self.title {
+            report {
+                "success": False,
+                "error": "group_id and title are required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.create_study_group_event(
+            user_id=user_id,
+            group_id=self.group_id,
+            title=self.title,
+            description=self.description,
+            event_time=self.event_time,
+            duration_minutes=self.duration_minutes
+        );
+        
+        report result;
+    }
+}
+
+walker study_group_invite {
+    has group_id: str = "";
+    has user_id: str = "";
+    
+    can study_group_invite with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.group_id or not self.user_id {
+            report {
+                "success": False,
+                "error": "group_id and user_id are required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.invite_to_study_group(
+            inviter_id=user_id,
+            group_id=self.group_id,
+            invitee_id=self.user_id
         );
         
         report result;
@@ -5587,7 +5748,9 @@ walker mentor_profile_create {
 }
 
 walker mentors_search {
+    has query: str = "";
     has expertise_areas: list = [];
+    has availability: str = "";
     has limit: int = 20;
     
     can mentors_search with entry {
@@ -5788,6 +5951,78 @@ walker mentorship_session_complete {
     }
 }
 
+walker mentors_list {
+    has limit: int = 20;
+    has offset: int = 0;
+    
+    can mentors_list with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        result = adv_collab_module.get_mentors(
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report result;
+    }
+}
+
+walker my_mentor_requests {
+    has status: str = "";
+    has limit: int = 20;
+    has offset: int = 0;
+    
+    can my_mentor_requests with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.get_my_mentor_requests(
+            user_id=user_id,
+            status=self.status if self.status else null,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report result;
+    }
+}
+
+walker mentor_requests_received {
+    has status: str = "";
+    has limit: int = 20;
+    has offset: int = 0;
+    
+    can mentor_requests_received with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.get_received_mentor_requests(
+            mentor_id=user_id,
+            status=self.status if self.status else null,
+            limit=self.limit,
+            offset=self.offset
+        );
+        
+        report result;
+    }
+}
+
 # ==============================================================================
 # Advanced Collaboration API Endpoints - Moderation System
 # ==============================================================================
@@ -5838,7 +6073,8 @@ walker content_report {
 
 walker moderation_queue {
     has status: str = "pending";
-    has priority: str = "";
+    has priority: str = "all";
+    has content_type: str = "";
     has limit: int = 20;
     has offset: int = 0;
     
@@ -5930,6 +6166,40 @@ walker moderation_stats {
             "success": True,
             "stats": stats
         };
+    }
+}
+
+walker moderation_report_dismiss {
+    has report_id: str = "";
+    has reason: str = "";
+    
+    can moderation_report_dismiss with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.report_id {
+            report {
+                "success": False,
+                "error": "report_id is required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.dismiss_moderation_report(
+            moderator_id=user_id,
+            report_id=self.report_id,
+            reason=self.reason
+        );
+        
+        report result;
     }
 }
 
@@ -6066,6 +6336,8 @@ walker peer_review_feedback {
 
 walker peer_review_submissions {
     has status: str = "";
+    has limit: int = 20;
+    has offset: int = 0;
     
     can peer_review_submissions with entry {
         import advanced_collaboration_store as adv_collab_module;
@@ -6094,6 +6366,8 @@ walker peer_review_submissions {
 
 walker peer_review_my_assignments {
     has status: str = "";
+    has limit: int = 20;
+    has offset: int = 0;
     
     can peer_review_my_assignments with entry {
         import advanced_collaboration_store as adv_collab_module;
@@ -6144,6 +6418,76 @@ walker peer_review_get_feedback {
             "feedback": feedback,
             "total": len(feedback)
         };
+    }
+}
+
+walker peer_review_assignment_accept {
+    has assignment_id: str = "";
+    
+    can peer_review_assignment_accept with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.assignment_id {
+            report {
+                "success": False,
+                "error": "assignment_id is required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.accept_review_assignment(
+            user_id=user_id,
+            assignment_id=self.assignment_id
+        );
+        
+        report result;
+    }
+}
+
+walker peer_review_assignment_complete {
+    has assignment_id: str = "";
+    has review_content: str = "";
+    has rating: int = 0;
+    has feedback: dict = {};
+    
+    can peer_review_assignment_complete with entry {
+        import advanced_collaboration_store as adv_collab_module;
+        
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {
+                "success": False,
+                "error": "Authentication required"
+            };
+            return;
+        }
+        
+        if not self.assignment_id {
+            report {
+                "success": False,
+                "error": "assignment_id is required"
+            };
+            return;
+        }
+        
+        result = adv_collab_module.complete_review_assignment(
+            user_id=user_id,
+            assignment_id=self.assignment_id,
+            review_content=self.review_content,
+            rating=self.rating,
+            feedback=self.feedback
+        );
+        
+        report result;
     }
 }
 
