@@ -4,7 +4,7 @@
 -- Create notifications table
 CREATE TABLE IF NOT EXISTS notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     type VARCHAR(50) NOT NULL CHECK (type IN (
         'ACHIEVEMENT',
         'COURSE_MILESTONE',
@@ -32,7 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
 
 -- Create notification preferences table
 CREATE TABLE IF NOT EXISTS notification_preferences (
-    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     email_enabled BOOLEAN DEFAULT TRUE,
     push_enabled BOOLEAN DEFAULT TRUE,
     types_config JSONB DEFAULT '{
