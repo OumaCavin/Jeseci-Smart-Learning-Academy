@@ -6485,6 +6485,8 @@ walker peer_review_assignment_complete {
 # ==============================================================================
 walker code_execute {
     has code: str = "";
+    has language: str = "jac";
+    has mode: str = "run";
     has entry_point: str = "init";
     has snippet_id: str = "";
 
@@ -6503,10 +6505,21 @@ walker code_execute {
             return;
         }
 
-        # Execute code
-        result = code_exec_module.execute_jac_code(
-            code=self.code, entry_point=self.entry_point
-        );
+        # Execute code based on language and mode
+        if self.language == "python" {
+            result = code_exec_module.execute_code(
+                code=self.code, language="python", entry_point=self.entry_point, mode=self.mode
+            );
+        } elif self.language == "javascript" {
+            result = code_exec_module.execute_code(
+                code=self.code, language="javascript", entry_point=self.entry_point, mode=self.mode
+            );
+        } else {
+            # Default to Jaclang (only run mode supported for now)
+            result = code_exec_module.execute_jac_code(
+                code=self.code, entry_point=self.entry_point
+            );
+        }
 
         # Record execution if user is authenticated
         if user_id {
