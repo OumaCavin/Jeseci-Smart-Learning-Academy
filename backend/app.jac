@@ -6722,7 +6722,7 @@ walker reset_password_validate {
     has token: str;
 
     can reset_password_validate with entry {
-        import database as db_module;
+        import password_reset as reset_module;
 
         if not self.token or not self.token.strip() {
             report {
@@ -6732,58 +6732,20 @@ walker reset_password_validate {
             return;
         }
 
-        try {
-            Session = db_module.get_session();
-            session = Session();
+        # Use the reset_module's validate_reset_token function
+        result = reset_module.validate_password_reset_token(self.token);
 
-            reset_token = session.query(db_module.PasswordReset).filter(
-                db_module.PasswordReset.token == self.token,
-                db_module.PasswordReset.is_used == False
-            ).first();
-
-            if not reset_token {
-                session.close();
-                report {
-                    "success": False,
-                    "error": "Invalid or expired reset token"
-                };
-                return;
-            }
-
-            import datetime;
-            if reset_token.expires_at and reset_token.expires_at < datetime.datetime.now() {
-                session.close();
-                report {
-                    "success": False,
-                    "error": "Reset token has expired"
-                };
-                return;
-            }
-
-            user = session.query(db_module.User).filter(
-                db_module.User.id == reset_token.user_id
-            ).first();
-
-            session.close();
-
-            if user {
-                report {
-                    "success": True,
-                    "message": "Token is valid",
-                    "user_id": user.user_id,
-                    "username": user.username
-                };
-            } else {
-                report {
-                    "success": False,
-                    "error": "User not found"
-                };
-            }
-        } except Exception as e {
-            print("Error validating reset token: " + str(e));
+        if result.get('success') {
+            report {
+                "success": True,
+                "message": "Token is valid",
+                "user_id": result.get('user_id'),
+                "username": result.get('username')
+            };
+        } else {
             report {
                 "success": False,
-                "error": "Failed to validate reset token: " + str(e)
+                "error": result.get('error', 'Invalid or expired reset token')
             };
         }
     }
