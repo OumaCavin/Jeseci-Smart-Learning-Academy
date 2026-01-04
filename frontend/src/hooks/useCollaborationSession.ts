@@ -249,5 +249,3 @@ export function useCollaborationSession(options: UseCollaborationSessionOptions)
     getActivePeers
   };
 }
-
-import { useCallback, useRef, useState, useEffect } from 'react';

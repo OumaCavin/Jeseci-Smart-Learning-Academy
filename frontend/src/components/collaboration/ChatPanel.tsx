@@ -280,6 +280,4 @@ export function ChatPanel({
       </div>
     </div>
   );
-}
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
