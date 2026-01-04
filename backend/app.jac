@@ -4654,7 +4654,7 @@ walker get_content_view_analytics {
                 "content_type": self.content_type,
                 "statistics": stats
             };
-        } elif self.content_type {
+        } else if self.content_type {
             # Get popular content for specific type
             popular = content_views_module.get_popular_content(
                 content_type=self.content_type,
