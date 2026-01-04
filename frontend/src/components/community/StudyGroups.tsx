@@ -33,6 +33,8 @@ import advancedCollaborationService, {
   StudyGroupGoal,
   StudyGroupMessage
 } from '../../services/advancedCollaborationService';
+import { StudyGroupMembers } from './StudyGroupMembers';
+import { StudyGroupEvents } from './StudyGroupEvents';
 
 // Props interfaces
 interface StudyGroupListProps {
@@ -473,7 +475,7 @@ export const StudyGroupGoals: React.FC<StudyGroupGoalsProps> = ({ groupId }) => 
 // Main StudyGroups Component
 const StudyGroups: React.FC = () => {
   const [selectedGroup, setSelectedGroup] = useState<StudyGroup | null>(null);
-  const [activeView, setActiveView] = useState<'list' | 'notes' | 'goals'>('list');
+  const [activeView, setActiveView] = useState<'list' | 'notes' | 'goals' | 'members' | 'events'>('list');
 
   return (
     <div className="space-y-6">
@@ -518,10 +520,30 @@ const StudyGroups: React.FC = () => {
               <Target className="w-4 h-4 inline-block mr-2" />
               Goals
             </button>
+            <button
+              onClick={() => setActiveView('members')}
+              className={`px-4 py-2 rounded-lg font-medium ${
+                activeView === 'members' ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <Users className="w-4 h-4 inline-block mr-2" />
+              Members
+            </button>
+            <button
+              onClick={() => setActiveView('events')}
+              className={`px-4 py-2 rounded-lg font-medium ${
+                activeView === 'events' ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <Calendar className="w-4 h-4 inline-block mr-2" />
+              Events
+            </button>
           </div>
 
           {activeView === 'notes' && <StudyGroupNotes groupId={selectedGroup.group_id} />}
           {activeView === 'goals' && <StudyGroupGoals groupId={selectedGroup.group_id} />}
+          {activeView === 'members' && <StudyGroupMembers groupId={selectedGroup.group_id} />}
+          {activeView === 'events' && <StudyGroupEvents groupId={selectedGroup.group_id} />}
         </div>
       ) : (
         <StudyGroupList onGroupSelect={(group) => setSelectedGroup(group)} />
