@@ -239,9 +239,10 @@ def get_user_activities(
                 params.append(end_date)
             
             # Get total count
-            count_query = "SELECT COUNT(*) " + base_query.replace(
-                'SELECT id, user_id, activity_type, title, description, metadata, xp_earned, created_at', ""
-            )
+            # Fix: Use split to safely get everything after the first SELECT columns
+            # This avoids issues with multi-line strings in the base_query
+            from_clause = base_query.split("FROM", 1)[1]
+            count_query = "SELECT COUNT(*) FROM" + from_clause
             cur.execute(count_query, params)
             total_count = cur.fetchone()[0]
             
