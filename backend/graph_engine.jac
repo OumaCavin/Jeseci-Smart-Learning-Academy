@@ -9,10 +9,9 @@
 # - Analytics and learning insights from graph data
 # ==============================================================================
 
-import from python { PyModule }
 import from datetime { datetime }
 
-glob neo4j_db = PyModule("backend.database");
+import backend.database as neo4j_db;
 
 # ==============================================================================
 # GRAPH NODES - Data Models for Neo4j
