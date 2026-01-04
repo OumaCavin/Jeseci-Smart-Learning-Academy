@@ -1,0 +1,951 @@
+3 export type { CurriculumBuilderBoardProps } from './CurriculumBuilderBoard';
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/components/features/builder/CurriculumBuilderBoard.tsx:11:17
+    11 export function CurriculumBuilderBoard({
+                       ~~~~~~~~~~~~~~~~~~~~~~
+    'CurriculumBuilderBoard' is declared here.
+
+src/components/features/communication/VideoRoom.tsx:2:27 - error TS2307: Cannot find module '../../hooks/communication/useWebRTC' or its corresponding type declarations.
+
+2 import { useWebRTC } from '../../hooks/communication/useWebRTC';
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+src/components/features/communication/index.ts:3:15 - error TS2614: Module '"./VideoRoom"' has no exported member 'VideoRoomProps'. Did you mean to use 'import VideoRoomProps from "./VideoRoom"' instead?
+
+3 export type { VideoRoomProps } from './VideoRoom';
+                ~~~~~~~~~~~~~~
+
+src/components/gamification/XPBar.tsx:1:8 - error TS2300: Duplicate identifier 'React'.
+
+1 import React, { useState, useCallback, useRef, useEffect } from 'react';
+         ~~~~~
+
+src/components/gamification/XPBar.tsx:1:17 - error TS2300: Duplicate identifier 'useState'.
+
+1 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                  ~~~~~~~~
+
+src/components/gamification/XPBar.tsx:1:27 - error TS2300: Duplicate identifier 'useCallback'.
+
+1 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                            ~~~~~~~~~~~
+
+src/components/gamification/XPBar.tsx:1:40 - error TS2300: Duplicate identifier 'useRef'.
+
+1 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                                         ~~~~~~
+
+src/components/gamification/XPBar.tsx:1:48 - error TS2300: Duplicate identifier 'useEffect'.
+
+1 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                                                 ~~~~~~~~~
+
+src/components/gamification/XPBar.tsx:2:27 - error TS2459: Module '"../../hooks/useGamification"' declares 'Badge' locally, but it is not exported.
+
+2 import { useGamification, Badge, Challenge, XPGain } from '../../hooks/useGamification';
+                            ~~~~~
+
+  src/hooks/useGamification.ts:2:27
+    2 import { useGamification, Badge, Challenge, Leaderboard, XPGain } from '../contexts/GamificationContext';
+                                ~~~~~
+    'Badge' is declared here.
+
+src/components/gamification/XPBar.tsx:2:34 - error TS2459: Module '"../../hooks/useGamification"' declares 'Challenge' locally, but it is not exported.
+
+2 import { useGamification, Badge, Challenge, XPGain } from '../../hooks/useGamification';
+                                   ~~~~~~~~~
+
+  src/hooks/useGamification.ts:2:34
+    2 import { useGamification, Badge, Challenge, Leaderboard, XPGain } from '../contexts/GamificationContext';
+                                       ~~~~~~~~~
+    'Challenge' is declared here.
+
+src/components/gamification/XPBar.tsx:2:45 - error TS2459: Module '"../../hooks/useGamification"' declares 'XPGain' locally, but it is not exported.
+
+2 import { useGamification, Badge, Challenge, XPGain } from '../../hooks/useGamification';
+                                              ~~~~~~
+
+  src/hooks/useGamification.ts:2:58
+    2 import { useGamification, Badge, Challenge, Leaderboard, XPGain } from '../contexts/GamificationContext';
+                                                               ~~~~~~
+    'XPGain' is declared here.
+
+src/components/gamification/XPBar.tsx:359:8 - error TS2300: Duplicate identifier 'React'.
+
+359 import React, { useState, useCallback, useRef, useEffect } from 'react';
+           ~~~~~
+
+src/components/gamification/XPBar.tsx:359:17 - error TS2300: Duplicate identifier 'useState'.
+
+359 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                    ~~~~~~~~
+
+src/components/gamification/XPBar.tsx:359:27 - error TS2300: Duplicate identifier 'useCallback'.
+
+359 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                              ~~~~~~~~~~~
+
+src/components/gamification/XPBar.tsx:359:40 - error TS2300: Duplicate identifier 'useRef'.
+
+359 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                                           ~~~~~~
+
+src/components/gamification/XPBar.tsx:359:48 - error TS2300: Duplicate identifier 'useEffect'.
+
+359 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                                                   ~~~~~~~~~
+
+src/components/ide/DebugConsole.tsx:1:8 - error TS2300: Duplicate identifier 'React'.
+
+1 import React, { useState, useCallback, useRef, useEffect } from 'react';
+         ~~~~~
+
+src/components/ide/DebugConsole.tsx:1:17 - error TS2300: Duplicate identifier 'useState'.
+
+1 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                  ~~~~~~~~
+
+src/components/ide/DebugConsole.tsx:1:27 - error TS2300: Duplicate identifier 'useCallback'.
+
+1 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                            ~~~~~~~~~~~
+
+src/components/ide/DebugConsole.tsx:1:40 - error TS2300: Duplicate identifier 'useRef'.
+
+1 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                                         ~~~~~~
+
+src/components/ide/DebugConsole.tsx:1:48 - error TS2300: Duplicate identifier 'useEffect'.
+
+1 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                                                 ~~~~~~~~~
+
+src/components/ide/DebugConsole.tsx:376:8 - error TS2300: Duplicate identifier 'React'.
+
+376 import React, { useState, useCallback, useRef, useEffect } from 'react';
+           ~~~~~
+
+src/components/ide/DebugConsole.tsx:376:17 - error TS2300: Duplicate identifier 'useState'.
+
+376 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                    ~~~~~~~~
+
+src/components/ide/DebugConsole.tsx:376:27 - error TS2300: Duplicate identifier 'useCallback'.
+
+376 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                              ~~~~~~~~~~~
+
+src/components/ide/DebugConsole.tsx:376:40 - error TS2300: Duplicate identifier 'useRef'.
+
+376 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                                           ~~~~~~
+
+src/components/ide/DebugConsole.tsx:376:48 - error TS2300: Duplicate identifier 'useEffect'.
+
+376 import React, { useState, useCallback, useRef, useEffect } from 'react';
+                                                   ~~~~~~~~~
+
+src/components/ide/TestRunnerPanel.tsx:1:8 - error TS2300: Duplicate identifier 'React'.
+
+1 import React, { useState, useCallback, useEffect, useRef } from 'react';
+         ~~~~~
+
+src/components/ide/TestRunnerPanel.tsx:1:17 - error TS2300: Duplicate identifier 'useState'.
+
+1 import React, { useState, useCallback, useEffect, useRef } from 'react';
+                  ~~~~~~~~
+
+src/components/ide/TestRunnerPanel.tsx:1:27 - error TS2300: Duplicate identifier 'useCallback'.
+
+1 import React, { useState, useCallback, useEffect, useRef } from 'react';
+                            ~~~~~~~~~~~
+
+src/components/ide/TestRunnerPanel.tsx:1:40 - error TS2300: Duplicate identifier 'useEffect'.
+
+1 import React, { useState, useCallback, useEffect, useRef } from 'react';
+                                         ~~~~~~~~~
+
+src/components/ide/TestRunnerPanel.tsx:1:51 - error TS2300: Duplicate identifier 'useRef'.
+
+1 import React, { useState, useCallback, useEffect, useRef } from 'react';
+                                                    ~~~~~~
+
+src/components/ide/TestRunnerPanel.tsx:422:8 - error TS2300: Duplicate identifier 'React'.
+
+422 import React, { useState, useCallback, useEffect, useRef } from 'react';
+           ~~~~~
+
+src/components/ide/TestRunnerPanel.tsx:422:17 - error TS2300: Duplicate identifier 'useState'.
+
+422 import React, { useState, useCallback, useEffect, useRef } from 'react';
+                    ~~~~~~~~
+
+src/components/ide/TestRunnerPanel.tsx:422:27 - error TS2300: Duplicate identifier 'useCallback'.
+
+422 import React, { useState, useCallback, useEffect, useRef } from 'react';
+                              ~~~~~~~~~~~
+
+src/components/ide/TestRunnerPanel.tsx:422:40 - error TS2300: Duplicate identifier 'useEffect'.
+
+422 import React, { useState, useCallback, useEffect, useRef } from 'react';
+                                           ~~~~~~~~~
+
+src/components/ide/TestRunnerPanel.tsx:422:51 - error TS2300: Duplicate identifier 'useRef'.
+
+422 import React, { useState, useCallback, useEffect, useRef } from 'react';
+                                                      ~~~~~~
+
+src/components/lms/LMSConfigurationWizard.tsx:1:8 - error TS2300: Duplicate identifier 'React'.
+
+1 import React, { useState, useCallback } from 'react';
+         ~~~~~
+
+src/components/lms/LMSConfigurationWizard.tsx:1:17 - error TS2300: Duplicate identifier 'useState'.
+
+1 import React, { useState, useCallback } from 'react';
+                  ~~~~~~~~
+
+src/components/lms/LMSConfigurationWizard.tsx:1:27 - error TS2300: Duplicate identifier 'useCallback'.
+
+1 import React, { useState, useCallback } from 'react';
+                            ~~~~~~~~~~~
+
+src/components/lms/LMSConfigurationWizard.tsx:102:5 - error TS2339: Property 'getOAuthConfig' does not exist on type 'UseLMSIntegrationReturn'.
+
+102     getOAuthConfig
+        ~~~~~~~~~~~~~~
+
+src/components/lms/LMSConfigurationWizard.tsx:366:61 - error TS2353: Object literal may only specify known properties, and 'apiKey' does not exist in type 'SetStateAction<Partial<LMSProvider>>'.
+
+366                     onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
+                                                                ~~~~~~
+
+src/components/lms/LMSConfigurationWizard.tsx:387:63 - error TS2353: Object literal may only specify known properties, and 'username' does not exist in type 'SetStateAction<Partial<LMSProvider>>'.
+
+387                       onChange={(e) => setConfig({ ...config, username: e.target.value })}
+                                                                  ~~~~~~~~
+
+src/components/lms/LMSConfigurationWizard.tsx:401:63 - error TS2353: Object literal may only specify known properties, and 'password' does not exist in type 'SetStateAction<Partial<LMSProvider>>'.
+
+401                       onChange={(e) => setConfig({ ...config, password: e.target.value })}
+                                                                  ~~~~~~~~
+
+src/components/lms/LMSConfigurationWizard.tsx:583:8 - error TS2300: Duplicate identifier 'React'.
+
+583 import React, { useState, useCallback } from 'react';
+           ~~~~~
+
+src/components/lms/LMSConfigurationWizard.tsx:583:17 - error TS2300: Duplicate identifier 'useState'.
+
+583 import React, { useState, useCallback } from 'react';
+                    ~~~~~~~~
+
+src/components/lms/LMSConfigurationWizard.tsx:583:27 - error TS2300: Duplicate identifier 'useCallback'.
+
+583 import React, { useState, useCallback } from 'react';
+                              ~~~~~~~~~~~
+
+src/components/lms/RosterSyncDashboard.tsx:1:8 - error TS2300: Duplicate identifier 'React'.
+
+1 import React, { useState, useCallback } from 'react';
+         ~~~~~
+
+src/components/lms/RosterSyncDashboard.tsx:1:17 - error TS2300: Duplicate identifier 'useState'.
+
+1 import React, { useState, useCallback } from 'react';
+                  ~~~~~~~~
+
+src/components/lms/RosterSyncDashboard.tsx:1:27 - error TS2300: Duplicate identifier 'useCallback'.
+
+1 import React, { useState, useCallback } from 'react';
+                            ~~~~~~~~~~~
+
+src/components/lms/RosterSyncDashboard.tsx:409:8 - error TS2300: Duplicate identifier 'React'.
+
+409 import React, { useState, useCallback } from 'react';
+           ~~~~~
+
+src/components/lms/RosterSyncDashboard.tsx:409:17 - error TS2300: Duplicate identifier 'useState'.
+
+409 import React, { useState, useCallback } from 'react';
+                    ~~~~~~~~
+
+src/components/lms/RosterSyncDashboard.tsx:409:27 - error TS2300: Duplicate identifier 'useCallback'.
+
+409 import React, { useState, useCallback } from 'react';
+                              ~~~~~~~~~~~
+
+src/contexts/AIContext.tsx:104:11 - error TS2339: Property 'emit' does not exist on type 'UseWebSocketReturn'.
+
+104   const { emit, on, off, isConnected } = useWebSocket();
+              ~~~~
+
+src/contexts/AIContext.tsx:104:17 - error TS2339: Property 'on' does not exist on type 'UseWebSocketReturn'.
+
+104   const { emit, on, off, isConnected } = useWebSocket();
+                    ~~
+
+src/contexts/AIContext.tsx:104:21 - error TS2339: Property 'off' does not exist on type 'UseWebSocketReturn'.
+
+104   const { emit, on, off, isConnected } = useWebSocket();
+                        ~~~
+
+src/contexts/AIContext.tsx:104:42 - error TS2554: Expected 1 arguments, but got 0.
+
+104   const { emit, on, off, isConnected } = useWebSocket();
+                                             ~~~~~~~~~~~~
+
+  src/hooks/useWebSocket.ts:63:30
+    63 export function useWebSocket(config: WebSocketConfig): UseWebSocketReturn {
+                                    ~~~~~~~~~~~~~~~~~~~~~~~
+    An argument for 'config' was not provided.
+
+src/contexts/AILearningContext.tsx:126:22 - error TS2451: Cannot redeclare block-scoped variable 'setActivePath'.
+
+126   const [activePath, setActivePath] = useState<AILearningPath | null>(null);
+                         ~~~~~~~~~~~~~
+
+src/contexts/AILearningContext.tsx:355:9 - error TS2451: Cannot redeclare block-scoped variable 'setActivePath'.
+
+355   const setActivePath = useCallback(async (pathId: string) => {
+            ~~~~~~~~~~~~~
+
+src/contexts/AILearningContext.tsx:455:5 - error TS2322: Type 'Dispatch<SetStateAction<AILearningPath>>' is not assignable to type '(pathId: string) => Promise<void>'.
+  Types of parameters 'value' and 'pathId' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<AILearningPath>'.
+
+455     setActivePath,
+        ~~~~~~~~~~~~~
+
+  src/contexts/AILearningContext.tsx:106:3
+    106   setActivePath: (pathId: string) => Promise<void>;
+          ~~~~~~~~~~~~~
+    The expected type comes from property 'setActivePath' which is declared here on type 'AIContextType'
+
+src/contexts/AssessmentContext.tsx:212:11 - error TS2322: Type '{ id: string; title: string; description: string; type?: "quiz" | "exam" | "practice" | "challenge"; questions: Question[]; settings: { timeLimit?: number; allowBackNavigation: boolean; showResults: boolean; showCorrectAnswers: boolean; shuffleQuestions: boolean; shuffleOptions: boolean; passingScore: number; maxAtt...' is not assignable to type 'Assessment'.
+  Property 'type' is optional in type '{ id: string; title: string; description: string; type?: "quiz" | "exam" | "practice" | "challenge"; questions: Question[]; settings: { timeLimit?: number; allowBackNavigation: boolean; ... 8 more ...; cameraRequired: boolean; }; availability: { ...; }; metadata: { ...; }; }' but required in type 'Assessment'.
+
+212     const newAssessment: Assessment = {
+              ~~~~~~~~~~~~~
+
+src/contexts/AssessmentContext.tsx:702:5 - error TS2322: Type '() => Promise<AssessmentSession>' is not assignable to type '() => Promise<void>'.
+  Type 'Promise<AssessmentSession>' is not assignable to type 'Promise<void>'.
+    Type 'AssessmentSession' is not assignable to type 'void'.
+
+702     finishSession,
+        ~~~~~~~~~~~~~
+
+  src/contexts/AssessmentContext.tsx:145:3
+    145   finishSession: () => Promise<void>;
+          ~~~~~~~~~~~~~
+    The expected type comes from property 'finishSession' which is declared here on type 'AssessmentContextType'
+
+src/contexts/CodeExecutionContext.tsx:2:74 - error TS2307: Cannot find module './useWebSocket' or its corresponding type declarations.
+
+2 import { useWebSocket, WebSocketMessage, WebSocketConnectionState } from './useWebSocket';
+                                                                           ~~~~~~~~~~~~~~~~
+
+src/contexts/CodeExecutionContext.tsx:60:30 - error TS2304: Cannot find name 'createContext'.
+
+60 const CodeExecutionContext = createContext<CodeExecutionContextType | null>(null);
+                                ~~~~~~~~~~~~~
+
+src/contexts/CodeExecutionContext.tsx:241:19 - error TS2552: Cannot find name 'useContext'. Did you mean 'context'?
+
+241   const context = useContext(CodeExecutionContext);
+                      ~~~~~~~~~~
+
+  src/contexts/CodeExecutionContext.tsx:241:9
+    241   const context = useContext(CodeExecutionContext);
+                ~~~~~~~
+    'context' is declared here.
+
+src/contexts/CollaborationContext.tsx:194:12 - error TS2678: Type '"collab.session.joined"' is not comparable to type 'WebSocketMessageType'.
+
+194       case 'collab.session.joined':
+               ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:195:29 - error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{ session: CollaborationSession; peers: Peer[]; }'.
+  Type '{}' is missing the following properties from type '{ session: CollaborationSession; peers: Peer[]; }': session, peers
+
+195         handleSessionJoined(message.payload);
+                                ~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:197:12 - error TS2678: Type '"collab.peer.joined"' is not comparable to type 'WebSocketMessageType'.
+
+197       case 'collab.peer.joined':
+               ~~~~~~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:198:26 - error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Peer'.
+  Type '{}' is missing the following properties from type 'Peer': userId, name, color, cursor, and 3 more.
+
+198         handlePeerJoined(message.payload);
+                             ~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:200:12 - error TS2678: Type '"collab.peer.left"' is not comparable to type 'WebSocketMessageType'.
+
+200       case 'collab.peer.left':
+               ~~~~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:201:24 - error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{ userId: string; }'.
+  Property 'userId' is missing in type '{}' but required in type '{ userId: string; }'.
+
+201         handlePeerLeft(message.payload);
+                           ~~~~~~~~~~~~~~~
+
+  src/contexts/CollaborationContext.tsx:247:50
+    247   const handlePeerLeft = useCallback((payload: { userId: string }) => {
+                                                         ~~~~~~
+    'userId' is declared here.
+
+src/contexts/CollaborationContext.tsx:203:12 - error TS2678: Type '"collab.cursor.update"' is not comparable to type 'WebSocketMessageType'.
+
+203       case 'collab.cursor.update':
+               ~~~~~~~~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:204:28 - error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{ userId: string; cursor: CursorPosition; }'.
+  Type '{}' is missing the following properties from type '{ userId: string; cursor: CursorPosition; }': userId, cursor
+
+204         handleCursorUpdate(message.payload);
+                               ~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:206:12 - error TS2678: Type '"collab.selection.update"' is not comparable to type 'WebSocketMessageType'.
+
+206       case 'collab.selection.update':
+               ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:207:31 - error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{ userId: string; selection: SelectionRange; }'.
+  Type '{}' is missing the following properties from type '{ userId: string; selection: SelectionRange; }': userId, selection
+
+207         handleSelectionUpdate(message.payload);
+                                  ~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:209:12 - error TS2678: Type '"collab.operation"' is not comparable to type 'WebSocketMessageType'.
+
+209       case 'collab.operation':
+               ~~~~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:210:25 - error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'CodeOperation'.
+  Type '{}' is missing the following properties from type 'CodeOperation': id, type, position, version, and 2 more.
+
+210         handleOperation(message.payload);
+                            ~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:212:12 - error TS2678: Type '"collab.chat.message"' is not comparable to type 'WebSocketMessageType'.
+
+212       case 'collab.chat.message':
+               ~~~~~~~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:213:27 - error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'ChatMessage'.
+  Type '{}' is missing the following properties from type 'ChatMessage': id, userId, userName, content, and 2 more.
+
+213         handleChatMessage(message.payload);
+                              ~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:215:12 - error TS2678: Type '"collab.sync.progress"' is not comparable to type 'WebSocketMessageType'.
+
+215       case 'collab.sync.progress':
+               ~~~~~~~~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:218:12 - error TS2678: Type '"collab.sync.completed"' is not comparable to type 'WebSocketMessageType'.
+
+218       case 'collab.sync.completed':
+               ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:219:93 - error TS2339: Property 'version' does not exist on type 'unknown'.
+
+219         setState(prev => ({ ...prev, syncStatus: 'synced', documentVersion: message.payload.version }));
+                                                                                                ~~~~~~~
+
+src/contexts/CollaborationContext.tsx:221:12 - error TS2678: Type '"collab.connection.quality"' is not comparable to type 'WebSocketMessageType'.
+
+221       case 'collab.connection.quality':
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:222:18 - error TS2345: Argument of type '(prev: CollaborationState) => { connectionQuality: unknown; currentSession: CollaborationSession; isConnected: boolean; isConnecting: boolean; ... 7 more ...; syncStatus: "offline" | ... 2 more ... | "syncing"; }' is not assignable to parameter of type 'SetStateAction<CollaborationState>'.
+  Type '(prev: CollaborationState) => { connectionQuality: unknown; currentSession: CollaborationSession; isConnected: boolean; isConnecting: boolean; ... 7 more ...; syncStatus: "offline" | ... 2 more ... | "syncing"; }' is not assignable to type '(prevState: CollaborationState) => CollaborationState'.
+    Call signature return types '{ connectionQuality: unknown; currentSession: CollaborationSession; isConnected: boolean; isConnecting: boolean; peers: Peer[]; localUserId: string; localUserName: string; ... 4 more ...; syncStatus: "offline" | ... 2 more ... | "syncing"; }' and 'CollaborationState' are incompatible.
+      The types of 'connectionQuality' are incompatible between these types.
+        Type 'unknown' is not assignable to type '"excellent" | "good" | "poor" | "disconnected"'.
+
+222         setState(prev => ({ ...prev, connectionQuality: message.payload }));
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+src/contexts/CollaborationContext.tsx:335:7 - error TS2322: Type '"collab.join"' is not assignable to type 'WebSocketMessageType'.
+
+335       type: 'collab.join',
+          ~~~~
+
+  src/hooks/useWebSocket.ts:31:3
+    31   type: WebSocketMessageType;
+         ~~~~
+    The expected type comes from property 'type' which is declared here on type 'WebSocketMessage<unknown>'
+
+src/contexts/CollaborationContext.tsx:344:9 - error TS2322: Type '"collab.leave"' is not assignable to type 'WebSocketMessageType'.
+
+344         type: 'collab.leave',
+            ~~~~
+
+  src/hooks/useWebSocket.ts:31:3
+    31   type: WebSocketMessageType;
+         ~~~~
+    The expected type comes from property 'type' which is declared here on type 'WebSocketMessage<unknown>'
+
+src/contexts/CollaborationContext.tsx:436:7 - error TS2322: Type '"collab.operation"' is not assignable to type 'WebSocketMessageType'.
+
+436       type: 'collab.operation',
+          ~~~~
+
+  src/hooks/useWebSocket.ts:31:3
+    31   type: WebSocketMessageType;
+         ~~~~
+    The expected type comes from property 'type' which is declared here on type 'WebSocketMessage<unknown>'
+
+src/contexts/CollaborationContext.tsx:468:7 - error TS2322: Type '"collab.cursor.update"' is not assignable to type 'WebSocketMessageType'.
+
+468       type: 'collab.cursor.update',
+          ~~~~
+
+  src/hooks/useWebSocket.ts:31:3
+    31   type: WebSocketMessageType;
+         ~~~~
+    The expected type comes from property 'type' which is declared here on type 'WebSocketMessage<unknown>'
+
+src/contexts/CollaborationContext.tsx:478:7 - error TS2820: Type '"collab.selection.update"' is not assignable to type 'WebSocketMessageType'. Did you mean '"collaboration.update"'?
+
+478       type: 'collab.selection.update',
+          ~~~~
+
+  src/hooks/useWebSocket.ts:31:3
+    31   type: WebSocketMessageType;
+         ~~~~
+    The expected type comes from property 'type' which is declared here on type 'WebSocketMessage<unknown>'
+
+src/contexts/CollaborationContext.tsx:499:7 - error TS2322: Type '"collab.chat.message"' is not assignable to type 'WebSocketMessageType'.
+
+499       type: 'collab.chat.message',
+          ~~~~
+
+  src/hooks/useWebSocket.ts:31:3
+    31   type: WebSocketMessageType;
+         ~~~~
+    The expected type comes from property 'type' which is declared here on type 'WebSocketMessage<unknown>'
+
+src/contexts/CurriculumContext.tsx:290:10 - error TS2678: Type '"SET_UNSAAVED_CHANGES"' is not comparable to type '"SET_LOADING" | "SET_ERROR" | "SET_COURSES" | "SET_LEARNING_PATHS" | "SELECT_COURSE" | "SELECT_MODULE" | "CREATE_DRAFT_COURSE" | "UPDATE_DRAFT_COURSE" | "ADD_MODULE_TO_DRAFT" | ... 13 more ... | "ARCHIVE_COURSE"'.
+
+290     case 'SET_UNSAAVED_CHANGES':
+             ~~~~~~~~~~~~~~~~~~~~~~
+
+src/contexts/CurriculumContext.tsx:291:52 - error TS2339: Property 'payload' does not exist on type 'never'.
+
+291       return { ...state, hasUnsavedChanges: action.payload };
+                                                       ~~~~~~~
+
+src/contexts/CurriculumContext.tsx:398:11 - error TS2322: Type '{ id: string; title: string; description: string; thumbnail?: string; category?: string; tags: string[]; modules: CourseModule[]; settings: { isPublic: boolean; allowLateSubmission: boolean; enableDiscussions: boolean; passingScore: number; }; metadata: { createdAt: string; updatedAt: string; authorId: string; versi...' is not assignable to type 'Course'.
+  Property 'category' is optional in type '{ id: string; title: string; description: string; thumbnail?: string; category?: string; tags: string[]; modules: CourseModule[]; settings: { isPublic: boolean; allowLateSubmission: boolean; enableDiscussions: boolean; passingScore: number; }; metadata: { ...; }; }' but required in type 'Course'.
+
+398     const newCourse: Course = {
+              ~~~~~~~~~
+
+src/contexts/CurriculumContext.tsx:499:11 - error TS2322: Type '{ id: string; title: string; description: string; courses: { courseId: string; order: number; required: boolean; unlockCondition?: { type: "prerequisite" | "time"; courseId?: string; daysAfterEnrollment?: number; }; }[]; targetAudience: "beginner" | "intermediate" | "advanced" | "all"; estimatedDuration?: number; sk...' is not assignable to type 'LearningPath'.
+  Property 'estimatedDuration' is optional in type '{ id: string; title: string; description: string; courses: { courseId: string; order: number; required: boolean; unlockCondition?: { type: "time" | "prerequisite"; courseId?: string; daysAfterEnrollment?: number; }; }[]; targetAudience: "beginner" | ... 2 more ... | "all"; estimatedDuration?: number; skills: string[...' but required in type 'LearningPath'.
+
+499     const newPath: LearningPath = {
+              ~~~~~~~
+
+src/contexts/CurriculumContext.tsx:603:16 - error TS2339: Property 'prerequisites' does not exist on type 'CourseModule'.
+
+603         module.prerequisites.forEach((prereq) => {
+                   ~~~~~~~~~~~~~
+
+src/contexts/GamificationContext.tsx:621:14 - error TS2345: Argument of type '(prev: GamificationState) => { notifications: GamificationNotification[]; unreadCount: (n: any) => number; currentXP: number; totalXP: number; ... 8 more ...; pendingXPGains: XPGain[]; }' is not assignable to parameter of type 'SetStateAction<GamificationState>'.
+  Type '(prev: GamificationState) => { notifications: GamificationNotification[]; unreadCount: (n: any) => number; currentXP: number; totalXP: number; ... 8 more ...; pendingXPGains: XPGain[]; }' is not assignable to type '(prevState: GamificationState) => GamificationState'.
+    Call signature return types '{ notifications: GamificationNotification[]; unreadCount: (n: any) => number; currentXP: number; totalXP: number; level: UserLevel; streak: StreakData; ... 6 more ...; pendingXPGains: XPGain[]; }' and 'GamificationState' are incompatible.
+      The types of 'unreadCount' are incompatible between these types.
+        Type '(n: any) => number' is not assignable to type 'number'.
+
+621     setState(prev => ({
+                 ~~~~~~~~~~
+622       ...prev,
+    ~~~~~~~~~~~~~~
+... 
+624       unreadCount: n => Math.max(0, n - 1)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+625     }));
+    ~~~~~~
+
+src/contexts/LMSIntegrationContext.tsx:178:31 - error TS2304: Cannot find name 'createContext'.
+
+178 const LMSIntegrationContext = createContext<LMSIntegrationContextType | null>(null);
+                                  ~~~~~~~~~~~~~
+
+src/contexts/LMSIntegrationContext.tsx:769:19 - error TS2304: Cannot find name 'useContext'.
+
+769   const context = useContext(LMSIntegrationContext);
+                      ~~~~~~~~~~
+
+src/contexts/SchedulerContext.tsx:423:9 - error TS2322: Type 'unknown' is not assignable to type 'string'.
+
+423         type: template.defaultConfig.actionType || 'custom',
+            ~~~~
+
+  src/contexts/SchedulerContext.tsx:12:5
+    12     type: string;
+           ~~~~
+    The expected type comes from property 'type' which is declared here on type '{ type: string; config: Record<string, unknown>; }'
+
+src/contexts/index.ts:100:3 - error TS2724: '"./NotificationContext"' has no exported member named 'Notification'. Did you mean 'NotificationType'?
+
+100   Notification,
+      ~~~~~~~~~~~~
+
+src/contexts/index.ts:102:3 - error TS2614: Module '"./NotificationContext"' has no exported member 'ChatMessage'. Did you mean to use 'import ChatMessage from "./NotificationContext"' instead?
+
+102   ChatMessage as NotificationChatMessage,
+      ~~~~~~~~~~~
+
+src/contexts/index.ts:104:3 - error TS2614: Module '"./NotificationContext"' has no exported member 'NotificationPreferences'. Did you mean to use 'import NotificationPreferences from "./NotificationContext"' instead?
+
+104   NotificationPreferences,
+      ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/hooks/ai/useSkillGraph.ts:2:52 - error TS2724: '"../../contexts/AILearningContext"' has no exported member named 'LearningPath'. Did you mean 'AILearningPath'?
+
+2 import { useAI, SkillNode, LearningRecommendation, LearningPath } from '../../contexts/AILearningContext';
+                                                     ~~~~~~~~~~~~
+
+src/hooks/communication/useWebRTC.ts:186:29 - error TS2339: Property 'availableDevices' does not exist on type 'VideoRoomState'.
+
+186     availableDevices: state.availableDevices,
+                                ~~~~~~~~~~~~~~~~
+
+src/hooks/communication/useWebRTC.ts:187:28 - error TS2339: Property 'selectedDevices' does not exist on type 'VideoRoomState'.
+
+187     selectedDevices: state.selectedDevices,
+                               ~~~~~~~~~~~~~~~
+
+src/hooks/content/useCourseBuilder.ts:199:27 - error TS2448: Block-scoped variable 'validateCourse' used before its declaration.
+
+199   }, [course, saveCourse, validateCourse]);
+                              ~~~~~~~~~~~~~~
+
+  src/hooks/content/useCourseBuilder.ts:449:9
+    449   const validateCourse = useCallback((): { isValid: boolean; errors: string[] } => {
+                ~~~~~~~~~~~~~~
+    'validateCourse' is declared here.
+
+src/hooks/index.ts:8:3 - error TS2724: '"./useWebSocket"' has no exported member named 'UseWebSocketReturn'. Did you mean 'useWebSocket'?
+
+8   UseWebSocketReturn
+    ~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useWebSocket.ts:63:17
+    63 export function useWebSocket(config: WebSocketConfig): UseWebSocketReturn {
+                       ~~~~~~~~~~~~
+    'useWebSocket' is declared here.
+
+src/hooks/index.ts:13:3 - error TS2724: '"./useCodeExecution"' has no exported member named 'UseCodeExecutionOptions'. Did you mean 'useCodeExecution'?
+
+13   UseCodeExecutionOptions,
+     ~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useCodeExecution.ts:53:17
+    53 export function useCodeExecution(options: UseCodeExecutionOptions = {}): UseCodeExecutionReturn {
+                       ~~~~~~~~~~~~~~~~
+    'useCodeExecution' is declared here.
+
+src/hooks/index.ts:14:3 - error TS2724: '"./useCodeExecution"' has no exported member named 'UseCodeExecutionReturn'. Did you mean 'useCodeExecution'?
+
+14   UseCodeExecutionReturn
+     ~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useCodeExecution.ts:53:17
+    53 export function useCodeExecution(options: UseCodeExecutionOptions = {}): UseCodeExecutionReturn {
+                       ~~~~~~~~~~~~~~~~
+    'useCodeExecution' is declared here.
+
+src/hooks/index.ts:19:3 - error TS2724: '"./useLMSIntegration"' has no exported member named 'UseLMSIntegrationOptions'. Did you mean 'useLMSIntegration'?
+
+19   UseLMSIntegrationOptions,
+     ~~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useLMSIntegration.ts:88:17
+    88 export function useLMSIntegration(options: UseLMSIntegrationOptions = {}): UseLMSIntegrationReturn {
+                       ~~~~~~~~~~~~~~~~~
+    'useLMSIntegration' is declared here.
+
+src/hooks/index.ts:20:3 - error TS2724: '"./useLMSIntegration"' has no exported member named 'UseLMSIntegrationReturn'. Did you mean 'useLMSIntegration'?
+
+20   UseLMSIntegrationReturn
+     ~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useLMSIntegration.ts:88:17
+    88 export function useLMSIntegration(options: UseLMSIntegrationOptions = {}): UseLMSIntegrationReturn {
+                       ~~~~~~~~~~~~~~~~~
+    'useLMSIntegration' is declared here.
+
+src/hooks/index.ts:26:3 - error TS2724: '"./useCollaborationSession"' has no exported member named 'UseCollaborationSessionOptions'. Did you mean 'useCollaborationSession'?
+
+26   UseCollaborationSessionOptions,
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useCollaborationSession.ts:65:17
+    65 export function useCollaborationSession(options: UseCollaborationSessionOptions): UseCollaborationSessionReturn {
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+    'useCollaborationSession' is declared here.
+
+src/hooks/index.ts:27:3 - error TS2724: '"./useCollaborationSession"' has no exported member named 'UseCollaborationSessionReturn'. Did you mean 'useCollaborationSession'?
+
+27   UseCollaborationSessionReturn
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useCollaborationSession.ts:65:17
+    65 export function useCollaborationSession(options: UseCollaborationSessionOptions): UseCollaborationSessionReturn {
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+    'useCollaborationSession' is declared here.
+
+src/hooks/index.ts:33:3 - error TS2724: '"./useGamification"' has no exported member named 'UseGamificationOptions'. Did you mean 'useGamification'?
+
+33   UseGamificationOptions,
+     ~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useGamification.ts:53:17
+    53 export function useGamification(options: UseGamificationOptions = {}): UseGamificationReturn {
+                       ~~~~~~~~~~~~~~~
+    'useGamification' is declared here.
+
+src/hooks/index.ts:34:3 - error TS2724: '"./useGamification"' has no exported member named 'UseGamificationReturn'. Did you mean 'useGamification'?
+
+34   UseGamificationReturn
+     ~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useGamification.ts:53:17
+    53 export function useGamification(options: UseGamificationOptions = {}): UseGamificationReturn {
+                       ~~~~~~~~~~~~~~~
+    'useGamification' is declared here.
+
+src/hooks/index.ts:44:3 - error TS2724: '"./useAnalytics"' has no exported member named 'UsePerformanceMetricsOptions'. Did you mean 'usePerformanceMetrics'?
+
+44   UsePerformanceMetricsOptions,
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useAnalytics.ts:34:17
+    34 export function usePerformanceMetrics(options: UsePerformanceMetricsOptions = {}): UsePerformanceMetricsReturn {
+                       ~~~~~~~~~~~~~~~~~~~~~
+    'usePerformanceMetrics' is declared here.
+
+src/hooks/index.ts:45:3 - error TS2724: '"./useAnalytics"' has no exported member named 'UsePerformanceMetricsReturn'. Did you mean 'usePerformanceMetrics'?
+
+45   UsePerformanceMetricsReturn,
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useAnalytics.ts:34:17
+    34 export function usePerformanceMetrics(options: UsePerformanceMetricsOptions = {}): UsePerformanceMetricsReturn {
+                       ~~~~~~~~~~~~~~~~~~~~~
+    'usePerformanceMetrics' is declared here.
+
+src/hooks/index.ts:46:3 - error TS2724: '"./useAnalytics"' has no exported member named 'UseEngagementDataOptions'. Did you mean 'useEngagementData'?
+
+46   UseEngagementDataOptions,
+     ~~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useAnalytics.ts:152:17
+    152 export function useEngagementData(options: UseEngagementDataOptions = {}): UseEngagementDataReturn {
+                        ~~~~~~~~~~~~~~~~~
+    'useEngagementData' is declared here.
+
+src/hooks/index.ts:47:3 - error TS2724: '"./useAnalytics"' has no exported member named 'UseEngagementDataReturn'. Did you mean 'useEngagementData'?
+
+47   UseEngagementDataReturn,
+     ~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useAnalytics.ts:152:17
+    152 export function useEngagementData(options: UseEngagementDataOptions = {}): UseEngagementDataReturn {
+                        ~~~~~~~~~~~~~~~~~
+    'useEngagementData' is declared here.
+
+src/hooks/index.ts:48:3 - error TS2724: '"./useAnalytics"' has no exported member named 'UseStudentAnalyticsOptions'. Did you mean 'useStudentAnalytics'?
+
+48   UseStudentAnalyticsOptions,
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useAnalytics.ts:284:17
+    284 export function useStudentAnalytics(options: UseStudentAnalyticsOptions = {}): UseStudentAnalyticsReturn {
+                        ~~~~~~~~~~~~~~~~~~~
+    'useStudentAnalytics' is declared here.
+
+src/hooks/index.ts:49:3 - error TS2724: '"./useAnalytics"' has no exported member named 'UseStudentAnalyticsReturn'. Did you mean 'useStudentAnalytics'?
+
+49   UseStudentAnalyticsReturn
+     ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/useAnalytics.ts:284:17
+    284 export function useStudentAnalytics(options: UseStudentAnalyticsOptions = {}): UseStudentAnalyticsReturn {
+                        ~~~~~~~~~~~~~~~~~~~
+    'useStudentAnalytics' is declared here.
+
+src/hooks/index.ts:96:3 - error TS2614: Module '"./ai/useSkillGraph"' has no exported member 'UseSkillGraphOptions'. Did you mean to use 'import UseSkillGraphOptions from "./ai/useSkillGraph"' instead?
+
+96   UseSkillGraphOptions,
+     ~~~~~~~~~~~~~~~~~~~~
+
+src/hooks/index.ts:97:3 - error TS2724: '"./ai/useSkillGraph"' has no exported member named 'UseSkillGraphReturn'. Did you mean 'useSkillGraph'?
+
+97   UseSkillGraphReturn
+     ~~~~~~~~~~~~~~~~~~~
+
+  src/hooks/ai/useSkillGraph.ts:45:17
+    45 export function useSkillGraph(options: UseSkillGraphOptions = {}): UseSkillGraphReturn {
+                       ~~~~~~~~~~~~~
+    'useSkillGraph' is declared here.
+
+src/hooks/index.ts:103:3 - error TS2614: Module '"./communication/useWebRTC"' has no exported member 'UseWebRTCOptions'. Did you mean to use 'import UseWebRTCOptions from "./communication/useWebRTC"' instead?
+
+103   UseWebRTCOptions,
+      ~~~~~~~~~~~~~~~~
+
+src/hooks/index.ts:104:3 - error TS2614: Module '"./communication/useWebRTC"' has no exported member 'UseWebRTCReturn'. Did you mean to use 'import UseWebRTCReturn from "./communication/useWebRTC"' instead?
+
+104   UseWebRTCReturn
+      ~~~~~~~~~~~~~~~
+
+src/hooks/useAdminPermissions.tsx:6:10 - error TS2614: Module '"../contexts/AdminContext"' has no exported member 'AdminPermissions'. Did you mean to use 'import AdminPermissions from "../contexts/AdminContext"' instead?
+
+6 import { AdminPermissions } from '../contexts/AdminContext';
+           ~~~~~~~~~~~~~~~~
+
+src/hooks/useAnalytics.ts:50:5 - error TS2339: Property 'refresh' does not exist on type 'AnalyticsContextType'.
+
+50     refresh
+       ~~~~~~~
+
+src/hooks/useAnalytics.ts:170:5 - error TS2339: Property 'refresh' does not exist on type 'AnalyticsContextType'.
+
+170     refresh
+        ~~~~~~~
+
+src/hooks/useAnalytics.ts:297:5 - error TS2339: Property 'refresh' does not exist on type 'AnalyticsContextType'.
+
+297     refresh
+        ~~~~~~~
+
+src/hooks/useCollaborationSession.ts:113:11 - error TS2588: Cannot assign to 'roomId' because it is a constant.
+
+113           roomId = session.id;
+              ~~~~~~
+
+src/hooks/useCollaborationSession.ts:182:20 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+182     setPeers(state.state.peers);
+                       ~~~~~
+
+src/hooks/useCollaborationSession.ts:183:30 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+183     setDocumentVersion(state.state.documentVersion);
+                                 ~~~~~
+
+src/hooks/useCollaborationSession.ts:184:25 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+184     setSyncStatus(state.state.syncStatus);
+                            ~~~~~
+
+src/hooks/useCollaborationSession.ts:185:27 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+185     setChatMessages(state.state.chatMessages);
+                              ~~~~~
+
+src/hooks/useCollaborationSession.ts:186:26 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+186     setUnreadCount(state.state.unreadCount);
+                             ~~~~~
+
+src/hooks/useCollaborationSession.ts:187:32 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+187     setConnectionQuality(state.state.connectionQuality);
+                                   ~~~~~
+
+src/hooks/useCollaborationSession.ts:188:26 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+188     setIsConnected(state.state.isConnected);
+                             ~~~~~
+
+src/hooks/useCollaborationSession.ts:189:27 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+189     setIsConnecting(state.state.isConnecting);
+                              ~~~~~
+
+src/hooks/useCollaborationSession.ts:192:21 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+192       userId: state.state.localUserId,
+                        ~~~~~
+
+src/hooks/useCollaborationSession.ts:193:19 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+193       name: state.state.localUserName,
+                      ~~~~~
+
+src/hooks/useCollaborationSession.ts:200:13 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+200   }, [state.state]);
+                ~~~~~
+
+src/hooks/useCollaborationSession.ts:217:44 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+217     const newPeer = peers.find(p => !state.state.peers.find(sp => sp.userId === p.userId));
+                                               ~~~~~
+
+src/hooks/useCollaborationSession.ts:224:28 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+224     const leftPeer = state.state.peers.find(p => !peers.find(sp => sp.userId === p.userId));
+                               ~~~~~
+
+src/hooks/useCollaborationSession.ts:228:13 - error TS2339: Property 'state' does not exist on type 'CollaborationState'.
+
+228   }, [state.state.peers, peers, onPeerLeave]);
+                ~~~~~
+
+src/hooks/useGamification.ts:2:10 - error TS2440: Import declaration conflicts with local declaration of 'useGamification'.
+
+2 import { useGamification, Badge, Challenge, Leaderboard, XPGain } from '../contexts/GamificationContext';
+           ~~~~~~~~~~~~~~~
+
+src/hooks/useGamification.ts:65:5 - error TS2339: Property 'state' does not exist on type 'UseGamificationReturn'.
+
+65     state,
+       ~~~~~
+
+src/hooks/useGamification.ts:67:5 - error TS2339: Property 'spendXP' does not exist on type 'UseGamificationReturn'.
+
+67     spendXP,
+       ~~~~~~~
+
+src/hooks/useGamification.ts:68:5 - error TS2339: Property 'checkLevelUp' does not exist on type 'UseGamificationReturn'.
+
+68     checkLevelUp,
+       ~~~~~~~~~~~~
+
+src/hooks/useGamification.ts:71:5 - error TS2339: Property 'unlockBadge' does not exist on type 'UseGamificationReturn'.
+
+71     unlockBadge,
+       ~~~~~~~~~~~
+
+src/hooks/useGamification.ts:72:5 - error TS2339: Property 'getBadgeProgress' does not exist on type 'UseGamificationReturn'.
+
+72     getBadgeProgress,
+       ~~~~~~~~~~~~~~~~
+
+src/hooks/useGamification.ts:74:5 - error TS2339: Property 'updateChallengeProgress' does not exist on type 'UseGamificationReturn'.
+
+74     updateChallengeProgress,
+       ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/hooks/useGamification.ts:76:5 - error TS2339: Property 'loadUserProgress' does not exist on type 'UseGamificationReturn'.
+
+76     loadUserProgress
+       ~~~~~~~~~~~~~~~~
+
+
+Found 283 errors.
+
+ ELIFECYCLE  Command failed with exit code 2.
