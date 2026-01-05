@@ -895,6 +895,13 @@
 # uploads/
 # downloads/
 
+# Files and directories to exclude from version control
+browser/
+user_input_files/
+workspace.json
+.jaccache/
+pyproject.toml
+
 # Claude Agent SDK debug files
 **/.claude/debug/
 **/.claude/debug/**
