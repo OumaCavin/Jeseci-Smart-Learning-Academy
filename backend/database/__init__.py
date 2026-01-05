@@ -516,5 +516,8 @@ def run_database_migrations():
 
 
 # Auto-run migrations on module import
-# Uncomment the line below to enable automatic migration on startup
-# run_database_migrations()
+# This ensures database schema is up to date when the application starts
+try:
+    run_database_migrations()
+except Exception as e:
+    logger.warning(f"Initial migration attempt deferred: {e}")
