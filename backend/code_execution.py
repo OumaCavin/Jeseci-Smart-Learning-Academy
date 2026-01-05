@@ -814,3 +814,96 @@ def evaluate_expression(code: str, expression: str, current_line: int = 1, varia
             "success": False,
             "error": str(e)
         }
+
+
+def compile_to_ir(code: str, entry_point: str = "init") -> Dict[str, Any]:
+    """
+    Compile Jaclang code to Intermediate Representation (IR).
+    
+    Args:
+        code: Jaclang code to compile
+        entry_point: Entry point walker/function
+        
+    Returns:
+        Dict with success status, ir_output, and any errors
+    """
+    import tempfile
+    import shutil
+    
+    executor = MultiLanguageExecutor()
+    
+    # Validate input
+    if not code or not code.strip():
+        return {
+            "success": False,
+            "error": "No code provided",
+            "ir_output": None
+        }
+    
+    # Create temporary directory
+    temp_dir = tempfile.mkdtemp(prefix="compile_ir_")
+    try:
+        # Write code to file
+        code_file = executor.sandbox.write_code_file(temp_dir, code, "jac")
+        
+        # Build compile command
+        cmd = ['jac', 'compile', '--ir', code_file]
+        if entry_point:
+            cmd.extend(['--entry', entry_point])
+        
+        # Execute compile command
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            cwd=temp_dir
+        )
+        
+        if result.returncode == 0:
+            # Compilation successful - look for IR output
+            ir_file = code_file.replace('.jac', '.ir')
+            if os.path.exists(ir_file):
+                with open(ir_file, 'r') as f:
+                    ir_output = f.read()
+                return {
+                    "success": True,
+                    "ir_output": ir_output,
+                    "error": None
+                }
+            else:
+                return {
+                    "success": True,
+                    "ir_output": result.stdout,
+                    "error": None
+                }
+        else:
+            return {
+                "success": False,
+                "ir_output": None,
+                "error": result.stderr.strip() or "Compilation failed"
+            }
+    except subprocess.TimeoutExpired:
+        return {
+            "success": False,
+            "ir_output": None,
+            "error": "Compilation timed out after 30 seconds"
+        }
+    except FileNotFoundError:
+        return {
+            "success": False,
+            "ir_output": None,
+            "error": "jac command not found. Please install jaclang package."
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "ir_output": None,
+            "error": str(e)
+        }
+    finally:
+        # Cleanup
+        try:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        except Exception:
+            pass
