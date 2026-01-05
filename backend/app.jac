@@ -2070,9 +2070,9 @@ walker testimonials {
     has featured_only: bool = false;
 
     can testimonials with entry {
-        import database as db_module;
+        import testimonials_store as testimonial_module;
 
-        result = db_module.get_approved_testimonials(self.limit, self.featured_only);
+        result = testimonial_module.sync_get_approved_testimonials(self.limit, self.featured_only);
 
         if result['success'] {
             report {
@@ -2096,7 +2096,7 @@ walker testimonial_create {
     has avatar_url: str = "";
 
     can testimonial_create with entry {
-        import database as db_module;
+        import testimonials_store as testimonial_module;
 
         if not self.name or not self.content {
             report {"success": False, "error": "Name and content are required"} ;
@@ -2108,18 +2108,13 @@ walker testimonial_create {
             return;
         }
 
-        testimonial_data = {
-            "name": self.name,
-            "content": self.content,
-            "role": self.role if self.role else None,
-            "company": self.company if self.company else None,
-            "rating": self.rating,
-            "avatar_url": self.avatar_url if self.avatar_url else None,
-            "is_approved": False,
-            "is_active": True
-        };
-
-        result = db_module.store_testimonial(testimonial_data);
+        result = testimonial_module.sync_create_testimonial(
+            user_id=null,
+            content=self.content,
+            rating=self.rating,
+            student_name=self.name,
+            student_role=self.role if self.role else "Student"
+        );
 
         if result['success'] {
             report {
@@ -5755,6 +5750,7 @@ walker code_execute {
     has mode: str = "run";
     has entry_point: str = "init";
     has snippet_id: str = "";
+    has timeout: int = 30;
 
     can code_execute with entry {
         import code_execution as code_exec_module;
@@ -5774,16 +5770,16 @@ walker code_execute {
         # Execute code based on language and mode
         if self.language == "python" {
             result = code_exec_module.execute_code(
-                code=self.code, language="python", entry_point=self.entry_point, mode=self.mode
+                code=self.code, language="python", entry_point=self.entry_point, mode=self.mode, timeout=self.timeout
             );
         } elif self.language == "javascript" {
             result = code_exec_module.execute_code(
-                code=self.code, language="javascript", entry_point=self.entry_point, mode=self.mode
+                code=self.code, language="javascript", entry_point=self.entry_point, mode=self.mode, timeout=self.timeout
             );
         } else {
             # Default to Jaclang (only run mode supported for now)
             result = code_exec_module.execute_jac_code(
-                code=self.code, entry_point=self.entry_point
+                code=self.code, entry_point=self.entry_point, timeout=self.timeout
             );
         }
 
