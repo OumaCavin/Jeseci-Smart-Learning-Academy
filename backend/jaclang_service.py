@@ -462,6 +462,30 @@ async def validate_and_format_jac_code(request: ValidateRequest):
 # Sync Wrapper Functions for Jaclang Walker Integration
 # =============================================================================
 
+def validate(source_code: str) -> Dict[str, Any]:
+    """
+    Simple wrapper for code validation.
+    Used by Jaclang walkers for better error handling.
+    """
+    return validate_jac_code_sync(source_code)
+
+
+def format_code(code: str) -> Dict[str, Any]:
+    """
+    Simple wrapper for code formatting.
+    Used by Jaclang walkers for code formatting.
+    """
+    return format_jac_code_sync(code)
+
+
+def compile_code(code: str) -> Dict[str, Any]:
+    """
+    Simple wrapper for code compilation/validation.
+    Used by Jaclang walkers for code compilation.
+    """
+    return validate_and_format_jac_code_sync(code)
+
+
 def validate_jac_code_sync(source_code: str) -> Dict[str, Any]:
     """
     Synchronous wrapper for validate_jac_code endpoint.
