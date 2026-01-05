@@ -21,17 +21,18 @@ from logger_config import logger
 @dataclass
 class TeachingStrategy:
     """Represents a teaching strategy for tutoring"""
-    effectiveness_score: float = 0.0
     strategy_id: str
     name: str
     description: str
     techniques: List[str]
     applicable_scenes: List[str]
+    effectiveness_score: float = 0.0
 
 
 @dataclass
 class StudentProfile:
     """Profile of a student for personalized tutoring"""
+    user_id: str
     learning_style: str = "visual"
     skill_level: str = "beginner"
     pace_preference: str = "moderate"
@@ -40,21 +41,20 @@ class StudentProfile:
     weaknesses: List[str] = field(default_factory=list)
     learning_history: List[Dict] = field(default_factory=list)
     preferences: Dict[str, Any] = field(default_factory=dict)
-    user_id: str
 
 
 @dataclass
 class TutoringSession:
     """Represents an active tutoring session"""
+    session_id: str
+    user_id: str
+    topic: str
     start_time: str = field(default_factory=lambda: datetime.now().isoformat())
     current_step: int = 0
     total_steps: int = 0
     status: str = "active"
     engagement_score: float = 0.5
     feedback_history: List[Dict] = field(default_factory=list)
-    session_id: str
-    user_id: str
-    topic: str
 
 
 class TutorAgent(BaseAgent):

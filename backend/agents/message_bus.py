@@ -33,10 +33,10 @@ class DeliveryPattern(Enum):
 @dataclass
 class Topic:
     """Represents a message topic for pub/sub communication"""
+    name: str
     description: str = ""
     subscribers: Set[str] = field(default_factory=set)
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
-    name: str
     
     def subscribe(self, agent_id: str):
         """Subscribe an agent to this topic"""

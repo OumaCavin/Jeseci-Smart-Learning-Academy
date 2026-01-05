@@ -35,13 +35,13 @@ class MasteryRecord:
 @dataclass
 class LearningMetric:
     """A single learning metric"""
-    context: Dict[str, Any] = field(default_factory=dict)
     metric_id: str
     user_id: str
     metric_type: str
     value: float
     unit: str
     timestamp: str
+    context: Dict[str, Any] = field(default_factory=dict)
 
 
 class AnalyticsAgent(BaseAgent):

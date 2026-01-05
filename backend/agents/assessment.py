@@ -22,7 +22,6 @@ from logger_config import logger
 @dataclass
 class QuizQuestion:
     """Represents a quiz question"""
-    hints: List[str] = field(default_factory=list)
     question_id: str
     question_type: str  # multiple_choice, true_false, short_answer, code
     question: str
@@ -32,6 +31,7 @@ class QuizQuestion:
     difficulty: str
     topic: str
     points: int
+    hints: List[str] = field(default_factory=list)
 
 
 @dataclass
