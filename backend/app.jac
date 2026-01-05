@@ -5826,6 +5826,143 @@ walker compile_code {
 }
 
 # ==============================================================================
+# Jaclang Editor Intelligence Endpoints (FastAPI Integration)
+# ==============================================================================
+walker jaclang_validate {
+    has code: str = "";
+    has source_code: str = "";
+
+    can jaclang_validate with entry {
+        # Import FastAPI module for better error handling
+        import jaclang_service as jaclang_module;
+
+        # Support both 'code' and 'source_code' parameters
+        validation_code = self.code if self.code else self.source_code;
+
+        if not validation_code or not validation_code.strip() {
+            report {
+                "success": True,
+                "valid": True,
+                "errors": [],
+                "message": "Empty code is valid"
+            } ;
+            return;
+        }
+
+        # Call FastAPI validate function for better error parsing
+        result = jaclang_module.validate_jac_code_sync(validation_code);
+
+        if result['success'] {
+            report {
+                "success": True,
+                "valid": result.get('valid', True),
+                "errors": result.get('errors', []),
+                "message": result.get('message', 'Code validation complete')
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Validation failed'),
+                "valid": True,
+                "errors": [],
+                "message": result.get('message', 'Validation encountered an error')
+            } ;
+        }
+    }
+}
+
+walker jaclang_format {
+    has code: str = "";
+    has source_code: str = "";
+
+    can jaclang_format with entry {
+        # Import FastAPI module for code formatting
+        import jaclang_service as jaclang_module;
+
+        # Support both 'code' and 'source_code' parameters
+        format_code = self.code if self.code else self.source_code;
+
+        if not format_code or not format_code.strip() {
+            report {
+                "success": True,
+                "formatted_code": "",
+                "changed": False,
+                "error": "Empty code cannot be formatted"
+            } ;
+            return;
+        }
+
+        # Call FastAPI format function for better formatting
+        result = jaclang_module.format_jac_code_sync(format_code);
+
+        if result['success'] {
+            report {
+                "success": True,
+                "formatted_code": result.get('formatted_code', format_code),
+                "changed": result.get('changed', False),
+                "error": result.get('error')
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Formatting failed'),
+                "formatted_code": format_code,
+                "changed": False
+            } ;
+        }
+    }
+}
+
+walker jaclang_validate_and_format {
+    has code: str = "";
+    has source_code: str = "";
+
+    can jaclang_validate_and_format with entry {
+        # Import FastAPI module for combined validation and formatting
+        import jaclang_service as jaclang_module;
+
+        # Support both 'code' and 'source_code' parameters
+        validation_code = self.code if self.code else self.source_code;
+
+        if not validation_code or not validation_code.strip() {
+            report {
+                "success": True,
+                "valid": True,
+                "errors": [],
+                "formatted_code": "",
+                "changed": False,
+                "message": "Empty code is valid"
+            } ;
+            return;
+        }
+
+        # Call FastAPI validate and format function
+        result = jaclang_module.validate_and_format_jac_code_sync(validation_code);
+
+        if result['success'] {
+            report {
+                "success": True,
+                "valid": result.get('valid', True),
+                "errors": result.get('errors', []),
+                "formatted_code": result.get('formatted_code', validation_code),
+                "changed": result.get('changed', False),
+                "message": result.get('message', 'Code validated and formatted')
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Operation failed'),
+                "valid": True,
+                "errors": result.get('errors', []),
+                "formatted_code": validation_code,
+                "changed": False,
+                "message": result.get('message', 'Operation encountered an error')
+            } ;
+        }
+    }
+}
+
+# ==============================================================================
 # Code Snippet Management
 # ==============================================================================
 walker code_snippet {
