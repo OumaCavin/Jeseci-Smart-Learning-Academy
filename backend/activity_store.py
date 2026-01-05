@@ -138,6 +138,13 @@ def log_activity(
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
+            # Resolve numeric ID from string UUID
+            cur.execute(f"SELECT id FROM {DB_SCHEMA}.users WHERE user_id = %s", (user_id,))
+            user_res = cur.fetchone()
+            if not user_res:
+                return {'success': False, 'error': 'User not found'}
+            user_numeric_id = user_res[0]
+            
             # Validate activity type
             if activity_type not in ACTIVITY_TYPES:
                 raise ValueError(f"Invalid activity type: {activity_type}")
@@ -159,7 +166,7 @@ def log_activity(
                 ) RETURNING id, created_at
                 """,
                 (
-                    activity_id, user_id, activity_type,
+                    activity_id, user_numeric_id, activity_type,
                     title, description, metadata_json, xp_earned
                 )
             )
@@ -221,12 +228,26 @@ def get_user_activities(
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            # Build query without quotes for PostgreSQL compatibility
+            # Resolve numeric ID from string UUID
+            cur.execute(f"SELECT id FROM {DB_SCHEMA}.users WHERE user_id = %s", (user_id,))
+            user_res = cur.fetchone()
+            if not user_res:
+                return {
+                    'success': False,
+                    'error': 'User not found',
+                    'activities': [],
+                    'total_count': 0,
+                    'has_more': False
+                }
+            user_numeric_id = user_res[0]
+            
+            # Build query - JOIN users table to filter by string UUID but select from activities
             base_query = f"""
-                SELECT "id", "user_id", "activity_type", "title", "description", 
-                       "metadata", "xp_earned", "created_at"
-                FROM {DB_SCHEMA}.user_activities
-                WHERE user_id = %s
+                SELECT a.id, u.user_id, a.activity_type, a.title, a.description,
+                       a.metadata, a.xp_earned, a.created_at
+                FROM {DB_SCHEMA}.user_activities a
+                JOIN {DB_SCHEMA}.users u ON a.user_id = u.id
+                WHERE u.user_id = %s
             """
             params = [user_id]
             
@@ -309,6 +330,23 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
+            # Resolve numeric ID from string UUID
+            cur.execute(f"SELECT id FROM {DB_SCHEMA}.users WHERE user_id = %s", (user_id,))
+            user_res = cur.fetchone()
+            if not user_res:
+                return {
+                    'success': False,
+                    'error': 'User not found',
+                    'summary': {
+                        'total_activities': 0,
+                        'today_activities': 0,
+                        'total_xp_earned': 0,
+                        'activities_by_type': {},
+                        'timeframe': timeframe
+                    }
+                }
+            user_numeric_id = user_res[0]
+            
             # Calculate date filter
             now = datetime.now()
             if timeframe == 'day':
@@ -324,10 +362,11 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
             if start_date:
                 cur.execute(
                     f"""
-                    SELECT activity_type, COUNT(*) as count
-                    FROM {DB_SCHEMA}.user_activities
-                    WHERE user_id = %s AND created_at >= %s
-                    GROUP BY activity_type
+                    SELECT a.activity_type, COUNT(*) as count
+                    FROM {DB_SCHEMA}.user_activities a
+                    JOIN {DB_SCHEMA}.users u ON a.user_id = u.id
+                    WHERE u.user_id = %s AND a.created_at >= %s
+                    GROUP BY a.activity_type
                     ORDER BY count DESC
                     """,
                     (user_id, start_date)
@@ -335,10 +374,11 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
             else:
                 cur.execute(
                     f"""
-                    SELECT activity_type, COUNT(*) as count
-                    FROM {DB_SCHEMA}.user_activities
-                    WHERE user_id = %s
-                    GROUP BY activity_type
+                    SELECT a.activity_type, COUNT(*) as count
+                    FROM {DB_SCHEMA}.user_activities a
+                    JOIN {DB_SCHEMA}.users u ON a.user_id = u.id
+                    WHERE u.user_id = %s
+                    GROUP BY a.activity_type
                     ORDER BY count DESC
                     """,
                     (user_id,)
@@ -350,18 +390,20 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
             if start_date:
                 cur.execute(
                     f"""
-                    SELECT COALESCE(SUM(xp_earned), 0) as total_xp
-                    FROM {DB_SCHEMA}.user_activities
-                    WHERE user_id = %s AND created_at >= %s
+                    SELECT COALESCE(SUM(a.xp_earned), 0) as total_xp
+                    FROM {DB_SCHEMA}.user_activities a
+                    JOIN {DB_SCHEMA}.users u ON a.user_id = u.id
+                    WHERE u.user_id = %s AND a.created_at >= %s
                     """,
                     (user_id, start_date)
                 )
             else:
                 cur.execute(
                     f"""
-                    SELECT COALESCE(SUM(xp_earned), 0) as total_xp
-                    FROM {DB_SCHEMA}.user_activities
-                    WHERE user_id = %s
+                    SELECT COALESCE(SUM(a.xp_earned), 0) as total_xp
+                    FROM {DB_SCHEMA}.user_activities a
+                    JOIN {DB_SCHEMA}.users u ON a.user_id = u.id
+                    WHERE u.user_id = %s
                     """,
                     (user_id,)
                 )
@@ -372,8 +414,9 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
             cur.execute(
                 f"""
                 SELECT COUNT(*) as total_activities
-                FROM {DB_SCHEMA}.user_activities
-                WHERE user_id = %s
+                FROM {DB_SCHEMA}.user_activities a
+                JOIN {DB_SCHEMA}.users u ON a.user_id = u.id
+                WHERE u.user_id = %s
                 """,
                 (user_id,)
             )
@@ -384,8 +427,9 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
             cur.execute(
                 f"""
                 SELECT COUNT(*) as today_activities
-                FROM {DB_SCHEMA}.user_activities
-                WHERE user_id = %s AND created_at >= %s
+                FROM {DB_SCHEMA}.user_activities a
+                JOIN {DB_SCHEMA}.users u ON a.user_id = u.id
+                WHERE u.user_id = %s AND a.created_at >= %s
                 """,
                 (user_id, today_start)
             )
@@ -432,12 +476,29 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
+            # Resolve numeric ID from string UUID
+            cur.execute(f"SELECT id FROM {DB_SCHEMA}.users WHERE user_id = %s", (user_id,))
+            user_res = cur.fetchone()
+            if not user_res:
+                return {
+                    'success': False,
+                    'error': 'User not found',
+                    'streak': {
+                        'current_streak': 0,
+                        'longest_streak': 0,
+                        'last_activity_date': None,
+                        'streak_start_date': None
+                    }
+                }
+            user_numeric_id = user_res[0]
+            
             # Get current streak from activities
             cur.execute(
                 f"""
-                SELECT DISTINCT DATE(created_at) as activity_date
-                FROM {DB_SCHEMA}.user_activities
-                WHERE user_id = %s AND activity_type IN ('LESSON_COMPLETED', 'CONTENT_VIEWED', 'QUIZ_PASSED')
+                SELECT DISTINCT DATE(a.created_at) as activity_date
+                FROM {DB_SCHEMA}.user_activities a
+                JOIN {DB_SCHEMA}.users u ON a.user_id = u.id
+                WHERE u.user_id = %s AND a.activity_type IN ('LESSON_COMPLETED', 'CONTENT_VIEWED', 'QUIZ_PASSED')
                 ORDER BY activity_date DESC
                 """,
                 (user_id,)
@@ -486,14 +547,14 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
                 else:
                     temp_streak = 1
             
-            # Get streak from database
+            # Get streak from database (use numeric_id for user_activity_streaks)
             cur.execute(
                 f"""
                 SELECT current_streak, longest_streak, last_activity_date, streak_start_date
                 FROM {DB_SCHEMA}.user_activity_streaks
                 WHERE user_id = %s AND streak_type = 'LESSON_COMPLETED'
                 """,
-                (user_id,)
+                (user_numeric_id,)
             )
             
             db_streak = cur.fetchone()
@@ -503,7 +564,7 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
                 current_streak = max(current_streak, db_streak[0])
                 longest_streak = max(longest_streak, db_streak[1] or 0)
                 
-                # Update database
+                # Update database (use numeric_id)
                 cur.execute(
                     f"""
                     UPDATE {DB_SCHEMA}.user_activity_streaks
@@ -511,10 +572,10 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
                         last_activity_date = %s, updated_at = NOW()
                     WHERE user_id = %s AND streak_type = 'LESSON_COMPLETED'
                     """,
-                    (current_streak, longest_streak, last_activity, user_id)
+                    (current_streak, longest_streak, last_activity, user_numeric_id)
                 )
             else:
-                # Create new streak record
+                # Create new streak record (use numeric_id)
                 cur.execute(
                     f"""
                     INSERT INTO {DB_SCHEMA}.user_activity_streaks (
@@ -528,7 +589,7 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
                         longest_streak = EXCLUDED.longest_streak,
                         last_activity_date = EXCLUDED.last_activity_date
                     """,
-                    (user_id, current_streak, longest_streak, last_activity, last_activity)
+                    (user_numeric_id, current_streak, longest_streak, last_activity, last_activity)
                 )
             
             conn.commit()
@@ -590,6 +651,17 @@ def delete_user_activities(user_id: str, older_than_days: int = 365) -> Dict[str
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
+            # Resolve numeric ID from string UUID
+            cur.execute(f"SELECT id FROM {DB_SCHEMA}.users WHERE user_id = %s", (user_id,))
+            user_res = cur.fetchone()
+            if not user_res:
+                return {
+                    'success': False,
+                    'error': 'User not found',
+                    'deleted_count': 0
+                }
+            user_numeric_id = user_res[0]
+            
             cutoff_date = datetime.now() - timedelta(days=older_than_days)
             
             cur.execute(
@@ -597,7 +669,7 @@ def delete_user_activities(user_id: str, older_than_days: int = 365) -> Dict[str
                 DELETE FROM {DB_SCHEMA}.user_activities
                 WHERE user_id = %s AND created_at < %s
                 """,
-                (user_id, cutoff_date)
+                (user_numeric_id, cutoff_date)
             )
             
             deleted_count = cur.rowcount

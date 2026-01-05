@@ -1095,7 +1095,7 @@ class CodeSnippetStore:
             cursor.execute(f"""
                 INSERT INTO {self.table_debug_sessions}
                 (id, user_id, snippet_id, status, breakpoints, variables, call_stack)
-                VALUES (%s, %s, %s, 'active', '[]', '{}', '[]')
+                VALUES (%s, %s, %s, 'active', '[]', '{{}}', '[]')
             """, (session_id, user_id, snippet_id))
             
             conn.commit()
