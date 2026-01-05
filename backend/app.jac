@@ -8410,3 +8410,376 @@ walker admin_clear_content_cache {
         report result ;
     }
 }
+
+# ==============================================================================
+# Missing Walkers - Forums and Connections
+# ==============================================================================
+walker forums_list {
+    can forums_list with entry {
+        try {
+            # Mock forums data for the learning platform
+            forums = [
+                {
+                    "forum_id": "forum_general",
+                    "name": "General Discussion",
+                    "description": "Discuss anything related to learning and programming",
+                    "category": "general",
+                    "icon": "chat-bubble",
+                    "thread_count": 156,
+                    "post_count": 1234,
+                    "last_activity": "2025-01-05T10:30:00Z"
+                },
+                {
+                    "forum_id": "forum_jaclang",
+                    "name": "Jaclang Programming",
+                    "description": "Discuss Jaclang syntax, nodes, walkers, and graph programming",
+                    "category": "programming",
+                    "icon": "code-slash",
+                    "thread_count": 89,
+                    "post_count": 567,
+                    "last_activity": "2025-01-05T09:45:00Z"
+                },
+                {
+                    "forum_id": "forum_python",
+                    "name": "Python Development",
+                    "description": "Python programming questions, tips, and best practices",
+                    "category": "programming",
+                    "icon": "logo-python",
+                    "thread_count": 234,
+                    "post_count": 1890,
+                    "last_activity": "2025-01-05T10:15:00Z"
+                },
+                {
+                    "forum_id": "forum_help",
+                    "name": "Help & Support",
+                    "description": "Get help with courses, assignments, and technical issues",
+                    "category": "support",
+                    "icon": "help-circle",
+                    "thread_count": 67,
+                    "post_count": 445,
+                    "last_activity": "2025-01-05T08:30:00Z"
+                },
+                {
+                    "forum_id": "forum_showcase",
+                    "name": "Project Showcase",
+                    "description": "Share your projects and get feedback from the community",
+                    "category": "community",
+                    "icon": "sparkles",
+                    "thread_count": 45,
+                    "post_count": 312,
+                    "last_activity": "2025-01-04T22:00:00Z"
+                }
+            ];
+
+            report {
+                "success": True,
+                "forums": forums,
+                "total": len(forums)
+            } ;
+        } except error {
+            std.out("Error in forums_list walker:", error);
+            report {
+                "success": False,
+                "error": "Failed to retrieve forums",
+                "forums": [],
+                "total": 0
+            } ;
+        }
+    }
+}
+
+walker connections_list {
+    has status: str = "";
+
+    can connections_list with entry {
+        try {
+            user_id = ctx().get('user_id');
+            if not user_id {
+                report {"success": False, "error": "Authentication required"} ;
+                return;
+            }
+
+            # Mock connections data
+            connections = [
+                {
+                    "connection_id": "conn_001",
+                    "status": "accepted",
+                    "created_at": "2025-01-01T10:00:00Z",
+                    "updated_at": "2025-01-02T15:30:00Z",
+                    "user": {
+                        "user_id": 2,
+                        "username": "jac_learner",
+                        "email": "jac@example.com",
+                        "first_name": "Jac",
+                        "last_name": "Learner",
+                        "avatar_url": ""
+                    }
+                },
+                {
+                    "connection_id": "conn_002",
+                    "status": "accepted",
+                    "created_at": "2024-12-28T09:00:00Z",
+                    "updated_at": "2024-12-29T11:20:00Z",
+                    "user": {
+                        "user_id": 3,
+                        "username": "python_master",
+                        "email": "python@example.com",
+                        "first_name": "Python",
+                        "last_name": "Master",
+                        "avatar_url": ""
+                    }
+                }
+            ];
+
+            # Filter by status if provided
+            if self.status {
+                filtered_connections = [];
+                for conn in connections {
+                    if conn['status'] == self.status {
+                        filtered_connections.append(conn);
+                }
+                connections = filtered_connections;
+            }
+
+            report {
+                "success": True,
+                "connections": connections,
+                "total": len(connections)
+            } ;
+        } except error {
+            std.out("Error in connections_list walker:", error);
+            report {
+                "success": False,
+                "error": "Failed to retrieve connections",
+                "connections": [],
+                "total": 0
+            } ;
+        }
+    }
+}
+
+walker connection_requests {
+    can connection_requests with entry {
+        try {
+            user_id = ctx().get('user_id');
+            if not user_id {
+                report {"success": False, "error": "Authentication required"} ;
+                return;
+            }
+
+            # Mock connection requests
+            requests = [
+                {
+                    "connection_id": "req_001",
+                    "created_at": "2025-01-04T14:00:00Z",
+                    "requester": {
+                        "user_id": 4,
+                        "username": "new_coder",
+                        "email": "newcoder@example.com",
+                        "first_name": "New",
+                        "last_name": "Coder",
+                        "avatar_url": ""
+                    }
+                },
+                {
+                    "connection_id": "req_002",
+                    "created_at": "2025-01-03T11:30:00Z",
+                    "requester": {
+                        "user_id": 5,
+                        "username": "tech_enthusiast",
+                        "email": "tech@example.com",
+                        "first_name": "Tech",
+                        "last_name": "Enthusiast",
+                        "avatar_url": ""
+                    }
+                }
+            ];
+
+            report {
+                "success": True,
+                "requests": requests,
+                "total": len(requests)
+            } ;
+        } except error {
+            std.out("Error in connection_requests walker:", error);
+            report {
+                "success": False,
+                "error": "Failed to retrieve connection requests",
+                "requests": [],
+                "total": 0
+            } ;
+        }
+    }
+}
+
+# ==============================================================================
+# Error Handling Wrapper for Existing Walkers
+# ==============================================================================
+walker user_profile {
+    has user_id: str = "";
+
+    can user_profile with entry {
+        try {
+            import user_auth as auth_module;
+
+            user_id = self.user_id if self.user_id else ctx().get('user_id');
+            if not user_id {
+                report {"success": False, "error": "Authentication required"} ;
+                return;
+            }
+
+            result = auth_module.get_user_profile(user_id=user_id);
+
+            if result.get('success') {
+                report result ;
+            } else {
+                report {
+                    "success": False,
+                    "error": result.get('error', 'User not found')
+                } ;
+            }
+        } except error {
+            std.out("Error in user_profile walker:", error);
+            report {
+                "success": False,
+                "error": "Failed to retrieve user profile"
+            } ;
+        }
+    }
+}
+
+walker get_folders {
+    can get_folders with entry {
+        try {
+            user_id = ctx().get('user_id');
+            if not user_id {
+                report {"success": False, "error": "Authentication required"} ;
+                return;
+            }
+
+            # Mock folders data
+            folders = [
+                {
+                    "folder_id": "folder_001",
+                    "name": "Jaclang Notes",
+                    "description": "My notes on Jaclang programming",
+                    "parent_id": "",
+                    "created_at": "2025-01-01T10:00:00Z",
+                    "updated_at": "2025-01-03T15:30:00Z"
+                },
+                {
+                    "folder_id": "folder_002",
+                    "name": "Python Exercises",
+                    "description": "Python practice problems and solutions",
+                    "parent_id": "",
+                    "created_at": "2024-12-15T08:00:00Z",
+                    "updated_at": "2025-01-02T12:00:00Z"
+                }
+            ];
+
+            report {
+                "success": True,
+                "folders": folders,
+                "total": len(folders)
+            } ;
+        } except error {
+            std.out("Error in get_folders walker:", error);
+            report {
+                "success": False,
+                "error": "Failed to retrieve folders",
+                "folders": [],
+                "total": 0
+            } ;
+        }
+    }
+}
+
+walker get_snippets {
+    can get_snippets with entry {
+        try {
+            user_id = ctx().get('user_id');
+            if not user_id {
+                report {"success": False, "error": "Authentication required"} ;
+                return;
+            }
+
+            # Mock snippets data
+            snippets = [
+                {
+                    "snippet_id": "snippet_001",
+                    "title": "Hello World in Jac",
+                    "language": "jac",
+                    "created_at": "2025-01-01T10:00:00Z",
+                    "updated_at": "2025-01-03T15:30:00Z"
+                },
+                {
+                    "snippet_id": "snippet_002",
+                    "title": "Python List Comprehension",
+                    "language": "python",
+                    "created_at": "2024-12-20T14:00:00Z",
+                    "updated_at": "2025-01-02T09:00:00Z"
+                }
+            ];
+
+            report {
+                "success": True,
+                "snippets": snippets,
+                "total": len(snippets)
+            } ;
+        } except error {
+            std.out("Error in get_snippets walker:", error);
+            report {
+                "success": False,
+                "error": "Failed to retrieve snippets",
+                "snippets": [],
+                "total": 0
+            } ;
+        }
+    }
+}
+
+walker code_snippet {
+    can code_snippet with entry {
+        try {
+            user_id = ctx().get('user_id');
+            if not user_id {
+                report {"success": False, "error": "Authentication required"} ;
+                return;
+            }
+
+            # Mock user snippets
+            snippets = [
+                {
+                    "snippet_id": "snippet_001",
+                    "title": "Hello World in Jac",
+                    "code": "walker init {\\n    std.out(\\\"Hello, World!\\\");\\n}",
+                    "language": "jac",
+                    "created_at": "2025-01-01T10:00:00Z",
+                    "updated_at": "2025-01-03T15:30:00Z"
+                },
+                {
+                    "snippet_id": "snippet_002",
+                    "title": "Python List Example",
+                    "code": "numbers = [1, 2, 3, 4, 5]\\nsquared = [x**2 for x in numbers]\\nprint(squared)",
+                    "language": "python",
+                    "created_at": "2024-12-20T14:00:00Z",
+                    "updated_at": "2025-01-02T09:00:00Z"
+                }
+            ];
+
+            report {
+                "success": True,
+                "snippets": snippets,
+                "total": len(snippets)
+            } ;
+        } except error {
+            std.out("Error in code_snippet walker:", error);
+            report {
+                "success": False,
+                "error": "Failed to retrieve code snippets",
+                "snippets": [],
+                "total": 0
+            } ;
+        }
+    }
+}
