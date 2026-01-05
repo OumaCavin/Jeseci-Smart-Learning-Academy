@@ -916,8 +916,9 @@ class ApiService {
    * Check the health of the Jaclang service
    */
   async getJaclangServiceHealth(): Promise<JaclangServiceHealth> {
-    return this.makeRequest('/api/jaclang/health', {
-      method: 'GET',
+    return this.makeRequest('/walker/health_check', {
+      method: 'POST',
+      body: JSON.stringify({}),
     });
   }
 
@@ -927,10 +928,11 @@ class ApiService {
    * @returns Validation result with any syntax errors
    */
   async validateJacCode(sourceCode: string): Promise<JaclangValidationResponse> {
-    return this.makeRequest('/api/jaclang/validate', {
+    // Use compile_code walker to validate Jaclang code
+    return this.makeRequest('/walker/compile_code', {
       method: 'POST',
       body: JSON.stringify({
-        source_code: sourceCode
+        code: sourceCode
       }),
     });
   }
@@ -941,12 +943,13 @@ class ApiService {
    * @returns Formatted code and whether it changed
    */
   async formatJacCode(sourceCode: string): Promise<JaclangFormatResponse> {
-    return this.makeRequest('/api/jaclang/format', {
-      method: 'POST',
-      body: JSON.stringify({
-        source_code: sourceCode
-      }),
-    });
+    // Format functionality would require a new format walker
+    // For now, return a response indicating format is not implemented
+    return {
+      formatted_code: sourceCode,
+      changed: false,
+      error: 'Format functionality not yet implemented'
+    };
   }
 
   /**
@@ -961,12 +964,16 @@ class ApiService {
     changed: boolean;
     message: string;
   }> {
-    return this.makeRequest('/api/jaclang/validate-and-format', {
-      method: 'POST',
-      body: JSON.stringify({
-        source_code: sourceCode
-      }),
-    });
+    // First validate using compile_code walker
+    const validateResult = await this.validateJacCode(sourceCode);
+    
+    return {
+      valid: validateResult.valid,
+      errors: validateResult.errors,
+      formatted_code: sourceCode,
+      changed: false,
+      message: validateResult.message || (validateResult.valid ? 'Code is valid' : 'Code has validation errors')
+    };
   }
 }
 

@@ -3,7 +3,9 @@
 # This script sets up the environment and starts the Jac API server
 
 # Set PYTHONPATH to enable absolute imports
-export PYTHONPATH=.
+# Include both root directory (.) and backend directory (./backend)
+# This allows imports like 'import code_execution' to work from app.jac
+export PYTHONPATH=.:./backend
 
 # Remove cached session files to force fresh compilation with new endpoints
 rm -f backend/app.session*

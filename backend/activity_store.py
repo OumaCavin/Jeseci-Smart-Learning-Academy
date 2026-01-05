@@ -1,6 +1,7 @@
 # Activity Store Module for User Activity Tracking
 # This module handles all database operations for user activities and streaks
 
+import os
 import uuid
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
@@ -8,6 +9,9 @@ import json
 
 # Import database connection
 from database import get_db_connection
+
+# Database schema configuration
+DB_SCHEMA = os.getenv("DB_SCHEMA", "jeseci_academy")
 
 # Activity types enum
 ACTIVITY_TYPES = [
@@ -148,7 +152,7 @@ def log_activity(
             
             cur.execute(
                 """
-                INSERT INTO user_activities (
+                INSERT INTO {DB_SCHEMA}.user_activities (
                     id, user_id, activity_type, title, description, metadata, xp_earned
                 ) VALUES (
                     %s, %s, %s, %s, %s, %s, %s
@@ -221,7 +225,7 @@ def get_user_activities(
             base_query = """
                 SELECT "id", "user_id", "activity_type", "title", "description", 
                        "metadata", "xp_earned", "created_at"
-                FROM user_activities
+                FROM {DB_SCHEMA}.user_activities
                 WHERE user_id = %s
             """
             params = [user_id]
@@ -321,7 +325,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
                 cur.execute(
                     """
                     SELECT activity_type, COUNT(*) as count
-                    FROM user_activities
+                    FROM {DB_SCHEMA}.user_activities
                     WHERE user_id = %s AND created_at >= %s
                     GROUP BY activity_type
                     ORDER BY count DESC
@@ -332,7 +336,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
                 cur.execute(
                     """
                     SELECT activity_type, COUNT(*) as count
-                    FROM user_activities
+                    FROM {DB_SCHEMA}.user_activities
                     WHERE user_id = %s
                     GROUP BY activity_type
                     ORDER BY count DESC
@@ -347,7 +351,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
                 cur.execute(
                     """
                     SELECT COALESCE(SUM(xp_earned), 0) as total_xp
-                    FROM user_activities
+                    FROM {DB_SCHEMA}.user_activities
                     WHERE user_id = %s AND created_at >= %s
                     """,
                     (user_id, start_date)
@@ -356,7 +360,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
                 cur.execute(
                     """
                     SELECT COALESCE(SUM(xp_earned), 0) as total_xp
-                    FROM user_activities
+                    FROM {DB_SCHEMA}.user_activities
                     WHERE user_id = %s
                     """,
                     (user_id,)
@@ -368,7 +372,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
             cur.execute(
                 """
                 SELECT COUNT(*) as total_activities
-                FROM user_activities
+                FROM {DB_SCHEMA}.user_activities
                 WHERE user_id = %s
                 """,
                 (user_id,)
@@ -380,7 +384,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
             cur.execute(
                 """
                 SELECT COUNT(*) as today_activities
-                FROM user_activities
+                FROM {DB_SCHEMA}.user_activities
                 WHERE user_id = %s AND created_at >= %s
                 """,
                 (user_id, today_start)
@@ -432,7 +436,7 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
             cur.execute(
                 """
                 SELECT DISTINCT DATE(created_at) as activity_date
-                FROM user_activities
+                FROM {DB_SCHEMA}.user_activities
                 WHERE user_id = %s AND activity_type IN ('LESSON_COMPLETED', 'CONTENT_VIEWED', 'QUIZ_PASSED')
                 ORDER BY activity_date DESC
                 """,
@@ -590,7 +594,7 @@ def delete_user_activities(user_id: str, older_than_days: int = 365) -> Dict[str
             
             cur.execute(
                 """
-                DELETE FROM user_activities
+                DELETE FROM {DB_SCHEMA}.user_activities
                 WHERE user_id = %s AND created_at < %s
                 """,
                 (user_id, cutoff_date)
