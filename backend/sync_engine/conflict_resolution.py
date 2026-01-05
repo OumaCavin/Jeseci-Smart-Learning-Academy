@@ -51,6 +51,7 @@ class ResolutionStrategy(str, Enum):
 @dataclass
 class ConflictInfo:
     """Information about a detected conflict"""
+    differences: Dict[str, Any] = field(default_factory=dict)
     entity_id: str
     entity_type: str
     conflict_type: ConflictType
@@ -60,7 +61,6 @@ class ConflictInfo:
     target_version: int
     source_updated_at: datetime
     target_updated_at: datetime
-    differences: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""

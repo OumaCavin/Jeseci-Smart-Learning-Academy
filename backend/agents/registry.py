@@ -21,13 +21,13 @@ from logger_config import logger
 @dataclass
 class AgentConfig:
     """Configuration for agent instantiation"""
-    agent_id: str
-    agent_name: str
-    agent_type: str
     config: Dict[str, Any] = field(default_factory=dict)
     enabled: bool = True
     auto_start: bool = True
     dependencies: List[str] = field(default_factory=list)
+    agent_id: str
+    agent_name: str
+    agent_type: str
 
 
 class AgentRegistry:

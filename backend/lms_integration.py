@@ -68,6 +68,7 @@ class EnrollmentStatus(str, Enum):
 @dataclass
 class LMSConfig:
     """LMS platform configuration"""
+    is_active: bool = True
     config_id: str
     platform: LMSPlatform
     name: str
@@ -84,7 +85,6 @@ class LMSConfig:
     roster_sync_enabled: bool
     created_at: datetime
     updated_at: datetime
-    is_active: bool = True
 
 @dataclass
 class LTISession:

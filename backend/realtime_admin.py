@@ -338,6 +338,9 @@ class NotificationType(str, Enum):
 @dataclass
 class Notification:
     """Admin notification"""
+    expires_at: Optional[datetime] = None
+    is_read: bool = False
+    target_groups: List[str] = field(default_factory=list)
     notification_id: str
     notification_type: NotificationType
     title: str
@@ -345,9 +348,6 @@ class Notification:
     priority: int  # 1-5, higher = more urgent
     metadata: Dict[str, Any]
     created_at: datetime
-    expires_at: Optional[datetime] = None
-    is_read: bool = False
-    target_groups: List[str] = field(default_factory=list)
 
 @dataclass
 class LiveMetric:

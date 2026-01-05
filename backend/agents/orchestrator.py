@@ -23,13 +23,13 @@ from logger_config import logger
 @dataclass
 class LearningSession:
     """Represents an active learning session"""
-    session_id: str
-    user_id: str
     agent_id: str = ""
     start_time: str = field(default_factory=lambda: datetime.now().isoformat())
     status: str = "active"
     current_phase: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
+    session_id: str
+    user_id: str
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -46,13 +46,13 @@ class LearningSession:
 @dataclass
 class CoordinationRequest:
     """Request for coordination between agents"""
+    priority: Priority = Priority.MEDIUM
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
+    status: str = "pending"
     request_id: str
     requesting_agent: str
     coordination_type: str
     task_data: Dict[str, Any]
-    priority: Priority = Priority.MEDIUM
-    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: str = "pending"
 
 
 class OrchestratorAgent(BaseAgent):
