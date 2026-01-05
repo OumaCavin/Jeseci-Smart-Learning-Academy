@@ -212,7 +212,7 @@ class MultiLanguageExecutor:
         'jac': {
             'run': ['jac', 'run'],
             'compile': ['jac', 'compile'],
-            'entry_flag': '--entry'
+            'entry_flag': None  # Jac uses walker name directly after file
         }
     }
     
@@ -357,9 +357,10 @@ class MultiLanguageExecutor:
             # For JS, just run directly
             cmd = ['node', code_file]
         elif language.lower() == 'jac':
-            cmd.extend([code_file])
-            if lang_config['entry_flag'] and entry_point:
-                cmd.extend([lang_config['entry_flag'], entry_point])
+            cmd.append(code_file)
+            # Jac uses walker name directly after file, not --entry flag
+            if entry_point and entry_point != 'init':
+                cmd.append(entry_point)
         
         return cmd
     
