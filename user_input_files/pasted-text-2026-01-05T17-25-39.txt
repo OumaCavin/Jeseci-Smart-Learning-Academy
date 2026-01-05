@@ -1,0 +1,320 @@
+(workspace) cavin@DESKTOP-KR7GL8A:~/projects/Jeseci-Smart-Learning-Academy$ bash ./backend/scripts/jacserve
+2026-01-05 19:59:21 - logger_config - INFO - Logging initialized. Log file: /home/cavin/projects/Jeseci-Smart-Learning-Academy/logs/jeseci_backend_20260105.log
+2026-01-05 19:59:21 - logger_config - INFO - Log level: INFO
+2026-01-05 19:59:21 - logger_config - INFO - PostgreSQL connection pool initialized: localhost:5432/jeseci_learning_academy
+2026-01-05 19:59:21 - logger_config - INFO - No pending migrations - database is up to date
+2026-01-05 19:59:22 - logger_config - INFO - User auth PostgreSQL pool initialized: localhost:5432/jeseci_learning_academy
+2026-01-05 19:59:22 - logger_config - INFO - ============================================================
+2026-01-05 19:59:22 - logger_config - INFO - DATABASE INITIALIZATION
+2026-01-05 19:59:22 - logger_config - INFO - ============================================================
+2026-01-05 19:59:22 - logger_config - INFO - Connected to PostgreSQL: localhost:5432/jeseci_learning_academy
+2026-01-05 19:59:22 - logger_config - INFO - Creating user-related tables...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ User tables created: users, user_profile, user_learning_preferences, password_reset_tokens
+2026-01-05 19:59:22 - logger_config - INFO - Creating content-related tables...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Content tables created: concepts, concept_content, learning_paths, lessons, learning_path_concepts, lesson_concepts
+2026-01-05 19:59:22 - logger_config - INFO - Creating courses table...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Courses tables created: courses, course_concepts
+2026-01-05 19:59:22 - logger_config - INFO - Creating progress tracking tables...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Progress tables created: user_concept_progress, user_learning_paths, user_lesson_progress, learning_sessions
+2026-01-05 19:59:22 - logger_config - INFO - Creating assessment tables...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Assessment tables created: quizzes, quiz_attempts
+2026-01-05 19:59:22 - logger_config - INFO - Creating gamification tables...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Gamification tables created: achievements, user_achievements, badges, user_badges
+2026-01-05 19:59:22 - logger_config - INFO - Creating system tables...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ System tables created: system_logs, system_health, audit_log
+2026-01-05 19:59:22 - logger_config - INFO - Creating AI-related tables...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ AI tables created: ai_agents, ai_generated_content, ai_usage_stats
+2026-01-05 19:59:22 - logger_config - INFO - Creating content views tracking table...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Content views tables created: content_views, content_views_summary
+2026-01-05 19:59:22 - logger_config - INFO - Creating domains table...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Domains table created with default data
+2026-01-05 19:59:22 - logger_config - INFO - Creating sync engine tables...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Sync engine tables created: sync_event_log, sync_status, sync_conflicts, reconciliation_runs
+2026-01-05 19:59:22 - logger_config - INFO - Creating sync engine indexes...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Sync engine indexes created
+2026-01-05 19:59:22 - logger_config - INFO - Creating notification tables...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Notification tables created: notifications, notification_preferences
+2026-01-05 19:59:22 - logger_config - INFO - Creating testimonials table...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Testimonials table created: testimonials
+2026-01-05 19:59:22 - logger_config - INFO - Creating contact messages table...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Contact messages table created: contact_messages
+2026-01-05 19:59:22 - logger_config - INFO - Creating chat export table...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Chat export table created: chat_exports
+2026-01-05 19:59:22 - logger_config - INFO - Creating platform stats table...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Platform stats table created: platform_stats
+2026-01-05 19:59:22 - logger_config - INFO - Creating user activities table...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ User activities table created: user_activities
+2026-01-05 19:59:22 - logger_config - INFO - Creating collaboration tables...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Collaboration tables created: user_connections, forums, forum_threads, forum_posts, content_comments
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Reputation system tables created: user_reputation, reputation_events, content_upvotes
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Study groups tables created: study_groups, study_group_members, study_group_notes, study_group_goals, study_group_discussions, study_group_messages
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Mentorship tables created: mentorship_profiles, mentorship_requests, mentorship_sessions
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Moderation tables created: content_reports, moderation_actions, moderation_queue
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Peer review tables created: peer_review_submissions, peer_review_assignments, peer_review_feedback
+2026-01-05 19:59:22 - logger_config - INFO - Creating code snippets and related tables...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Code snippets and related tables created: code_folders, code_snippets, execution_history, snippet_versions, test_cases, test_results, error_knowledge_base, debug_sessions
+2026-01-05 19:59:22 - logger_config - INFO - Creating database indexes...
+2026-01-05 19:59:22 - logger_config - INFO - ✓ Database indexes created
+2026-01-05 19:59:22 - logger_config - INFO - 
+2026-01-05 19:59:22 - logger_config - INFO - ============================================================
+2026-01-05 19:59:22 - logger_config - INFO - ✓ ALL DATABASE TABLES CREATED SUCCESSFULLY!
+2026-01-05 19:59:22 - logger_config - INFO - ============================================================
+2026-01-05 19:59:22 - logger_config - INFO - Password reset PostgreSQL pool initialized: localhost:5432/jeseci_learning_academy
+2026-01-05 19:59:22 - logger_config - INFO - Password reset tokens table ensured
+2026-01-05 19:59:22 - logger_config - INFO - ContentViewsStore: Database connection established
+Jac API Server running on http://0.0.0.0:8000
+Module: app
+Session: backend/app.session
+
+Available endpoints:
+  POST /user/create - Create a new user
+  POST /user/login - Login and get auth token
+  GET /functions - List all functions
+  GET /walkers - List all walkers
+  GET /function/<name> - Get function signature
+  GET /walker/<name> - Get walker info
+  POST /function/<name> - Call a function
+  POST /walker/<name> - Spawn a walker
+
+Press Ctrl+C to stop the server
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/platform_stats HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/testimonials HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-05T20:03:19Z', 'database_status': 'connected', 'ai_status': 'available', 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "GET /walker/platform_stats HTTP/1.1" 200 -
+2026-01-05 20:03:19 - logger_config - INFO - Retrieved 0 testimonials from database
+{'success': True, 'testimonials': [], 'total': 0}
+127.0.0.1 - "POST /walker/testimonials HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/user_create HTTP/1.1" 200 -
+[✓] Connected to Neo4j at bolt://localhost:7687
+2026-01-05 20:04:03 - logger_config - INFO - User synced to Neo4j graph: user_student1_1754136f
+2026-01-05 20:04:07 - logger_config - INFO - Email sent successfully to brauhman215@gmail.com
+2026-01-05 20:04:07 - logger_config - INFO - Verification email sent to brauhman215@gmail.com: email
+2026-01-05 20:04:07 - logger_config - INFO - User registered successfully: user_student1_1754136f - verification required
+{'success': True, 'message': 'User created successfully. Please check your email to verify your account.', 'user': {'user_id': 'user_student1_1754136f', 'username': 'student1', 'email': 'brauhman215@gmail.com', 'first_name': 'Brauh', 'last_name': 'Manu', 'is_admin': False, 'is_email_verified': False}, 'session_token': 'session_979c4a7d5fa2456191c94c80', 'requires_verification': True}
+127.0.0.1 - "POST /walker/user_create HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-05T20:04:07Z', 'database_status': 'connected', 'ai_status': 'available', 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/verify_email HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/verify_email HTTP/1.1" 200 -
+2026-01-05 20:12:29 - logger_config - INFO - Email verified successfully for user: student1
+2026-01-05 20:12:32 - logger_config - INFO - Email sent successfully to brauhman215@gmail.com
+2026-01-05 20:12:32 - logger_config - INFO - Welcome email sent successfully to brauhman215@gmail.com
+{'success': True, 'message': 'Email verified successfully! Welcome to Jeseci Smart Learning Academy.', 'user_id': 'user_student1_1754136f', 'username': 'student1'}
+127.0.0.1 - "POST /walker/verify_email HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-05T20:12:32Z', 'database_status': 'connected', 'ai_status': 'available', 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-05T20:12:32Z', 'database_status': 'connected', 'ai_status': 'available', 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+{'success': False, 'error': 'Invalid verification token', 'code': 'INVALID_TOKEN'}
+127.0.0.1 - "POST /walker/verify_email HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/platform_stats HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/testimonials HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-05T20:16:47Z', 'database_status': 'connected', 'ai_status': 'available', 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "GET /walker/platform_stats HTTP/1.1" 200 -
+2026-01-05 20:16:47 - logger_config - INFO - Retrieved 0 testimonials from database
+{'success': True, 'testimonials': [], 'total': 0}
+127.0.0.1 - "POST /walker/testimonials HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/user_login HTTP/1.1" 200 -
+2026-01-05 20:16:50 - logger_config - INFO - User authenticated successfully: user_student1_1754136f
+{'success': True, 'access_token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcl9zdHVkZW50MV8xNzU0MTM2ZiIsInVzZXJuYW1lIjoic3R1ZGVudDEiLCJlbWFpbCI6ImJyYXVobWFuMjE1QGdtYWlsLmNvbSIsImlzX2FkbWluIjpmYWxzZSwiYWRtaW5fcm9sZSI6InN0dWRlbnQiLCJleHAiOjE3Njc2MzUyMTAsImlhdCI6MTc2NzYzMzQxMH0.Tqy5EQ4WgtI9GLJRO41LcEoG5Dd6MwguTFkq7N3s7Hw', 'token_type': 'bearer', 'expires_in': 1800, 'user': {'user_id': 'user_student1_1754136f', 'username': 'student1', 'email': 'brauhman215@gmail.com', 'is_admin': False, 'admin_role': 'student', 'is_email_verified': True, 'profile': {'first_name': 'Brauh', 'last_name': 'Manu', 'bio': None, 'avatar_url': None, 'timezone': None, 'language': 'en'}, 'preferences': {'daily_goal_minutes': 30, 'preferred_difficulty': 'beginner', 'preferred_content_type': 'auditory', 'notifications_enabled': True, 'email_reminders': True, 'dark_mode': False, 'auto_play_videos': True}}, 'message': 'Login successful'}
+127.0.0.1 - "POST /walker/user_login HTTP/1.1" 200 -
+2026-01-05 20:16:50 - logger_config - INFO - User authenticated successfully: user_student1_1754136f
+{'success': True, 'access_token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcl9zdHVkZW50MV8xNzU0MTM2ZiIsInVzZXJuYW1lIjoic3R1ZGVudDEiLCJlbWFpbCI6ImJyYXVobWFuMjE1QGdtYWlsLmNvbSIsImlzX2FkbWluIjpmYWxzZSwiYWRtaW5fcm9sZSI6InN0dWRlbnQiLCJleHAiOjE3Njc2MzUyMTAsImlhdCI6MTc2NzYzMzQxMH0.Tqy5EQ4WgtI9GLJRO41LcEoG5Dd6MwguTFkq7N3s7Hw', 'token_type': 'bearer', 'expires_in': 1800, 'user': {'user_id': 'user_student1_1754136f', 'username': 'student1', 'email': 'brauhman215@gmail.com', 'is_admin': False, 'admin_role': 'student', 'is_email_verified': True, 'profile': {'first_name': 'Brauh', 'last_name': 'Manu', 'bio': None, 'avatar_url': None, 'timezone': None, 'language': 'en'}, 'preferences': {'daily_goal_minutes': 30, 'preferred_difficulty': 'beginner', 'preferred_content_type': 'auditory', 'notifications_enabled': True, 'email_reminders': True, 'dark_mode': False, 'auto_play_videos': True}}, 'message': 'Login successful'}
+127.0.0.1 - "POST /walker/user_login HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/concepts HTTP/1.1" 200 -
+{'success': True, 'concepts': [{'id': 'jac_variables', 'name': 'Variables and Data Types', 'description': 'Learn about variables, type annotations, and basic data types in Jac', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'variable', 'related_concepts': ['Type Annotations', 'Strings', 'Numbers', 'Booleans']}, {'id': 'jac_control_flow', 'name': 'Control Flow and Loops', 'description': 'Master if statements, loops, and decision-making in Jac', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'control-flow', 'related_concepts': ['If Statements', 'For Loops', 'While Loops', 'Comparison Operators']}, {'id': 'jac_functions', 'name': 'Functions and Parameters', 'description': 'Create reusable code blocks with functions and parameter handling', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'function', 'related_concepts': ['Default Parameters', 'Return Values', 'Function Calls']}, {'id': 'jac_collections', 'name': 'Collections and Data Structures', 'description': 'Work with lists, dictionaries, tuples, and sets in Jac', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'collection', 'related_concepts': ['Lists', 'Dictionaries', 'Tuples', 'Sets', 'Comprehensions']}, {'id': 'jac_oop', 'name': 'Traditional Object-Oriented Programming', 'description': 'Learn classes, objects, and inheritance in Jac', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'building', 'related_concepts': ['Classes', 'Objects', 'Inheritance', 'Methods', 'Attributes']}, {'id': 'jac_osp', 'name': 'Object-Spatial Programming (OSP)', 'description': "Master Jac's unique paradigm for graph-based programming", 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'graph', 'related_concepts': ['Nodes', 'Edges', 'Walkers', 'Graph Traversal']}, {'id': 'jac_nodes', 'name': 'Nodes and State Management', 'description': 'Create and manage stateful entities in Jac graphs', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'node', 'related_concepts': ['Node Creation', 'Node Attributes', 'State Persistence']}, {'id': 'jac_edges', 'name': 'Typed Relationships', 'description': 'Define and work with typed edges between nodes', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'connection', 'related_concepts': ['Edge Types', 'Edge Properties', 'Relationship Modeling']}, {'id': 'jac_walkers', 'name': 'Mobile Computation', 'description': 'Create programs that traverse and operate on graphs', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'walker', 'related_concepts': ['Walker Creation', 'Graph Traversal', 'Mobile Code']}, {'id': 'jac_semstrings', 'name': 'Semantic Strings', 'description': 'Use semstrings for explicit semantic context in AI models', 'domain': 'Jac Language', 'difficulty': 'advanced', 'icon': 'semantic', 'related_concepts': ['sem keyword', 'Meaning-typed Programming', 'AI Context']}, {'id': 'jac_scale_agnostic', 'name': 'Scale-Agnostic Programming', 'description': 'Write code that works from single-user to millions of users', 'domain': 'Jac Language', 'difficulty': 'advanced', 'icon': 'scale', 'related_concepts': ['Automatic Persistence', 'Multi-User Isolation', 'Distribution']}, {'id': 'jac_pattern_matching', 'name': 'Pattern Matching', 'description': 'Handle complex logic with match statements and case analysis', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'pattern', 'related_concepts': ['Match Statements', 'Case Analysis', 'Type Handling']}], 'total': 12}
+127.0.0.1 - "POST /walker/concepts HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/learning_paths HTTP/1.1" 200 -
+{'success': True, 'paths': [{'id': 'path_python', 'title': 'Python Mastery', 'description': 'Master Python from fundamentals to advanced concepts. Learn programming basics, data structures, algorithms, and build real-world applications.', 'courses': ['course_1', 'course_2', 'course_4'], 'modules': [{'id': 'mod_python_basics', 'title': 'Python Basics', 'type': 'lesson', 'duration': '2 hours', 'completed': True}, {'id': 'mod_variables', 'title': 'Variables and Data Types', 'type': 'lesson', 'duration': '1.5 hours', 'completed': True}, {'id': 'mod_control_flow', 'title': 'Control Flow', 'type': 'lesson', 'duration': '2 hours', 'completed': False}, {'id': 'mod_functions', 'title': 'Functions', 'type': 'lesson', 'duration': '2 hours', 'completed': False}, {'id': 'mod_data_structures', 'title': 'Data Structures', 'type': 'lesson', 'duration': '3 hours', 'completed': False}, {'id': 'mod_oop', 'title': 'Object-Oriented Programming', 'type': 'lesson', 'duration': '3 hours', 'completed': False}, {'id': 'mod_file_handling', 'title': 'File Handling', 'type': 'project', 'duration': '2 hours', 'completed': False}, {'id': 'mod_final_project', 'title': 'Final Project', 'type': 'project', 'duration': '4 hours', 'completed': False}], 'concepts': ['concept_oop', 'concept_algo', 'concept_recursion'], 'skills_covered': ['Programming Fundamentals', 'Data Structures', 'Algorithm Design', 'Problem Solving'], 'prerequisites': [], 'total_modules': 8, 'completed_modules': 2, 'duration': '8 weeks', 'estimated_hours': 20, 'difficulty': 'beginner', 'progress': 25, 'icon': 'python', 'category': 'programming', 'next_step': 'Control Flow', 'last_activity': '2025-12-21T14:30:00Z'}, {'id': 'path_web', 'title': 'Full-Stack Web Development', 'description': 'Build modern, responsive web applications from scratch. Learn HTML, CSS, JavaScript, and backend technologies.', 'courses': ['course_5', 'course_1'], 'modules': [{'id': 'mod_html_basics', 'title': 'HTML Fundamentals', 'type': 'lesson', 'duration': '1.5 hours', 'completed': True}, {'id': 'mod_css_styling', 'title': 'CSS Styling', 'type': 'lesson', 'duration': '2 hours', 'completed': True}, {'id': 'mod_css_layouts', 'title': 'CSS Layouts & Flexbox', 'type': 'lesson', 'duration': '2 hours', 'completed': True}, {'id': 'mod_javascript_basics', 'title': 'JavaScript Basics', 'type': 'lesson', 'duration': '3 hours', 'completed': False}, {'id': 'mod_dom_manipulation', 'title': 'DOM Manipulation', 'type': 'lesson', 'duration': '2 hours', 'completed': False}, {'id': 'mod_fetch_api', 'title': 'Fetch API & Async', 'type': 'lesson', 'duration': '2 hours', 'completed': False}, {'id': 'mod_backend_intro', 'title': 'Backend Basics', 'type': 'lesson', 'duration': '3 hours', 'completed': False}, {'id': 'mod_fullstack_project', 'title': 'Full-Stack Project', 'type': 'project', 'duration': '6 hours', 'completed': False}], 'concepts': ['concept_web', 'concept_database', 'concept_testing'], 'skills_covered': ['HTML5', 'CSS3', 'JavaScript ES6+', 'Responsive Design', 'REST APIs'], 'prerequisites': ['path_python'], 'total_modules': 8, 'completed_modules': 3, 'duration': '10 weeks', 'estimated_hours': 25, 'difficulty': 'beginner', 'progress': 37, 'icon': 'web', 'category': 'web-development', 'next_step': 'JavaScript Basics', 'last_activity': '2025-12-22T09:15:00Z'}, {'id': 'path_jaclang', 'title': 'Jaclang & Graph Programming', 'description': 'Master the innovative Jaclang language with nodes, walkers, and graph-based programming paradigms.', 'courses': ['course_3', 'course_2'], 'modules': [{'id': 'mod_graph_intro', 'title': 'Introduction to Graph Theory', 'type': 'lesson', 'duration': '2 hours', 'completed': True}, {'id': 'mod_nodes_basics', 'title': 'Nodes Basics', 'type': 'lesson', 'duration': '2 hours', 'completed': False}, {'id': 'mod_walkers_intro', 'title': 'Walkers Introduction', 'type': 'lesson', 'duration': '3 hours', 'completed': False}, {'id': 'mod_jac_syntax', 'title': 'Jaclang Syntax', 'type': 'lesson', 'duration': '3 hours', 'completed': False}, {'id': 'mod_advanced_walkers', 'title': 'Advanced Walkers', 'type': 'lesson', 'duration': '3 hours', 'completed': False}, {'id': 'mod_graph_algorithms', 'title': 'Graph Algorithms', 'type': 'lesson', 'duration': '3 hours', 'completed': False}, {'id': 'mod_node_patterns', 'title': 'Node Patterns', 'type': 'lesson', 'duration': '2 hours', 'completed': False}, {'id': 'mod_graph_project', 'title': 'Graph Programming Project', 'type': 'project', 'duration': '5 hours', 'completed': False}], 'concepts': ['concept_graphs', 'concept_algo', 'concept_recursion'], 'skills_covered': ['Graph Theory', 'Node Systems', 'Walker Functions', 'Graph Algorithms', 'Pattern Matching'], 'prerequisites': ['path_python'], 'total_modules': 8, 'completed_modules': 1, 'duration': '12 weeks', 'estimated_hours': 30, 'difficulty': 'advanced', 'progress': 12, 'icon': 'jaclang', 'category': 'programming-languages', 'next_step': 'Nodes Basics', 'last_activity': '2025-12-20T16:45:00Z'}], 'total': 3, 'categories': ['programming', 'web-development', 'programming-languages', 'data-science', 'devops']}
+127.0.0.1 - "POST /walker/learning_paths HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/courses HTTP/1.1" 200 -
+{'success': True, 'courses': [{'course_id': 'jac_fundamentals', 'title': 'Jac Programming Fundamentals', 'description': 'Learn the basics of Jac programming language - variables, functions, and control flow', 'domain': 'Jac Language', 'difficulty': 'beginner', 'content_type': 'interactive'}, {'course_id': 'jac_osp_basics', 'title': 'Object-Spatial Programming Basics', 'description': 'Master the fundamentals of OSP with nodes, edges, and walkers', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'content_type': 'interactive'}, {'course_id': 'jac_collections', 'title': 'Collections and Data Structures in Jac', 'description': 'Work with lists, dictionaries, sets, and comprehensions in Jac', 'domain': 'Jac Language', 'difficulty': 'beginner', 'content_type': 'interactive'}, {'course_id': 'jac_advanced_osp', 'title': 'Advanced Object-Spatial Programming', 'description': 'Deep dive into graph traversal, mobile computation, and distributed patterns', 'domain': 'Jac Language', 'difficulty': 'advanced', 'content_type': 'interactive'}, {'course_id': 'jac_semstrings_ai', 'title': 'Semstrings and AI Integration', 'description': 'Learn semantic strings and AI-powered programming with Jac', 'domain': 'Jac Language', 'difficulty': 'advanced', 'content_type': 'interactive'}, {'course_id': 'jac_pattern_matching', 'title': 'Pattern Matching and Advanced Syntax', 'description': 'Master match statements, type handling, and advanced Jac syntax', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'content_type': 'interactive'}], 'total': 6}
+127.0.0.1 - "POST /walker/courses HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/achievements HTTP/1.1" 200 -
+{'success': True, 'achievements': [{'id': 'first_course', 'name': 'First Steps', 'description': 'Complete your first course', 'icon': 'target', 'earned': True, 'earned_at': '2026-01-05T20:16:51Z', 'requirement': 'Complete 1 course', 'category': 'learning'}, {'id': 'course_master', 'name': 'Course Master', 'description': 'Complete 5 courses', 'icon': 'trophy', 'earned': False, 'earned_at': None, 'requirement': 'Complete 5 courses', 'category': 'learning'}, {'id': 'streak_week', 'name': 'Week Warrior', 'description': 'Maintain a 7-day learning streak', 'icon': 'fire', 'earned': False, 'earned_at': None, 'requirement': '7-day learning streak', 'category': 'consistency'}, {'id': 'quiz_champion', 'name': 'Quiz Champion', 'description': 'Score 100% on any quiz', 'icon': 'graduate', 'earned': False, 'earned_at': None, 'requirement': 'Score 100% on a quiz', 'category': 'knowledge'}, {'id': 'ai_explorer', 'name': 'AI Explorer', 'description': 'Generate 10 AI-powered lessons', 'icon': 'robot', 'earned': False, 'earned_at': None, 'requirement': 'Generate 10 AI lessons', 'category': 'exploration'}], 'total': 5, 'earned_count': 1, 'total_points': 100}
+127.0.0.1 - "POST /walker/achievements HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/quizzes HTTP/1.1" 200 -
+{'success': True, 'quizzes': [{'id': 'quiz_python_basics', 'title': 'Python Basics Quiz', 'description': 'Test your understanding of Python fundamentals', 'questions': [{'id': 'q1', 'question': 'What is the output of print(type([]))?', 'options': ["<class 'array'>", "<class 'list'>", "<class 'tuple'>", "<class 'dict'>"], 'correct_answer': 1, 'explanation': '[] creates a list in Python'}, {'id': 'q2', 'question': 'Which keyword is used to create a function in Python?', 'options': ['function', 'def', 'func', 'define'], 'correct_answer': 1, 'explanation': 'def keyword is used to define functions'}, {'id': 'q3', 'question': 'What is the correct way to create a dictionary?', 'options': ['[]', '()', '{}', '<>'], 'correct_answer': 2, 'explanation': '{} creates an empty dictionary'}], 'difficulty': 'beginner', 'estimated_time': 5, 'completed': False, 'score': None}, {'id': 'quiz_oop', 'title': 'Object-Oriented Programming Quiz', 'description': 'Test your OOP knowledge', 'questions': [{'id': 'q1', 'question': "What does 'OOP' stand for?", 'options': ['Object-Oriented Programming', 'Object-Optional Programming', 'Oriented Object Programming', 'Object Oriented Process'], 'correct_answer': 0, 'explanation': 'OOP stands for Object-Oriented Programming'}, {'id': 'q2', 'question': 'Which of these is NOT a pillar of OOP?', 'options': ['Encapsulation', 'Inheritance', 'Compilation', 'Polymorphism'], 'correct_answer': 2, 'explanation': 'Compilation is not an OOP concept'}, {'id': 'q3', 'question': 'What keyword is used for inheritance in Python?', 'options': ['extends', 'inherits', ':', 'super'], 'correct_answer': 2, 'explanation': 'Python uses parentheses after class name for inheritance'}], 'difficulty': 'intermediate', 'estimated_time': 10, 'completed': False, 'score': None}], 'total': 2}
+127.0.0.1 - "POST /walker/quizzes HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/user_progress HTTP/1.1" 200 -
+{'success': True, 'user_id': 'user_student1_1754136f', 'progress': {'courses_completed': 3, 'lessons_completed': 15, 'total_study_time': 450, 'current_streak': 5, 'average_score': 85.5}, 'analytics': {'modules_completed': 5, 'completion_rate': 60.0, 'total_sessions': 10, 'completed_sessions': 3, 'in_progress_sessions': 7, 'average_progress': 72.0}, 'learning_style': 'visual', 'skill_level': 'intermediate', 'recent_activity': [{'action': 'Completed lesson', 'item': 'Variables and Data Types', 'time': '2025-12-22T10:30:00Z'}, {'action': 'Started course', 'item': 'Data Structures', 'time': '2025-12-22T09:15:00Z'}]}
+127.0.0.1 - "POST /walker/user_progress HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/analytics_generate HTTP/1.1" 200 -
+{'user_id': 'user_student1_1754136f', 'learning_analytics': {'modules_completed': 5, 'total_study_time': 225, 'average_score': 87.5, 'engagement_score': 75.0, 'knowledge_retention': 85, 'learning_velocity': 'Moderate', 'generated_at': '2026-01-05T20:16:52Z'}, 'recommendations': ['Consider advancing to intermediate-level courses', 'Explore the AI generator for deeper concepts', 'Maintain your learning streak for better retention'], 'strengths': ['Consistent learning', 'Practical application'], 'areas_for_improvement': ['Practice more exercises', 'Review completed material']}
+127.0.0.1 - "POST /walker/analytics_generate HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_user_activities HTTP/1.1" 200 -
+{'success': True, 'activities': [], 'total_count': 0, 'has_more': False}
+127.0.0.1 - "POST /walker/get_user_activities HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_snippet HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/code_snippet HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-05T20:17:02Z', 'database_status': 'connected', 'ai_status': 'available', 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/compile_code HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/compile_code HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/compile_code HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/compile_code HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/chat HTTP/1.1" 200 -
+2026-01-05 20:19:07 - logger_config - INFO - Processing chat message: Hi...
+2026-01-05 20:19:10 - logger_config - ERROR - OpenAI API error: {
+  "error": {
+    "message": "Incorrect API key provided: sk-proj-********************************************************************************************************************************************************rwMA. You can find your API key at https://platform.openai.com/account/api-keys.",
+    "type": "invalid_request_error",
+    "code": "invalid_api_key",
+    "param": null
+  },
+  "status": 401
+}
+{'success': True, 'response': "I understand what you're curious about. This is an important topic that connects to several key concepts.\n\nWould you like me to elaborate on any specific aspect of this topic?", 'timestamp': '2026-01-05T20:19:10Z', 'fallback': True}
+127.0.0.1 - "POST /walker/chat HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/chat HTTP/1.1" 200 -
+2026-01-05 20:19:41 - logger_config - INFO - Processing chat message: Is Jac language fun?...
+2026-01-05 20:19:42 - logger_config - ERROR - OpenAI API error: {
+  "error": {
+    "message": "Incorrect API key provided: sk-proj-********************************************************************************************************************************************************rwMA. You can find your API key at https://platform.openai.com/account/api-keys.",
+    "type": "invalid_request_error",
+    "code": "invalid_api_key",
+    "param": null
+  },
+  "status": 401
+}
+{'success': True, 'response': "Great thinking! This concept you're asking about builds on what you've been learning.\n\nWould you like me to elaborate on any specific aspect of this topic?", 'timestamp': '2026-01-05T20:19:42Z', 'fallback': True}
+127.0.0.1 - "POST /walker/chat HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/chat HTTP/1.1" 200 -
+2026-01-05 20:20:25 - logger_config - INFO - Processing chat message: How is inheritance achieved in jac?...
+2026-01-05 20:20:26 - logger_config - ERROR - OpenAI API error: {
+  "error": {
+    "message": "Incorrect API key provided: sk-proj-********************************************************************************************************************************************************rwMA. You can find your API key at https://platform.openai.com/account/api-keys.",
+    "type": "invalid_request_error",
+    "code": "invalid_api_key",
+    "param": null
+  },
+  "status": 401
+}
+{'success': True, 'response': "I understand what you're curious about. This is an important topic that connects to several key concepts.\n\nWould you like me to elaborate on any specific aspect of this topic?", 'timestamp': '2026-01-05T20:20:26Z', 'fallback': True}
+127.0.0.1 - "POST /walker/chat HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/ai_generate_content HTTP/1.1" 200 -
+2026-01-05 20:20:58 - logger_config - INFO - Generating AI lesson for: Object-Spatial Programming (beginner level)
+2026-01-05 20:21:00 - logger_config - ERROR - OpenAI API error: {
+  "error": {
+    "message": "Incorrect API key provided: sk-proj-********************************************************************************************************************************************************rwMA. You can find your API key at https://platform.openai.com/account/api-keys.",
+    "type": "invalid_request_error",
+    "code": "invalid_api_key",
+    "param": null
+  },
+  "status": 401
+}
+{'success': True, 'concept_name': 'Object-Spatial Programming', 'domain': 'Computer Science', 'difficulty': 'beginner', 'content': "# Object-Spatial Programming\n\n## The Big Picture\nObject-Spatial Programming is an important concept in Computer Science that helps us understand and work with complex systems and ideas.\n\n## Simple Explanation\nThink of object-spatial programming like a toolkit that provides specific methods and approaches for solving problems in computer science.\n\n## Key Details\n- **Purpose**: Designed to solve specific types of problems\n- **Applications**: Used across various domains within Computer Science\n- **Benefits**: Provides structured approaches and proven methods\n- **Integration**: Works well with other concepts in Computer Science\n\n## Real-World Examples\n1. **Technology**: Used in software development and system design\n2. **Business**: Applied in strategy and decision-making processes\n3. **Research**: Employed in academic and scientific investigations\n4. **Daily Life**: Present in everyday problem-solving scenarios\n\n## Why It Matters\nUnderstanding Object-Spatial Programming helps you approach problems more systematically and develop better solutions in Computer Science and beyond.\n\n## Common Misconceptions\n- It's only useful in theoretical contexts\n- It requires extensive technical background to understand\n- It can't be applied to practical, real-world problems\n\n*Note: This is a fallback content template. For the best learning experience, please ensure OpenAI API is configured.*\n", 'related_concepts': ['Graph Theory', 'Node Systems', 'Walker Functions'], 'generated_at': '2026-01-05T20:21:00Z', 'source': 'ai_generator'}
+127.0.0.1 - "POST /walker/ai_generate_content HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/user_profile HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/learning_streak HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/user_profile HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/learning_streak HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_snippet HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/code_snippet HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/compile_code HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-05T20:21:22Z', 'database_status': 'connected', 'ai_status': 'available', 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/compile_code HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/create_folder HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/create_folder HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_snippet HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/code_snippet HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/compile_code HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-05T20:22:14Z', 'database_status': 'connected', 'ai_status': 'available', 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/compile_code HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_snippet HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/code_snippet HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/compile_code HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-05T20:22:28Z', 'database_status': 'connected', 'ai_status': 'available', 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/compile_code HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/debug_session HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/debug_session HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/debug_session HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/debug_session HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/user_profile HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/learning_streak HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/user_profile HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/learning_streak HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/update_preferences HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/update_preferences HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/notification_preferences HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/notification_preferences HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/ai_generate_content HTTP/1.1" 200 -
+2026-01-05 20:24:31 - logger_config - INFO - Generating AI lesson for: Variables and Data Types (beginner level)
+2026-01-05 20:24:33 - logger_config - ERROR - OpenAI API error: {
+  "error": {
+    "message": "Incorrect API key provided: sk-proj-********************************************************************************************************************************************************rwMA. You can find your API key at https://platform.openai.com/account/api-keys.",
+    "type": "invalid_request_error",
+    "code": "invalid_api_key",
+    "param": null
+  },
+  "status": 401
+}
+{'success': True, 'concept_name': 'Variables and Data Types', 'domain': 'Jac Language', 'difficulty': 'beginner', 'content': "# Variables and Data Types\n\n## The Big Picture\nVariables and Data Types is an important concept in Jac Language that helps us understand and work with complex systems and ideas.\n\n## Simple Explanation\nThink of variables and data types like a toolkit that provides specific methods and approaches for solving problems in jac language.\n\n## Key Details\n- **Purpose**: Designed to solve specific types of problems\n- **Applications**: Used across various domains within Jac Language\n- **Benefits**: Provides structured approaches and proven methods\n- **Integration**: Works well with other concepts in Jac Language\n\n## Real-World Examples\n1. **Technology**: Used in software development and system design\n2. **Business**: Applied in strategy and decision-making processes\n3. **Research**: Employed in academic and scientific investigations\n4. **Daily Life**: Present in everyday problem-solving scenarios\n\n## Why It Matters\nUnderstanding Variables and Data Types helps you approach problems more systematically and develop better solutions in Jac Language and beyond.\n\n## Common Misconceptions\n- It's only useful in theoretical contexts\n- It requires extensive technical background to understand\n- It can't be applied to practical, real-world problems\n\n*Note: This is a fallback content template. For the best learning experience, please ensure OpenAI API is configured.*\n", 'related_concepts': ['Graph Theory', 'Node Systems', 'Walker Functions'], 'generated_at': '2026-01-05T20:24:33Z', 'source': 'ai_generator'}
+127.0.0.1 - "POST /walker/ai_generate_content HTTP/1.1" 200 -
+2026-01-05 20:24:33 - logger_config - INFO - Generating AI lesson for: Variables and Data Types (beginner level)
+2026-01-05 20:24:34 - logger_config - ERROR - OpenAI API error: {
+  "error": {
+    "message": "Incorrect API key provided: sk-proj-********************************************************************************************************************************************************rwMA. You can find your API key at https://platform.openai.com/account/api-keys.",
+    "type": "invalid_request_error",
+    "code": "invalid_api_key",
+    "param": null
+  },
+  "status": 401
+}
+{'success': True, 'concept_name': 'Variables and Data Types', 'domain': 'Jac Language', 'difficulty': 'beginner', 'content': "# Variables and Data Types\n\n## The Big Picture\nVariables and Data Types is an important concept in Jac Language that helps us understand and work with complex systems and ideas.\n\n## Simple Explanation\nThink of variables and data types like a toolkit that provides specific methods and approaches for solving problems in jac language.\n\n## Key Details\n- **Purpose**: Designed to solve specific types of problems\n- **Applications**: Used across various domains within Jac Language\n- **Benefits**: Provides structured approaches and proven methods\n- **Integration**: Works well with other concepts in Jac Language\n\n## Real-World Examples\n1. **Technology**: Used in software development and system design\n2. **Business**: Applied in strategy and decision-making processes\n3. **Research**: Employed in academic and scientific investigations\n4. **Daily Life**: Present in everyday problem-solving scenarios\n\n## Why It Matters\nUnderstanding Variables and Data Types helps you approach problems more systematically and develop better solutions in Jac Language and beyond.\n\n## Common Misconceptions\n- It's only useful in theoretical contexts\n- It requires extensive technical background to understand\n- It can't be applied to practical, real-world problems\n\n*Note: This is a fallback content template. For the best learning experience, please ensure OpenAI API is configured.*\n", 'related_concepts': ['Graph Theory', 'Node Systems', 'Walker Functions'], 'generated_at': '2026-01-05T20:24:34Z', 'source': 'ai_generator'}
+127.0.0.1 - "POST /walker/ai_generate_content HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/ai_generate_content HTTP/1.1" 200 -
+2026-01-05 20:24:37 - logger_config - INFO - Generating AI lesson for: Control Flow and Loops (beginner level)
+2026-01-05 20:24:38 - logger_config - ERROR - OpenAI API error: {
+  "error": {
+    "message": "Incorrect API key provided: sk-proj-********************************************************************************************************************************************************rwMA. You can find your API key at https://platform.openai.com/account/api-keys.",
+    "type": "invalid_request_error",
+    "code": "invalid_api_key",
+    "param": null
+  },
+  "status": 401
+}
+{'success': True, 'concept_name': 'Control Flow and Loops', 'domain': 'Jac Language', 'difficulty': 'beginner', 'content': "# Control Flow and Loops\n\n## The Big Picture\nControl Flow and Loops is an important concept in Jac Language that helps us understand and work with complex systems and ideas.\n\n## Simple Explanation\nThink of control flow and loops like a toolkit that provides specific methods and approaches for solving problems in jac language.\n\n## Key Details\n- **Purpose**: Designed to solve specific types of problems\n- **Applications**: Used across various domains within Jac Language\n- **Benefits**: Provides structured approaches and proven methods\n- **Integration**: Works well with other concepts in Jac Language\n\n## Real-World Examples\n1. **Technology**: Used in software development and system design\n2. **Business**: Applied in strategy and decision-making processes\n3. **Research**: Employed in academic and scientific investigations\n4. **Daily Life**: Present in everyday problem-solving scenarios\n\n## Why It Matters\nUnderstanding Control Flow and Loops helps you approach problems more systematically and develop better solutions in Jac Language and beyond.\n\n## Common Misconceptions\n- It's only useful in theoretical contexts\n- It requires extensive technical background to understand\n- It can't be applied to practical, real-world problems\n\n*Note: This is a fallback content template. For the best learning experience, please ensure OpenAI API is configured.*\n", 'related_concepts': ['Graph Theory', 'Node Systems', 'Walker Functions'], 'generated_at': '2026-01-05T20:24:38Z', 'source': 'ai_generator'}
+127.0.0.1 - "POST /walker/ai_generate_content HTTP/1.1" 200 -

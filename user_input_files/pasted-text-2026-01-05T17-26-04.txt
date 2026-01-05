@@ -1,0 +1,111 @@
+index-BpACDISK.js:69 Session timeout manager initialized with 3-minute inactivity timeout
+index-BpACDISK.js:69 Session timeout manager initialized with 3-minute inactivity timeout
+index-BpACDISK.js:718 Backend health: {service: 'Jeseci Smart Learning Academy API', status: 'healthy', version: '7.0.0', timestamp: '2026-01-05T20:16:47Z', database_status: 'connected', …}
+index-BpACDISK.js:69 API direct response: {name: 'platform_stats', info: {…}}
+index-BpACDISK.js:69 API extracted from reports: {success: true, testimonials: Array(0), total: 0}
+index-BpACDISK.js:718 Concepts API response: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+index-BpACDISK.js:718 Learning Paths API response: (3) [{…}, {…}, {…}]
+index-BpACDISK.js:718 Courses API response: (6) [{…}, {…}, {…}, {…}, {…}, {…}]
+index-BpACDISK.js:718 Achievements API response: (5) [{…}, {…}, {…}, {…}, {…}]
+index-BpACDISK.js:718 Quizzes API response: (2) [{…}, {…}]
+index-BpACDISK.js:718 Analytics API response: {user_id: 'user_student1_1754136f', learning_analytics: {…}, recommendations: Array(3), strengths: Array(2), areas_for_improvement: Array(2)}
+index-BpACDISK.js:718 User data loaded successfully
+index-BpACDISK.js:69 API extracted from reports: {success: true, activities: Array(0), total_count: 0, has_more: false}
+index-BpACDISK.js:69 API direct response: {error: "name 'ctx' is not defined", traceback: `Traceback (most recent call last):\n  File "/home/c…        ^^^\nNameError: name 'ctx' is not defined\n`}
+index-BpACDISK.js:69 API extracted from reports: {service: 'Jeseci Smart Learning Academy API', status: 'healthy', version: '7.0.0', timestamp: '2026-01-05T20:17:02Z', database_status: 'connected', …}
+index-BpACDISK.js:69 API direct response: {error: '0', traceback: 'Traceback (most recent call last):\n  File "/home/c… result[0];\n               ~~~~~^^^^\nKeyError: 0\n'}
+index-BpACDISK.js:691 Validation error: TypeError: Cannot read properties of undefined (reading 'map')
+    at index-BpACDISK.js:690:2150
+(anonymous) @ index-BpACDISK.js:691
+await in (anonymous)
+Cn @ index-BpACDISK.js:694
+(anonymous) @ index-BpACDISK.js:643
+Ai @ index-BpACDISK.js:40
+go @ index-BpACDISK.js:40
+(anonymous) @ index-BpACDISK.js:40
+j @ index-BpACDISK.js:25
+$ @ index-BpACDISK.js:25
+index-BpACDISK.js:69 API direct response: {error: "name 'ctx' is not defined", traceback: `Traceback (most recent call last):\n  File "/home/c…        ^^^\nNameError: name 'ctx' is not defined\n`}
+index-BpACDISK.js:69 API direct response: {error: "name 'ctx' is not defined", traceback: `Traceback (most recent call last):\n  File "/home/c…        ^^^\nNameError: name 'ctx' is not defined\n`}
+index-BpACDISK.js:69 API direct response: {error: "name 'ctx' is not defined", traceback: `Traceback (most recent call last):\n  File "/home/c…        ^^^\nNameError: name 'ctx' is not defined\n`}
+index-BpACDISK.js:69 API direct response: {error: '0', traceback: 'Traceback (most recent call last):\n  File "/home/c… result[0];\n               ~~~~~^^^^\nKeyError: 0\n'}
+index-BpACDISK.js:691 Validation error: TypeError: Cannot read properties of undefined (reading 'map')
+    at index-BpACDISK.js:690:2150
+(anonymous) @ index-BpACDISK.js:691
+await in (anonymous)
+(anonymous) @ index-BpACDISK.js:694
+setTimeout
+(anonymous) @ index-BpACDISK.js:694
+Ya @ index-BpACDISK.js:694
+(anonymous) @ index-BpACDISK.js:643
+_deliver @ editor.api-CalNCsUg.js:7
+_deliverQueue @ editor.api-CalNCsUg.js:7
+fire @ editor.api-CalNCsUg.js:7
+(anonymous) @ editor.api-CalNCsUg.js:257
+_deliver @ editor.api-CalNCsUg.js:7
+fire @ editor.api-CalNCsUg.js:7
+_emitOutgoingEvents @ editor.api-CalNCsUg.js:253
+endEmitViewEvents @ editor.api-CalNCsUg.js:253
+(anonymous) @ editor.api-CalNCsUg.js:255
+batchChanges @ editor.api-CalNCsUg.js:257
+_withViewEventsCollector @ editor.api-CalNCsUg.js:255
+_executeCursorEdit @ editor.api-CalNCsUg.js:255
+executeCommands @ editor.api-CalNCsUg.js:255
+executeCommands @ editor.api-CalNCsUg.js:257
+runCoreEditingCommand @ editor.api-CalNCsUg.js:44
+runEditorCommand @ editor.api-CalNCsUg.js:44
+(anonymous) @ editor.api-CalNCsUg.js:13
+(anonymous) @ editor.api-CalNCsUg.js:13
+invokeFunction @ editor.api-CalNCsUg.js:893
+invokeWithinContext @ editor.api-CalNCsUg.js:255
+runEditorCommand @ editor.api-CalNCsUg.js:13
+runCommand @ editor.api-CalNCsUg.js:13
+handler @ editor.api-CalNCsUg.js:13
+invokeFunction @ editor.api-CalNCsUg.js:893
+executeCommand @ editor.api-CalNCsUg.js:899
+_doDispatch @ editor.api-CalNCsUg.js:512
+_dispatch @ editor.api-CalNCsUg.js:512
+(anonymous) @ editor.api-CalNCsUg.js:899
+index-BpACDISK.js:69 API direct response: {error: "name 'ctx' is not defined", traceback: `Traceback (most recent call last):\n  File "/home/c…        ^^^\nNameError: name 'ctx' is not defined\n`}
+index-BpACDISK.js:69 API direct response: {error: "name 'ctx' is not defined", traceback: `Traceback (most recent call last):\n  File "/home/c…        ^^^\nNameError: name 'ctx' is not defined\n`}
+index-BpACDISK.js:69 API extracted from reports: {service: 'Jeseci Smart Learning Academy API', status: 'healthy', version: '7.0.0', timestamp: '2026-01-05T20:21:22Z', database_status: 'connected', …}
+index-BpACDISK.js:69 API direct response: {error: '0', traceback: 'Traceback (most recent call last):\n  File "/home/c… result[0];\n               ~~~~~^^^^\nKeyError: 0\n'}
+index-BpACDISK.js:691 Validation error: TypeError: Cannot read properties of undefined (reading 'map')
+    at index-BpACDISK.js:690:2150
+(anonymous) @ index-BpACDISK.js:691
+await in (anonymous)
+Cn @ index-BpACDISK.js:694
+(anonymous) @ index-BpACDISK.js:643
+Ai @ index-BpACDISK.js:40
+go @ index-BpACDISK.js:40
+(anonymous) @ index-BpACDISK.js:40
+j @ index-BpACDISK.js:25
+$ @ index-BpACDISK.js:25
+index-BpACDISK.js:69 API direct response: {error: "name 'ctx' is not defined", traceback: `Traceback (most recent call last):\n  File "/home/c…        ^^^\nNameError: name 'ctx' is not defined\n`}
+index-BpACDISK.js:69 API extracted from reports: {service: 'Jeseci Smart Learning Academy API', status: 'healthy', version: '7.0.0', timestamp: '2026-01-05T20:22:14Z', database_status: 'connected', …}
+index-BpACDISK.js:69 API direct response: {error: '0', traceback: 'Traceback (most recent call last):\n  File "/home/c… result[0];\n               ~~~~~^^^^\nKeyError: 0\n'}
+index-BpACDISK.js:691 Validation error: TypeError: Cannot read properties of undefined (reading 'length')
+    at index-BpACDISK.js:690:2433
+(anonymous) @ index-BpACDISK.js:691
+await in (anonymous)
+Cn @ index-BpACDISK.js:694
+(anonymous) @ index-BpACDISK.js:643
+Ai @ index-BpACDISK.js:40
+go @ index-BpACDISK.js:40
+(anonymous) @ index-BpACDISK.js:40
+j @ index-BpACDISK.js:25
+$ @ index-BpACDISK.js:25
+index-BpACDISK.js:69 API direct response: {error: "name 'ctx' is not defined", traceback: `Traceback (most recent call last):\n  File "/home/c…        ^^^\nNameError: name 'ctx' is not defined\n`}
+index-BpACDISK.js:69 API extracted from reports: {service: 'Jeseci Smart Learning Academy API', status: 'healthy', version: '7.0.0', timestamp: '2026-01-05T20:22:28Z', database_status: 'connected', …}
+index-BpACDISK.js:69 API direct response: {error: '0', traceback: 'Traceback (most recent call last):\n  File "/home/c… result[0];\n               ~~~~~^^^^\nKeyError: 0\n'}
+index-BpACDISK.js:691 Validation error: TypeError: Cannot read properties of undefined (reading 'map')
+    at index-BpACDISK.js:690:2150
+(anonymous) @ index-BpACDISK.js:691
+await in (anonymous)
+Cn @ index-BpACDISK.js:694
+(anonymous) @ index-BpACDISK.js:643
+Ai @ index-BpACDISK.js:40
+go @ index-BpACDISK.js:40
+(anonymous) @ index-BpACDISK.js:40
+j @ index-BpACDISK.js:25
+$ @ index-BpACDISK.js:25
