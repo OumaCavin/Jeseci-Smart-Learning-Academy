@@ -395,6 +395,39 @@ class CodeSnippetStore:
         finally:
             conn.close()
     
+    def save_snippet(self, user_id: int, title: str, code_content: str,
+                     snippet_id: str = None, language: str = "jac",
+                     description: str = None, is_public: bool = False,
+                     folder_id: str = None) -> Dict:
+        """Save a code snippet (create new or update existing)"""
+        if snippet_id:
+            # Update existing snippet
+            updated = self.update_snippet(
+                snippet_id=snippet_id,
+                user_id=user_id,
+                title=title,
+                code_content=code_content,
+                description=description,
+                is_public=is_public,
+                folder_id=folder_id
+            )
+            if updated:
+                return self.get_snippet(snippet_id=snippet_id, user_id=user_id)
+            else:
+                raise ValueError(f"Failed to update snippet: {snippet_id}")
+        else:
+            # Create new snippet
+            new_snippet_id = self.create_snippet(
+                user_id=user_id,
+                title=title,
+                code_content=code_content,
+                language=language,
+                description=description,
+                is_public=is_public,
+                folder_id=folder_id
+            )
+            return self.get_snippet(snippet_id=new_snippet_id, user_id=user_id)
+    
     def get_user_snippets(self, user_id: int, folder_id: str = None, 
                           limit: int = 50, offset: int = 0) -> List[Dict]:
         """Get all snippets for a user"""
@@ -744,6 +777,10 @@ class CodeSnippetStore:
             raise
         finally:
             conn.close()
+    
+    def restore_snippet_version(self, version_id: str, user_id: int) -> bool:
+        """Alias for restore_version - Restore a snippet to a previous version"""
+        return self.restore_version(version_id, user_id)
     
     # =========================================================================
     # Test Case Operations
@@ -1475,3 +1512,10 @@ def get_code_snippet_store() -> CodeSnippetStore:
     if _code_snippet_store is None:
         _code_snippet_store = CodeSnippetStore()
     return _code_snippet_store
+
+# Export singleton instance for Jaclang walkers
+# This allows app.jac to import the module and use methods directly
+code_execution_store = get_code_snippet_store()
+
+# Alias for backward compatibility
+CodeExecutionStore = CodeSnippetStore

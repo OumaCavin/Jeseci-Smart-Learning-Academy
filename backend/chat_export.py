@@ -4,6 +4,7 @@ Handles exporting chat conversations and sending them to users via email
 """
 
 import os
+import asyncio
 from datetime import datetime
 from typing import List, Dict, Optional
 
