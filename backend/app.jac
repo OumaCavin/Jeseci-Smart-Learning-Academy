@@ -7669,58 +7669,59 @@ walker connections_list {
 
     can connections_list with entry {
         user_id = ctx().get('user_id');
-            if not user_id {
-                report {"success": False, "error": "Authentication required"} ;
-                return;
-            }
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
+        }
 
-            # Mock connections data
-            connections = [
-                {
-                    "connection_id": "conn_001",
-                    "status": "accepted",
-                    "created_at": "2025-01-01T10:00:00Z",
-                    "updated_at": "2025-01-02T15:30:00Z",
-                    "user": {
-                        "user_id": 2,
-                        "username": "jac_learner",
-                        "email": "jac@example.com",
-                        "first_name": "Jac",
-                        "last_name": "Learner",
-                        "avatar_url": ""
-                    }
-                },
-                {
-                    "connection_id": "conn_002",
-                    "status": "accepted",
-                    "created_at": "2024-12-28T09:00:00Z",
-                    "updated_at": "2024-12-29T11:20:00Z",
-                    "user": {
-                        "user_id": 3,
-                        "username": "python_master",
-                        "email": "python@example.com",
-                        "first_name": "Python",
-                        "last_name": "Master",
-                        "avatar_url": ""
-                    }
+        # Mock connections data
+        connections = [
+            {
+                "connection_id": "conn_001",
+                "status": "accepted",
+                "created_at": "2025-01-01T10:00:00Z",
+                "updated_at": "2025-01-02T15:30:00Z",
+                "user": {
+                    "user_id": 2,
+                    "username": "jac_learner",
+                    "email": "jac@example.com",
+                    "first_name": "Jac",
+                    "last_name": "Learner",
+                    "avatar_url": ""
                 }
-            ];
-
-            # Filter by status if provided
-            if self.status {
-                filtered_connections = [];
-                for conn in connections {
-                    if conn['status'] == self.status {
-                        filtered_connections.append(conn);
+            },
+            {
+                "connection_id": "conn_002",
+                "status": "accepted",
+                "created_at": "2024-12-28T09:00:00Z",
+                "updated_at": "2024-12-29T11:20:00Z",
+                "user": {
+                    "user_id": 3,
+                    "username": "python_master",
+                    "email": "python@example.com",
+                    "first_name": "Python",
+                    "last_name": "Master",
+                    "avatar_url": ""
                 }
-                connections = filtered_connections;
             }
+        ];
 
-            report {
-                "success": True,
-                "connections": connections,
-                "total": len(connections)
-            } ;
+        # Filter by status if provided
+        if self.status {
+            filtered_connections = [];
+            for conn in connections {
+                if conn['status'] == self.status {
+                    filtered_connections.append(conn);
+                }
+            }
+            connections = filtered_connections;
+        }
+
+        report {
+            "success": True,
+            "connections": connections,
+            "total": len(connections)
+        } ;
     }
 }
 
@@ -7732,39 +7733,39 @@ walker connection_requests {
             return;
         }
 
-            # Mock connection requests
-            requests = [
-                {
-                    "connection_id": "req_001",
-                    "created_at": "2025-01-04T14:00:00Z",
-                    "requester": {
-                        "user_id": 4,
-                        "username": "new_coder",
-                        "email": "newcoder@example.com",
-                        "first_name": "New",
-                        "last_name": "Coder",
-                        "avatar_url": ""
-                    }
-                },
-                {
-                    "connection_id": "req_002",
-                    "created_at": "2025-01-03T11:30:00Z",
-                    "requester": {
-                        "user_id": 5,
-                        "username": "tech_enthusiast",
-                        "email": "tech@example.com",
-                        "first_name": "Tech",
-                        "last_name": "Enthusiast",
-                        "avatar_url": ""
-                    }
+        # Mock connection requests
+        requests = [
+            {
+                "connection_id": "req_001",
+                "created_at": "2025-01-04T14:00:00Z",
+                "requester": {
+                    "user_id": 4,
+                    "username": "new_coder",
+                    "email": "newcoder@example.com",
+                    "first_name": "New",
+                    "last_name": "Coder",
+                    "avatar_url": ""
                 }
-            ];
+            },
+            {
+                "connection_id": "req_002",
+                "created_at": "2025-01-03T11:30:00Z",
+                "requester": {
+                    "user_id": 5,
+                    "username": "tech_enthusiast",
+                    "email": "tech@example.com",
+                    "first_name": "Tech",
+                    "last_name": "Enthusiast",
+                    "avatar_url": ""
+                }
+            }
+        ];
 
-            report {
-                "success": True,
-                "requests": requests,
-                "total": len(requests)
-            } ;
+        report {
+            "success": True,
+            "requests": requests,
+            "total": len(requests)
+        } ;
     }
 }
 
@@ -7796,41 +7797,6 @@ walker user_profile {
     }
 }
 
-walker get_folders {
-    can get_folders with entry {
-        user_id = ctx().get('user_id');
-        if not user_id {
-            report {"success": False, "error": "Authentication required"} ;
-            return;
-        }
-
-        # Mock folders data
-        folders = [
-            {
-                "folder_id": "folder_001",
-                "name": "Jaclang Notes",
-                "description": "My notes on Jaclang programming",
-                "parent_id": "",
-                "created_at": "2025-01-01T10:00:00Z",
-                "updated_at": "2025-01-03T15:30:00Z"
-            },
-            {
-                "folder_id": "folder_002",
-                "name": "Python Exercises",
-                "description": "Python practice problems and solutions",
-                "parent_id": "",
-                "created_at": "2024-12-15T08:00:00Z",
-                "updated_at": "2025-01-02T12:00:00Z"
-            }
-        ];
-
-        report {
-            "success": True,
-            "folders": folders,
-            "total": len(folders)
-        } ;
-    }
-}
 
 
 
