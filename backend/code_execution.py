@@ -789,3 +789,28 @@ print(x + y)
     
     print("\n" + "=" * 60)
     print("Code Execution Engine tests completed!")
+
+
+def evaluate_expression(code: str, expression: str, current_line: int = 1, variables: dict = None) -> Dict[str, Any]:
+    """
+    Safely evaluate an expression in the context of the provided code.
+    Used for debug sessions.
+    """
+    try:
+        # Create a safe context with provided variables
+        local_context = variables or {}
+        
+        # Simple evaluation (in a real scenario, this should be sandboxed)
+        # This is a placeholder implementation.
+        result = str(expression)  # Mock result for now
+        
+        return {
+            "success": True,
+            "result": f"Evaluated: {expression} => [Mock Result]",
+            "variables": local_context
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }

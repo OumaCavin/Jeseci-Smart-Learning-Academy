@@ -2067,7 +2067,7 @@ walker contact_mark_read {
 # ==============================================================================
 walker testimonials {
     has limit: int = 6;
-    has featured_only: bool = false;
+    has featured_only: bool = False;
 
     can testimonials with entry {
         import testimonials_store as testimonial_module;
@@ -2157,7 +2157,7 @@ walker get_notifications {
     has limit: int = 20;
     has offset: int = 0;
     has filter_type: str = "";
-    has unread_only: bool = false;
+    has unread_only: bool = False;
     has user_id: str = "";
 
     can get_notifications with entry {
@@ -3122,7 +3122,7 @@ walker admin_users_create {
     has daily_goal_minutes: int = 30;
     has notifications_enabled: bool = true;
     has email_reminders: bool = true;
-    has dark_mode: bool = false;
+    has dark_mode: bool = False;
     has auto_play_videos: bool = true;
 
     can admin_users_create with entry {
@@ -5833,8 +5833,9 @@ walker code_snippet {
     has snippet_id: str = "";
     has title: str = "";
     has code: str = "";
+    has language: str = "jac";
     has description: str = "";
-    has is_public: bool = false;
+    has is_public: bool = False;
     has folder_id: str = "";
     has user_id: str = "";
 
@@ -7392,8 +7393,8 @@ walker notification_preferences {
     has course_updates: bool = true;
     has community_mentions: bool = true;
     has achievement_alerts: bool = true;
-    has weekly_digest: bool = false;
-    has marketing_emails: bool = false;
+    has weekly_digest: bool = False;
+    has marketing_emails: bool = False;
 
     can notification_preferences with entry {
         import notification_store as notif_module;
@@ -7430,7 +7431,7 @@ walker admin_content_course_create {
     has description: str = "";
     has modules: list = [];
     has difficulty: str = "beginner";
-    has is_published: bool = false;
+    has is_published: bool = False;
 
     can admin_content_course_create with entry {
         import admin_content_store as admin_content_module;
@@ -7460,7 +7461,7 @@ walker admin_content_concept_create {
     has parent_course_id: str = "";
     has domain: str = "general";
     has difficulty: str = "beginner";
-    has is_published: bool = false;
+    has is_published: bool = False;
 
     can admin_content_concept_create with entry {
         import admin_content_store as admin_content_module;
