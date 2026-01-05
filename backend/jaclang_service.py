@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), 'config', '.env'))
 
 # Add backend to path
-sys.path.insert(os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(__file__))
 
 # Create router
 jaclang_router = APIRouter(prefix="/api/jaclang", tags=["Jaclang Editor Intelligence"])
