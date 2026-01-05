@@ -1380,6 +1380,63 @@ class CodeSnippetStore:
             conn.close()
     
     # =========================================================================
+    # Error Knowledge Base
+    # =========================================================================
+    
+    def get_error_suggestions(self, language: str, error_msg: str) -> List[Dict]:
+        """
+        Get educational error suggestions matching the error message.
+        
+        Args:
+            language: Programming language (jac, python, javascript)
+            error_msg: The error message to match
+            
+        Returns:
+            List of matching error patterns with suggestions
+        """
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            
+            # Search for matching error patterns using ILIKE for case-insensitive match
+            cursor.execute(f"""
+                SELECT * FROM {self.table_error_knowledge}
+                WHERE language = %s OR language = 'all'
+                ORDER BY 
+                    CASE 
+                        WHEN error_pattern = %s THEN 0
+                        WHEN error_pattern LIKE %s THEN 1
+                        WHEN error_pattern LIKE %s THEN 2
+                        ELSE 3
+                    END,
+                    created_at DESC
+                LIMIT 5
+            """, (language.lower(), error_msg, 
+                  '%' + error_msg + '%', 
+                  '%' + ' '.join(error_msg.lower().split()[:3]) + '%'))
+            
+            rows = cursor.fetchall()
+            if rows:
+                return [self._row_to_error_knowledge(row) for row in rows]
+            
+            # Also try searching for keywords from the error message
+            keywords = ' '.join(error_msg.lower().split()[:5])
+            cursor.execute(f"""
+                SELECT * FROM {self.table_error_knowledge}
+                WHERE (language = %s OR language = 'all')
+                AND (%s ILIKE '%' || error_pattern || '%' 
+                     OR error_pattern ILIKE '%' || %s || '%')
+                ORDER BY created_at DESC
+                LIMIT 5
+            """, (language.lower(), keywords, keywords.replace(' ', '%')))
+            
+            rows = cursor.fetchall()
+            return [self._row_to_error_knowledge(row) for row in rows]
+            
+        finally:
+            conn.close()
+    
+    # =========================================================================
     # Helper Methods
     # =========================================================================
     
