@@ -41,8 +41,8 @@ class CodeSnippet:
     folder_id: Optional[str] = None
     execution_count: int = 0
     last_executed_at: Optional[datetime] = None
-    created_at: datetime = None
-    updated_at: datetime = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -54,10 +54,11 @@ class ExecutionHistory:
     code_content: str
     status: str  # 'success', 'error', 'timeout'
     output: str
+    created_by: int  # Add required field before defaults
     error_message: Optional[str] = None
     execution_time_ms: int = 0
     entry_point: str = "init"
-    created_at: datetime = None
+    created_at: Optional[datetime] = None
 
 
 @dataclass
@@ -66,11 +67,12 @@ class CodeFolder:
     id: str
     user_id: int
     name: str
+    created_by: int  # Add required field before defaults
     description: Optional[str] = None
     parent_folder_id: Optional[str] = None
     color: str = "#3b82f6"
-    created_at: datetime = None
-    updated_at: datetime = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -81,10 +83,10 @@ class SnippetVersion:
     version_number: int
     code_content: str
     title: str
-    description: Optional[str] = None
     created_by: int
+    description: Optional[str] = None
     change_summary: Optional[str] = None
-    created_at: datetime = None
+    created_at: Optional[datetime] = None
 
 
 @dataclass
@@ -95,12 +97,12 @@ class TestCase:
     name: str
     input_data: str
     expected_output: str
+    created_by: int  # Move before fields with defaults
     is_hidden: bool = False
     order_index: int = 0
     timeout_ms: int = 5000
-    created_by: int
-    created_at: datetime = None
-    updated_at: datetime = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -139,12 +141,13 @@ class DebugSession:
     user_id: int
     snippet_id: str
     status: str  # 'active', 'paused', 'completed', 'terminated'
+    created_by: int  # Add required field before defaults
     current_line: Optional[int] = None
     breakpoints: Optional[str] = None  # JSON array stored as text
     variables: Optional[str] = None    # JSON object stored as text
     call_stack: Optional[str] = None   # JSON array stored as text
-    created_at: datetime = None
-    updated_at: datetime = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 def create_code_snippets_table(cursor):

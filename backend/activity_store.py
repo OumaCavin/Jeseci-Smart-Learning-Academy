@@ -160,9 +160,9 @@ def log_activity(
             cur.execute(
                 f"""
                 INSERT INTO {DB_SCHEMA}.user_activities (
-                    id, user_id, activity_type, description, metadata, points_earned
+                    id, user_id, activity_type, title, description, metadata, points_earned
                 ) VALUES (
-                    %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s
                 ) RETURNING id, created_at
                 """,
                 (
@@ -243,7 +243,7 @@ def get_user_activities(
             
             # Build query - JOIN users table to filter by string UUID but select from activities
             base_query = f"""
-                SELECT a.id, u.user_id, a.activity_type, a.description,
+                SELECT a.id, u.user_id, a.activity_type, a.title, a.description,
                        a.metadata, a.points_earned, a.created_at
                 FROM {DB_SCHEMA}.user_activities a
                 JOIN {DB_SCHEMA}.users u ON a.user_id = u.id
@@ -288,10 +288,11 @@ def get_user_activities(
                     'id': str(row[0]),
                     'user_id': str(row[1]),
                     'type': row[2],
-                    'description': row[3],
+                    'title': row[3],
+                    'description': row[4],
                     'metadata': metadata,
-                    'xp_earned': row[5],
-                    'created_at': row[6].isoformat() if row[6] else None,
+                    'xp_earned': row[6],
+                    'created_at': row[7].isoformat() if row[7] else None,
                     'config': ACTIVITY_CONFIG.get(row[2], {})
                 })
             

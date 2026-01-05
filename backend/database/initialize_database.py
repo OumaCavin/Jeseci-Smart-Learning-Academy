@@ -1178,6 +1178,7 @@ def create_user_activities_table(cursor):
                 'comment_posted',
                 'login'
             )),
+            title VARCHAR(255),  -- Added title column
             description TEXT,
             metadata JSONB DEFAULT '{{}}',
             points_earned INTEGER DEFAULT 0,
