@@ -900,6 +900,18 @@
 **/.claude/debug/**
 
 # ==============================================================================
+# PROJECT ROOT CLEANUP
+# ==============================================================================
+# Temporary and user input files should not be in the repository
+tmp/
+user_input_files/
+workspace.json
+browser/
+.backups/
+.watermark/
+venv/
+
+# ==============================================================================
 # NESTED GIT REPOSITORIES
 # ==============================================================================
 # Temporarily renamed .git directories (used by WorkspaceGitManager)
