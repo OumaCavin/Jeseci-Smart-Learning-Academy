@@ -1,0 +1,663 @@
+index-gvPLLLBt.js:68 Session timeout manager initialized with 3-minute inactivity timeout
+index-gvPLLLBt.js:68 Session timeout manager initialized with 3-minute inactivity timeout
+index-gvPLLLBt.js:717 Backend health: Object
+index-gvPLLLBt.js:68 Session restored successfully
+index-gvPLLLBt.js:717 Concepts API response: Array(12)
+index-gvPLLLBt.js:68  POST http://localhost:8000/api/jaclang/validate net::ERR_EMPTY_RESPONSE
+makeRequest @ index-gvPLLLBt.js:68
+validateJacCode @ index-gvPLLLBt.js:68
+(anonymous) @ index-gvPLLLBt.js:689
+Cn @ index-gvPLLLBt.js:693
+(anonymous) @ index-gvPLLLBt.js:642
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+(anonymous) @ index-gvPLLLBt.js:40
+j @ index-gvPLLLBt.js:25
+$ @ index-gvPLLLBt.js:25
+index-gvPLLLBt.js:68 API request failed: /api/jaclang/validate TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.validateJacCode (index-gvPLLLBt.js:68:42039)
+    at index-gvPLLLBt.js:689:1973
+    at Object.Cn [as current] (index-gvPLLLBt.js:693:899)
+    at index-gvPLLLBt.js:642:7620
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at index-gvPLLLBt.js:40:41120
+    at j (index-gvPLLLBt.js:25:1632)
+    at MessagePort.$ (index-gvPLLLBt.js:25:1999)
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+validateJacCode @ index-gvPLLLBt.js:68
+(anonymous) @ index-gvPLLLBt.js:689
+Cn @ index-gvPLLLBt.js:693
+(anonymous) @ index-gvPLLLBt.js:642
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+(anonymous) @ index-gvPLLLBt.js:40
+j @ index-gvPLLLBt.js:25
+$ @ index-gvPLLLBt.js:25
+index-gvPLLLBt.js:690 Validation error: TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.validateJacCode (index-gvPLLLBt.js:68:42039)
+    at index-gvPLLLBt.js:689:1973
+    at Object.Cn [as current] (index-gvPLLLBt.js:693:899)
+    at index-gvPLLLBt.js:642:7620
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at index-gvPLLLBt.js:40:41120
+    at j (index-gvPLLLBt.js:25:1632)
+    at MessagePort.$ (index-gvPLLLBt.js:25:1999)
+(anonymous) @ index-gvPLLLBt.js:690
+await in (anonymous)
+Cn @ index-gvPLLLBt.js:693
+(anonymous) @ index-gvPLLLBt.js:642
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+(anonymous) @ index-gvPLLLBt.js:40
+j @ index-gvPLLLBt.js:25
+$ @ index-gvPLLLBt.js:25
+index-gvPLLLBt.js:68  GET http://localhost:8000/api/jaclang/health net::ERR_EMPTY_RESPONSE
+makeRequest @ index-gvPLLLBt.js:68
+getJaclangServiceHealth @ index-gvPLLLBt.js:68
+(anonymous) @ index-gvPLLLBt.js:689
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 API request failed: /api/jaclang/health TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.getJaclangServiceHealth (index-gvPLLLBt.js:68:41952)
+    at index-gvPLLLBt.js:689:964
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+    at cn (index-gvPLLLBt.js:38:3274)
+    at index-gvPLLLBt.js:40:34569
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+getJaclangServiceHealth @ index-gvPLLLBt.js:68
+(anonymous) @ index-gvPLLLBt.js:689
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68  POST http://localhost:8000/walker/code_execute net::ERR_EMPTY_RESPONSE
+makeRequest @ index-gvPLLLBt.js:68
+executeCode @ index-gvPLLLBt.js:68
+da @ index-gvPLLLBt.js:693
+onClick @ index-gvPLLLBt.js:717
+Vn @ index-gvPLLLBt.js:37
+wo @ index-gvPLLLBt.js:37
+Bs @ index-gvPLLLBt.js:37
+Xd @ index-gvPLLLBt.js:37
+Yd @ index-gvPLLLBt.js:37
+(anonymous) @ index-gvPLLLBt.js:37
+Bc @ index-gvPLLLBt.js:40
+Cn @ index-gvPLLLBt.js:37
+Bm @ index-gvPLLLBt.js:37
+dm @ index-gvPLLLBt.js:37
+rl @ index-gvPLLLBt.js:37
+index-gvPLLLBt.js:68 API request failed: /walker/code_execute TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.executeCode (index-gvPLLLBt.js:68:39592)
+    at da (index-gvPLLLBt.js:693:1084)
+    at onClick (index-gvPLLLBt.js:717:52969)
+    at Object.Vn (index-gvPLLLBt.js:37:9837)
+    at wo (index-gvPLLLBt.js:37:9991)
+    at Bs (index-gvPLLLBt.js:37:10048)
+    at Xd (index-gvPLLLBt.js:37:31426)
+    at Yd (index-gvPLLLBt.js:37:31843)
+    at index-gvPLLLBt.js:37:36929
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+executeCode @ index-gvPLLLBt.js:68
+da @ index-gvPLLLBt.js:693
+onClick @ index-gvPLLLBt.js:717
+Vn @ index-gvPLLLBt.js:37
+wo @ index-gvPLLLBt.js:37
+Bs @ index-gvPLLLBt.js:37
+Xd @ index-gvPLLLBt.js:37
+Yd @ index-gvPLLLBt.js:37
+(anonymous) @ index-gvPLLLBt.js:37
+Bc @ index-gvPLLLBt.js:40
+Cn @ index-gvPLLLBt.js:37
+Bm @ index-gvPLLLBt.js:37
+dm @ index-gvPLLLBt.js:37
+rl @ index-gvPLLLBt.js:37
+index-gvPLLLBt.js:68  GET http://localhost:8000/walker/forums_list net::ERR_EMPTY_RESPONSE
+makeRequest @ index-gvPLLLBt.js:68
+get @ index-gvPLLLBt.js:68
+Zg @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 API request failed: /walker/forums_list TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.get (index-gvPLLLBt.js:68:37049)
+    at Zg (index-gvPLLLBt.js:632:45376)
+    at index-gvPLLLBt.js:632:787537
+    at index-gvPLLLBt.js:632:787839
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+get @ index-gvPLLLBt.js:68
+Zg @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:632 Error getting forums: TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.get (index-gvPLLLBt.js:68:37049)
+    at Zg (index-gvPLLLBt.js:632:45376)
+    at index-gvPLLLBt.js:632:787537
+    at index-gvPLLLBt.js:632:787839
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+Zg @ index-gvPLLLBt.js:632
+await in Zg
+(anonymous) @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68  GET http://localhost:8000/walker/connection_requests net::ERR_EMPTY_RESPONSE
+makeRequest @ index-gvPLLLBt.js:68
+get @ index-gvPLLLBt.js:68
+Kg @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 API request failed: /walker/connection_requests TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.get (index-gvPLLLBt.js:68:37049)
+    at Kg (index-gvPLLLBt.js:632:45009)
+    at index-gvPLLLBt.js:632:787542
+    at index-gvPLLLBt.js:632:787839
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+get @ index-gvPLLLBt.js:68
+Kg @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:632 Error getting connection requests: TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.get (index-gvPLLLBt.js:68:37049)
+    at Kg (index-gvPLLLBt.js:632:45009)
+    at index-gvPLLLBt.js:632:787542
+    at index-gvPLLLBt.js:632:787839
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+Kg @ index-gvPLLLBt.js:632
+await in Kg
+(anonymous) @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68  GET http://localhost:8000/walker/connections_list?status=accepted net::ERR_EMPTY_RESPONSE
+makeRequest @ index-gvPLLLBt.js:68
+get @ index-gvPLLLBt.js:68
+Yg @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 API request failed: /walker/connections_list?status=accepted TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.get (index-gvPLLLBt.js:68:37049)
+    at Yg (index-gvPLLLBt.js:632:44819)
+    at index-gvPLLLBt.js:632:787547
+    at index-gvPLLLBt.js:632:787839
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+get @ index-gvPLLLBt.js:68
+Yg @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:632 Error getting connections: TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.get (index-gvPLLLBt.js:68:37049)
+    at Yg (index-gvPLLLBt.js:632:44819)
+    at index-gvPLLLBt.js:632:787547
+    at index-gvPLLLBt.js:632:787839
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+Yg @ index-gvPLLLBt.js:632
+await in Yg
+(anonymous) @ index-gvPLLLBt.js:632
+(anonymous) @ index-gvPLLLBt.js:632
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 Session timeout reached - logging out user
+index-gvPLLLBt.js:68 Session timeout triggered - logging out user
+index-gvPLLLBt.js:68 Admin session timeout - logging out admin
+index-gvPLLLBt.js:68  POST http://localhost:8000/walker/user_profile net::ERR_EMPTY_RESPONSE
+makeRequest @ index-gvPLLLBt.js:68
+getUserProfile @ index-gvPLLLBt.js:68
+_ @ index-gvPLLLBt.js:717
+(anonymous) @ index-gvPLLLBt.js:717
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 API request failed: /walker/user_profile TypeError: Failed to fetch
+    at Un.makeRequest (index-gvPLLLBt.js:68:5111)
+    at Un.getUserProfile (index-gvPLLLBt.js:68:11410)
+    at _ (index-gvPLLLBt.js:717:187129)
+    at index-gvPLLLBt.js:717:187059
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+    at cn (index-gvPLLLBt.js:38:3274)
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+getUserProfile @ index-gvPLLLBt.js:68
+_ @ index-gvPLLLBt.js:717
+(anonymous) @ index-gvPLLLBt.js:717
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:717 Error loading user data: TypeError: Failed to fetch
+    at Un.makeRequest (index-gvPLLLBt.js:68:5111)
+    at Un.getUserProfile (index-gvPLLLBt.js:68:11410)
+    at _ (index-gvPLLLBt.js:717:187129)
+    at index-gvPLLLBt.js:717:187059
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+    at cn (index-gvPLLLBt.js:38:3274)
+_ @ index-gvPLLLBt.js:717
+await in _
+(anonymous) @ index-gvPLLLBt.js:717
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68  POST http://localhost:8000/walker/learning_streak net::ERR_EMPTY_RESPONSE
+makeRequest @ index-gvPLLLBt.js:68
+getLearningStreak @ index-gvPLLLBt.js:68
+_ @ index-gvPLLLBt.js:717
+(anonymous) @ index-gvPLLLBt.js:717
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 API request failed: /walker/learning_streak TypeError: Failed to fetch
+    at Un.makeRequest (index-gvPLLLBt.js:68:5111)
+    at Un.getLearningStreak (index-gvPLLLBt.js:68:11756)
+    at _ (index-gvPLLLBt.js:717:187149)
+    at index-gvPLLLBt.js:717:187059
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+    at cn (index-gvPLLLBt.js:38:3274)
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+getLearningStreak @ index-gvPLLLBt.js:68
+_ @ index-gvPLLLBt.js:717
+(anonymous) @ index-gvPLLLBt.js:717
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+:8000/walker/learning_paths:1  Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED
+index-gvPLLLBt.js:68 API request failed: /walker/learning_paths TypeError: Failed to fetch
+    at Un.makeRequest (index-gvPLLLBt.js:68:5111)
+    at Un.getLearningPaths (index-gvPLLLBt.js:68:7698)
+    at ee (index-gvPLLLBt.js:717:251930)
+makeRequest @ index-gvPLLLBt.js:68
+index-gvPLLLBt.js:717 Error loading user data: TypeError: Failed to fetch
+    at Un.makeRequest (index-gvPLLLBt.js:68:5111)
+    at Un.getLearningPaths (index-gvPLLLBt.js:68:7698)
+    at ee (index-gvPLLLBt.js:717:251930)
+ee @ index-gvPLLLBt.js:717
+index-gvPLLLBt.js:68  POST http://localhost:8000/walker/get_folders net::ERR_NETWORK_IO_SUSPENDED
+makeRequest @ index-gvPLLLBt.js:68
+getFolders @ index-gvPLLLBt.js:68
+me @ index-gvPLLLBt.js:717
+(anonymous) @ index-gvPLLLBt.js:717
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 API request failed: /walker/get_folders TypeError: Failed to fetch
+    at Un.makeRequest (index-gvPLLLBt.js:68:5111)
+    at Un.getFolders (index-gvPLLLBt.js:68:10895)
+    at me (index-gvPLLLBt.js:717:99554)
+    at index-gvPLLLBt.js:717:99453
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+    at cn (index-gvPLLLBt.js:38:3274)
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+getFolders @ index-gvPLLLBt.js:68
+me @ index-gvPLLLBt.js:717
+(anonymous) @ index-gvPLLLBt.js:717
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:717 Error loading data: TypeError: Failed to fetch
+    at Un.makeRequest (index-gvPLLLBt.js:68:5111)
+    at Un.getFolders (index-gvPLLLBt.js:68:10895)
+    at me (index-gvPLLLBt.js:717:99554)
+    at index-gvPLLLBt.js:717:99453
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+    at cn (index-gvPLLLBt.js:38:3274)
+me @ index-gvPLLLBt.js:717
+await in me
+(anonymous) @ index-gvPLLLBt.js:717
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68  POST http://localhost:8000/walker/get_snippets net::ERR_NETWORK_IO_SUSPENDED
+makeRequest @ index-gvPLLLBt.js:68
+getSnippets @ index-gvPLLLBt.js:68
+me @ index-gvPLLLBt.js:717
+(anonymous) @ index-gvPLLLBt.js:717
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 API request failed: /walker/get_snippets TypeError: Failed to fetch
+    at Un.makeRequest (index-gvPLLLBt.js:68:5111)
+    at Un.getSnippets (index-gvPLLLBt.js:68:10179)
+    at me (index-gvPLLLBt.js:717:99528)
+    at index-gvPLLLBt.js:717:99453
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+    at cn (index-gvPLLLBt.js:38:3274)
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+getSnippets @ index-gvPLLLBt.js:68
+me @ index-gvPLLLBt.js:717
+(anonymous) @ index-gvPLLLBt.js:717
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68  POST http://localhost:8000/walker/code_snippet net::ERR_NETWORK_IO_SUSPENDED
+makeRequest @ index-gvPLLLBt.js:68
+getUserSnippets @ index-gvPLLLBt.js:68
+_t @ index-gvPLLLBt.js:689
+(anonymous) @ index-gvPLLLBt.js:689
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 API request failed: /walker/code_snippet TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.getUserSnippets (index-gvPLLLBt.js:68:40477)
+    at _t (index-gvPLLLBt.js:689:1085)
+    at index-gvPLLLBt.js:689:947
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+    at cn (index-gvPLLLBt.js:38:3274)
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+getUserSnippets @ index-gvPLLLBt.js:68
+_t @ index-gvPLLLBt.js:689
+(anonymous) @ index-gvPLLLBt.js:689
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68  POST http://localhost:8000/walker/code_snippet net::ERR_NETWORK_IO_SUSPENDED
+makeRequest @ index-gvPLLLBt.js:68
+getUserSnippets @ index-gvPLLLBt.js:68
+_t @ index-gvPLLLBt.js:689
+(anonymous) @ index-gvPLLLBt.js:689
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 API request failed: /walker/code_snippet TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.getUserSnippets (index-gvPLLLBt.js:68:40477)
+    at _t (index-gvPLLLBt.js:689:1085)
+    at index-gvPLLLBt.js:689:947
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+    at cn (index-gvPLLLBt.js:38:3274)
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+getUserSnippets @ index-gvPLLLBt.js:68
+_t @ index-gvPLLLBt.js:689
+(anonymous) @ index-gvPLLLBt.js:689
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68  POST http://localhost:8000/api/jaclang/validate net::ERR_NETWORK_IO_SUSPENDED
+makeRequest @ index-gvPLLLBt.js:68
+validateJacCode @ index-gvPLLLBt.js:68
+(anonymous) @ index-gvPLLLBt.js:689
+Cn @ index-gvPLLLBt.js:693
+(anonymous) @ index-gvPLLLBt.js:642
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+(anonymous) @ index-gvPLLLBt.js:40
+j @ index-gvPLLLBt.js:25
+$ @ index-gvPLLLBt.js:25
+index-gvPLLLBt.js:68 API request failed: /api/jaclang/validate TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.validateJacCode (index-gvPLLLBt.js:68:42039)
+    at index-gvPLLLBt.js:689:1973
+    at Object.Cn [as current] (index-gvPLLLBt.js:693:899)
+    at index-gvPLLLBt.js:642:7620
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at index-gvPLLLBt.js:40:41120
+    at j (index-gvPLLLBt.js:25:1632)
+    at MessagePort.$ (index-gvPLLLBt.js:25:1999)
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+validateJacCode @ index-gvPLLLBt.js:68
+(anonymous) @ index-gvPLLLBt.js:689
+Cn @ index-gvPLLLBt.js:693
+(anonymous) @ index-gvPLLLBt.js:642
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+(anonymous) @ index-gvPLLLBt.js:40
+j @ index-gvPLLLBt.js:25
+$ @ index-gvPLLLBt.js:25
+index-gvPLLLBt.js:690 Validation error: TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.validateJacCode (index-gvPLLLBt.js:68:42039)
+    at index-gvPLLLBt.js:689:1973
+    at Object.Cn [as current] (index-gvPLLLBt.js:693:899)
+    at index-gvPLLLBt.js:642:7620
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at index-gvPLLLBt.js:40:41120
+    at j (index-gvPLLLBt.js:25:1632)
+    at MessagePort.$ (index-gvPLLLBt.js:25:1999)
+(anonymous) @ index-gvPLLLBt.js:690
+await in (anonymous)
+Cn @ index-gvPLLLBt.js:693
+(anonymous) @ index-gvPLLLBt.js:642
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+(anonymous) @ index-gvPLLLBt.js:40
+j @ index-gvPLLLBt.js:25
+$ @ index-gvPLLLBt.js:25
+index-gvPLLLBt.js:68  GET http://localhost:8000/api/jaclang/health net::ERR_NETWORK_IO_SUSPENDED
+makeRequest @ index-gvPLLLBt.js:68
+getJaclangServiceHealth @ index-gvPLLLBt.js:68
+(anonymous) @ index-gvPLLLBt.js:689
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
+index-gvPLLLBt.js:68 API request failed: /api/jaclang/health TypeError: Failed to fetch
+    at Fu.makeRequest (index-gvPLLLBt.js:68:36220)
+    at Fu.getJaclangServiceHealth (index-gvPLLLBt.js:68:41952)
+    at index-gvPLLLBt.js:689:964
+    at Ai (index-gvPLLLBt.js:40:24465)
+    at go (index-gvPLLLBt.js:40:42874)
+    at Mx (index-gvPLLLBt.js:40:41636)
+    at Tn (index-gvPLLLBt.js:40:40662)
+    at b2 (index-gvPLLLBt.js:40:37217)
+    at cn (index-gvPLLLBt.js:38:3274)
+    at index-gvPLLLBt.js:40:34569
+makeRequest @ index-gvPLLLBt.js:68
+await in makeRequest
+getJaclangServiceHealth @ index-gvPLLLBt.js:68
+(anonymous) @ index-gvPLLLBt.js:689
+Ai @ index-gvPLLLBt.js:40
+go @ index-gvPLLLBt.js:40
+Mx @ index-gvPLLLBt.js:40
+Tn @ index-gvPLLLBt.js:40
+b2 @ index-gvPLLLBt.js:40
+cn @ index-gvPLLLBt.js:38
+(anonymous) @ index-gvPLLLBt.js:40
