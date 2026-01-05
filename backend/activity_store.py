@@ -151,7 +151,7 @@ def log_activity(
             metadata_json = json.dumps(metadata) if metadata else '{}'
             
             cur.execute(
-                """
+                f"""
                 INSERT INTO {DB_SCHEMA}.user_activities (
                     id, user_id, activity_type, title, description, metadata, xp_earned
                 ) VALUES (
@@ -222,7 +222,7 @@ def get_user_activities(
     try:
         with conn.cursor() as cur:
             # Build query without quotes for PostgreSQL compatibility
-            base_query = """
+            base_query = f"""
                 SELECT "id", "user_id", "activity_type", "title", "description", 
                        "metadata", "xp_earned", "created_at"
                 FROM {DB_SCHEMA}.user_activities
@@ -323,7 +323,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
             # Get activity counts by type
             if start_date:
                 cur.execute(
-                    """
+                    f"""
                     SELECT activity_type, COUNT(*) as count
                     FROM {DB_SCHEMA}.user_activities
                     WHERE user_id = %s AND created_at >= %s
@@ -334,7 +334,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
                 )
             else:
                 cur.execute(
-                    """
+                    f"""
                     SELECT activity_type, COUNT(*) as count
                     FROM {DB_SCHEMA}.user_activities
                     WHERE user_id = %s
@@ -349,7 +349,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
             # Get total XP earned
             if start_date:
                 cur.execute(
-                    """
+                    f"""
                     SELECT COALESCE(SUM(xp_earned), 0) as total_xp
                     FROM {DB_SCHEMA}.user_activities
                     WHERE user_id = %s AND created_at >= %s
@@ -358,7 +358,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
                 )
             else:
                 cur.execute(
-                    """
+                    f"""
                     SELECT COALESCE(SUM(xp_earned), 0) as total_xp
                     FROM {DB_SCHEMA}.user_activities
                     WHERE user_id = %s
@@ -370,7 +370,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
             
             # Get activity counts
             cur.execute(
-                """
+                f"""
                 SELECT COUNT(*) as total_activities
                 FROM {DB_SCHEMA}.user_activities
                 WHERE user_id = %s
@@ -382,7 +382,7 @@ def get_activity_summary(user_id: str, timeframe: str = 'week') -> Dict[str, Any
             # Get today's activities
             today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             cur.execute(
-                """
+                f"""
                 SELECT COUNT(*) as today_activities
                 FROM {DB_SCHEMA}.user_activities
                 WHERE user_id = %s AND created_at >= %s
@@ -434,7 +434,7 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
         with conn.cursor() as cur:
             # Get current streak from activities
             cur.execute(
-                """
+                f"""
                 SELECT DISTINCT DATE(created_at) as activity_date
                 FROM {DB_SCHEMA}.user_activities
                 WHERE user_id = %s AND activity_type IN ('LESSON_COMPLETED', 'CONTENT_VIEWED', 'QUIZ_PASSED')
@@ -488,7 +488,7 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
             
             # Get streak from database
             cur.execute(
-                """
+                f"""
                 SELECT current_streak, longest_streak, last_activity_date, streak_start_date
                 FROM {DB_SCHEMA}.user_activity_streaks
                 WHERE user_id = %s AND streak_type = 'LESSON_COMPLETED'
@@ -505,7 +505,7 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
                 
                 # Update database
                 cur.execute(
-                    """
+                    f"""
                     UPDATE {DB_SCHEMA}.user_activity_streaks
                     SET current_streak = %s, longest_streak = %s, 
                         last_activity_date = %s, updated_at = NOW()
@@ -516,7 +516,7 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
             else:
                 # Create new streak record
                 cur.execute(
-                    """
+                    f"""
                     INSERT INTO {DB_SCHEMA}.user_activity_streaks (
                         user_id, streak_type, current_streak, longest_streak, 
                         last_activity_date, streak_start_date
@@ -593,7 +593,7 @@ def delete_user_activities(user_id: str, older_than_days: int = 365) -> Dict[str
             cutoff_date = datetime.now() - timedelta(days=older_than_days)
             
             cur.execute(
-                """
+                f"""
                 DELETE FROM {DB_SCHEMA}.user_activities
                 WHERE user_id = %s AND created_at < %s
                 """,
