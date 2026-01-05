@@ -234,6 +234,53 @@ export interface JaclangHealthResponse {
   version: string;
 }
 
+// AI Code Assistant Interfaces
+export type AIAnalysisType = 'security' | 'performance' | 'bug' | 'best_practice' | 'style' | 'comprehensive';
+export type AISeverity = 'error' | 'warning' | 'info';
+
+export interface AICodeIssue {
+  id: string;
+  type: AIAnalysisType;
+  severity: AISeverity;
+  line: number;
+  column: number;
+  message: string;
+  explanation: string;
+  suggestion: string;
+  code_diff?: {
+    before: string;
+    after: string;
+  };
+}
+
+export interface AIAnalysisMetrics {
+  complexity: 'low' | 'medium' | 'high';
+  linesOfCode: number;
+  issuesCount: number;
+}
+
+export interface AIAnalysisResponse {
+  success: boolean;
+  issues: AICodeIssue[];
+  metrics: AIAnalysisMetrics;
+  summary: string;
+  error?: string;
+}
+
+export interface AIChatResponse {
+  success: boolean;
+  response: string;
+  timestamp: string;
+  fallback?: boolean;
+}
+
+export interface AICodeHealthResponse {
+  success: boolean;
+  available: boolean;
+  model: string;
+  service: string;
+}
+
 class ApiService {
   private baseUrl: string;
   private authToken: string | null = null;
@@ -500,6 +547,78 @@ class ApiService {
         status: 'unavailable',
         jac_available: false,
         version: 'not available'
+      };
+    }
+  }
+
+  // AI Code Assistant Methods
+  async aiAnalyzeCode(
+    code: string,
+    language: string = 'jac',
+    analysisTypes: string = 'comprehensive'
+  ): Promise<AIAnalysisResponse> {
+    try {
+      const response = await this.makeRequest<AIAnalysisResponse>('/walker/ai_analyze_code', {
+        method: 'POST',
+        body: JSON.stringify({
+          code,
+          language,
+          analysis_types: analysisTypes
+        }),
+      });
+      return response;
+    } catch (error) {
+      console.error('AI code analysis failed:', error);
+      return {
+        success: true,
+        issues: [],
+        metrics: { complexity: 'medium', linesOfCode: code.split('\n').length, issuesCount: 0 },
+        summary: 'AI analysis unavailable',
+        error: 'Service error'
+      };
+    }
+  }
+
+  async aiChatAboutCode(
+    message: string,
+    codeContext: string = '',
+    chatHistory: Array<{ role: string; content: string }> = []
+  ): Promise<AIChatResponse> {
+    try {
+      const response = await this.makeRequest<AIChatResponse>('/walker/ai_chat_about_code', {
+        method: 'POST',
+        body: JSON.stringify({
+          message,
+          code_context: codeContext,
+          chat_history: JSON.stringify(chatHistory)
+        }),
+      });
+      return response;
+    } catch (error) {
+      console.error('AI chat failed:', error);
+      return {
+        success: true,
+        response: "I'm sorry, but I'm having trouble connecting to the AI service right now. Please try again later.",
+        timestamp: new Date().toISOString(),
+        fallback: true
+      };
+    }
+  }
+
+  async aiCodeHealthCheck(): Promise<AICodeHealthResponse> {
+    try {
+      const response = await this.makeRequest<AICodeHealthResponse>('/walker/ai_code_health', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      return response;
+    } catch (error) {
+      console.error('AI code health check failed:', error);
+      return {
+        success: true,
+        available: false,
+        model: 'not available',
+        service: 'AI Code Intelligence'
       };
     }
   }

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useCodeAnalysis, AIAnalysisSuggestion } from '../../hooks/ai/useCodeAnalysis';
+import { apiService, AIChatResponse } from '../../services/api';
 import './AICodeAssistant.css';
 
 export interface AICodeAssistantProps {
@@ -23,6 +24,7 @@ export function AICodeAssistant({
   const [activeTab, setActiveTab] = useState<'suggestions' | 'chat'>('suggestions');
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -59,24 +61,55 @@ export function AICodeAssistant({
     setSelectedSuggestion(null);
   }, [applyFix, onApplyFix]);
 
-  const handleSendMessage = useCallback(() => {
-    if (!chatInput.trim()) return;
+  const handleSendMessage = useCallback(async () => {
+    if (!chatInput.trim() || isChatLoading) return;
     
+    const userMessage = chatInput.trim();
+    setChatInput('');
+    setIsChatLoading(true);
+    
+    // Add user message to chat
     setChatMessages(prev => [
       ...prev,
-      { role: 'user', content: chatInput },
+      { role: 'user', content: userMessage },
     ]);
     
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Convert chat history to the format expected by the API
+      const history = chatMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      
+      // Call real AI chat API
+      const response: AIChatResponse = await apiService.aiChatAboutCode(
+        userMessage,
+        code,
+        history
+      );
+      
+      if (response.success && response.response) {
+        setChatMessages(prev => [
+          ...prev,
+          { role: 'assistant', content: response.response },
+        ]);
+      } else {
+        // Fallback to a helpful message if API fails
+        setChatMessages(prev => [
+          ...prev,
+          { role: 'assistant', content: 'I apologize, but I encountered an issue processing your request. Please try again.' },
+        ]);
+      }
+    } catch (error) {
+      console.error('AI chat error:', error);
       setChatMessages(prev => [
         ...prev,
-        { role: 'assistant', content: `I understand you're asking about "${chatInput}". Here's what I can help with...` },
+        { role: 'assistant', content: 'I apologize, but I encountered an issue processing your request. Please try again.' },
       ]);
-    }, 1000);
-    
-    setChatInput('');
-  }, [chatInput]);
+    } finally {
+      setIsChatLoading(false);
+    }
+  }, [chatInput, chatMessages, code, isChatLoading]);
 
   const getSeverityColor = (severity: AIAnalysisSuggestion['severity']) => {
     switch (severity) {
@@ -234,9 +267,10 @@ export function AICodeAssistant({
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Ask about your code..."
+                disabled={isChatLoading}
               />
-              <button onClick={handleSendMessage} disabled={!chatInput.trim()}>
-                Send
+              <button onClick={handleSendMessage} disabled={!chatInput.trim() || isChatLoading}>
+                {isChatLoading ? '...' : 'Send'}
               </button>
             </div>
           </div>

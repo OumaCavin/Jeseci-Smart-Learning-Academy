@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { apiService, AIAnalysisResponse, AICodeIssue } from '../../services/api';
 
 // Type definitions for code analysis
 export interface AIAnalysisSuggestion {
@@ -68,6 +69,78 @@ export function useCodeAnalysis(options: UseCodeAnalysisOptions): UseCodeAnalysi
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const currentCodeRef = useRef<string>('');
 
+  // Helper function for basic static analysis when AI API is unavailable
+  const generateBasicAnalysis = useCallback((code: string, startTime: number): CodeAnalysisResult => {
+    const mockSuggestions: AIAnalysisSuggestion[] = [];
+    const lines = code.split('\n');
+    
+    // Basic static analysis patterns
+    lines.forEach((line, index) => {
+      const lineNum = index + 1;
+      
+      // Check for var usage
+      if (line.includes('var ')) {
+        mockSuggestions.push({
+          id: `suggestion-${startTime}-${lineNum}-var`,
+          type: 'style',
+          severity: 'info',
+          line: lineNum,
+          message: 'Use "const" or "let" instead of "var"',
+          explanation: 'ES6 const and let provide block scoping and help prevent hoisting-related bugs.',
+          suggestion: 'Replace "var" with "const" or "let"',
+          confidence: 0.95,
+        });
+      }
+      
+      // Check for console.log
+      if (line.includes('console.log')) {
+        mockSuggestions.push({
+          id: `suggestion-${startTime}-${lineNum}-console`,
+          type: 'best_practice',
+          severity: 'info',
+          line: lineNum,
+          message: 'Consider removing debug console.log statements',
+          explanation: 'Console.log statements should be removed or replaced with proper logging in production code.',
+          suggestion: 'Remove console.log or use a logging framework',
+          confidence: 0.9,
+        });
+      }
+      
+      // Check for potential XSS
+      if (line.includes('innerHTML') || line.includes('dangerouslySetInnerHTML')) {
+        mockSuggestions.push({
+          id: `suggestion-${startTime}-${lineNum}-xss`,
+          type: 'security',
+          severity: 'warning',
+          line: lineNum,
+          message: 'Potential XSS vulnerability detected',
+          explanation: 'Directly setting innerHTML can lead to Cross-Site Scripting (XSS) attacks.',
+          suggestion: 'Use textContent instead, or sanitize the input using a library like DOMPurify',
+          confidence: 0.88,
+        });
+      }
+    });
+    
+    const result: CodeAnalysisResult = {
+      id: `analysis-${startTime}`,
+      timestamp: new Date().toISOString(),
+      duration: Date.now() - startTime,
+      suggestions: mockSuggestions.slice(0, maxSuggestions),
+      metrics: {
+        complexity: Math.floor(Math.random() * 20) + 1,
+        linesOfCode: code.split('\n').length,
+        maintainability: Math.floor(Math.random() * 50) + 50,
+        issuesCount: mockSuggestions.length,
+      },
+    };
+    
+    setResults(result);
+    setSuggestions(result.suggestions);
+    setMetrics(result.metrics);
+    
+    return result;
+  }, [maxSuggestions]);
+
   // Analyze code
   const analyze = useCallback(async (
     code: string,
@@ -81,78 +154,65 @@ export function useCodeAnalysis(options: UseCodeAnalysisOptions): UseCodeAnalysi
     const startTime = Date.now();
     
     try {
-      // Simulate AI code analysis - replace with actual API call
-      const response = await new Promise<CodeAnalysisResult>((resolve) => {
-        setTimeout(() => {
-          // Generate mock analysis results
-          const mockSuggestions: AIAnalysisSuggestion[] = [];
-          
-          // Add some example suggestions based on code content
-          if (code.includes('var ')) {
-            mockSuggestions.push({
-              id: `suggestion-${Date.now()}-1`,
-              type: 'style',
-              severity: 'info',
-              line: code.split('\n').findIndex(line => line.includes('var ')) + 1,
-              message: 'Use "const" or "let" instead of "var"',
-              explanation: 'ES6 const and let provide block scoping and help prevent hoisting-related bugs.',
-              suggestion: 'Replace "var" with "const" or "let"',
-              confidence: 0.95,
-            });
-          }
-          
-          if (code.includes('console.log') && code.includes('function')) {
-            mockSuggestions.push({
-              id: `suggestion-${Date.now()}-2`,
-              type: 'best_practice',
-              severity: 'info',
-              line: code.split('\n').findIndex(line => line.includes('console.log')) + 1,
-              message: 'Consider removing debug console.log statements',
-              explanation: 'Console.log statements should be removed or replaced with proper logging in production code.',
-              suggestion: 'Remove console.log or use a logging framework',
-              confidence: 0.9,
-            });
-          }
-          
-          // Check for potential security issues
-          if (code.includes('innerHTML') || code.includes('dangerouslySetInnerHTML')) {
-            mockSuggestions.push({
-              id: `suggestion-${Date.now()}-3`,
-              type: 'security',
-              severity: 'warning',
-              line: code.split('\n').findIndex(line => line.includes('innerHTML') || line.includes('dangerouslySetInnerHTML')) + 1,
-              message: 'Potential XSS vulnerability detected',
-              explanation: 'Directly setting innerHTML can lead to Cross-Site Scripting (XSS) attacks if the content is not properly sanitized.',
-              suggestion: 'Use textContent instead, or sanitize the input using a library like DOMPurify',
-              confidence: 0.88,
-            });
-          }
-
-          const result: CodeAnalysisResult = {
-            id: `analysis-${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            duration: Date.now() - startTime,
-            suggestions: mockSuggestions.slice(0, maxSuggestions),
-            metrics: {
-              complexity: Math.floor(Math.random() * 20) + 1,
-              linesOfCode: code.split('\n').length,
-              maintainability: Math.floor(Math.random() * 50) + 50,
-              issuesCount: mockSuggestions.length,
-            },
-          };
-          
-          resolve(result);
-        }, 800);
-      });
+      // Call real AI code analysis API
+      const language = context?.language as string || 'jac';
+      const analysisTypes = context?.analysisTypes as string || 'comprehensive';
       
-      setResults(response);
-      setSuggestions(response.suggestions);
-      setMetrics(response.metrics);
+      const response: AIAnalysisResponse = await apiService.aiAnalyzeCode(
+        code,
+        language,
+        analysisTypes
+      );
       
-      return response;
+      if (response.success && response.issues) {
+        // Transform AI API response to our internal format
+        const transformedSuggestions: AIAnalysisSuggestion[] = response.issues.map((issue: AICodeIssue, index: number) => ({
+          id: issue.id || `suggestion-${startTime}-${index}`,
+          type: issue.type as AIAnalysisSuggestion['type'],
+          severity: issue.severity as AIAnalysisSuggestion['severity'],
+          line: issue.line,
+          column: issue.column,
+          message: issue.message,
+          explanation: issue.explanation,
+          suggestion: issue.suggestion,
+          codeDiff: issue.code_diff ? {
+            before: issue.code_diff.before,
+            after: issue.code_diff.after
+          } : undefined,
+          confidence: 0.9,
+        }));
+        
+        // Determine complexity level from API or calculate it
+        const complexityScore = response.metrics?.complexity === 'high' ? 15 : 
+                               response.metrics?.complexity === 'medium' ? 8 : 3;
+        
+        const result: CodeAnalysisResult = {
+          id: `analysis-${startTime}`,
+          timestamp: new Date().toISOString(),
+          duration: Date.now() - startTime,
+          suggestions: transformedSuggestions.slice(0, maxSuggestions),
+          metrics: {
+            complexity: complexityScore,
+            linesOfCode: code.split('\n').length,
+            maintainability: Math.max(0, 100 - (complexityScore * 3) - (response.metrics?.issuesCount || 0) * 5),
+            issuesCount: response.metrics?.issuesCount || transformedSuggestions.length,
+          },
+        };
+        
+        setResults(result);
+        setSuggestions(result.suggestions);
+        setMetrics(result.metrics);
+        
+        return result;
+      } else {
+        // Fallback to basic analysis if API returns no issues or fails
+        console.warn('AI analysis returned no results or failed:', response.error);
+        return generateBasicAnalysis(code, startTime);
+      }
     } catch (error) {
       console.error('Code analysis failed:', error);
-      return null;
+      // Fallback to basic static analysis on error
+      return generateBasicAnalysis(code, startTime);
     } finally {
       setIsAnalyzing(false);
     }

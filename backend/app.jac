@@ -542,6 +542,54 @@ walker ai_generate_content {
 }
 
 # ==============================================================================
+# AI Code Assistant - Code Analysis and Chat
+# ==============================================================================
+walker ai_analyze_code {
+    has code: str;
+    has language: str = "jac";
+    has analysis_types: str = "comprehensive";  # comma-separated: security,performance,bug,best_practice
+
+    can ai_analyze_code with entry {
+        import ai_code_service;
+
+        result = ai_code_service.sync_analyze_code(
+            self.code, self.language, self.analysis_types
+        );
+
+        report result;
+    }
+}
+
+walker ai_chat_about_code {
+    has message: str;
+    has code_context: str = "";
+    has chat_history: str = "";  # JSON string of chat history
+
+    can ai_chat_about_code with entry {
+        import ai_code_service;
+
+        result = ai_code_service.sync_chat_about_code(
+            self.message, self.code_context, self.chat_history
+        );
+
+        report result;
+    }
+}
+
+walker ai_code_health {
+    can ai_code_health with entry {
+        import ai_code_service;
+
+        report {
+            "success": True,
+            "available": ai_code_service.ai_code_assistant.available,
+            "model": ai_code_service.ai_code_assistant.model,
+            "service": "AI Code Intelligence"
+        };
+    }
+}
+
+# ==============================================================================
 # Data Export
 # ==============================================================================
 walker export_data {
