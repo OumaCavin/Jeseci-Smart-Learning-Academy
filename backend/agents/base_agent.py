@@ -69,15 +69,15 @@ class AgentMessage:
         correlation_id: ID for tracking related messages
         metadata: Additional metadata for the message
     """
+    sender: str
+    recipient: str
+    msg_type: MessageType
+    content: Dict[str, Any]
     priority: Priority = Priority.MEDIUM
     msg_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     correlation_id: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
-    sender: str
-    recipient: str
-    msg_type: MessageType
-    content: Dict[str, Any]
     
     def to_json(self) -> str:
         """Serialize message to JSON string"""
