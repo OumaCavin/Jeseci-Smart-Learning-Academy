@@ -21,12 +21,12 @@ from logger_config import logger
 @dataclass
 class ContentBlock:
     """Represents a block of educational content"""
+    metadata: Dict[str, Any] = field(default_factory=dict)
     block_id: str
     block_type: str  # text, code, exercise, quiz, interactive
     title: str
     content: str
     order: int
-    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

@@ -53,6 +53,10 @@ class LearningStyle(str, Enum):
 @dataclass
 class StudentProfile:
     """Student learning profile for ML analysis"""
+    courses_enrolled: List[str] = field(default_factory=list)
+    courses_completed: List[str] = field(default_factory=list)
+    learning_style: LearningStyle = LearningStyle.VISUAL
+    skill_level: str = "beginner"
     user_id: str
     login_frequency: float  # Logins per week
     average_quiz_score: float  # 0-100
@@ -60,14 +64,11 @@ class StudentProfile:
     time_spent_per_session: float  # Minutes
     engagement_score: float  # 0-100
     last_active: datetime
-    courses_enrolled: List[str] = field(default_factory=list)
-    courses_completed: List[str] = field(default_factory=list)
-    learning_style: LearningStyle = LearningStyle.VISUAL
-    skill_level: str = "beginner"
 
 @dataclass  
 class RiskPrediction:
     """ML risk prediction output"""
+    model_version: str = "1.0.0"
     user_id: str
     risk_score: float  # 0-100
     risk_level: RiskLevel
@@ -75,7 +76,6 @@ class RiskPrediction:
     recommendations: List[str]
     confidence: float  # 0-1
     generated_at: datetime
-    model_version: str = "1.0.0"
 
 @dataclass
 class LearningRecommendation:

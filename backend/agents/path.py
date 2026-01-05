@@ -22,6 +22,8 @@ from logger_config import logger
 @dataclass
 class LearningPath:
     """Represents a complete learning path"""
+    progress: float = 0.0
+    status: str = "active"
     path_id: str
     title: str
     description: str
@@ -34,13 +36,14 @@ class LearningPath:
     learning_objectives: List[str]
     created_at: str
     updated_at: str
-    progress: float = 0.0
-    status: str = "active"
 
 
 @dataclass
 class Milestone:
     """Represents a milestone in a learning path"""
+    status: str = "pending"
+    completion_criteria: List[str] = field(default_factory=list)
+    resources: List[Dict] = field(default_factory=list)
     milestone_id: str
     order: int
     title: str
@@ -49,14 +52,12 @@ class Milestone:
     estimated_hours: int
     exercises_count: int
     assessments_count: int
-    status: str = "pending"
-    completion_criteria: List[str] = field(default_factory=list)
-    resources: List[Dict] = field(default_factory=list)
 
 
 @dataclass
 class PathProgress:
     """Represents progress through a learning path"""
+    recommendations: List[str] = field(default_factory=list)
     path_id: str
     user_id: str
     current_milestone: int
@@ -65,7 +66,6 @@ class PathProgress:
     total_hours_spent: float
     progress_percentage: float
     last_activity: str
-    recommendations: List[str] = field(default_factory=list)
 
 
 class PathAgent(BaseAgent):
