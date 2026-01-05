@@ -1634,21 +1634,11 @@ walker graph_next_concept {
         );
 
         report {
-                "success": result != None,
-                "user_id": self.user_id,
-                "path_id": self.path_id,
-                "next_concept": result[0] if result else None
-            } ;
-        } except Exception as e {
-            print("Error fetching next concept: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to fetch next concept: " + str(e),
-                "user_id": self.user_id,
-                "path_id": self.path_id,
-                "next_concept": None
-            } ;
-        }
+            "success": result != None,
+            "user_id": self.user_id,
+            "path_id": self.path_id,
+            "next_concept": result[0] if result else None
+        } ;
     }
 }
 
@@ -2959,62 +2949,17 @@ walker admin_dashboard {
         # Initialize all stores to get real statistics with error handling
         init_error = "";
 
-        try {
-            admin_store.initialize_admin_store();
-        } except Exception as e {
-            print("Error initializing admin store: " + str(e));
-            init_error = "Failed to load user data";
-        }
+        admin_store.initialize_admin_store();
 
-        try {
-            content_store.initialize_courses();
-        } except Exception as e {
-            print("Error initializing courses: " + str(e));
-            if init_error {
-                init_error = init_error + "; ";
-            }
-            init_error = init_error + "Failed to load course data";
-        }
+        content_store.initialize_courses();
 
-        try {
-            content_store.initialize_concepts();
-        } except Exception as e {
-            print("Error initializing concepts: " + str(e));
-            if init_error {
-                init_error = init_error + "; ";
-            }
-            init_error = init_error + "Failed to load concept data";
-        }
+        content_store.initialize_concepts();
 
-        try {
-            content_store.initialize_paths();
-        } except Exception as e {
-            print("Error initializing paths: " + str(e));
-            if init_error {
-                init_error = init_error + "; ";
-            }
-            init_error = init_error + "Failed to load learning path data";
-        }
+        content_store.initialize_paths();
 
-        try {
-            quiz_store.initialize_quizzes();
-        } except Exception as e {
-            print("Error initializing quizzes: " + str(e));
-            if init_error {
-                init_error = init_error + "; ";
-            }
-            init_error = init_error + "Failed to load quiz data";
-        }
+        quiz_store.initialize_quizzes();
 
-        try {
-            analytics_store.initialize_analytics();
-        } except Exception as e {
-            print("Error initializing analytics: " + str(e));
-            if init_error {
-                init_error = init_error + "; ";
-            }
-            init_error = init_error + "Failed to load analytics data";
-        }
+        analytics_store.initialize_analytics();
 
         # If there were initialization errors, return them gracefully
         if init_error {
@@ -3064,32 +3009,23 @@ walker admin_dashboard {
         total_paths = 0;
         total_quizzes = 0;
 
-        try {
-            # Force refresh by invalidating caches - directly query databases
+        # Force refresh by invalidating caches - directly query databases
 
-            # Get fresh course count from PostgreSQL
-            courses_result = content_store.get_all_courses();
-            total_courses = len(courses_result);
+        # Get fresh course count from PostgreSQL
+        courses_result = content_store.get_all_courses();
+        total_courses = len(courses_result);
 
-            # Get fresh concept count from Neo4j
-            concepts_result = content_store.get_all_concepts();
-            total_concepts = len(concepts_result);
+        # Get fresh concept count from Neo4j
+        concepts_result = content_store.get_all_concepts();
+        total_concepts = len(concepts_result);
 
-            # Get fresh paths count from PostgreSQL
-            paths_result = content_store.get_all_paths();
-            total_paths = len(paths_result);
+        # Get fresh paths count from PostgreSQL
+        paths_result = content_store.get_all_paths();
+        total_paths = len(paths_result);
 
-            # Get fresh quiz count
-            quizzes_result = quiz_store.get_all_quizzes();
-            total_quizzes = len(quizzes_result);
-        } except Exception as e {
-            print("Error getting content counts: " + str(e));
-            # Fall back to cached values
-            total_courses = len(all_courses);
-            total_concepts = 0;
-            total_paths = 0;
-            total_quizzes = len(all_quizzes);
-        }
+        # Get fresh quiz count
+        quizzes_result = quiz_store.get_all_quizzes();
+        total_quizzes = len(quizzes_result);
 
         stats = {
             "user_statistics": {
