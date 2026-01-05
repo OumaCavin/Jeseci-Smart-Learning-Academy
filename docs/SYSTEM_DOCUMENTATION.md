@@ -2519,17 +2519,121 @@ Before merging changes, ensure they meet the project's quality standards. Code r
 - No sensitive data or secrets are included
 - Relevant documentation is updated
 
+## 26. Database Migration Management
+
+### Overview
+
+The Jeseci Smart Learning Academy includes an automatic database migration system that ensures the database schema remains synchronized with the application's requirements as the project evolves. Migrations are SQL scripts that modify the database structure, such as creating new tables, adding columns, or changing relationships between existing tables. The migration system tracks which migrations have been applied, preventing duplicate execution and ensuring that each database schema change is applied exactly once in the correct order.
+
+This automatic migration feature is critical for maintaining consistency across different environments, including development, testing, and production deployments. When new team members set up their local environments or when new instances are deployed, the migration system automatically applies all pending schema changes without requiring manual intervention. This approach eliminates the common problem of database schema drift, where different environments fall out of sync due to missed manual schema updates.
+
+### Migration File Organization
+
+All database migration files are stored in the `backend/migrations/` directory. Each migration file follows a strict naming convention that ensures proper ordering during execution. The naming pattern consists of a three-digit numeric prefix followed by an underscore and a descriptive name ending with the `.sql` extension. This numeric prefix determines the order in which migrations are applied, with lower numbers executing before higher numbers.
+
+The current migration files in the system include five migrations that establish various platform features. The first migration creates the sync engine tables that enable the dual-write functionality between PostgreSQL and Neo4j databases. The second migration establishes the testimonials table for storing user testimonials, while the third migration creates the notifications system including tables for user notifications and notification preferences. The fourth migration adds the user activities table for tracking user actions and engagement metrics, and the fifth migration further enhances the testimonials functionality.
+
+**Migration Files Location**: `backend/migrations/`
+
+**Naming Convention**: `{NNN}_descriptive_name.sql`
+
+**Available Migrations**:
+
+| File | Purpose |
+|------|---------|
+| `001_create_sync_engine_tables.sql` | Creates tables for dual-write synchronization between PostgreSQL and Neo4j |
+| `002_create_testimonials_table.sql` | Establishes the testimonials table for user testimonials |
+| `003_create_notifications_tables.sql` | Creates notifications and notification_preferences tables |
+| `004_create_user_activities_table.sql` | Adds user activity tracking tables |
+| `005_create_testimonials_table.sql` | Additional testimonials enhancements |
+
+### Migration Tracking System
+
+The migration system maintains a `schema_migrations` table in the database to track which migrations have been executed. This tracking table is automatically created if it does not exist when the first migration runs. The table records the filename of each applied migration along with a timestamp indicating when the migration was executed. This information allows the system to identify which migrations are pending and skip those that have already been applied.
+
+**Schema Migrations Table Structure**:
+
+```sql
+CREATE TABLE schema_migrations (
+    id SERIAL PRIMARY KEY,
+    migration_name VARCHAR(255) UNIQUE NOT NULL,
+    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+When migrations are executed, the system queries this table to determine which migrations have already been applied. Any migration file that does not appear in this table is considered pending and will be executed in order. After a migration is successfully executed, its name is inserted into the tracking table, ensuring it will not be run again in subsequent startup cycles. This mechanism provides idempotency, meaning the migration system can be run multiple times without causing errors or duplicate schema changes.
+
+### Automatic Migration Execution
+
+Database migrations are automatically executed when the backend application starts up. The migration function is defined in `backend/database/__init__.py` and is called when the database module is imported. This integration ensures that migrations run before any application code attempts to use the database, guaranteeing that the schema is always up to date when the application begins processing requests.
+
+The automatic migration process follows a defined sequence of operations. First, the system identifies all SQL files in the migrations directory that match the naming pattern. These files are sorted alphabetically, which effectively orders them by their numeric prefixes. Next, the system establishes a database connection and creates the schema migrations tracking table if it does not already exist. The system then queries the tracking table to determine which migrations have already been applied, filtering the list to include only pending migrations.
+
+For each pending migration, the system reads the SQL file, executes its contents against the database, commits the transaction, and records the migration name in the tracking table. All of these operations are wrapped in appropriate error handling that captures any exceptions, logs the error details, and rolls back the transaction to maintain database integrity. If the database is temporarily unavailable during startup, the migration call is wrapped in a try-except block that logs a warning and allows the application to continue starting, deferring migration execution until the database becomes available.
+
+**Migration Execution Location**: `backend/database/__init__.py`
+
+**Automatic Execution Point**: Module import in `backend/database/__init__.py`
+
+**Startup Behavior**:
+
+```python
+# Auto-run migrations on module import
+# This ensures database schema is up to date when the application starts
+try:
+    run_database_migrations()
+except Exception as e:
+    logger.warning(f"Initial migration attempt deferred: {e}")
+```
+
+### Adding New Migrations
+
+When the application requires database schema changes, a new migration file should be created following the established conventions. The migration file must be placed in the `backend/migrations/` directory with a numeric prefix that places it in the correct execution order relative to existing migrations. The prefix should use three digits, starting from 001 and incrementing for each new migration.
+
+To create a new migration, follow these steps. First, determine the appropriate numeric prefix for your migration by examining the existing migration files and choosing the next available number. Second, create a new SQL file with the appropriate name, such as `006_add_user_sessions_table.sql`. Third, write the SQL statements required to implement your schema change, including CREATE TABLE, ALTER TABLE, or other DDL statements. Fourth, test the migration on a development database to ensure it executes correctly and produces the expected schema changes.
+
+**Example Migration File Structure**:
+
+```sql
+-- Migration: Add user sessions table
+-- Purpose: Tracks user login sessions for security and analytics
+-- Executed: Automatically on application startup
+
+CREATE TABLE jeseci_academy.user_sessions (
+    id SERIAL PRIMARY KEY,
+    session_id VARCHAR(100) UNIQUE NOT NULL,
+    user_id INTEGER REFERENCES jeseci_academy.users(id),
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL
+);
+
+CREATE INDEX idx_user_sessions_user_id ON jeseci_academy.user_sessions(user_id);
+CREATE INDEX idx_user_sessions_expires_at ON jeseci_academy.user_sessions(expires_at);
+```
+
+Each migration file should include comments documenting its purpose and any important notes about the schema changes it implements. This documentation helps future developers understand the evolution of the database schema and provides context for maintenance and troubleshooting activities. Migrations should be focused and atomic, implementing a single logical change rather than combining multiple unrelated schema modifications.
+
+### Migration Best Practices
+
+Following established best practices for database migrations ensures the stability and maintainability of the application's database layer. Migration files should be written to be idempotent whenever possible, meaning they can be run multiple times without causing errors or unintended effects. This is particularly important for ALTER TABLE operations, where the same column or constraint may already exist from a previous partial execution.
+
+Always test migrations in a non-production environment before deploying them. This testing should include running the migration against a fresh database copy to verify it works correctly during initial setup, running the migration against an existing database to verify it applies cleanly to populated databases, and rolling back the migration if your database system supports rollback capabilities to ensure the reversal process works correctly.
+
+Avoid modifying existing migration files after they have been committed and deployed. If a previously applied migration contains an error, create a new migration that corrects the issue rather than modifying the original. This approach maintains a clear audit trail of schema changes and prevents inconsistencies between environments that may have applied the migrations at different times.
+
 ---
 
 ## Document Information
 
 | Property | Value |
 |----------|-------|
-| **Last Updated** | 2026-01-04 |
+| **Last Updated** | 2026-01-05 |
 | **Author** | OumaCavin |
-| **Version** | 1.5 |
+| **Version** | 1.6 |
 | **Status** | Active |
-| **Changes** | Added comprehensive Database Module Guide and Git Workflow Standards documentation |
+| **Changes** | Added Database Migration Management documentation covering automatic migration execution, tracking system, and best practices |
 
 ---
 
