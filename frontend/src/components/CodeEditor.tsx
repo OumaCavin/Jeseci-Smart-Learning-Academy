@@ -599,7 +599,7 @@ const CodeEditor: React.FC = () => {
             outputText += `No test results available.\n`;
           }
         } else {
-          outputText = `✅ Execution successful!\n\n${result.output || 'No output'}`;
+          outputText = `✅ Execution successful!\n\n${result.stdout || 'No output'}`;
         }
         
         setOutput(outputText);
