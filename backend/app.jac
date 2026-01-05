@@ -1267,26 +1267,15 @@ walker export_chat {
 # ==============================================================================
 walker graph_init {
     can graph_init with entry {
-        try {
-            result = db_module.test_all_connections();
+        result = db_module.test_all_connections();
 
-            report {
-                "success": True,
-                "graph_engine": "initialized",
-                "neo4j_connected": result['neo4j'],
-                "postgresql_connected": result['postgresql'],
-                "message": "Graph Knowledge Engine ready"
-            } ;
-        } except Exception as e {
-            print("Error initializing graph: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize graph engine: " + str(e),
-                "graph_engine": "error",
-                "neo4j_connected": False,
-                "postgresql_connected": False
-            } ;
-        }
+        report {
+            "success": True,
+            "graph_engine": "initialized",
+            "neo4j_connected": result['neo4j'],
+            "postgresql_connected": result['postgresql'],
+            "message": "Graph Knowledge Engine ready"
+        } ;
     }
 }
 
@@ -1436,55 +1425,54 @@ walker graph_user_progress {
     has user_id: str;
 
     can graph_user_progress with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            completed_query = """
+        completed_query = """
             MATCH (u:User {user_id: toString($user_id)})-[r:Completed]->(c:Concept)
             RETURN c.concept_id AS id, c.name AS name, c.category AS category,
                    c.difficulty_level AS difficulty_level, r.score AS score, r.completed_at AS completed_at
             ORDER BY r.completed_at DESC
             """;
 
-            enrolled_query = """
+        enrolled_query = """
             MATCH (u:User {user_id: toString($user_id)})-[r:EnrolledIn]->(p:LearningPath)
             RETURN p.path_id AS id, p.title AS title, r.progress_percent AS progress,
                    r.status AS status, r.enrolled_at AS enrolled_at
             """;
 
-            completed_result = manager.execute_query(
-                completed_query, {"user_id": self.user_id}
-            );
-            enrolled_result = manager.execute_query(
-                enrolled_query, {"user_id": self.user_id}
-            );
+        completed_result = manager.execute_query(
+            completed_query, {"user_id": self.user_id}
+        );
+        enrolled_result = manager.execute_query(
+            enrolled_query, {"user_id": self.user_id}
+        );
 
-            stats_query = """
+        stats_query = """
             MATCH (u:User {user_id: toString($user_id)})-[r:Completed]->(c:Concept)
             RETURN count(c) AS total_completed, avg(r.score) AS avg_score, sum(r.time_spent) AS total_time
             """;
 
-            stats_result = manager.execute_query(
-                stats_query, {"user_id": self.user_id}
-            );
+        stats_result = manager.execute_query(
+            stats_query, {"user_id": self.user_id}
+        );
 
-            report {
-                "success": True,
-                "user_id": self.user_id,
-                "completed_concepts": completed_result or [],
-                "enrolled_paths": enrolled_result or [],
-                "statistics": {
-                    "total_completed": stats_result[0]['total_completed']
-                    if stats_result
-                    else 0,
-                    "average_score": stats_result[0]['avg_score']
-                    if stats_result
-                    else 0,
-                    "total_time_minutes": stats_result[0]['total_time']
-                    if stats_result
-                    else 0
-                }
-            } ;
+        report {
+            "success": True,
+            "user_id": self.user_id,
+            "completed_concepts": completed_result or [],
+            "enrolled_paths": enrolled_result or [],
+            "statistics": {
+                "total_completed": stats_result[0]['total_completed']
+                if stats_result
+                else 0,
+                "average_score": stats_result[0]['avg_score']
+                if stats_result
+                else 0,
+                "total_time_minutes": stats_result[0]['total_time']
+                if stats_result
+                else 0
+            }
+        } ;
     }
 }
 
@@ -1541,10 +1529,9 @@ walker graph_enroll_path {
     has path_id: str;
 
     can graph_enroll_path with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            enroll_query = """
+        enroll_query = """
             MATCH (u:User {user_id: toString($user_id)})
             MATCH (p:LearningPath {path_id: $path_id})
             MERGE (u)-[r:EnrolledIn {
@@ -1557,16 +1544,16 @@ walker graph_enroll_path {
             RETURN u.user_id, p.title
             """;
 
-            result = manager.execute_query(
-                enroll_query, {"user_id": self.user_id, "path_id": self.path_id}
-            );
+        result = manager.execute_query(
+            enroll_query, {"user_id": self.user_id, "path_id": self.path_id}
+        );
 
-            report {
-                "success": result != None,
-                "user_id": self.user_id,
-                "path_id": self.path_id,
-                "status": "enrolled"
-            } ;
+        report {
+            "success": result != None,
+            "user_id": self.user_id,
+            "path_id": self.path_id,
+            "status": "enrolled"
+        } ;
     }
 }
 
@@ -1712,8 +1699,7 @@ walker graph_popular_concepts {
 # ==============================================================================
 walker graph_seed {
     can graph_seed with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
             concepts = [
                 {
@@ -2506,7 +2492,6 @@ walker log_activity {
                     "code": "DATABASE_ERROR"
                 } ;
             }
-        }
     }
 }
 
@@ -2776,8 +2761,7 @@ walker verify_email {
             return;
         }
 
-        try {
-            result = auth_module.verify_email(self.token);
+        result = auth_module.verify_email(self.token);
 
             if result['success'] {
                 report {
@@ -3072,41 +3056,31 @@ walker admin_users {
 
     can admin_users with entry {
         # Initialize store with error handling
-        try {
-            admin_store.initialize_admin_store();
-        } except Exception as e {
-            print("Error initializing admin store: " + str(e));
-            report {"success": False, "error": "Failed to load user data: " + str(e)} ;
-        }
+        admin_store.initialize_admin_store();
 
         # Get users from storage with filters
         users = [];
-        try {
-            if self.search {
-                users = admin_store.search_admin_users(
-                    self.search, self.include_inactive, self.admin_only
-                );
-            } else {
-                users = admin_store.get_all_users();
-                # Apply filters
-                if not self.include_inactive {
-                    users = [
-                        u
-                        for u in users
-                        if u.get('is_active', True)
-                    ];
-                }
-                if self.admin_only {
-                    users = [
-                        u
-                        for u in users
-                        if u.get('is_admin', False)
-                    ];
-                }
+        if self.search {
+            users = admin_store.search_admin_users(
+                self.search, self.include_inactive, self.admin_only
+            );
+        } else {
+            users = admin_store.get_all_users();
+            # Apply filters
+            if not self.include_inactive {
+                users = [
+                    u
+                    for u in users
+                    if u.get('is_active', True)
+                ];
             }
-        } except Exception as e {
-            print("Error fetching users: " + str(e));
-            report {"success": False, "error": "Failed to fetch users: " + str(e)} ;
+            if self.admin_only {
+                users = [
+                    u
+                    for u in users
+                    if u.get('is_admin', False)
+                ];
+            }
         }
 
         # Remove password from response
@@ -3158,15 +3132,7 @@ walker admin_users_create {
 
     can admin_users_create with entry {
         # Initialize store with error handling
-        try {
-            admin_store.initialize_admin_store();
-        } except Exception as e {
-            print("Error initializing admin store: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize user store: " + str(e)
-            } ;
-        }
+        admin_store.initialize_admin_store();
 
         # Create user in storage
         result = admin_store.create_admin_user(
@@ -3214,15 +3180,7 @@ walker admin_users_update {
 
     can admin_users_update with entry {
         # Initialize store with error handling
-        try {
-            admin_store.initialize_admin_store();
-        } except Exception as e {
-            print("Error initializing admin store: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize user store: " + str(e)
-            } ;
-        }
+        admin_store.initialize_admin_store();
 
         # Build updates dict
         updates = {};
@@ -3260,15 +3218,7 @@ walker admin_users_bulk_action {
 
     can admin_users_bulk_action with entry {
         # Initialize store with error handling
-        try {
-            admin_store.initialize_admin_store();
-        } except Exception as e {
-            print("Error initializing admin store: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize user store: " + str(e)
-            } ;
-        }
+        admin_store.initialize_admin_store();
 
         result = admin_store.bulk_admin_action(
             self.user_ids, self.action, self.reason, self.deleted_by, self.ip_address
@@ -3292,15 +3242,7 @@ walker admin_users_restore {
 
     can admin_users_restore with entry {
         # Initialize store with error handling
-        try {
-            admin_store.initialize_admin_store();
-        } except Exception as e {
-            print("Error initializing admin store: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize user store: " + str(e)
-            } ;
-        }
+        admin_store.initialize_admin_store();
 
         result = admin_store.restore_users(
             self.user_ids, self.restored_by, self.ip_address
@@ -3320,27 +3262,11 @@ walker admin_users_restore {
 walker admin_users_deleted {
     can admin_users_deleted with entry {
         # Initialize store with error handling
-        try {
-            admin_store.initialize_admin_store();
-        } except Exception as e {
-            print("Error initializing admin store: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize user store: " + str(e)
-            } ;
-        }
+        admin_store.initialize_admin_store();
 
         # Get deleted users from storage
         deleted_users = [];
-        try {
-            deleted_users = admin_store.get_deleted_users();
-        } except Exception as e {
-            print("Error fetching deleted users: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to fetch deleted users: " + str(e)
-            } ;
-        }
+        deleted_users = admin_store.get_deleted_users();
 
         report {"success": True, "users": deleted_users, "total": len(deleted_users)} ;
     }
@@ -3353,13 +3279,8 @@ walker admin_content_courses {
     can admin_content_courses with entry {
         # Initialize store and get courses with error handling
         courses = [];
-        try {
-            content_store.initialize_courses();
-            courses = content_store.get_all_courses();
-        } except Exception as e {
-            print("Error initializing courses: " + str(e));
-            report {"success": False, "error": "Failed to load courses: " + str(e)} ;
-        }
+        content_store.initialize_courses();
+        courses = content_store.get_all_courses();
 
         report {"success": True, "courses": courses} ;
     }
@@ -3374,15 +3295,7 @@ walker admin_content_course_create {
 
     can admin_content_course_create with entry {
         # Initialize store with error handling
-        try {
-            content_store.initialize_courses();
-        } except Exception as e {
-            print("Error initializing courses: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize course store: " + str(e)
-            } ;
-        }
+        content_store.initialize_courses();
 
         result = content_store.create_course(
             self.title,
@@ -3416,15 +3329,7 @@ walker admin_content_course_update {
 
     can admin_content_course_update with entry {
         # Initialize store with error handling
-        try {
-            content_store.initialize_courses();
-        } except Exception as e {
-            print("Error initializing courses: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize course store: " + str(e)
-            } ;
-        }
+        content_store.initialize_courses();
 
         result = content_store.update_course(
             self.course_id, self.title, self.description, self.domain, self.difficulty
@@ -3452,15 +3357,7 @@ walker admin_content_course_delete {
 
     can admin_content_course_delete with entry {
         # Initialize store with error handling
-        try {
-            content_store.initialize_courses();
-        } except Exception as e {
-            print("Error initializing courses: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize course store: " + str(e)
-            } ;
-        }
+        content_store.initialize_courses();
 
         result = content_store.delete_course(
             self.course_id, self.deleted_by, self.ip_address
@@ -3488,15 +3385,7 @@ walker admin_content_course_restore {
 
     can admin_content_course_restore with entry {
         # Initialize store with error handling
-        try {
-            content_store.initialize_courses();
-        } except Exception as e {
-            print("Error initializing courses: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize course store: " + str(e)
-            } ;
-        }
+        content_store.initialize_courses();
 
         result = content_store.restore_course(
             self.course_id, self.restored_by, self.ip_address
@@ -3521,16 +3410,8 @@ walker admin_content_courses_deleted {
     can admin_content_courses_deleted with entry {
         # Initialize store and get deleted courses with error handling
         deleted_courses = [];
-        try {
-            content_store.initialize_courses();
-            deleted_courses = content_store.get_deleted_courses();
-        } except Exception as e {
-            print("Error initializing courses: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to load deleted courses: " + str(e)
-            } ;
-        }
+        content_store.initialize_courses();
+        deleted_courses = content_store.get_deleted_courses();
 
         report {
             "success": True,
@@ -3544,13 +3425,8 @@ walker admin_content_concepts {
     can admin_content_concepts with entry {
         # Initialize store and get concepts with error handling
         concepts = [];
-        try {
-            content_store.initialize_concepts();
-            concepts = content_store.get_all_concepts();
-        } except Exception as e {
-            print("Error initializing concepts: " + str(e));
-            report {"success": False, "error": "Failed to load concepts: " + str(e)} ;
-        }
+        content_store.initialize_concepts();
+        concepts = content_store.get_all_concepts();
 
         report {"success": True, "concepts": concepts} ;
     }
@@ -3635,15 +3511,7 @@ walker admin_content_concept_create {
 
     can admin_content_concept_create with entry {
         # Initialize store with error handling
-        try {
-            content_store.initialize_concepts();
-        } except Exception as e {
-            print("Error initializing concepts: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize concept store: " + str(e)
-            } ;
-        }
+        content_store.initialize_concepts();
 
         result = content_store.create_concept(
             self.name,
@@ -3674,16 +3542,8 @@ walker admin_content_paths {
     can admin_content_paths with entry {
         # Initialize store and get paths with error handling
         paths = [];
-        try {
-            content_store.initialize_paths();
-            paths = content_store.get_all_paths();
-        } except Exception as e {
-            print("Error initializing paths: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to load learning paths: " + str(e)
-            } ;
-        }
+        content_store.initialize_paths();
+        paths = content_store.get_all_paths();
 
         report {"success": True, "paths": paths} ;
     }
@@ -3700,15 +3560,7 @@ walker admin_content_path_create {
 
     can admin_content_path_create with entry {
         # Initialize store with error handling
-        try {
-            content_store.initialize_paths();
-        } except Exception as e {
-            print("Error initializing paths: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize path store: " + str(e)
-            } ;
-        }
+        content_store.initialize_paths();
 
         result = content_store.create_path(
             self.title,
@@ -3742,13 +3594,8 @@ walker admin_quizzes {
     can admin_quizzes with entry {
         # Initialize store and get quizzes with error handling
         quizzes = [];
-        try {
-            quiz_store.initialize_quizzes();
-            quizzes = quiz_store.get_all_quizzes();
-        } except Exception as e {
-            print("Error initializing quizzes: " + str(e));
-            report {"success": False, "error": "Failed to load quizzes: " + str(e)} ;
-        }
+        quiz_store.initialize_quizzes();
+        quizzes = quiz_store.get_all_quizzes();
 
         report {"success": True, "quizzes": quizzes} ;
     }
@@ -3761,29 +3608,24 @@ walker admin_quizzes_generate_ai {
 
     can admin_quizzes_generate_ai with entry {
         # Generate AI quiz with error handling
-        try {
-            result = quiz_store.generate_ai_quiz(
-                self.topic, self.difficulty, self.question_count
-            );
+        result = quiz_store.generate_ai_quiz(
+            self.topic, self.difficulty, self.question_count
+        );
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "quiz": result.get('quiz', {}),
-                    "topic": self.topic,
-                    "difficulty": self.difficulty,
-                    "question_count": self.question_count,
-                    "message": result.get('message', 'Quiz generated successfully')
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to generate quiz')
-                } ;
-            }
-        } except Exception as e {
-            print("Error generating AI quiz: " + str(e));
-            report {"success": False, "error": "Failed to generate AI quiz: " + str(e)} ;
+        if result['success'] {
+            report {
+                "success": True,
+                "quiz": result.get('quiz', {}),
+                "topic": self.topic,
+                "difficulty": self.difficulty,
+                "question_count": self.question_count,
+                "message": result.get('message', 'Quiz generated successfully')
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to generate quiz')
+            } ;
         }
     }
 }
@@ -3795,26 +3637,21 @@ walker admin_quizzes_save_ai {
 
     can admin_quizzes_save_ai with entry {
         # Save AI-generated quiz with error handling
-        try {
-            result = quiz_store.save_ai_generated_quiz(
-                self.quiz_data, self.topic, self.difficulty
-            );
+        result = quiz_store.save_ai_generated_quiz(
+            self.quiz_data, self.topic, self.difficulty
+        );
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "quiz_id": result.get('quiz_id', ''),
-                    "message": result.get('message', 'Quiz saved successfully')
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to save quiz')
-                } ;
-            }
-        } except Exception as e {
-            print("Error saving AI quiz: " + str(e));
-            report {"success": False, "error": "Failed to save AI quiz: " + str(e)} ;
+        if result['success'] {
+            report {
+                "success": True,
+                "quiz_id": result.get('quiz_id', ''),
+                "message": result.get('message', 'Quiz saved successfully')
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to save quiz')
+            } ;
         }
     }
 }
@@ -3823,16 +3660,8 @@ walker admin_quizzes_analytics {
     can admin_quizzes_analytics with entry {
         # Initialize store with error handling
         analytics = {};
-        try {
-            quiz_store.initialize_quizzes();
-            analytics = quiz_store.get_quiz_analytics();
-        } except Exception as e {
-            print("Error initializing quizzes: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to load quiz analytics: " + str(e)
-            } ;
-        }
+        quiz_store.initialize_quizzes();
+        analytics = quiz_store.get_quiz_analytics();
 
         report {"success": True, "analytics": analytics} ;
     }
@@ -3846,15 +3675,7 @@ walker admin_quizzes_create {
 
     can admin_quizzes_create with entry {
         # Initialize store with error handling
-        try {
-            quiz_store.initialize_quizzes();
-        } except Exception as e {
-            print("Error initializing quizzes: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize quiz store: " + str(e)
-            } ;
-        }
+        quiz_store.initialize_quizzes();
 
         result = quiz_store.create_quiz(
             self.title, self.description, self.course_id, self.difficulty
@@ -3883,15 +3704,7 @@ walker admin_quizzes_update {
 
     can admin_quizzes_update with entry {
         # Initialize store with error handling
-        try {
-            quiz_store.initialize_quizzes();
-        } except Exception as e {
-            print("Error initializing quizzes: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize quiz store: " + str(e)
-            } ;
-        }
+        quiz_store.initialize_quizzes();
 
         result = quiz_store.update_quiz(
             self.quiz_id, self.title, self.description, self.difficulty
@@ -3917,15 +3730,7 @@ walker admin_quizzes_delete {
 
     can admin_quizzes_delete with entry {
         # Initialize store with error handling
-        try {
-            quiz_store.initialize_quizzes();
-        } except Exception as e {
-            print("Error initializing quizzes: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize quiz store: " + str(e)
-            } ;
-        }
+        quiz_store.initialize_quizzes();
 
         result = quiz_store.delete_quiz(self.quiz_id);
 
@@ -3951,12 +3756,7 @@ walker admin_ai_domains {
     can admin_ai_domains with entry {
         # Get AI domains with error handling
         domains = [];
-        try {
-            domains = ai_store.get_ai_domains();
-        } except Exception as e {
-            print("Error fetching AI domains: " + str(e));
-            report {"success": False, "error": "Failed to load AI domains: " + str(e)} ;
-        }
+        domains = ai_store.get_ai_domains();
 
         report {"success": True, "domains": domains} ;
     }
@@ -3966,13 +3766,8 @@ walker admin_ai_stats {
     can admin_ai_stats with entry {
         # Initialize store and get stats with error handling
         stats = {};
-        try {
-            ai_store.initialize_ai_content();
-            stats = ai_store.get_ai_stats();
-        } except Exception as e {
-            print("Error initializing AI content: " + str(e));
-            report {"success": False, "error": "Failed to load AI stats: " + str(e)} ;
-        }
+        ai_store.initialize_ai_content();
+        stats = ai_store.get_ai_stats();
 
         report {"success": True, "stats": stats} ;
     }
@@ -3982,13 +3777,8 @@ walker admin_ai_content {
     can admin_ai_content with entry {
         # Initialize store and get content with error handling
         content = [];
-        try {
-            ai_store.initialize_ai_content();
-            content = ai_store.get_all_ai_content();
-        } except Exception as e {
-            print("Error initializing AI content: " + str(e));
-            report {"success": False, "error": "Failed to load AI content: " + str(e)} ;
-        }
+        ai_store.initialize_ai_content();
+        content = ai_store.get_all_ai_content();
 
         report {"success": True, "content": content} ;
     }
@@ -4006,15 +3796,7 @@ walker admin_ai_generate {
         import os;
 
         # Initialize AI store with error handling
-        try {
-            ai_store.initialize_ai_content();
-        } except Exception as e {
-            print("Error initializing AI content: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize AI store: " + str(e)
-            } ;
-        }
+        ai_store.initialize_ai_content();
 
         # Check OpenAI configuration
         api_key = os.getenv("OPENAI_API_KEY", "");
@@ -4085,16 +3867,8 @@ walker admin_analytics_users {
     can admin_analytics_users with entry {
         # Initialize store and get analytics with error handling
         analytics = {};
-        try {
-            analytics_store.initialize_analytics();
-            analytics = analytics_store.get_user_analytics();
-        } except Exception as e {
-            print("Error initializing analytics: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to load user analytics: " + str(e)
-            } ;
-        }
+        analytics_store.initialize_analytics();
+        analytics = analytics_store.get_user_analytics();
 
         report {"success": True, "analytics": analytics} ;
     }
@@ -4104,16 +3878,8 @@ walker admin_analytics_learning {
     can admin_analytics_learning with entry {
         # Initialize store and get analytics with error handling
         analytics = {};
-        try {
-            analytics_store.initialize_analytics();
-            analytics = analytics_store.get_learning_analytics();
-        } except Exception as e {
-            print("Error initializing analytics: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to load learning analytics: " + str(e)
-            } ;
-        }
+        analytics_store.initialize_analytics();
+        analytics = analytics_store.get_learning_analytics();
 
         report {"success": True, "analytics": analytics} ;
     }
@@ -4128,73 +3894,69 @@ walker admin_analytics_content {
         popular_content = [];
         content_by_difficulty = {"beginner": 0, "intermediate": 0, "advanced": 0};
 
-        try {
-            # Get courses count from PostgreSQL
-            content_store.initialize_courses();
-            courses = content_store.get_all_courses();
-            total_courses = len(courses);
+        # Get courses count from PostgreSQL
+        content_store.initialize_courses();
+        courses = content_store.get_all_courses();
+        total_courses = len(courses);
 
-            # Get concepts count from Neo4j
-            content_store.initialize_concepts();
-            concepts = content_store.get_all_concepts();
-            total_concepts = len(concepts);
+        # Get concepts count from Neo4j
+        content_store.initialize_concepts();
+        concepts = content_store.get_all_concepts();
+        total_concepts = len(concepts);
 
-            # Calculate difficulty distribution for concepts
-            for concept in concepts {
-                difficulty = concept.get('difficulty_level', 'beginner');
-                if difficulty in content_by_difficulty {
-                    content_by_difficulty[difficulty] = content_by_difficulty[
-                        difficulty
-                    ] + 1;
+        # Calculate difficulty distribution for concepts
+        for concept in concepts {
+            difficulty = concept.get('difficulty_level', 'beginner');
+            if difficulty in content_by_difficulty {
+                content_by_difficulty[difficulty] = content_by_difficulty[
+                    difficulty
+                ] + 1;
+            }
+        }
+
+        # Get paths count from PostgreSQL
+        content_store.initialize_paths();
+        paths = content_store.get_all_paths();
+        total_paths = len(paths);
+
+        # Get real popular content with actual view counts from database
+        popular_content = [];
+        course_views = content_views_module.get_popular_content(
+            "course", limit=5, period="all_time"
+        );
+        for view_data in course_views {
+            # Get course title from content store
+            course_title = "Unknown Course";
+            for course in courses {
+                if course.get('course_id') == view_data['content_id'] {
+                    course_title = course.get('title', 'Unknown Course');
+                    break;
                 }
             }
-
-            # Get paths count from PostgreSQL
-            content_store.initialize_paths();
-            paths = content_store.get_all_paths();
-            total_paths = len(paths);
-
-            # Get real popular content with actual view counts from database
-            popular_content = [];
-            course_views = content_views_module.get_popular_content(
-                "course", limit=5, period="all_time"
-            );
-            for view_data in course_views {
-                # Get course title from content store
-                course_title = "Unknown Course";
-                for course in courses {
-                    if course.get('course_id') == view_data['content_id'] {
-                        course_title = course.get('title', 'Unknown Course');
-                        break;
-                    }
+            popular_content.append(
+                {
+                    "content_id": view_data['content_id'],
+                    "title": course_title,
+                    "views": view_data['views'],
+                    "unique_views": view_data['unique_views'],
+                    "content_type": "course"
                 }
+            );
+        }
+
+        # If no views recorded yet, show courses with 0 views
+        if len(popular_content) == 0 {
+            for course in courses {
                 popular_content.append(
                     {
-                        "content_id": view_data['content_id'],
-                        "title": course_title,
-                        "views": view_data['views'],
-                        "unique_views": view_data['unique_views'],
+                        "content_id": course.get('course_id'),
+                        "title": course.get('title', 'Unknown'),
+                        "views": 0,
+                        "unique_views": 0,
                         "content_type": "course"
                     }
                 );
             }
-
-            # If no views recorded yet, show courses with 0 views
-            if len(popular_content) == 0 {
-                for course in courses {
-                    popular_content.append(
-                        {
-                            "content_id": course.get('course_id'),
-                            "title": course.get('title', 'Unknown'),
-                            "views": 0,
-                            "unique_views": 0,
-                            "content_type": "course"
-                        }
-                    );
-                }
-            }
-        } except Exception as e {
-            print("Error loading content analytics: " + str(e));
         }
 
         report {
@@ -4302,15 +4064,7 @@ walker get_content_view_analytics {
 walker admin_analytics_refresh {
     can admin_analytics_refresh with entry {
         # Initialize store with error handling
-        try {
-            analytics_store.initialize_analytics();
-        } except Exception as e {
-            print("Error initializing analytics: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to initialize analytics store: " + str(e)
-            } ;
-        }
+        analytics_store.initialize_analytics();
 
         result = analytics_store.refresh_analytics();
 
@@ -4367,23 +4121,15 @@ walker admin_audit_logs {
         end_dt = null;
 
         if self.start_date {
-            try {
-                start_dt = datetime.datetime.fromisoformat(
-                    self.start_date.replace('Z', '+00:00')
-                );
-            } except Exception as e {
-                print("Error parsing start_date: " + str(e));
-            }
+            start_dt = datetime.datetime.fromisoformat(
+                self.start_date.replace('Z', '+00:00')
+            );
         }
 
         if self.end_date {
-            try {
-                end_dt = datetime.datetime.fromisoformat(
-                    self.end_date.replace('Z', '+00:00')
-                );
-            } except Exception as e {
-                print("Error parsing end_date: " + str(e));
-            }
+            end_dt = datetime.datetime.fromisoformat(
+                self.end_date.replace('Z', '+00:00')
+            );
         }
 
         # Search audit logs
@@ -5117,13 +4863,9 @@ walker study_group_goal_create {
         import datetime;
         completion_date = null;
         if self.target_completion_date {
-            try {
-                completion_date = datetime.datetime.fromisoformat(
-                    self.target_completion_date
-                ).date();
-            } except Exception as e {
-                print("Error parsing date: " + str(e));
-            }
+            completion_date = datetime.datetime.fromisoformat(
+                self.target_completion_date
+            ).date();
         }
 
         result = adv_collab_module.create_group_goal(
@@ -5471,18 +5213,9 @@ walker mentorship_session_schedule {
         }
 
         import datetime;
-        scheduled_datetime = null;
-        try {
-            scheduled_datetime = datetime.datetime.fromisoformat(
-                self.scheduled_at.replace('Z', '+00:00')
-            );
-        } except Exception as e {
-            report {
-                "success": False,
-                "error": "Invalid scheduled_at format. Use ISO format."
-            } ;
-            return;
-        }
+        scheduled_datetime = datetime.datetime.fromisoformat(
+            self.scheduled_at.replace('Z', '+00:00')
+        );
 
         result = adv_collab_module.schedule_mentorship_session(
             mentorship_id=self.mentorship_id,
@@ -5834,11 +5567,7 @@ walker peer_review_assign {
         import datetime;
         deadline_date = null;
         if self.deadline {
-            try {
-                deadline_date = datetime.datetime.fromisoformat(self.deadline).date();
-            } except Exception as e {
-                print("Error parsing deadline: " + str(e));
-            }
+            deadline_date = datetime.datetime.fromisoformat(self.deadline).date();
         }
 
         result = adv_collab_module.assign_peer_reviewer(
@@ -6189,55 +5918,51 @@ walker save_snippet {
             return;
         }
 
-        try {
-            if self.snippet_id {
-                # Update existing snippet
-                updated = code_store_module.update_snippet(
-                    snippet_id=self.snippet_id,
-                    user_id=user_id,
-                    title=self.title,
-                    code_content=self.code,
-                    description=self.description if self.description else null,
-                    is_public=self.is_public,
-                    folder_id=self.folder_id if self.folder_id else null
-                );
-                if updated {
-                    snippet = code_store_module.get_snippet(
-                        snippet_id=self.snippet_id, user_id=user_id
-                    );
-                    report {
-                        "success": True,
-                        "message": "Snippet updated successfully",
-                        "snippet": snippet
-                    } ;
-                } else {
-                    report {
-                        "success": False,
-                        "error": "Snippet not found or access denied"
-                    } ;
-                }
-            } else {
-                # Create new snippet
-                new_snippet_id = code_store_module.create_snippet(
-                    user_id=user_id,
-                    title=self.title,
-                    code_content=self.code,
-                    language="jac",
-                    description=self.description if self.description else null,
-                    is_public=self.is_public,
-                    folder_id=self.folder_id if self.folder_id else null
-                );
+        if self.snippet_id {
+            # Update existing snippet
+            updated = code_store_module.update_snippet(
+                snippet_id=self.snippet_id,
+                user_id=user_id,
+                title=self.title,
+                code_content=self.code,
+                description=self.description if self.description else null,
+                is_public=self.is_public,
+                folder_id=self.folder_id if self.folder_id else null
+            );
+            if updated {
                 snippet = code_store_module.get_snippet(
-                    snippet_id=new_snippet_id, user_id=user_id
+                    snippet_id=self.snippet_id, user_id=user_id
                 );
                 report {
                     "success": True,
-                    "message": "Snippet created successfully",
+                    "message": "Snippet updated successfully",
                     "snippet": snippet
                 } ;
+            } else {
+                report {
+                    "success": False,
+                    "error": "Snippet not found or access denied"
+                } ;
             }
-        } except Exception as e {
-            report {"success": False, "error": str(e)} ;
+        } else {
+            # Create new snippet
+            new_snippet_id = code_store_module.create_snippet(
+                user_id=user_id,
+                title=self.title,
+                code_content=self.code,
+                language="jac",
+                description=self.description if self.description else null,
+                is_public=self.is_public,
+                folder_id=self.folder_id if self.folder_id else null
+            );
+            snippet = code_store_module.get_snippet(
+                snippet_id=new_snippet_id, user_id=user_id
+            );
+            report {
+                "success": True,
+                "message": "Snippet created successfully",
+                "snippet": snippet
+            } ;
         }
     }
 }
@@ -6352,8 +6077,7 @@ walker create_folder {
             return;
         }
 
-        try {
-            folder_id = code_store_module.create_folder(
+        folder_id = code_store_module.create_folder(
                 user_id=user_id,
                 name=self.name,
                 description=self.description if self.description else null,
@@ -6368,9 +6092,6 @@ walker create_folder {
                 "folder_id": folder_id,
                 "message": "Folder created successfully"
             } ;
-        } except Exception as e {
-            report {"success": False, "error": str(e)} ;
-        }
     }
 }
 
@@ -6651,8 +6372,7 @@ walker snippet_version {
                 } ;
                 return;
             }
-            try {
-                import datetime;
+            import datetime;
                 version = code_store_module.create_snippet_version(
                     snippet_id=self.snippet_id,
                     version_number=self.version_number
@@ -6671,12 +6391,6 @@ walker snippet_version {
                     "message": "Version created successfully",
                     "version": version
                 } ;
-            } except Exception as e {
-                report {
-                    "success": False,
-                    "error": "Failed to create version: " + str(e)
-                } ;
-            }
             return;
         }
 
@@ -6688,8 +6402,7 @@ walker snippet_version {
                 } ;
                 return;
             }
-            try {
-                restored = code_store_module.restore_snippet_version(
+            restored = code_store_module.restore_snippet_version(
                     version_id=self.version_id, user_id=user_id
                 );
 
@@ -6701,12 +6414,6 @@ walker snippet_version {
                 } else {
                     report {"success": False, "error": "Failed to restore version"} ;
                 }
-            } except Exception as e {
-                report {
-                    "success": False,
-                    "error": "Failed to restore version: " + str(e)
-                } ;
-            }
             return;
         }
 
@@ -6781,8 +6488,7 @@ walker test_case {
                 } ;
                 return;
             }
-            try {
-                import datetime;
+            import datetime;
                 test_case = code_store_module.create_test_case(
                     snippet_id=self.snippet_id,
                     name=self.name,
@@ -6800,12 +6506,6 @@ walker test_case {
                     "message": "Test case created successfully",
                     "test_case": test_case
                 } ;
-            } except Exception as e {
-                report {
-                    "success": False,
-                    "error": "Failed to create test case: " + str(e)
-                } ;
-            }
             return;
         }
 
@@ -6817,8 +6517,7 @@ walker test_case {
                 } ;
                 return;
             }
-            try {
-                updated = code_store_module.update_test_case(
+            updated = code_store_module.update_test_case(
                     test_case_id=self.test_case_id,
                     name=self.name if self.name else null,
                     input_data=self.input_data if self.input_data else null,
@@ -6842,12 +6541,6 @@ walker test_case {
                 } else {
                     report {"success": False, "error": "Failed to update test case"} ;
                 }
-            } except Exception as e {
-                report {
-                    "success": False,
-                    "error": "Failed to update test case: " + str(e)
-                } ;
-            }
             return;
         }
 
@@ -6859,8 +6552,7 @@ walker test_case {
                 } ;
                 return;
             }
-            try {
-                deleted = code_store_module.delete_test_case(
+            deleted = code_store_module.delete_test_case(
                     test_case_id=self.test_case_id
                 );
 
@@ -6875,12 +6567,6 @@ walker test_case {
                         "error": "Test case not found or access denied"
                     } ;
                 }
-            } except Exception as e {
-                report {
-                    "success": False,
-                    "error": "Failed to delete test case: " + str(e)
-                } ;
-            }
             return;
         }
 
@@ -6949,8 +6635,7 @@ walker debug_session {
                 } ;
                 return;
             }
-            try {
-                import datetime;
+            import datetime;
                 session = code_store_module.create_debug_session(
                     snippet_id=self.snippet_id,
                     user_id=user_id,
@@ -6963,12 +6648,6 @@ walker debug_session {
                     "message": "Debug session created",
                     "session": session
                 } ;
-            } except Exception as e {
-                report {
-                    "success": False,
-                    "error": "Failed to create debug session: " + str(e)
-                } ;
-            }
             return;
         }
 
@@ -7084,8 +6763,7 @@ walker debug_session {
                 } ;
                 return;
             }
-            try {
-                session = code_store_module.add_breakpoint(
+            session = code_store_module.add_breakpoint(
                     session_id=self.session_id, line_number=self.breakpoint_line
                 );
 
@@ -7094,12 +6772,6 @@ walker debug_session {
                     "message": "Breakpoint added",
                     "session": session
                 } ;
-            } except Exception as e {
-                report {
-                    "success": False,
-                    "error": "Failed to add breakpoint: " + str(e)
-                } ;
-            }
             return;
         }
 
@@ -7111,8 +6783,7 @@ walker debug_session {
                 } ;
                 return;
             }
-            try {
-                session = code_store_module.remove_breakpoint(
+            session = code_store_module.remove_breakpoint(
                     session_id=self.session_id, line_number=self.breakpoint_line
                 );
 
@@ -7121,12 +6792,6 @@ walker debug_session {
                     "message": "Breakpoint removed",
                     "session": session
                 } ;
-            } except Exception as e {
-                report {
-                    "success": False,
-                    "error": "Failed to remove breakpoint: " + str(e)
-                } ;
-            }
             return;
         }
 
@@ -7165,8 +6830,7 @@ walker debug_session {
                 } ;
                 return;
             }
-            try {
-                import datetime;
+            import datetime;
                 code_store_module.update_debug_session(
                     session_id=self.session_id,
                     status='completed',
@@ -7174,12 +6838,6 @@ walker debug_session {
                 );
 
                 report {"success": True, "message": "Debug session ended"} ;
-            } except Exception as e {
-                report {
-                    "success": False,
-                    "error": "Failed to end debug session: " + str(e)
-                } ;
-            }
             return;
         }
 
@@ -8010,8 +7668,7 @@ walker connections_list {
     has status: str = "";
 
     can connections_list with entry {
-        try {
-            user_id = ctx().get('user_id');
+        user_id = ctx().get('user_id');
             if not user_id {
                 report {"success": False, "error": "Authentication required"} ;
                 return;
@@ -8141,107 +7798,40 @@ walker user_profile {
 
 walker get_folders {
     can get_folders with entry {
-        try {
-            user_id = ctx().get('user_id');
-            if not user_id {
-                report {"success": False, "error": "Authentication required"} ;
-                return;
-            }
-
-            # Mock folders data
-            folders = [
-                {
-                    "folder_id": "folder_001",
-                    "name": "Jaclang Notes",
-                    "description": "My notes on Jaclang programming",
-                    "parent_id": "",
-                    "created_at": "2025-01-01T10:00:00Z",
-                    "updated_at": "2025-01-03T15:30:00Z"
-                },
-                {
-                    "folder_id": "folder_002",
-                    "name": "Python Exercises",
-                    "description": "Python practice problems and solutions",
-                    "parent_id": "",
-                    "created_at": "2024-12-15T08:00:00Z",
-                    "updated_at": "2025-01-02T12:00:00Z"
-                }
-            ];
-
-            report {
-                "success": True,
-                "folders": folders,
-                "total": len(folders)
-            } ;
-    }
-}
-
-walker get_snippets {
-    can get_snippets with entry {
         user_id = ctx().get('user_id');
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
-        # Mock snippets data
-        snippets = [
+        # Mock folders data
+        folders = [
             {
-                "snippet_id": "snippet_001",
-                "title": "Hello World in Jac",
-                "language": "jac",
+                "folder_id": "folder_001",
+                "name": "Jaclang Notes",
+                "description": "My notes on Jaclang programming",
+                "parent_id": "",
                 "created_at": "2025-01-01T10:00:00Z",
                 "updated_at": "2025-01-03T15:30:00Z"
             },
             {
-                "snippet_id": "snippet_002",
-                "title": "Python List Comprehension",
-                "language": "python",
-                "created_at": "2024-12-20T14:00:00Z",
-                "updated_at": "2025-01-02T09:00:00Z"
+                "folder_id": "folder_002",
+                "name": "Python Exercises",
+                "description": "Python practice problems and solutions",
+                "parent_id": "",
+                "created_at": "2024-12-15T08:00:00Z",
+                "updated_at": "2025-01-02T12:00:00Z"
             }
         ];
 
         report {
             "success": True,
-            "snippets": snippets,
-            "total": len(snippets)
+            "folders": folders,
+            "total": len(folders)
         } ;
     }
 }
 
-walker code_snippet {
-    can code_snippet with entry {
-        user_id = ctx().get('user_id');
-        if not user_id {
-            report {"success": False, "error": "Authentication required"} ;
-            return;
-        }
 
-        # Mock user snippets
-        snippets = [
-            {
-                "snippet_id": "snippet_001",
-                "title": "Hello World in Jac",
-                "code": "walker init {\\n    std.out(\\\"Hello, World!\\\");\\n}",
-                "language": "jac",
-                "created_at": "2025-01-01T10:00:00Z",
-                "updated_at": "2025-01-03T15:30:00Z"
-            },
-            {
-                "snippet_id": "snippet_002",
-                "title": "Python List Example",
-                "code": "numbers = [1, 2, 3, 4, 5]\\nsquared = [x**2 for x in numbers]\\nprint(squared)",
-                "language": "python",
-                "created_at": "2024-12-20T14:00:00Z",
-                "updated_at": "2025-01-02T09:00:00Z"
-            }
-        ];
 
-        report {
-            "success": True,
-            "snippets": snippets,
-            "total": len(snippets)
-        } ;
-    }
-}
+
