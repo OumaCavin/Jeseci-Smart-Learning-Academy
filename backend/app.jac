@@ -1896,61 +1896,37 @@ walker graph_seed {
                 "prerequisites_created": len(prereqs),
                 "paths_created": 1
             } ;
-        } except Exception as e {
-            print("Error seeding graph: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to seed graph: " + str(e),
-                "concepts_created": 0,
-                "prerequisites_created": 0,
-                "paths_created": 0
-            } ;
-        }
     }
 }
 
 walker graph_stats {
     can graph_stats with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            concept_count = manager.execute_query(
-                "MATCH (c:Concept) RETURN count(c) AS count", None
-            );
-            user_count = manager.execute_query(
-                "MATCH (u:User) RETURN count(u) AS count", None
-            );
-            path_count = manager.execute_query(
-                "MATCH (p:LearningPath) RETURN count(p) AS count", None
-            );
-            rel_count = manager.execute_query(
-                "MATCH ()-[r:PREREQUISITE]->() RETURN count(r) AS count", None
-            );
+        concept_count = manager.execute_query(
+            "MATCH (c:Concept) RETURN count(c) AS count", None
+        );
+        user_count = manager.execute_query(
+            "MATCH (u:User) RETURN count(u) AS count", None
+        );
+        path_count = manager.execute_query(
+            "MATCH (p:LearningPath) RETURN count(p) AS count", None
+        );
+        rel_count = manager.execute_query(
+            "MATCH ()-[r:PREREQUISITE]->() RETURN count(r) AS count", None
+        );
 
-            report {
-                "success": True,
-                "graph_stats": {
-                    "concepts": concept_count[0]['count'] if concept_count else 0,
-                    "users": user_count[0]['count'] if user_count else 0,
-                    "learning_paths": path_count[0]['count'] if path_count else 0,
-                    "prerequisite_relationships": rel_count[0]['count']
-                    if rel_count
-                    else 0
-                }
-            } ;
-        } except Exception as e {
-            print("Error fetching graph stats: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to fetch graph statistics: " + str(e),
-                "graph_stats": {
-                    "concepts": 0,
-                    "users": 0,
-                    "learning_paths": 0,
-                    "prerequisite_relationships": 0
-                }
-            } ;
-        }
+        report {
+            "success": True,
+            "graph_stats": {
+                "concepts": concept_count[0]['count'] if concept_count else 0,
+                "users": user_count[0]['count'] if user_count else 0,
+                "learning_paths": path_count[0]['count'] if path_count else 0,
+                "prerequisite_relationships": rel_count[0]['count']
+                if rel_count
+                else 0
+            }
+        } ;
     }
 }
 
@@ -1994,60 +1970,45 @@ walker contact_submit {
         }
 
         # Store in database using PostgreSQL
-        try {
-            contact_data = {
+        contact_data = {
+            "message_id": message_id,
+            "name": self.name.strip(),
+            "email": self.email.strip().lower(),
+            "subject": self.subject.strip(),
+            "message": self.message.strip(),
+            "phone": self.phone.strip(),
+            "contact_reason": self.contact_reason,
+            "timestamp": timestamp,
+            "status": "pending",
+            "ip_address": "127.0.0.1",
+            "user_agent": "Jeseci Web Application"
+        };
+
+        # Use database module to store contact
+        result = db_module.store_contact_message(contact_data);
+
+        if result['success'] {
+            # Send email notification
+            email_sent = False;
+            email_result = send_contact_notification(contact_data);
+            email_sent = email_result['success'];
+
+            # Send confirmation email to user
+            confirmation_result = send_confirmation_email(contact_data);
+
+            report {
+                "success": True,
                 "message_id": message_id,
-                "name": self.name.strip(),
-                "email": self.email.strip().lower(),
-                "subject": self.subject.strip(),
-                "message": self.message.strip(),
-                "phone": self.phone.strip(),
-                "contact_reason": self.contact_reason,
                 "timestamp": timestamp,
-                "status": "pending",
-                "ip_address": "127.0.0.1",  # In production, get from request
-                "user_agent": "Jeseci Web Application"
-            };
-
-            # Use database module to store contact
-            result = db_module.store_contact_message(contact_data);
-
-            if result['success'] {
-                # Send email notification
-                email_sent = False;
-                try {
-                    email_result = send_contact_notification(contact_data);
-                    email_sent = email_result['success'];
-                } except error {
-                    print("Email notification failed:", error);
-                }
-                # Send confirmation email to user
-                try {
-                    confirmation_result = send_confirmation_email(contact_data);
-                } except error {
-                    print("Confirmation email failed:", error);
-                }
-                report {
-                    "success": True,
-                    "message_id": message_id,
-                    "timestamp": timestamp,
-                    "status": "received",
-                    "message": "Thank you for contacting us! We have received your message and will respond within 24 hours.",
-                    "email_sent": email_sent
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to store contact message'),
-                    "code": "DATABASE_ERROR"
-                } ;
-            }
-        } except error {
-            print("Contact form error:", error);
+                "status": "received",
+                "message": "Thank you for contacting us! We have received your message and will respond within 24 hours.",
+                "email_sent": email_sent
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "An internal error occurred. Please try again later.",
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Failed to store contact message'),
+                "code": "DATABASE_ERROR"
             } ;
         }
     }
@@ -2069,32 +2030,23 @@ walker contact_messages {
             return;
         }
 
-        try {
-            # Retrieve contact messages from database
-            result = db_module.get_contact_messages(
-                {"limit": self.limit, "status": self.status}
-            );
+        # Retrieve contact messages from database
+        result = db_module.get_contact_messages(
+            {"limit": self.limit, "status": self.status}
+        );
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "messages": result['messages'],
-                    "total": result['total'],
-                    "unread_count": result['unread_count']
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to retrieve messages'),
-                    "code": "DATABASE_ERROR"
-                } ;
-            }
-        } except error {
-            std.out("Contact messages error:", error);
+        if result['success'] {
+            report {
+                "success": True,
+                "messages": result['messages'],
+                "total": result['total'],
+                "unread_count": result['unread_count']
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to retrieve contact messages",
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Failed to retrieve messages'),
+                "code": "DATABASE_ERROR"
             } ;
         }
     }
@@ -2115,29 +2067,20 @@ walker contact_mark_read {
             return;
         }
 
-        try {
-            result = db_module.mark_contact_as_read(self.message_id);
+        result = db_module.mark_contact_as_read(self.message_id);
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "message_id": self.message_id,
-                    "status": "read",
-                    "message": "Message marked as read"
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to update message'),
-                    "code": "DATABASE_ERROR"
-                } ;
-            }
-        } except error {
-            std.out("Mark read error:", error);
+        if result['success'] {
+            report {
+                "success": True,
+                "message_id": self.message_id,
+                "status": "read",
+                "message": "Message marked as read"
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to update message status",
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Failed to update message'),
+                "code": "DATABASE_ERROR"
             } ;
         }
     }
@@ -2256,38 +2199,29 @@ walker get_notifications {
             return;
         }
 
-        try {
-            result = notification_module.get_notifications(
-                {
-                    "user_id": self.user_id,
-                    "limit": self.limit,
-                    "offset": self.offset,
-                    "filter_type": self.filter_type if self.filter_type else None,
-                    "unread_only": self.unread_only
-                }
-            );
-
-            if result['success'] {
-                report {
-                    "success": True,
-                    "notifications": result['notifications'],
-                    "total_count": result['total_count'],
-                    "unread_count": result['unread_count'],
-                    "has_more": result['has_more']
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to retrieve notifications'),
-                    "code": "DATABASE_ERROR"
-                } ;
+        result = notification_module.get_notifications(
+            {
+                "user_id": self.user_id,
+                "limit": self.limit,
+                "offset": self.offset,
+                "filter_type": self.filter_type if self.filter_type else None,
+                "unread_only": self.unread_only
             }
-        } except error {
-            std.out("Get notifications error:", error);
+        );
+
+        if result['success'] {
+            report {
+                "success": True,
+                "notifications": result['notifications'],
+                "total_count": result['total_count'],
+                "unread_count": result['unread_count'],
+                "has_more": result['has_more']
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to retrieve notifications",
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Failed to retrieve notifications'),
+                "code": "DATABASE_ERROR"
             } ;
         }
     }
@@ -2306,18 +2240,8 @@ walker get_unread_count {
             return;
         }
 
-        try {
-            result = notification_module.get_unread_count(self.user_id);
-            report {"success": True, "unread_count": result['unread_count']} ;
-        } except error {
-            std.out("Get unread count error:", error);
-            report {
-                "success": False,
-                "error": "Failed to get unread count",
-                "code": "INTERNAL_ERROR",
-                "unread_count": 0
-            } ;
-        }
+        result = notification_module.get_unread_count(self.user_id);
+        report {"success": True, "unread_count": result['unread_count']} ;
     }
 }
 
@@ -2344,32 +2268,23 @@ walker mark_notification_read {
             return;
         }
 
-        try {
-            result = notification_module.mark_as_read(
-                self.user_id, self.notification_ids
-            );
+        result = notification_module.mark_as_read(
+            self.user_id, self.notification_ids
+        );
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "updated_count": result['updated_count'],
-                    "message": "Notifications marked as read"
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get(
-                        'error', 'Failed to mark notifications as read'
-                    ),
-                    "code": "DATABASE_ERROR"
-                } ;
-            }
-        } except error {
-            std.out("Mark notification read error:", error);
+        if result['success'] {
+            report {
+                "success": True,
+                "updated_count": result['updated_count'],
+                "message": "Notifications marked as read"
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to mark notifications as read",
-                "code": "INTERNAL_ERROR"
+                "error": result.get(
+                    'error', 'Failed to mark notifications as read'
+                ),
+                "code": "DATABASE_ERROR"
             } ;
         }
     }
@@ -2388,30 +2303,21 @@ walker mark_all_notifications_read {
             return;
         }
 
-        try {
-            result = notification_module.mark_all_as_read(self.user_id);
+        result = notification_module.mark_all_as_read(self.user_id);
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "updated_count": result['updated_count'],
-                    "message": "All notifications marked as read"
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get(
-                        'error', 'Failed to mark all notifications as read'
-                    ),
-                    "code": "DATABASE_ERROR"
-                } ;
-            }
-        } except error {
-            std.out("Mark all notifications read error:", error);
+        if result['success'] {
+            report {
+                "success": True,
+                "updated_count": result['updated_count'],
+                "message": "All notifications marked as read"
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to mark all notifications as read",
-                "code": "INTERNAL_ERROR"
+                "error": result.get(
+                    'error', 'Failed to mark all notifications as read'
+                ),
+                "code": "DATABASE_ERROR"
             } ;
         }
     }
@@ -2440,22 +2346,13 @@ walker delete_notification {
             return;
         }
 
-        try {
-            result = notification_module.delete_notification(
-                self.user_id, self.notification_id
-            );
-            report {
-                "success": result['success'],
-                "message": result.get('message', 'Notification deleted')
-            } ;
-        } except error {
-            std.out("Delete notification error:", error);
-            report {
-                "success": False,
-                "error": "Failed to delete notification",
-                "code": "INTERNAL_ERROR"
-            } ;
-        }
+        result = notification_module.delete_notification(
+            self.user_id, self.notification_id
+        );
+        report {
+            "success": result['success'],
+            "message": result.get('message', 'Notification deleted')
+        } ;
     }
 }
 
@@ -2472,17 +2369,8 @@ walker get_notification_preferences {
             return;
         }
 
-        try {
-            result = notification_module.get_notification_preferences(self.user_id);
-            report {"success": True, "preferences": result['preferences']} ;
-        } except error {
-            std.out("Get notification preferences error:", error);
-            report {
-                "success": False,
-                "error": "Failed to get notification preferences",
-                "code": "INTERNAL_ERROR"
-            } ;
-        }
+        result = notification_module.get_notification_preferences(self.user_id);
+        report {"success": True, "preferences": result['preferences']} ;
     }
 }
 
@@ -2502,30 +2390,21 @@ walker update_notification_preferences {
             return;
         }
 
-        try {
-            result = notification_module.update_notification_preferences(
-                self.user_id, self.email_enabled, self.push_enabled, self.types_config
-            );
+        result = notification_module.update_notification_preferences(
+            self.user_id, self.email_enabled, self.push_enabled, self.types_config
+        );
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "message": result.get('message', 'Preferences updated'),
-                    "preferences": result.get('preferences', {})
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to update preferences'),
-                    "code": "DATABASE_ERROR"
-                } ;
-            }
-        } except error {
-            std.out("Update notification preferences error:", error);
+        if result['success'] {
+            report {
+                "success": True,
+                "message": result.get('message', 'Preferences updated'),
+                "preferences": result.get('preferences', {})
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to update notification preferences",
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Failed to update preferences'),
+                "code": "DATABASE_ERROR"
             } ;
         }
     }
@@ -2615,7 +2494,6 @@ walker log_activity {
             return;
         }
 
-        try {
             result = activity_module.log_activity(
                 self.user_id,
                 self.activity_type,
@@ -2638,13 +2516,6 @@ walker log_activity {
                     "code": "DATABASE_ERROR"
                 } ;
             }
-        } except error {
-            std.out("Log activity error:", error);
-            report {
-                "success": False,
-                "error": "Failed to log activity",
-                "code": "INTERNAL_ERROR"
-            } ;
         }
     }
 }
@@ -2667,36 +2538,27 @@ walker get_user_activities {
             return;
         }
 
-        try {
-            result = activity_module.get_user_activities(
-                self.user_id,
-                self.limit,
-                self.offset,
-                self.activity_type if self.activity_type else None,
-                self.start_date if self.start_date else None,
-                self.end_date if self.end_date else None
-            );
+        result = activity_module.get_user_activities(
+            self.user_id,
+            self.limit,
+            self.offset,
+            self.activity_type if self.activity_type else None,
+            self.start_date if self.start_date else None,
+            self.end_date if self.end_date else None
+        );
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "activities": result['activities'],
-                    "total_count": result['total_count'],
-                    "has_more": result['has_more']
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to fetch activities'),
-                    "code": "DATABASE_ERROR"
-                } ;
-            }
-        } except error {
-            std.out("Get user activities error:", error);
+        if result['success'] {
+            report {
+                "success": True,
+                "activities": result['activities'],
+                "total_count": result['total_count'],
+                "has_more": result['has_more']
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to fetch activities",
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Failed to fetch activities'),
+                "code": "DATABASE_ERROR"
             } ;
         }
     }
@@ -2725,24 +2587,15 @@ walker get_activity_summary {
             return;
         }
 
-        try {
-            result = activity_module.get_activity_summary(self.user_id, self.timeframe);
+        result = activity_module.get_activity_summary(self.user_id, self.timeframe);
 
-            if result['success'] {
-                report {"success": True, "summary": result['summary']} ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to fetch activity summary'),
-                    "code": "DATABASE_ERROR"
-                } ;
-            }
-        } except error {
-            std.out("Get activity summary error:", error);
+        if result['success'] {
+            report {"success": True, "summary": result['summary']} ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to fetch activity summary",
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Failed to fetch activity summary'),
+                "code": "DATABASE_ERROR"
             } ;
         }
     }
@@ -2761,24 +2614,15 @@ walker get_activity_streak {
             return;
         }
 
-        try {
-            result = activity_module.get_activity_streak(self.user_id);
+        result = activity_module.get_activity_streak(self.user_id);
 
-            if result['success'] {
-                report {"success": True, "streak": result['streak']} ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to fetch activity streak'),
-                    "code": "DATABASE_ERROR"
-                } ;
-            }
-        } except error {
-            std.out("Get activity streak error:", error);
+        if result['success'] {
+            report {"success": True, "streak": result['streak']} ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to fetch activity streak",
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Failed to fetch activity streak'),
+                "code": "DATABASE_ERROR"
             } ;
         }
     }
@@ -2798,23 +2642,14 @@ walker delete_user_activities {
             return;
         }
 
-        try {
-            result = activity_module.delete_user_activities(
-                self.user_id, self.older_than_days
-            );
-            report {
-                "success": result['success'],
-                "deleted_count": result.get('deleted_count', 0),
-                "message": result.get('message', 'Activities deleted')
-            } ;
-        } except error {
-            std.out("Delete user activities error:", error);
-            report {
-                "success": False,
-                "error": "Failed to delete activities",
-                "code": "INTERNAL_ERROR"
-            } ;
-        }
+        result = activity_module.delete_user_activities(
+            self.user_id, self.older_than_days
+        );
+        report {
+            "success": result['success'],
+            "deleted_count": result.get('deleted_count', 0),
+            "message": result.get('message', 'Activities deleted')
+        } ;
     }
 }
 
@@ -2968,14 +2803,6 @@ walker verify_email {
                     "code": result.get('code', 'INVALID_TOKEN')
                 } ;
             }
-        } except error {
-            std.out("Verification error:", error);
-            report {
-                "success": False,
-                "error": "Verification failed: " + str(error),
-                "code": "INTERNAL_ERROR"
-            } ;
-        }
     }
 }
 
@@ -2992,30 +2819,21 @@ walker resend_verification {
             return;
         }
 
-        try {
-            result = auth_module.resend_verification_email(self.email);
+        result = auth_module.resend_verification_email(self.email);
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "message": result.get(
-                        'message', 'Verification email sent successfully'
-                    ),
-                    "method": result.get('method', 'unknown')
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to send verification email'),
-                    "code": result.get('code', 'ERROR')
-                } ;
-            }
-        } except error {
-            std.out("Resend verification error:", error);
+        if result['success'] {
+            report {
+                "success": True,
+                "message": result.get(
+                    'message', 'Verification email sent successfully'
+                ),
+                "method": result.get('method', 'unknown')
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to resend verification email: " + str(error),
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Failed to send verification email'),
+                "code": result.get('code', 'ERROR')
             } ;
         }
     }
@@ -3025,24 +2843,15 @@ walker verification_status {
     has user_id: str;
 
     can verification_status with entry {
-        try {
-            result = auth_module.get_user_verification_status(self.user_id);
+        result = auth_module.get_user_verification_status(self.user_id);
 
-            report {
-                "success": True,
-                "user_id": self.user_id,
-                "is_verified": result.get('is_verified', False),
-                "has_pending_token": result.get('has_pending_token', False),
-                "token_expires_at": result.get('token_expires_at')
-            } ;
-        } except error {
-            std.out("Verification status error:", error);
-            report {
-                "success": False,
-                "error": "Failed to get verification status: " + str(error),
-                "code": "INTERNAL_ERROR"
-            } ;
-        }
+        report {
+            "success": True,
+            "user_id": self.user_id,
+            "is_verified": result.get('is_verified', False),
+            "has_pending_token": result.get('has_pending_token', False),
+            "token_expires_at": result.get('token_expires_at')
+        } ;
     }
 }
 
@@ -3053,30 +2862,21 @@ walker forgot_password {
     has email: str;
 
     can forgot_password with entry {
-        try {
-            result = reset_module.create_password_reset_request(self.email);
+        result = reset_module.create_password_reset_request(self.email);
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "message": result.get(
-                        'message',
-                        'If an account with that email exists, a password reset link has been sent'
-                    )
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to process request'),
-                    "code": "REQUEST_FAILED"
-                } ;
-            }
-        } except error {
-            std.out("Forgot password error:", error);
+        if result['success'] {
+            report {
+                "success": True,
+                "message": result.get(
+                    'message',
+                    'If an account with that email exists, a password reset link has been sent'
+                )
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to process request: " + str(error),
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Failed to process request'),
+                "code": "REQUEST_FAILED"
             } ;
         }
     }
@@ -3086,31 +2886,21 @@ walker reset_password_validate {
     has token: str;
 
     can reset_password_validate with entry {
-        try {
-            result = reset_module.validate_password_reset_token(self.token);
+        result = reset_module.validate_password_reset_token(self.token);
 
-            if result.get('valid') {
-                report {
-                    "success": True,
-                    "valid": True,
-                    "username": result.get('username'),
-                    "email": result.get('email'),
-                    "expires_at": result.get('expires_at')
-                } ;
-            } else {
-                report {
-                    "success": True,
-                    "valid": False,
-                    "error": result.get('error', 'Invalid or expired token')
-                } ;
-            }
-        } except error {
-            std.out("Reset password validation error:", error);
+        if result.get('valid') {
             report {
-                "success": False,
+                "success": True,
+                "valid": True,
+                "username": result.get('username'),
+                "email": result.get('email'),
+                "expires_at": result.get('expires_at')
+            } ;
+        } else {
+            report {
+                "success": True,
                 "valid": False,
-                "error": "Token validation failed: " + str(error),
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Invalid or expired token')
             } ;
         }
     }
@@ -3122,49 +2912,40 @@ walker reset_password {
     has confirm_password: str;
 
     can reset_password with entry {
-        try {
-            # Validate passwords match
-            if self.new_password != self.confirm_password {
-                report {
-                    "success": False,
-                    "error": "Passwords do not match",
-                    "code": "PASSWORD_MISMATCH"
-                } ;
-                return;
-            }
-
-            # Validate password strength
-            if len(self.new_password) < 8 {
-                report {
-                    "success": False,
-                    "error": "Password must be at least 8 characters long",
-                    "code": "PASSWORD_TOO_SHORT"
-                } ;
-                return;
-            }
-
-            result = reset_module.reset_user_password(self.token, self.new_password);
-
-            if result['success'] {
-                report {
-                    "success": True,
-                    "message": result.get(
-                        'message', 'Password has been reset successfully'
-                    )
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Failed to reset password'),
-                    "code": "RESET_FAILED"
-                } ;
-            }
-        } except error {
-            std.out("Reset password error:", error);
+        # Validate passwords match
+        if self.new_password != self.confirm_password {
             report {
                 "success": False,
-                "error": "Failed to reset password: " + str(error),
-                "code": "INTERNAL_ERROR"
+                "error": "Passwords do not match",
+                "code": "PASSWORD_MISMATCH"
+            } ;
+            return;
+        }
+
+        # Validate password strength
+        if len(self.new_password) < 8 {
+            report {
+                "success": False,
+                "error": "Password must be at least 8 characters long",
+                "code": "PASSWORD_TOO_SHORT"
+            } ;
+            return;
+        }
+
+        result = reset_module.reset_user_password(self.token, self.new_password);
+
+        if result['success'] {
+            report {
+                "success": True,
+                "message": result.get(
+                    'message', 'Password has been reset successfully'
+                )
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to reset password'),
+                "code": "RESET_FAILED"
             } ;
         }
     }
@@ -6699,29 +6480,20 @@ walker verify_email {
         # Use the proper auth module for email verification
         import user_auth as auth_module;
 
-        try {
-            result = auth_module.verify_email(self.token);
+        result = auth_module.verify_email(self.token);
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "message": result.get('message', 'Email verified successfully!'),
-                    "user_id": result.get('user_id'),
-                    "username": result.get('username')
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Invalid or expired token'),
-                    "code": result.get('code', 'INVALID_TOKEN')
-                } ;
-            }
-        } except error {
-            std.out("Email verification error:", error);
+        if result['success'] {
+            report {
+                "success": True,
+                "message": result.get('message', 'Email verified successfully!'),
+                "user_id": result.get('user_id'),
+                "username": result.get('username')
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "An error occurred during email verification",
-                "code": "VERIFICATION_ERROR"
+                "error": result.get('error', 'Invalid or expired token'),
+                "code": result.get('code', 'INVALID_TOKEN')
             } ;
         }
     }
@@ -8236,75 +8008,65 @@ walker admin_clear_content_cache {
 # ==============================================================================
 walker forums_list {
     can forums_list with entry {
-        try {
-            # Mock forums data for the learning platform
-            forums = [
-                {
-                    "forum_id": "forum_general",
-                    "name": "General Discussion",
-                    "description": "Discuss anything related to learning and programming",
-                    "category": "general",
-                    "icon": "chat-bubble",
-                    "thread_count": 156,
-                    "post_count": 1234,
-                    "last_activity": "2025-01-05T10:30:00Z"
-                },
-                {
-                    "forum_id": "forum_jaclang",
-                    "name": "Jaclang Programming",
-                    "description": "Discuss Jaclang syntax, nodes, walkers, and graph programming",
-                    "category": "programming",
-                    "icon": "code-slash",
-                    "thread_count": 89,
-                    "post_count": 567,
-                    "last_activity": "2025-01-05T09:45:00Z"
-                },
-                {
-                    "forum_id": "forum_python",
-                    "name": "Python Development",
-                    "description": "Python programming questions, tips, and best practices",
-                    "category": "programming",
-                    "icon": "logo-python",
-                    "thread_count": 234,
-                    "post_count": 1890,
-                    "last_activity": "2025-01-05T10:15:00Z"
-                },
-                {
-                    "forum_id": "forum_help",
-                    "name": "Help & Support",
-                    "description": "Get help with courses, assignments, and technical issues",
-                    "category": "support",
-                    "icon": "help-circle",
-                    "thread_count": 67,
-                    "post_count": 445,
-                    "last_activity": "2025-01-05T08:30:00Z"
-                },
-                {
-                    "forum_id": "forum_showcase",
-                    "name": "Project Showcase",
-                    "description": "Share your projects and get feedback from the community",
-                    "category": "community",
-                    "icon": "sparkles",
-                    "thread_count": 45,
-                    "post_count": 312,
-                    "last_activity": "2025-01-04T22:00:00Z"
-                }
-            ];
+        # Mock forums data for the learning platform
+        forums = [
+            {
+                "forum_id": "forum_general",
+                "name": "General Discussion",
+                "description": "Discuss anything related to learning and programming",
+                "category": "general",
+                "icon": "chat-bubble",
+                "thread_count": 156,
+                "post_count": 1234,
+                "last_activity": "2025-01-05T10:30:00Z"
+            },
+            {
+                "forum_id": "forum_jaclang",
+                "name": "Jaclang Programming",
+                "description": "Discuss Jaclang syntax, nodes, walkers, and graph programming",
+                "category": "programming",
+                "icon": "code-slash",
+                "thread_count": 89,
+                "post_count": 567,
+                "last_activity": "2025-01-05T09:45:00Z"
+            },
+            {
+                "forum_id": "forum_python",
+                "name": "Python Development",
+                "description": "Python programming questions, tips, and best practices",
+                "category": "programming",
+                "icon": "logo-python",
+                "thread_count": 234,
+                "post_count": 1890,
+                "last_activity": "2025-01-05T10:15:00Z"
+            },
+            {
+                "forum_id": "forum_help",
+                "name": "Help & Support",
+                "description": "Get help with courses, assignments, and technical issues",
+                "category": "support",
+                "icon": "help-circle",
+                "thread_count": 67,
+                "post_count": 445,
+                "last_activity": "2025-01-05T08:30:00Z"
+            },
+            {
+                "forum_id": "forum_showcase",
+                "name": "Project Showcase",
+                "description": "Share your projects and get feedback from the community",
+                "category": "community",
+                "icon": "sparkles",
+                "thread_count": 45,
+                "post_count": 312,
+                "last_activity": "2024-01-04T22:00:00Z"
+            }
+        ];
 
-            report {
-                "success": True,
-                "forums": forums,
-                "total": len(forums)
-            } ;
-        } except error {
-            std.out("Error in forums_list walker:", error);
-            report {
-                "success": False,
-                "error": "Failed to retrieve forums",
-                "forums": [],
-                "total": 0
-            } ;
-        }
+        report {
+            "success": True,
+            "forums": forums,
+            "total": len(forums)
+        } ;
     }
 }
 
@@ -8405,13 +8167,6 @@ walker connection_requests {
                 }
             ];
 
-            report {
-                "success": True,
-                "requests": requests,
-                "total": len(requests)
-            } ;
-        } except error {
-            std.out("Error in connection_requests walker:", error);
             report {
                 "success": True,
                 "requests": requests,
