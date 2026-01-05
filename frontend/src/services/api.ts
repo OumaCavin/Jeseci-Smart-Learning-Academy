@@ -206,6 +206,34 @@ export interface AIGeneratedContent {
   source?: string;
 }
 
+// Jaclang Editor Intelligence Interfaces
+export interface JaclangValidationError {
+  line: number;
+  column: number;
+  message: string;
+  severity: 'Error' | 'Warning' | 'Info';
+  raw?: string;
+}
+
+export interface JaclangValidationResponse {
+  valid: boolean;
+  errors: JaclangValidationError[];
+  message: string;
+}
+
+export interface JaclangFormatResponse {
+  formatted_code: string;
+  changed: boolean;
+  error?: string;
+}
+
+export interface JaclangHealthResponse {
+  service: string;
+  status: string;
+  jac_available: boolean;
+  version: string;
+}
+
 class ApiService {
   private baseUrl: string;
   private authToken: string | null = null;
@@ -403,6 +431,77 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify({}),
     });
+  }
+
+  // Jaclang Editor Intelligence Methods
+  async validateJacCode(sourceCode: string): Promise<JaclangValidationResponse> {
+    try {
+      const response = await this.makeRequest<JaclangValidationResponse>('/api/jaclang/validate', {
+        method: 'POST',
+        body: JSON.stringify({ source_code: sourceCode }),
+      });
+      return response;
+    } catch (error) {
+      console.error('Jaclang validation failed:', error);
+      return {
+        valid: true,
+        errors: [],
+        message: 'Validation service unavailable'
+      };
+    }
+  }
+
+  async formatJacCode(sourceCode: string): Promise<JaclangFormatResponse> {
+    try {
+      const response = await this.makeRequest<JaclangFormatResponse>('/api/jaclang/format', {
+        method: 'POST',
+        body: JSON.stringify({ source_code: sourceCode }),
+      });
+      return response;
+    } catch (error) {
+      console.error('Jaclang formatting failed:', error);
+      return {
+        formatted_code: sourceCode,
+        changed: false,
+        error: 'Formatting service unavailable'
+      };
+    }
+  }
+
+  async validateAndFormatJacCode(sourceCode: string): Promise<any> {
+    try {
+      const response = await this.makeRequest('/api/jaclang/validate-and-format', {
+        method: 'POST',
+        body: JSON.stringify({ source_code: sourceCode }),
+      });
+      return response;
+    } catch (error) {
+      console.error('Jaclang validate-and-format failed:', error);
+      return {
+        valid: true,
+        errors: [],
+        formatted_code: sourceCode,
+        changed: false,
+        message: 'Service unavailable'
+      };
+    }
+  }
+
+  async jaclangHealthCheck(): Promise<JaclangHealthResponse> {
+    try {
+      const response = await this.makeRequest<JaclangHealthResponse>('/api/jaclang/health', {
+        method: 'GET',
+      });
+      return response;
+    } catch (error) {
+      console.error('Jaclang health check failed:', error);
+      return {
+        service: 'Jaclang Editor Intelligence',
+        status: 'unavailable',
+        jac_available: false,
+        version: 'not available'
+      };
+    }
   }
 
   async getWelcome(): Promise<any> {
