@@ -6012,6 +6012,54 @@ walker jaclang_validate_and_format {
 }
 
 # ==============================================================================
+# Jaclang Code Formatting
+# ==============================================================================
+walker jaclang_format {
+    has code: str = "";
+    has source_code: str = "";
+
+    can jaclang_format with entry {
+        # Import FastAPI module for code formatting
+        import jaclang_service as jaclang_module;
+
+        # Support both 'code' and 'source_code' parameters
+        format_code = self.code if self.code else self.source_code;
+
+        if not format_code or not format_code.strip() {
+            report {
+                "success": True,
+                "formatted_code": "",
+                "changed": False,
+                "error": None,
+                "message": "Empty code cannot be formatted"
+            } ;
+            return;
+        }
+
+        # Call FastAPI format function
+        result = jaclang_module.format_jac_code_sync(format_code);
+
+        if result['success'] {
+            report {
+                "success": True,
+                "formatted_code": result.get('formatted_code', format_code),
+                "changed": result.get('changed', False),
+                "error": result.get('error'),
+                "message": "Code formatted successfully" if result.get('changed') else "Code is already properly formatted"
+            } ;
+        } else {
+            report {
+                "success": False,
+                "formatted_code": format_code,
+                "changed": False,
+                "error": result.get('error', 'Formatting failed'),
+                "message": result.get('message', 'Formatting encountered an error')
+            } ;
+        }
+    }
+}
+
+# ==============================================================================
 # Code Snippet Management
 # ==============================================================================
 walker code_snippet {
