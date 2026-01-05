@@ -52,7 +52,7 @@ class TestimonialsStore:
             # Build query based on parameters
             if featured_only:
                 query = f"""
-                    SELECT id, student_name, student_role, avatar_url, content, rating, created_at
+                    SELECT id, author_name, author_role, author_avatar, content, rating, created_at
                     FROM {DB_SCHEMA}.testimonials
                     WHERE is_approved = true AND is_featured = true
                     ORDER BY created_at DESC
@@ -60,7 +60,7 @@ class TestimonialsStore:
                 """
             else:
                 query = f"""
-                    SELECT id, student_name, student_role, avatar_url, content, rating, created_at
+                    SELECT id, author_name, author_role, author_avatar, content, rating, created_at
                     FROM {DB_SCHEMA}.testimonials
                     WHERE is_approved = true
                     ORDER BY is_featured DESC, created_at DESC
@@ -74,9 +74,9 @@ class TestimonialsStore:
             for row in rows:
                 testimonials.append({
                     "id": row[0],
-                    "student_name": row[1],
-                    "student_role": row[2],
-                    "avatar_url": row[3] or "",
+                    "author_name": row[1],
+                    "author_role": row[2],
+                    "author_avatar": row[3] or "",
                     "content": row[4],
                     "rating": row[5],
                     "created_at": row[6].isoformat() if row[6] else ""
