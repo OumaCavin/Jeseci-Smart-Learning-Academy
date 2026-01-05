@@ -500,7 +500,7 @@ class ApiService {
 
   async formatJacCode(sourceCode: string): Promise<JaclangFormatResponse> {
     try {
-      const response = await this.makeRequest<JaclangFormatResponse>('/api/jaclang/format', {
+      const response = await this.makeRequest<JaclangFormatResponse>('/walker/jaclang_format', {
         method: 'POST',
         body: JSON.stringify({ source_code: sourceCode }),
       });
