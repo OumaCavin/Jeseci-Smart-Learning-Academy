@@ -8,6 +8,10 @@
 ##   import from database.database { DatabaseManager, test_db_connections }
 ##
 import backend.database as py_db;
+import os;
+
+## Database schema configuration
+DB_SCHEMA = os.getenv("DB_SCHEMA", "jeseci_academy");
 
 ## Database Connection Status
 node DatabaseStatus {
@@ -229,7 +233,7 @@ walker DatabaseManager {
 
             # Insert contact message into database
             query = """
-            INSERT INTO contact_messages (
+            INSERT INTO DB_SCHEMA + ".contact_messages" (
                 message_id, name, email, subject, message, phone,
                 contact_reason, timestamp, status, ip_address, user_agent
             ) VALUES (
@@ -269,7 +273,7 @@ walker DatabaseManager {
     }
 
     ## Get contact messages from database
-    def get_contact_messages(params: dict) {
+    def get_DB_SCHEMA + ".contact_messages"(params: dict) {
         """Retrieve contact messages from database with filtering""";
 
         try {
@@ -291,7 +295,7 @@ walker DatabaseManager {
             SELECT
                 message_id, name, email, subject, message, phone,
                 contact_reason, timestamp, status, ip_address, user_agent
-            FROM contact_messages
+            FROM DB_SCHEMA + ".contact_messages"
             """ + where_clause + """
             ORDER BY timestamp DESC
             LIMIT """ + str(len(query_params) + 1);
@@ -301,8 +305,8 @@ walker DatabaseManager {
             result = manager.execute_query(query, tuple(query_params));
 
             # Get total count and unread count
-            count_query = "SELECT COUNT(*) as total FROM contact_messages";
-            unread_query = "SELECT COUNT(*) as unread FROM contact_messages WHERE status = 'pending'";
+            count_query = "SELECT COUNT(*) as total FROM DB_SCHEMA + ".contact_messages"";
+            unread_query = "SELECT COUNT(*) as unread FROM DB_SCHEMA + ".contact_messages" WHERE status = 'pending'";
 
             total_result = manager.execute_query(count_query, None);
             unread_result = manager.execute_query(unread_query, None);
@@ -326,7 +330,7 @@ walker DatabaseManager {
         try {
             manager = py_db.get_postgres_manager();
 
-            query = "UPDATE contact_messages SET status = 'read' WHERE message_id = $1 RETURNING message_id";
+            query = "UPDATE DB_SCHEMA + ".contact_messages" SET status = 'read' WHERE message_id = $1 RETURNING message_id";
             result = manager.execute_query(query, (message_id, ));
 
             if result and len(result) > 0 {
@@ -349,7 +353,7 @@ walker DatabaseManager {
 
             # Insert testimonial into database
             query = """
-            INSERT INTO testimonials (
+            INSERT INTO DB_SCHEMA + ".testimonials" (
                 name, role, company, content, rating, avatar_url,
                 is_approved, is_active
             ) VALUES (
@@ -385,16 +389,16 @@ walker DatabaseManager {
         }
     }
 
-    ## Get testimonials from database
-    def get_testimonials(params: dict) {
-        """Retrieve approved testimonials from database""";
+    ## Get DB_SCHEMA + ".testimonials" from database
+    def get_DB_SCHEMA + ".testimonials"(params: dict) {
+        """Retrieve approved DB_SCHEMA + ".testimonials" from database""";
 
         try {
             manager = py_db.get_postgres_manager();
 
             query = """
             SELECT id, name, role, company, content, rating, avatar_url, created_at
-            FROM testimonials
+            FROM DB_SCHEMA + ".testimonials"
             WHERE is_approved = true AND is_active = true
             ORDER BY created_at DESC
             """;
@@ -403,7 +407,7 @@ walker DatabaseManager {
 
             return {
                 "success": True,
-                "testimonials": result or [],
+                "DB_SCHEMA + ".testimonials"": result or [],
                 "total": len(result) if result else 0
             };
         } except exception {
@@ -411,7 +415,7 @@ walker DatabaseManager {
             return {
                 "success": False,
                 "error": "Database error: " + str(error),
-                "testimonials": []
+                "DB_SCHEMA + ".testimonials"": []
             };
         }
     }

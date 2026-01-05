@@ -456,3 +456,94 @@ async def validate_and_format_jac_code(request: ValidateRequest):
             "changed": False,
             "message": f"Operation encountered an error: {str(e)}"
         }
+
+
+# =============================================================================
+# Sync Wrapper Functions for Jaclang Walker Integration
+# =============================================================================
+
+def validate_jac_code_sync(source_code: str) -> Dict[str, Any]:
+    """
+    Synchronous wrapper for validate_jac_code endpoint.
+    Used by Jaclang walkers for better error handling.
+    """
+    import asyncio
+    
+    try:
+        # Run the async function
+        result = asyncio.run(validate_jac_code(ValidateRequest(source_code=source_code)))
+        
+        # Convert to dict format
+        return {
+            "success": True,
+            "valid": result.valid,
+            "errors": [{"line": e["line"], "column": e["column"], "message": e["message"], "severity": e["severity"]} for e in result.errors],
+            "message": result.message
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "valid": True,
+            "errors": [],
+            "message": f"Validation service error: {str(e)}"
+        }
+
+
+def format_jac_code_sync(source_code: str) -> Dict[str, Any]:
+    """
+    Synchronous wrapper for format_jac_code endpoint.
+    Used by Jaclang walkers for better code formatting.
+    """
+    import asyncio
+    
+    try:
+        # Run the async function
+        result = asyncio.run(format_jac_code(FormatRequest(source_code=source_code)))
+        
+        # Convert to dict format
+        return {
+            "success": True,
+            "formatted_code": result.formatted_code,
+            "changed": result.changed,
+            "error": result.error
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "formatted_code": source_code,
+            "changed": False
+        }
+
+
+def validate_and_format_jac_code_sync(source_code: str) -> Dict[str, Any]:
+    """
+    Synchronous wrapper for validate_and_format_jac_code endpoint.
+    Used by Jaclang walkers for combined validation and formatting.
+    """
+    import asyncio
+    
+    try:
+        # Run the async function
+        result = asyncio.run(validate_and_format_jac_code(ValidateRequest(source_code=source_code)))
+        
+        # Convert to dict format
+        return {
+            "success": True,
+            "valid": result.get("valid", True),
+            "errors": result.get("errors", []),
+            "formatted_code": result.get("formatted_code", source_code),
+            "changed": result.get("changed", False),
+            "message": result.get("message", "Operation complete")
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "valid": True,
+            "errors": [],
+            "formatted_code": source_code,
+            "changed": False,
+            "message": f"Operation encountered an error: {str(e)}"
+        }

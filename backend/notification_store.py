@@ -1,6 +1,7 @@
-# Notification store module for managing user notifications
-# This module handles all database operations for notifications
+# Notification store module for managing user {DB_SCHEMA}.notifications
+# This module handles all database operations for {DB_SCHEMA}.notifications
 
+import os
 import uuid
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
@@ -8,6 +9,9 @@ import json
 
 # Import database connection
 from database import get_db_connection
+
+# Database schema configuration
+DB_SCHEMA = os.getenv("DB_SCHEMA", "jeseci_academy")
 
 # Notification types enum
 NOTIFICATION_TYPES = [
@@ -68,7 +72,7 @@ def create_notification(
             # Check if user has preferences and if this type is enabled
             cur.execute(
                 """
-                SELECT types_config FROM notification_preferences 
+                SELECT types_config FROM {DB_SCHEMA}.notification_preferences 
                 WHERE user_id = %s
                 """,
                 (user_id,)
@@ -92,7 +96,7 @@ def create_notification(
             
             cur.execute(
                 """
-                INSERT INTO notifications (
+                INSERT INTO {DB_SCHEMA}.notifications (
                     id, user_id, type, title, message, link, metadata
                 ) VALUES (
                     %s, %s, %s, %s, %s, %s, %s
@@ -134,7 +138,7 @@ def create_notification(
         conn.close()
 
 
-def get_notifications(
+def get_{DB_SCHEMA}.notifications(
     user_id: str,
     limit: int = 20,
     offset: int = 0,
@@ -142,17 +146,17 @@ def get_notifications(
     unread_only: bool = False
 ) -> Dict[str, Any]:
     """
-    Get notifications for a user
+    Get {DB_SCHEMA}.notifications for a user
     
     Args:
         user_id: The user's UUID
-        limit: Maximum number of notifications to return
-        offset: Number of notifications to skip
+        limit: Maximum number of {DB_SCHEMA}.notifications to return
+        offset: Number of {DB_SCHEMA}.notifications to skip
         filter_type: Optional type to filter by
-        unread_only: If True, only return unread notifications
+        unread_only: If True, only return unread {DB_SCHEMA}.notifications
         
     Returns:
-        dict with notifications list and metadata
+        dict with {DB_SCHEMA}.notifications list and metadata
     """
     conn = get_db_connection()
     try:
@@ -161,7 +165,7 @@ def get_notifications(
             base_query = """
                 SELECT id, user_id, type, title, message, link, 
                        is_read, is_archived, metadata, created_at
-                FROM notifications
+                FROM {DB_SCHEMA}.notifications
                 WHERE user_id = %s AND is_archived = FALSE
             """
             params = [user_id]
@@ -179,7 +183,7 @@ def get_notifications(
             total_count = cur.fetchone()[0]
             
             # Get unread count
-            unread_query = "SELECT COUNT(*) FROM notifications WHERE user_id = %s AND is_archived = FALSE AND is_read = FALSE"
+            unread_query = "SELECT COUNT(*) FROM {DB_SCHEMA}.notifications WHERE user_id = %s AND is_archived = FALSE AND is_read = FALSE"
             cur.execute(unread_query, (user_id,))
             unread_count = cur.fetchone()[0]
             
@@ -190,13 +194,13 @@ def get_notifications(
             cur.execute(base_query, params)
             rows = cur.fetchall()
             
-            notifications = []
+            {DB_SCHEMA}.notifications = []
             for row in rows:
                 metadata = row[8]
                 if isinstance(metadata, str):
                     metadata = json.loads(metadata)
                 
-                notifications.append({
+                {DB_SCHEMA}.notifications.append({
                     'id': str(row[0]),
                     'user_id': str(row[1]),
                     'type': row[2],
@@ -211,18 +215,18 @@ def get_notifications(
             
             return {
                 'success': True,
-                'notifications': notifications,
+                '{DB_SCHEMA}.notifications': {DB_SCHEMA}.notifications,
                 'total_count': total_count,
                 'unread_count': unread_count,
-                'has_more': (offset + len(notifications)) < total_count
+                'has_more': (offset + len({DB_SCHEMA}.notifications)) < total_count
             }
             
     except Exception as e:
-        print(f"Error fetching notifications: {e}")
+        print(f"Error fetching {DB_SCHEMA}.notifications: {e}")
         return {
             'success': False,
             'error': str(e),
-            'notifications': [],
+            '{DB_SCHEMA}.notifications': [],
             'total_count': 0,
             'unread_count': 0,
             'has_more': False
@@ -233,7 +237,7 @@ def get_notifications(
 
 def get_unread_count(user_id: str) -> Dict[str, Any]:
     """
-    Get the count of unread notifications for a user
+    Get the count of unread {DB_SCHEMA}.notifications for a user
     
     Args:
         user_id: The user's UUID
@@ -246,7 +250,7 @@ def get_unread_count(user_id: str) -> Dict[str, Any]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT COUNT(*) FROM notifications
+                SELECT COUNT(*) FROM {DB_SCHEMA}.notifications
                 WHERE user_id = %s AND is_archived = FALSE AND is_read = FALSE
                 """,
                 (user_id,)
@@ -271,7 +275,7 @@ def get_unread_count(user_id: str) -> Dict[str, Any]:
 
 def mark_as_read(user_id: str, notification_ids: List[str]) -> Dict[str, Any]:
     """
-    Mark one or more notifications as read
+    Mark one or more {DB_SCHEMA}.notifications as read
     
     Args:
         user_id: The user's UUID
@@ -291,7 +295,7 @@ def mark_as_read(user_id: str, notification_ids: List[str]) -> Dict[str, Any]:
             
             cur.execute(
                 """
-                UPDATE notifications
+                UPDATE {DB_SCHEMA}.notifications
                 SET is_read = TRUE
                 WHERE user_id = %s AND id = ANY(%s) AND is_read = FALSE
                 """,
@@ -308,7 +312,7 @@ def mark_as_read(user_id: str, notification_ids: List[str]) -> Dict[str, Any]:
             
     except Exception as e:
         conn.rollback()
-        print(f"Error marking notifications as read: {e}")
+        print(f"Error marking {DB_SCHEMA}.notifications as read: {e}")
         return {
             'success': False,
             'error': str(e),
@@ -320,7 +324,7 @@ def mark_as_read(user_id: str, notification_ids: List[str]) -> Dict[str, Any]:
 
 def mark_all_as_read(user_id: str) -> Dict[str, Any]:
     """
-    Mark all notifications as read for a user
+    Mark all {DB_SCHEMA}.notifications as read for a user
     
     Args:
         user_id: The user's UUID
@@ -333,7 +337,7 @@ def mark_all_as_read(user_id: str) -> Dict[str, Any]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                UPDATE notifications
+                UPDATE {DB_SCHEMA}.notifications
                 SET is_read = TRUE
                 WHERE user_id = %s AND is_read = FALSE
                 """,
@@ -350,7 +354,7 @@ def mark_all_as_read(user_id: str) -> Dict[str, Any]:
             
     except Exception as e:
         conn.rollback()
-        print(f"Error marking all notifications as read: {e}")
+        print(f"Error marking all {DB_SCHEMA}.notifications as read: {e}")
         return {
             'success': False,
             'error': str(e),
@@ -376,7 +380,7 @@ def delete_notification(user_id: str, notification_id: str) -> Dict[str, Any]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                UPDATE notifications
+                UPDATE {DB_SCHEMA}.notifications
                 SET is_archived = TRUE
                 WHERE user_id = %s AND id = %s
                 """,
@@ -402,7 +406,7 @@ def delete_notification(user_id: str, notification_id: str) -> Dict[str, Any]:
         conn.close()
 
 
-def get_notification_preferences(user_id: str) -> Dict[str, Any]:
+def get_{DB_SCHEMA}.notification_preferences(user_id: str) -> Dict[str, Any]:
     """
     Get notification preferences for a user
     
@@ -418,7 +422,7 @@ def get_notification_preferences(user_id: str) -> Dict[str, Any]:
             cur.execute(
                 """
                 SELECT email_enabled, push_enabled, types_config, created_at, updated_at
-                FROM notification_preferences
+                FROM {DB_SCHEMA}.notification_preferences
                 WHERE user_id = %s
                 """,
                 (user_id,)
@@ -465,7 +469,7 @@ def get_notification_preferences(user_id: str) -> Dict[str, Any]:
         conn.close()
 
 
-def update_notification_preferences(
+def update_{DB_SCHEMA}.notification_preferences(
     user_id: str,
     email_enabled: Optional[bool] = None,
     push_enabled: Optional[bool] = None,
@@ -476,8 +480,8 @@ def update_notification_preferences(
     
     Args:
         user_id: The user's UUID
-        email_enabled: Whether to enable email notifications
-        push_enabled: Whether to enable push notifications
+        email_enabled: Whether to enable email {DB_SCHEMA}.notifications
+        push_enabled: Whether to enable push {DB_SCHEMA}.notifications
         types_config: Dict mapping notification types to enabled status
         
     Returns:
@@ -506,7 +510,7 @@ def update_notification_preferences(
                 return {
                     'success': True,
                     'message': 'No changes to update',
-                    'preferences': get_notification_preferences(user_id).get('preferences', {})
+                    'preferences': get_{DB_SCHEMA}.notification_preferences(user_id).get('preferences', {})
                 }
             
             params.append(user_id)
@@ -514,7 +518,7 @@ def update_notification_preferences(
             # Upsert (update if exists, insert if not)
             cur.execute(
                 f"""
-                INSERT INTO notification_preferences (
+                INSERT INTO {DB_SCHEMA}.notification_preferences (
                     user_id, email_enabled, push_enabled, types_config
                 ) VALUES (
                     %s, 
@@ -524,10 +528,10 @@ def update_notification_preferences(
                              '{{"ACHIEVEMENT": true, "COURSE_MILESTONE": true, "CONTENT_UPDATE": true, "COMMUNITY_REPLY": true, "STREAK_REMINDER": true, "AI_RESPONSE": true, "SYSTEM_ANNOUNCEMENT": true}}'::jsonb)
                 )
                 ON CONFLICT (user_id) DO UPDATE SET
-                    email_enabled = COALESCE({email_enabled}, notification_preferences.email_enabled),
-                    push_enabled = COALESCE({push_enabled}, notification_preferences.push_enabled),
-                    types_config = COALESCE({json.dumps(types_config) if types_config else "notification_preferences.types_config"}, 
-                                           notification_preferences.types_config)
+                    email_enabled = COALESCE({email_enabled}, {DB_SCHEMA}.notification_preferences.email_enabled),
+                    push_enabled = COALESCE({push_enabled}, {DB_SCHEMA}.notification_preferences.push_enabled),
+                    types_config = COALESCE({json.dumps(types_config) if types_config else "{DB_SCHEMA}.notification_preferences.types_config"}, 
+                                           {DB_SCHEMA}.notification_preferences.types_config)
                 RETURNING user_id, email_enabled, push_enabled, types_config, created_at, updated_at
                 """,
                 params

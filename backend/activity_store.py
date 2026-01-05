@@ -490,7 +490,7 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
             cur.execute(
                 """
                 SELECT current_streak, longest_streak, last_activity_date, streak_start_date
-                FROM user_activity_streaks
+                FROM {DB_SCHEMA}.user_activity_streaks
                 WHERE user_id = %s AND streak_type = 'LESSON_COMPLETED'
                 """,
                 (user_id,)
@@ -506,7 +506,7 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
                 # Update database
                 cur.execute(
                     """
-                    UPDATE user_activity_streaks
+                    UPDATE {DB_SCHEMA}.user_activity_streaks
                     SET current_streak = %s, longest_streak = %s, 
                         last_activity_date = %s, updated_at = NOW()
                     WHERE user_id = %s AND streak_type = 'LESSON_COMPLETED'
@@ -517,7 +517,7 @@ def get_activity_streak(user_id: str) -> Dict[str, Any]:
                 # Create new streak record
                 cur.execute(
                     """
-                    INSERT INTO user_activity_streaks (
+                    INSERT INTO {DB_SCHEMA}.user_activity_streaks (
                         user_id, streak_type, current_streak, longest_streak, 
                         last_activity_date, streak_start_date
                     ) VALUES (
