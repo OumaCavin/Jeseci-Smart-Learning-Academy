@@ -25,6 +25,7 @@ import notification_store as notification_module;
 import activity_store as activity_module;
 import collaboration_store as collaboration_module;
 import advanced_collaboration_store as advanced_collab_module;
+import request_context as request_context_module;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -4308,7 +4309,7 @@ walker connection_create {
         import collaboration_store as collab_module;
 
         # Get current user from context
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4334,7 +4335,7 @@ walker connection_respond {
     can connection_respond with entry {
         import collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4361,7 +4362,7 @@ walker connections_list {
     can connections_list with entry {
         import collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4379,7 +4380,7 @@ walker connection_requests {
     can connection_requests with entry {
         import collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4399,7 +4400,7 @@ walker connection_remove {
     can connection_remove with entry {
         import collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4420,7 +4421,7 @@ walker users_search {
     can users_search with entry {
         import collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4461,7 +4462,7 @@ walker forum_thread_create {
     can forum_thread_create with entry {
         import collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4541,7 +4542,7 @@ walker forum_post_create {
     can forum_post_create with entry {
         import collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4569,7 +4570,7 @@ walker forum_post_like {
     can forum_post_like with entry {
         import collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4593,7 +4594,7 @@ walker content_comment_add {
     can content_comment_add with entry {
         import collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4655,7 +4656,7 @@ walker content_comment_like {
     can content_comment_like with entry {
         import collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4676,7 +4677,7 @@ walker user_reputation {
     can user_reputation with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4721,7 +4722,7 @@ walker content_upvote {
     can content_upvote with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4759,7 +4760,7 @@ walker study_group_create {
     can study_group_create with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4812,7 +4813,7 @@ walker study_group_join {
     can study_group_join with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4834,7 +4835,7 @@ walker study_group_notes {
     can study_group_notes with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4858,7 +4859,7 @@ walker study_group_note_create {
     can study_group_note_create with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4897,7 +4898,7 @@ walker study_group_goal_create {
     can study_group_goal_create with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4930,7 +4931,7 @@ walker study_group_messages {
     can study_group_messages with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4956,7 +4957,7 @@ walker study_group_message_send {
     can study_group_message_send with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -4985,7 +4986,7 @@ walker study_group_leave {
     can study_group_leave with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5056,7 +5057,7 @@ walker study_group_event_create {
     can study_group_event_create with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5087,7 +5088,7 @@ walker study_group_invite {
     can study_group_invite with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5120,7 +5121,7 @@ walker mentor_profile_create {
     can mentor_profile_create with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5179,7 +5180,7 @@ walker mentorship_request {
     can mentorship_request with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5211,7 +5212,7 @@ walker mentorship_request_respond {
     can mentorship_request_respond with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5244,7 +5245,7 @@ walker mentorship_session_schedule {
     can mentorship_session_schedule with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5282,7 +5283,7 @@ walker mentorship_session_complete {
     can mentorship_session_complete with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5337,7 +5338,7 @@ walker my_mentor_requests {
     can my_mentor_requests with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5362,7 +5363,7 @@ walker mentor_requests_received {
     can mentor_requests_received with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5392,7 +5393,7 @@ walker content_report {
     can content_report with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5443,7 +5444,7 @@ walker moderation_queue {
         import advanced_collaboration_store as adv_collab_module;
 
         # Check if user is admin/moderator
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5470,7 +5471,7 @@ walker moderation_action {
     can moderation_action with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5512,7 +5513,7 @@ walker moderation_stats {
     can moderation_stats with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5531,7 +5532,7 @@ walker moderation_report_dismiss {
     can moderation_report_dismiss with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5564,7 +5565,7 @@ walker peer_review_submit {
     can peer_review_submit with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5601,7 +5602,7 @@ walker peer_review_assign {
     can peer_review_assign with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5633,7 +5634,7 @@ walker peer_review_feedback {
     can peer_review_feedback with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5676,7 +5677,7 @@ walker peer_review_submissions {
     can peer_review_submissions with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5698,7 +5699,7 @@ walker peer_review_my_assignments {
     can peer_review_my_assignments with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5718,7 +5719,7 @@ walker peer_review_get_feedback {
     can peer_review_get_feedback with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5738,7 +5739,7 @@ walker peer_review_assignment_accept {
     can peer_review_assignment_accept with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5766,7 +5767,7 @@ walker peer_review_assignment_complete {
     can peer_review_assignment_complete with entry {
         import advanced_collaboration_store as adv_collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -5804,7 +5805,7 @@ walker code_execute {
         import code_execution as code_exec_module;
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
 
         if not self.code or not self.code.strip() {
             report {
@@ -6027,7 +6028,7 @@ walker code_snippet {
     can code_snippet with entry {
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
 
         if self.action == "save" {
             # Save or update a code snippet
@@ -6084,7 +6085,7 @@ walker save_snippet {
     can save_snippet with entry {
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -6157,7 +6158,7 @@ walker get_snippets {
     can get_snippets with entry {
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -6180,7 +6181,7 @@ walker get_snippet {
     can get_snippet with entry {
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
 
         snippet = code_store_module.get_snippet(
             snippet_id=self.snippet_id, user_id=user_id
@@ -6200,7 +6201,7 @@ walker delete_snippet {
     can delete_snippet with entry {
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -6225,7 +6226,7 @@ walker get_execution_history {
     can get_execution_history with entry {
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -6248,7 +6249,7 @@ walker create_folder {
     can create_folder with entry {
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -6283,7 +6284,7 @@ walker get_folders {
     can get_folders with entry {
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -6508,7 +6509,7 @@ walker snippet_version {
     can snippet_version with entry {
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -6620,7 +6621,7 @@ walker test_case {
     can test_case with entry {
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -6803,7 +6804,7 @@ walker debug_session {
     can debug_session with entry {
         import code_execution_store as code_store_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -7079,7 +7080,7 @@ walker community_create_post {
     can community_create_post with entry {
         import advanced_collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7121,7 +7122,7 @@ walker community_add_comment {
     can community_add_comment with entry {
         import advanced_collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7147,7 +7148,7 @@ walker community_reactions {
     can community_reactions with entry {
         import advanced_collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7179,7 +7180,7 @@ walker community_follows {
     can community_follows with entry {
         import advanced_collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7218,7 +7219,7 @@ walker community_messages {
     can community_messages with entry {
         import advanced_collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7267,7 +7268,7 @@ walker community_feed {
     can community_feed with entry {
         import advanced_collaboration_store as collab_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7306,7 +7307,7 @@ walker content_views {
     can content_views with entry {
         import content_views_store as views_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
 
         result = views_module.record_content_view(
             user_id=user_id, content_id=self.content_id, content_type=self.content_type
@@ -7324,7 +7325,7 @@ walker content_like {
     can content_like with entry {
         import content_views_store as views_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7350,7 +7351,7 @@ walker content_save {
     can content_save with entry {
         import content_views_store as views_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7391,7 +7392,7 @@ walker content_share {
     can content_share with entry {
         import content_views_store as views_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
 
         result = views_module.record_content_share(
             user_id=user_id,
@@ -7417,7 +7418,7 @@ walker update_profile {
     can update_profile with entry {
         import user_auth as auth_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7446,7 +7447,7 @@ walker update_preferences {
     can update_preferences with entry {
         import user_auth as auth_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7469,7 +7470,7 @@ walker learning_streak {
     can learning_streak with entry {
         import activity_store as activity_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7491,7 +7492,7 @@ walker recent_activity {
     can recent_activity with entry {
         import activity_store as activity_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7513,7 +7514,7 @@ walker saved_content {
     can saved_content with entry {
         import content_views_store as views_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7539,7 +7540,7 @@ walker notification_details {
     can notification_details with entry {
         import notification_store as notif_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7560,7 +7561,7 @@ walker notification_settings {
     can notification_settings with entry {
         import notification_store as notif_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7584,7 +7585,7 @@ walker notification_preferences {
     can notification_preferences with entry {
         import notification_store as notif_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7621,7 +7622,7 @@ walker admin_content_course_create {
     can admin_content_course_create with entry {
         import admin_content_store as admin_content_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7651,7 +7652,7 @@ walker admin_content_concept_create {
     can admin_content_concept_create with entry {
         import admin_content_store as admin_content_module;
 
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": false, "error": "Authentication required"} ;
             return;
@@ -7682,7 +7683,7 @@ walker admin_audit_logs {
     can admin_audit_logs with entry {
         import audit_logger as audit_module;
 
-        admin_id = ctx().get('user_id');
+        admin_id = request_context_module.get_user_id();
 
         result = audit_module.get_audit_logs(
             admin_id=admin_id,
@@ -7706,7 +7707,7 @@ walker admin_audit_history {
     can admin_audit_history with entry {
         import audit_logger as audit_module;
 
-        admin_id = ctx().get('user_id');
+        admin_id = request_context_module.get_user_id();
 
         result = audit_module.get_audit_history(
             admin_id=admin_id,
@@ -7728,7 +7729,7 @@ walker admin_user_activity {
     can admin_user_activity with entry {
         import admin_analytics_store as admin_analytics_module;
 
-        admin_id = ctx().get('user_id');
+        admin_id = request_context_module.get_user_id();
 
         result = admin_analytics_module.get_user_activity_metrics(
             admin_id=admin_id,
@@ -7750,7 +7751,7 @@ walker admin_table_activity {
     can admin_table_activity with entry {
         import admin_analytics_store as admin_analytics_module;
 
-        admin_id = ctx().get('user_id');
+        admin_id = request_context_module.get_user_id();
 
         result = admin_analytics_module.get_table_activity(
             admin_id=admin_id,
@@ -7769,7 +7770,7 @@ walker admin_clear_content_cache {
     can admin_clear_content_cache with entry {
         import admin_content_store as admin_content_module;
 
-        admin_id = ctx().get('user_id');
+        admin_id = request_context_module.get_user_id();
 
         result = admin_content_module.clear_content_cache(
             admin_id=admin_id, content_type=self.content_type
@@ -7850,7 +7851,7 @@ walker connections_list {
     has status: str = "";
 
     can connections_list with entry {
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -7909,7 +7910,7 @@ walker connections_list {
 
 walker connection_requests {
     can connection_requests with entry {
-        user_id = ctx().get('user_id');
+        user_id = request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
@@ -7960,7 +7961,7 @@ walker user_profile {
     can user_profile with entry {
         import user_auth as auth_module;
 
-        user_id = self.user_id if self.user_id else ctx().get('user_id');
+        user_id = self.user_id if self.user_id else request_context_module.get_user_id();
         if not user_id {
             report {"success": False, "error": "Authentication required"} ;
             return;
