@@ -516,46 +516,28 @@ walker ai_generate_content {
 
     can ai_generate_content with entry {
         import datetime;
+        import ai_generator as ai_module;
 
-        try {
-            import ai_generator as ai_module;
+        # Convert list to comma-separated string
+        related_concepts_str = ",".join(self.related_concepts)
+        if self.related_concepts
+        else "";
 
-            # Convert list to comma-separated string
-            related_concepts_str = ",".join(self.related_concepts)
-            if self.related_concepts
-            else "";
+        # Generate content using OpenAI
+        generated_content = ai_module.sync_generate_lesson(
+            self.concept_name, self.domain, self.difficulty, related_concepts_str
+        );
 
-            # Generate content using OpenAI
-            generated_content = ai_module.sync_generate_lesson(
-                self.concept_name, self.domain, self.difficulty, related_concepts_str
-            );
-
-            report {
-                "success": True,
-                "concept_name": self.concept_name,
-                "domain": self.domain,
-                "difficulty": self.difficulty,
-                "content": generated_content,
-                "related_concepts": self.related_concepts,
-                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "source": "ai_generator"
-            } ;
-        } except Exception as e {
-            print("Error in AI content generation: " + str(e));
-
-            # Fallback to mock content
-            report {
-                "success": True,
-                "concept_name": self.concept_name,
-                "domain": self.domain,
-                "difficulty": self.difficulty,
-                "content": "AI-generated content for " + self.concept_name + ". This lesson covers fundamental concepts and provides hands-on examples.",
-                "related_concepts": self.related_concepts,
-                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "source": "ai_generator",
-                "fallback": True
-            } ;
-        }
+        report {
+            "success": True,
+            "concept_name": self.concept_name,
+            "domain": self.domain,
+            "difficulty": self.difficulty,
+            "content": generated_content,
+            "related_concepts": self.related_concepts,
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "source": "ai_generator"
+        } ;
     }
 }
 
@@ -1224,33 +1206,10 @@ walker chat {
 
     can chat with entry {
         import datetime;
+        import ai_generator as ai_module;
+        result = ai_module.sync_chat_with_ai(self.message, self.context);
 
-        try {
-            import ai_generator as ai_module;
-            result = ai_module.sync_chat_with_ai(self.message, self.context);
-
-            report result ;
-        } except Exception as e {
-            print("Error in AI chat: " + str(e));
-
-            # Fallback to mock response
-            responses = [
-                "That's a great question! Let me explain...",
-                "I understand what you're asking. Here's my perspective...",
-                "Based on your learning history, I'd recommend focusing on...",
-                "Great thinking! This concept relates to...",
-                "Let me break this down for you in simple terms..."
-            ];
-
-            contextual_response = responses[0] + "\n\nWould you like me to elaborate on any specific aspect of this topic?";
-
-            report {
-                "success": True,
-                "response": contextual_response,
-                "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "fallback": True
-            } ;
-        }
+        report result ;
     }
 }
 
@@ -1265,6 +1224,7 @@ walker export_chat {
     can export_chat with entry {
         import datetime;
         import json;
+        import chat_export as chat_export_module;
 
         if not self.email {
             report {
@@ -1284,33 +1244,22 @@ walker export_chat {
             return;
         }
 
-        try {
-            import chat_export as chat_export_module;
+        # Convert list to JSON string for Python module
+        chat_messages_json = json.dumps(self.chat_messages);
 
-            # Convert list to JSON string for Python module
-            chat_messages_json = json.dumps(self.chat_messages);
+        # Send chat export email
+        result = chat_export_module.sync_send_chat_export_email(
+            self.email, chat_messages_json, self.user_name
+        );
 
-            # Send chat export email
-            result = chat_export_module.sync_send_chat_export_email(
-                self.email, chat_messages_json, self.user_name
-            );
-
-            report {
-                "success": result.get("success", False),
-                "message": "Chat transcript sent to " + self.email,
-                "message_count": result.get("message_count", len(self.chat_messages)),
-                "email": self.email,
-                "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "method": result.get("method", "unknown")
-            } ;
-        } except Exception as e {
-            print("Error exporting chat: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to export chat: " + str(e),
-                "code": "EXPORT_FAILED"
-            } ;
-        }
+        report {
+            "success": result.get("success", False),
+            "message": "Chat transcript sent to " + self.email,
+            "message_count": result.get("message_count", len(self.chat_messages)),
+            "email": self.email,
+            "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "method": result.get("method", "unknown")
+        } ;
     }
 }
 # ==============================================================================
@@ -1346,36 +1295,25 @@ walker graph_init {
 # ==============================================================================
 walker graph_concepts {
     can graph_concepts with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            query = """
-            MATCH (c:Concept)
-            RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-                   c.category AS category, c.difficulty_level AS difficulty_level,
-                   c.description AS description, c.estimated_duration AS duration,
-                   c.prerequisites_count AS prereq_count
-            ORDER BY c.name
-            """;
+        query = """
+        MATCH (c:Concept)
+        RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
+               c.category AS category, c.difficulty_level AS difficulty_level,
+               c.description AS description, c.estimated_duration AS duration,
+               c.prerequisites_count AS prereq_count
+        ORDER BY c.name
+        """;
 
-            result = manager.execute_query(query, None);
+        result = manager.execute_query(query, None);
 
-            report {
-                "success": True,
-                "concepts": result or [],
-                "count": len(result) if result else 0,
-                "source": "graph_database"
-            } ;
-        } except Exception as e {
-            print("Error fetching graph concepts: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to fetch concepts: " + str(e),
-                "concepts": [],
-                "count": 0,
-                "source": "graph_database"
-            } ;
-        }
+        report {
+            "success": True,
+            "concepts": result or [],
+            "count": len(result) if result else 0,
+            "source": "graph_database"
+        } ;
     }
 }
 
@@ -1383,49 +1321,40 @@ walker graph_concept_detail {
     has concept_id: str;
 
     can graph_concept_detail with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            query = """
-            MATCH (c:Concept {concept_id: $concept_id})
-            OPTIONAL MATCH (c)-[r:PREREQUISITE]->(prereq:Concept)
-            OPTIONAL MATCH (c)-[:RELATED_TO]->(related:Concept)
-            OPTIONAL MATCH (c)<-[:PREREQUISITE]-(depends_on:Concept)
-            RETURN c,
-                   collect(DISTINCT {id: prereq.concept_id, name: prereq.name, type: 'prerequisite'}) AS prerequisites,
-                   collect(DISTINCT {id: related.concept_id, name: related.name, type: 'related'}) AS related,
-                   collect(DISTINCT {id: depends_on.concept_id, name: depends_on.name, type: 'depends_on'}) AS depends_on
-            """;
+        query = """
+        MATCH (c:Concept {concept_id: $concept_id})
+        OPTIONAL MATCH (c)-[r:PREREQUISITE]->(prereq:Concept)
+        OPTIONAL MATCH (c)-[:RELATED_TO]->(related:Concept)
+        OPTIONAL MATCH (c)<-[:PREREQUISITE]-(depends_on:Concept)
+        RETURN c,
+               collect(DISTINCT {id: prereq.concept_id, name: prereq.name, type: 'prerequisite'}) AS prerequisites,
+               collect(DISTINCT {id: related.concept_id, name: related.name, type: 'related'}) AS related,
+               collect(DISTINCT {id: depends_on.concept_id, name: depends_on.name, type: 'depends_on'}) AS depends_on
+        """;
 
-            result = manager.execute_query(query, {"concept_id": self.concept_id});
+        result = manager.execute_query(query, {"concept_id": self.concept_id});
 
-            if result and result[0] {
-                c = result[0]['c'];
-                concept_data = {
-                    "id": c['concept_id'],
-                    "name": c['name'],
-                    "display_name": c['display_name'],
-                    "category": c['category'],
-                    "difficulty": c['difficulty_level'],
-                    "description": c['description'],
-                    "duration": c['estimated_duration'],
-                    "prerequisites": result[0]['prerequisites'],
-                    "related": result[0]['related'],
-                    "depends_on": result[0]['depends_on']
-                };
-                report {"success": True, "concept": concept_data} ;
-            } else {
-                report {
-                    "success": False,
-                    "error": "Concept not found",
-                    "concept_id": self.concept_id
-                } ;
-            }
-        } except Exception as e {
-            print("Error fetching concept detail: " + str(e));
+        if result and result[0] {
+            c = result[0]['c'];
+            concept_data = {
+                "id": c['concept_id'],
+                "name": c['name'],
+                "display_name": c['display_name'],
+                "category": c['category'],
+                "difficulty": c['difficulty_level'],
+                "description": c['description'],
+                "duration": c['estimated_duration'],
+                "prerequisites": result[0]['prerequisites'],
+                "related": result[0]['related'],
+                "depends_on": result[0]['depends_on']
+            };
+            report {"success": True, "concept": concept_data} ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to fetch concept detail: " + str(e),
+                "error": "Concept not found",
                 "concept_id": self.concept_id
             } ;
         }
@@ -1437,37 +1366,26 @@ walker graph_concept_detail {
 # ==============================================================================
 walker graph_paths {
     can graph_paths with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            query = """
-            MATCH (p:LearningPath)
-            OPTIONAL MATCH (p)-[:PathContains]->(c:Concept)
-            WITH p, count(c) AS concept_count
-            RETURN p.path_id AS id, p.name AS name, p.title AS title, p.description AS description,
-                   p.difficulty AS difficulty, p.estimated_duration AS duration,
-                   p.concept_count AS total_concepts, concept_count
-            ORDER BY p.name
-            """;
+        query = """
+        MATCH (p:LearningPath)
+        OPTIONAL MATCH (p)-[:PathContains]->(c:Concept)
+        WITH p, count(c) AS concept_count
+        RETURN p.path_id AS id, p.name AS name, p.title AS title, p.description AS description,
+               p.difficulty AS difficulty, p.estimated_duration AS duration,
+               p.concept_count AS total_concepts, concept_count
+        ORDER BY p.name
+        """;
 
-            result = manager.execute_query(query, None);
+        result = manager.execute_query(query, None);
 
-            report {
-                "success": True,
-                "paths": result or [],
-                "count": len(result) if result else 0,
-                "source": "graph_database"
-            } ;
-        } except Exception as e {
-            print("Error fetching graph paths: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to fetch learning paths: " + str(e),
-                "paths": [],
-                "count": 0,
-                "source": "graph_database"
-            } ;
-        }
+        report {
+            "success": True,
+            "paths": result or [],
+            "count": len(result) if result else 0,
+            "source": "graph_database"
+        } ;
     }
 }
 
@@ -1475,45 +1393,36 @@ walker graph_path_detail {
     has path_id: str;
 
     can graph_path_detail with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            query = """
-            MATCH (p:LearningPath {path_id: $path_id})
-            OPTIONAL MATCH (p)-[r:PathContains]->(c:Concept)
-            WITH p, collect({
-                concept_id: c.concept_id,
-                name: c.name,
-                display_name: c.display_name,
-                category: c.category,
-                difficulty: c.difficulty_level,
-                order_index: r.order_index,
-                is_required: r.is_required
-            }) AS concepts
-            UNWIND concepts AS c
-            WITH p, c
-            ORDER BY c.order_index
-            RETURN p.path_id AS id, p.name AS name, p.title AS title, p.description AS description,
-                   p.difficulty AS difficulty, p.estimated_duration AS duration,
-                   collect(c) AS concept_list
-            """;
+        query = """
+        MATCH (p:LearningPath {path_id: $path_id})
+        OPTIONAL MATCH (p)-[r:PathContains]->(c:Concept)
+        WITH p, collect({
+            concept_id: c.concept_id,
+            name: c.name,
+            display_name: c.display_name,
+            category: c.category,
+            difficulty: c.difficulty_level,
+            order_index: r.order_index,
+            is_required: r.is_required
+        }) AS concepts
+        UNWIND concepts AS c
+        WITH p, c
+        ORDER BY c.order_index
+        RETURN p.path_id AS id, p.name AS name, p.title AS title, p.description AS description,
+               p.difficulty AS difficulty, p.estimated_duration AS duration,
+               collect(c) AS concept_list
+        """;
 
-            result = manager.execute_query(query, {"path_id": self.path_id});
+        result = manager.execute_query(query, {"path_id": self.path_id});
 
-            if result and result[0] {
-                report {"success": True, "path": result[0]} ;
-            } else {
-                report {
-                    "success": False,
-                    "error": "Path not found",
-                    "path_id": self.path_id
-                } ;
-            }
-        } except Exception as e {
-            print("Error fetching path detail: " + str(e));
+        if result and result[0] {
+            report {"success": True, "path": result[0]} ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to fetch path detail: " + str(e),
+                "error": "Path not found",
                 "path_id": self.path_id
             } ;
         }
@@ -1576,21 +1485,6 @@ walker graph_user_progress {
                     else 0
                 }
             } ;
-        } except Exception as e {
-            print("Error fetching user progress: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to fetch user progress: " + str(e),
-                "user_id": self.user_id,
-                "completed_concepts": [],
-                "enrolled_paths": [],
-                "statistics": {
-                    "total_completed": 0,
-                    "average_score": 0,
-                    "total_time_minutes": 0
-                }
-            } ;
-        }
     }
 }
 
@@ -1601,55 +1495,44 @@ walker graph_complete_concept {
     has time_spent: int = 30;
 
     can graph_complete_concept with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            user_query = """
-            MERGE (u:User {user_id: toString($user_id)})
-            ON CREATE SET u.created_at = timestamp(), u.username = $user_id
-            SET u.last_active = timestamp()
-            """;
-            manager.execute_query(user_query, {"user_id": self.user_id});
+        user_query = """
+        MERGE (u:User {user_id: toString($user_id)})
+        ON CREATE SET u.created_at = timestamp(), u.username = $user_id
+        SET u.last_active = timestamp()
+        """;
+        manager.execute_query(user_query, {"user_id": self.user_id});
 
-            complete_query = """
-            MATCH (u:User {user_id: toString($user_id)})
-            MATCH (c:Concept {concept_id: $concept_id})
-            MERGE (u)-[r:Completed {
-                completed_at: timestamp(),
-                score: $score,
-                time_spent: $time_spent,
-                attempts: 1
-            }]->(c)
-            RETURN u.user_id, c.name, r.score
-            """;
+        complete_query = """
+        MATCH (u:User {user_id: toString($user_id)})
+        MATCH (c:Concept {concept_id: $concept_id})
+        MERGE (u)-[r:Completed {
+            completed_at: timestamp(),
+            score: $score,
+            time_spent: $time_spent,
+            attempts: 1
+        }]->(c)
+        RETURN u.user_id, c.name, r.score
+        """;
 
-            result = manager.execute_query(
-                complete_query,
-                {
-                    "user_id": self.user_id,
-                    "concept_id": self.concept_id,
-                    "score": self.score,
-                    "time_spent": self.time_spent
-                }
-            );
-
-            report {
-                "success": result != None,
+        result = manager.execute_query(
+            complete_query,
+            {
                 "user_id": self.user_id,
                 "concept_id": self.concept_id,
                 "score": self.score,
-                "message": "Concept marked as completed"
-            } ;
-        } except Exception as e {
-            print("Error completing concept: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to mark concept as completed: " + str(e),
-                "user_id": self.user_id,
-                "concept_id": self.concept_id,
-                "score": self.score
-            } ;
-        }
+                "time_spent": self.time_spent
+            }
+        );
+
+        report {
+            "success": result != None,
+            "user_id": self.user_id,
+            "concept_id": self.concept_id,
+            "score": self.score,
+            "message": "Concept marked as completed"
+        } ;
     }
 }
 
@@ -1684,16 +1567,6 @@ walker graph_enroll_path {
                 "path_id": self.path_id,
                 "status": "enrolled"
             } ;
-        } except Exception as e {
-            print("Error enrolling in path: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to enroll in learning path: " + str(e),
-                "user_id": self.user_id,
-                "path_id": self.path_id,
-                "status": "error"
-            } ;
-        }
     }
 }
 
@@ -1705,44 +1578,32 @@ walker graph_recommendations {
     has limit: int = 5;
 
     can graph_recommendations with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            query = """
-            MATCH (u:User {user_id: toString($user_id)})
-            MATCH (c:Concept)
-            WHERE NOT (u)-[:Completed]->(c)
-            OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
-            WITH c, collect(DISTINCT prereq.concept_id) AS prereqs
-            WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
-            RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-                   c.category AS category, c.difficulty_level AS difficulty_level,
-                   c.estimated_duration AS duration, size(prereqs) AS prereq_count
-            LIMIT $limit
-            """;
+        query = """
+        MATCH (u:User {user_id: toString($user_id)})
+        MATCH (c:Concept)
+        WHERE NOT (u)-[:Completed]->(c)
+        OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
+        WITH c, collect(DISTINCT prereq.concept_id) AS prereqs
+        WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
+        RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
+               c.category AS category, c.difficulty_level AS difficulty_level,
+               c.estimated_duration AS duration, size(prereqs) AS prereq_count
+        LIMIT $limit
+        """;
 
-            result = manager.execute_query(
-                query, {"user_id": self.user_id, "limit": self.limit}
-            );
+        result = manager.execute_query(
+            query, {"user_id": self.user_id, "limit": self.limit}
+        );
 
-            report {
-                "success": True,
-                "user_id": self.user_id,
-                "recommendations": result or [],
-                "count": len(result) if result else 0,
-                "algorithm": "prerequisite_based"
-            } ;
-        } except Exception as e {
-            print("Error fetching recommendations: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to fetch recommendations: " + str(e),
-                "user_id": self.user_id,
-                "recommendations": [],
-                "count": 0,
-                "algorithm": "prerequisite_based"
-            } ;
-        }
+        report {
+            "success": True,
+            "user_id": self.user_id,
+            "recommendations": result or [],
+            "count": len(result) if result else 0,
+            "algorithm": "prerequisite_based"
+        } ;
     }
 }
 
@@ -1751,29 +1612,28 @@ walker graph_next_concept {
     has path_id: str;
 
     can graph_next_concept with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            query = """
-            MATCH (u:User {user_id: toString($user_id)})
-            MATCH (p:LearningPath {path_id: $path_id})
-            MATCH (p)-[r:PathContains]->(c:Concept)
-            WHERE NOT (u)-[:Completed]->(c)
-            OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
-            WITH c, r, collect(DISTINCT prereq.concept_id) AS prereqs
-            WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
-            WITH c, r
-            ORDER BY r.order_index
-            LIMIT 1
-            RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-                   c.category AS category, c.difficulty_level AS difficulty_level, r.order_index AS position
-            """;
+        query = """
+        MATCH (u:User {user_id: toString($user_id)})
+        MATCH (p:LearningPath {path_id: $path_id})
+        MATCH (p)-[r:PathContains]->(c:Concept)
+        WHERE NOT (u)-[:Completed]->(c)
+        OPTIONAL MATCH (c)-[:PREREQUISITE]->(prereq:Concept)
+        WITH c, r, collect(DISTINCT prereq.concept_id) AS prereqs
+        WHERE all(prereq IN prereqs WHERE (u)-[:Completed]->(:Concept {concept_id: prereq}))
+        WITH c, r
+        ORDER BY r.order_index
+        LIMIT 1
+        RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
+               c.category AS category, c.difficulty_level AS difficulty_level, r.order_index AS position
+        """;
 
-            result = manager.execute_query(
-                query, {"user_id": self.user_id, "path_id": self.path_id}
-            );
+        result = manager.execute_query(
+            query, {"user_id": self.user_id, "path_id": self.path_id}
+        );
 
-            report {
+        report {
                 "success": result != None,
                 "user_id": self.user_id,
                 "path_id": self.path_id,
@@ -1799,47 +1659,35 @@ walker graph_learning_journey {
     has user_id: str;
 
     can graph_learning_journey with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            query = """
-            MATCH (u:User {user_id: toString($user_id)})-[r:Completed]->(c:Concept)
-            WITH c, r
-            ORDER BY r.completed_at
-            RETURN c.concept_id AS id, c.name AS name, c.category AS category,
-                   c.difficulty_level AS difficulty_level, r.score AS score, r.completed_at AS completed_at
-            """;
+        query = """
+        MATCH (u:User {user_id: toString($user_id)})-[r:Completed]->(c:Concept)
+        WITH c, r
+        ORDER BY r.completed_at
+        RETURN c.concept_id AS id, c.name AS name, c.category AS category,
+               c.difficulty_level AS difficulty_level, r.score AS score, r.completed_at AS completed_at
+        """;
 
-            result = manager.execute_query(query, {"user_id": self.user_id});
+        result = manager.execute_query(query, {"user_id": self.user_id});
 
-            categories = {};
-            for record in (result or []) {
-                cat = record['category'];
-                if cat in categories {
-                    categories[cat] = categories[cat] + 1;
-                } else {
-                    categories[cat] = 1;
-                }
+        categories = {};
+        for record in (result or []) {
+            cat = record['category'];
+            if cat in categories {
+                categories[cat] = categories[cat] + 1;
+            } else {
+                categories[cat] = 1;
             }
-
-            report {
-                "success": result != None,
-                "user_id": self.user_id,
-                "journey": result or [],
-                "count": len(result) if result else 0,
-                "category_distribution": categories
-            } ;
-        } except Exception as e {
-            print("Error fetching learning journey: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to fetch learning journey: " + str(e),
-                "user_id": self.user_id,
-                "journey": [],
-                "count": 0,
-                "category_distribution": {}
-            } ;
         }
+
+        report {
+            "success": result != None,
+            "user_id": self.user_id,
+            "journey": result or [],
+            "count": len(result) if result else 0,
+            "category_distribution": categories
+        } ;
     }
 }
 
@@ -1847,35 +1695,25 @@ walker graph_popular_concepts {
     has limit: int = 10;
 
     can graph_popular_concepts with entry {
-        try {
-            manager = db_module.get_neo4j_manager();
+        manager = db_module.get_neo4j_manager();
 
-            query = """
-            MATCH (c:Concept)
-            OPTIONAL MATCH (u:User)-[r:Completed]->(c)
-            RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
-                   c.category AS category, c.difficulty_level AS difficulty_level,
-                   count(r) AS completion_count, avg(r.score) AS avg_score
-            ORDER BY completion_count DESC
-            LIMIT $limit
-            """;
+        query = """
+        MATCH (c:Concept)
+        OPTIONAL MATCH (u:User)-[r:Completed]->(c)
+        RETURN c.concept_id AS id, c.name AS name, c.display_name AS display_name,
+               c.category AS category, c.difficulty_level AS difficulty_level,
+               count(r) AS completion_count, avg(r.score) AS avg_score
+        ORDER BY completion_count DESC
+        LIMIT $limit
+        """;
 
-            result = manager.execute_query(query, {"limit": self.limit});
+        result = manager.execute_query(query, {"limit": self.limit});
 
-            report {
-                "success": True,
-                "popular_concepts": result or [],
-                "count": len(result) if result else 0
-            } ;
-        } except Exception as e {
-            print("Error fetching popular concepts: " + str(e));
-            report {
-                "success": False,
-                "error": "Failed to fetch popular concepts: " + str(e),
-                "popular_concepts": [],
-                "count": 0
-            } ;
-        }
+        report {
+            "success": True,
+            "popular_concepts": result or [],
+            "count": len(result) if result else 0
+        } ;
     }
 }
 
@@ -3041,43 +2879,34 @@ walker user_register {
     has skill_level: str = "beginner";
 
     can user_register with entry {
-        try {
-            result = auth_module.register_user(
-                self.username,
-                self.email,
-                self.password,
-                self.first_name,
-                self.last_name,
-                self.learning_style,
-                self.skill_level
-            );
+        result = auth_module.register_user(
+            self.username,
+            self.email,
+            self.password,
+            self.first_name,
+            self.last_name,
+            self.learning_style,
+            self.skill_level
+        );
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "user_id": result.get('user_id'),
-                    "username": result.get('username'),
-                    "email": result.get('email'),
-                    "requires_verification": result.get('requires_verification', True),
-                    "is_email_verified": result.get('is_email_verified', False),
-                    "message": result.get(
-                        'message',
-                        'Registration successful! Please check your email to verify your account.'
-                    )
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Registration failed'),
-                    "code": result.get('code', 'ERROR')
-                } ;
-            }
-        } except error {
-            std.out("Registration error:", error);
+        if result['success'] {
+            report {
+                "success": True,
+                "user_id": result.get('user_id'),
+                "username": result.get('username'),
+                "email": result.get('email'),
+                "requires_verification": result.get('requires_verification', True),
+                "is_email_verified": result.get('is_email_verified', False),
+                "message": result.get(
+                    'message',
+                    'Registration successful! Please check your email to verify your account.'
+                )
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "Registration failed: " + str(error),
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Registration failed'),
+                "code": result.get('code', 'ERROR')
             } ;
         }
     }
@@ -3088,31 +2917,22 @@ walker user_login {
     has password: str;
 
     can user_login with entry {
-        try {
-            result = auth_module.authenticate_user(self.username, self.password);
+        result = auth_module.authenticate_user(self.username, self.password);
 
-            if result['success'] {
-                report {
-                    "success": True,
-                    "access_token": result.get('access_token'),
-                    "token_type": result.get('token_type', 'bearer'),
-                    "expires_in": result.get('expires_in'),
-                    "user": result.get('user'),
-                    "message": result.get('message', 'Login successful!')
-                } ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'Invalid credentials'),
-                    "code": result.get('code', 'ERROR')
-                } ;
-            }
-        } except error {
-            std.out("Login error:", error);
+        if result['success'] {
+            report {
+                "success": True,
+                "access_token": result.get('access_token'),
+                "token_type": result.get('token_type', 'bearer'),
+                "expires_in": result.get('expires_in'),
+                "user": result.get('user'),
+                "message": result.get('message', 'Login successful!')
+            } ;
+        } else {
             report {
                 "success": False,
-                "error": "Login failed: " + str(error),
-                "code": "INTERNAL_ERROR"
+                "error": result.get('error', 'Invalid credentials'),
+                "code": result.get('code', 'ERROR')
             } ;
         }
     }
@@ -8546,26 +8366,16 @@ walker connections_list {
                 "connections": connections,
                 "total": len(connections)
             } ;
-        } except error {
-            std.out("Error in connections_list walker:", error);
-            report {
-                "success": False,
-                "error": "Failed to retrieve connections",
-                "connections": [],
-                "total": 0
-            } ;
-        }
     }
 }
 
 walker connection_requests {
     can connection_requests with entry {
-        try {
-            user_id = ctx().get('user_id');
-            if not user_id {
-                report {"success": False, "error": "Authentication required"} ;
-                return;
-            }
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
+        }
 
             # Mock connection requests
             requests = [
@@ -8603,12 +8413,10 @@ walker connection_requests {
         } except error {
             std.out("Error in connection_requests walker:", error);
             report {
-                "success": False,
-                "error": "Failed to retrieve connection requests",
-                "requests": [],
-                "total": 0
+                "success": True,
+                "requests": requests,
+                "total": len(requests)
             } ;
-        }
     }
 }
 
@@ -8619,30 +8427,22 @@ walker user_profile {
     has user_id: str = "";
 
     can user_profile with entry {
-        try {
-            import user_auth as auth_module;
+        import user_auth as auth_module;
 
-            user_id = self.user_id if self.user_id else ctx().get('user_id');
-            if not user_id {
-                report {"success": False, "error": "Authentication required"} ;
-                return;
-            }
+        user_id = self.user_id if self.user_id else ctx().get('user_id');
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
+        }
 
-            result = auth_module.get_user_profile(user_id=user_id);
+        result = auth_module.get_user_profile(user_id=user_id);
 
-            if result.get('success') {
-                report result ;
-            } else {
-                report {
-                    "success": False,
-                    "error": result.get('error', 'User not found')
-                } ;
-            }
-        } except error {
-            std.out("Error in user_profile walker:", error);
+        if result.get('success') {
+            report result ;
+        } else {
             report {
                 "success": False,
-                "error": "Failed to retrieve user profile"
+                "error": result.get('error', 'User not found')
             } ;
         }
     }
@@ -8682,104 +8482,75 @@ walker get_folders {
                 "folders": folders,
                 "total": len(folders)
             } ;
-        } except error {
-            std.out("Error in get_folders walker:", error);
-            report {
-                "success": False,
-                "error": "Failed to retrieve folders",
-                "folders": [],
-                "total": 0
-            } ;
-        }
     }
 }
 
 walker get_snippets {
     can get_snippets with entry {
-        try {
-            user_id = ctx().get('user_id');
-            if not user_id {
-                report {"success": False, "error": "Authentication required"} ;
-                return;
-            }
-
-            # Mock snippets data
-            snippets = [
-                {
-                    "snippet_id": "snippet_001",
-                    "title": "Hello World in Jac",
-                    "language": "jac",
-                    "created_at": "2025-01-01T10:00:00Z",
-                    "updated_at": "2025-01-03T15:30:00Z"
-                },
-                {
-                    "snippet_id": "snippet_002",
-                    "title": "Python List Comprehension",
-                    "language": "python",
-                    "created_at": "2024-12-20T14:00:00Z",
-                    "updated_at": "2025-01-02T09:00:00Z"
-                }
-            ];
-
-            report {
-                "success": True,
-                "snippets": snippets,
-                "total": len(snippets)
-            } ;
-        } except error {
-            std.out("Error in get_snippets walker:", error);
-            report {
-                "success": False,
-                "error": "Failed to retrieve snippets",
-                "snippets": [],
-                "total": 0
-            } ;
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
         }
+
+        # Mock snippets data
+        snippets = [
+            {
+                "snippet_id": "snippet_001",
+                "title": "Hello World in Jac",
+                "language": "jac",
+                "created_at": "2025-01-01T10:00:00Z",
+                "updated_at": "2025-01-03T15:30:00Z"
+            },
+            {
+                "snippet_id": "snippet_002",
+                "title": "Python List Comprehension",
+                "language": "python",
+                "created_at": "2024-12-20T14:00:00Z",
+                "updated_at": "2025-01-02T09:00:00Z"
+            }
+        ];
+
+        report {
+            "success": True,
+            "snippets": snippets,
+            "total": len(snippets)
+        } ;
     }
 }
 
 walker code_snippet {
     can code_snippet with entry {
-        try {
-            user_id = ctx().get('user_id');
-            if not user_id {
-                report {"success": False, "error": "Authentication required"} ;
-                return;
-            }
-
-            # Mock user snippets
-            snippets = [
-                {
-                    "snippet_id": "snippet_001",
-                    "title": "Hello World in Jac",
-                    "code": "walker init {\\n    std.out(\\\"Hello, World!\\\");\\n}",
-                    "language": "jac",
-                    "created_at": "2025-01-01T10:00:00Z",
-                    "updated_at": "2025-01-03T15:30:00Z"
-                },
-                {
-                    "snippet_id": "snippet_002",
-                    "title": "Python List Example",
-                    "code": "numbers = [1, 2, 3, 4, 5]\\nsquared = [x**2 for x in numbers]\\nprint(squared)",
-                    "language": "python",
-                    "created_at": "2024-12-20T14:00:00Z",
-                    "updated_at": "2025-01-02T09:00:00Z"
-                }
-            ];
-
-            report {
-                "success": True,
-                "snippets": snippets,
-                "total": len(snippets)
-            } ;
-        } except error {
-            std.out("Error in code_snippet walker:", error);
-            report {
-                "success": False,
-                "error": "Failed to retrieve code snippets",
-                "snippets": [],
-                "total": 0
-            } ;
+        user_id = ctx().get('user_id');
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
         }
+
+        # Mock user snippets
+        snippets = [
+            {
+                "snippet_id": "snippet_001",
+                "title": "Hello World in Jac",
+                "code": "walker init {\\n    std.out(\\\"Hello, World!\\\");\\n}",
+                "language": "jac",
+                "created_at": "2025-01-01T10:00:00Z",
+                "updated_at": "2025-01-03T15:30:00Z"
+            },
+            {
+                "snippet_id": "snippet_002",
+                "title": "Python List Example",
+                "code": "numbers = [1, 2, 3, 4, 5]\\nsquared = [x**2 for x in numbers]\\nprint(squared)",
+                "language": "python",
+                "created_at": "2024-12-20T14:00:00Z",
+                "updated_at": "2025-01-02T09:00:00Z"
+            }
+        ];
+
+        report {
+            "success": True,
+            "snippets": snippets,
+            "total": len(snippets)
+        } ;
     }
 }
