@@ -530,6 +530,178 @@ def create_admin_router() -> APIRouter:
                 }
             )
 
+    # =============================================================================
+    # Admin Dashboard Statistics (Real Data)
+    # =============================================================================
+
+    @router.get("/admin/dashboard/stats")
+    async def get_dashboard_statistics(admin_user: Dict[str, Any] = AdminUser):
+        """Get comprehensive dashboard statistics with real data"""
+        try:
+            # Import the dashboard stats module
+            from admin_dashboard_stats import get_admin_dashboard_stats, get_metric_trend
+            
+            # Get comprehensive dashboard statistics
+            stats = get_admin_dashboard_stats()
+            
+            # Log admin action
+            admin_auth.log_admin_action(
+                admin_user, "dashboard_stats_accessed",
+                details={"stats_generated": True}
+            )
+            
+            return {
+                "success": True,
+                "data": stats,
+                "generated_at": datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "Failed to generate dashboard statistics",
+                    "message": str(e)
+                }
+            )
+
+    @router.get("/admin/dashboard/users")
+    async def get_user_statistics(admin_user: Dict[str, Any] = AdminUser):
+        """Get user statistics with week-over-week comparison"""
+        try:
+            from admin_dashboard_stats import AdminDashboardStats
+            
+            stats_calculator = AdminDashboardStats()
+            user_stats = stats_calculator.get_user_statistics()
+            
+            return {
+                "success": True,
+                "data": {
+                    "total_users": user_stats["total_users"],
+                    "active_users": user_stats["active_users"],
+                    "new_this_week": user_stats["new_users_this_week"],
+                    "week_over_week_change": user_stats["week_over_week_change"],
+                    "period_comparison": {
+                        "this_week": user_stats["new_users_this_week"],
+                        "last_week": user_stats["new_users_last_week"]
+                    }
+                },
+                "generated_at": datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "Failed to calculate user statistics",
+                    "message": str(e)
+                }
+            )
+
+    @router.get("/admin/dashboard/activity")
+    async def get_activity_statistics(admin_user: Dict[str, Any] = AdminUser):
+        """Get activity statistics"""
+        try:
+            from admin_dashboard_stats import AdminDashboardStats
+            
+            stats_calculator = AdminDashboardStats()
+            activity_stats = stats_calculator.get_activity_statistics()
+            
+            return {
+                "success": True,
+                "data": {
+                    "daily_activity": activity_stats["daily_activity"],
+                    "weekly_sessions": activity_stats["weekly_sessions"],
+                    "active_users": activity_stats["active_users_this_week"],
+                    "avg_session_duration": activity_stats["avg_session_duration_seconds"],
+                    "activity_change": activity_stats["activity_change"]
+                },
+                "generated_at": datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "Failed to calculate activity statistics",
+                    "message": str(e)
+                }
+            )
+
+    @router.get("/admin/dashboard/content")
+    async def get_content_statistics(admin_user: Dict[str, Any] = AdminUser):
+        """Get content statistics"""
+        try:
+            from admin_dashboard_stats import AdminDashboardStats
+            
+            stats_calculator = AdminDashboardStats()
+            content_stats = stats_calculator.get_content_statistics()
+            
+            return {
+                "success": True,
+                "data": {
+                    "total_items": content_stats["content_items"],
+                    "concepts": content_stats["total_concepts"],
+                    "learning_paths": content_stats["total_learning_paths"],
+                    "lessons": content_stats["total_lessons"],
+                    "new_this_week": content_stats["new_content_this_week"],
+                    "content_change": content_stats["content_change"]
+                },
+                "generated_at": datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "Failed to calculate content statistics",
+                    "message": str(e)
+                }
+            )
+
+    @router.get("/admin/dashboard/trends/{metric}")
+    async def get_metric_trends(
+        metric: str,
+        days: int = Query(default=30, ge=7, le=365, description="Number of days of trend data"),
+        admin_user: Dict[str, Any] = AdminUser
+    ):
+        """Get trend data for a specific metric"""
+        try:
+            valid_metrics = ["users", "activity"]
+            if metric not in valid_metrics:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "Invalid metric",
+                        "message": f"Metric must be one of: {valid_metrics}"
+                    }
+                )
+            
+            from admin_dashboard_stats import get_metric_trend
+            
+            trend_data = get_metric_trend(metric, days)
+            
+            return {
+                "success": True,
+                "data": {
+                    "metric": metric,
+                    "period_days": days,
+                    "trend": trend_data
+                },
+                "generated_at": datetime.now().isoformat()
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "Failed to calculate trend data",
+                    "message": str(e)
+                }
+            )
+
     return router
 
 
