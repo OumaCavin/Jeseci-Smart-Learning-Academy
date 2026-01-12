@@ -1238,7 +1238,7 @@ class ApiService {
   // =============================================================================
 
   async getNotifications(): Promise<any> {
-    return this.makeRequest('/walker/notifications', {
+    return this.makeRequest('/walker/get_notifications', {
       method: 'POST',
       body: JSON.stringify({}),
     });

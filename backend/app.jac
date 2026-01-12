@@ -8830,14 +8830,14 @@ walker user_profile {
             return;
         }
 
-        result = auth_module.get_user_profile(user_id=user_id);
+        result = auth_module.get_user_by_id(user_id=user_id);
 
-        if result.get('success') {
-            report result ;
+        if result {
+            report {"success": True, "user": result} ;
         } else {
             report {
                 "success": False,
-                "error": result.get('error', 'User not found')
+                "error": "User not found"
             } ;
         }
     }

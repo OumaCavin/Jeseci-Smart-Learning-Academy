@@ -624,7 +624,152 @@ class UserAuthManager:
             return {"success": False, "error": str(e)}
         finally:
             self._return_connection(conn)
-    
+
+    def update_user_profile(self, user_id: str, first_name: str = None, last_name: str = None,
+                            bio: str = None, avatar_url: str = None, display_name: str = None) -> dict:
+        """Update user profile information"""
+        conn = self._get_connection()
+        if conn is None:
+            return {"success": False, "error": "Database connection failed"}
+
+        try:
+            cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
+
+            # Build dynamic update query
+            updates = []
+            params = []
+            if first_name is not None:
+                updates.append("first_name = %s")
+                params.append(first_name)
+            if last_name is not None:
+                updates.append("last_name = %s")
+                params.append(last_name)
+            if bio is not None:
+                updates.append("bio = %s")
+                params.append(bio)
+            if avatar_url is not None:
+                updates.append("avatar_url = %s")
+                params.append(avatar_url)
+            if display_name is not None:
+                updates.append("display_name = %s")
+                params.append(display_name)
+
+            if not updates:
+                return {"success": False, "error": "No fields to update"}
+
+            params.append(user_id)
+
+            cursor.execute(f"""
+                UPDATE {self.schema}.users
+                SET {', '.join(updates)},
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = %s
+                RETURNING user_id, username, email, first_name, last_name, bio, avatar_url, display_name
+            """, params)
+            user = cursor.fetchone()
+            conn.commit()
+
+            if user:
+                logger.info(f"User profile updated: {user_id}")
+                return {"success": True, "user": user}
+            else:
+                return {"success": False, "error": "User not found"}
+
+        except Exception as e:
+            logger.error(f"Update profile error: {e}")
+            conn.rollback()
+            return {"success": False, "error": str(e)}
+        finally:
+            self._return_connection(conn)
+
+    def update_user_preferences(self, user_id: str, theme: str = None,
+                                notifications_enabled: bool = None, email_notifications: bool = None,
+                                privacy_settings: dict = None, language: str = None) -> dict:
+        """Update user preferences"""
+        conn = self._get_connection()
+        if conn is None:
+            return {"success": False, "error": "Database connection failed"}
+
+        try:
+            cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
+
+            # Build dynamic update query for preferences table
+            updates = []
+            params = []
+
+            # Theme preference
+            if theme is not None:
+                updates.append("theme = %s")
+                params.append(theme)
+
+            # Notification preferences
+            if notifications_enabled is not None:
+                updates.append("notifications_enabled = %s")
+                params.append(notifications_enabled)
+
+            if email_notifications is not None:
+                updates.append("email_notifications = %s")
+                params.append(email_notifications)
+
+            # Language preference
+            if language is not None:
+                updates.append("language = %s")
+                params.append(language)
+
+            if not updates:
+                return {"success": False, "error": "No preferences to update"}
+
+            params.append(user_id)
+
+            # Check if preferences exist for this user
+            cursor.execute(f"""
+                SELECT user_id FROM {self.schema}.user_preferences WHERE user_id = %s
+            """, (user_id,))
+            existing = cursor.fetchone()
+
+            if existing:
+                # Update existing preferences
+                cursor.execute(f"""
+                    UPDATE {self.schema}.user_preferences
+                    SET {', '.join(updates)},
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE user_id = %s
+                    RETURNING *
+                """, params)
+            else:
+                # Insert new preferences
+                if privacy_settings is not None:
+                    from database import json.dumps
+                    privacy_json = json.dumps(privacy_settings)
+                    cursor.execute(f"""
+                        INSERT INTO {self.schema}.user_preferences
+                        (user_id, theme, notifications_enabled, email_notifications, language, privacy_settings)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                        RETURNING *
+                    """, (user_id, theme or 'light', notifications_enabled or True,
+                          email_notifications or True, language or 'en', privacy_json))
+                else:
+                    cursor.execute(f"""
+                        INSERT INTO {self.schema}.user_preferences
+                        (user_id, theme, notifications_enabled, email_notifications, language)
+                        VALUES (%s, %s, %s, %s, %s)
+                        RETURNING *
+                    """, (user_id, theme or 'light', notifications_enabled or True,
+                          email_notifications or True, language or 'en'))
+
+            preferences = cursor.fetchone()
+            conn.commit()
+
+            logger.info(f"User preferences updated: {user_id}")
+            return {"success": True, "preferences": preferences}
+
+        except Exception as e:
+            logger.error(f"Update preferences error: {e}")
+            conn.rollback()
+            return {"success": False, "error": str(e)}
+        finally:
+            self._return_connection(conn)
+
     def verify_email(self, verification_token: str) -> dict:
         """
         Verify a user's email using the verification token.
@@ -898,3 +1043,17 @@ def update_user_admin_status(user_id: str, is_admin: bool, admin_role: str = "st
 def suspend_user(user_id: str, suspended: bool = True) -> dict:
     """Wrapper function for suspending/unsuspending users (admin only)"""
     return auth_manager.suspend_user(user_id, suspended)
+
+
+def update_user_profile(user_id: str, first_name: str = None, last_name: str = None,
+                        bio: str = None, avatar_url: str = None, display_name: str = None) -> dict:
+    """Wrapper function for updating user profile"""
+    return auth_manager.update_user_profile(user_id, first_name, last_name, bio, avatar_url, display_name)
+
+
+def update_user_preferences(user_id: str, theme: str = None,
+                            notifications_enabled: bool = None, email_notifications: bool = None,
+                            privacy_settings: dict = None, language: str = None) -> dict:
+    """Wrapper function for updating user preferences"""
+    return auth_manager.update_user_preferences(user_id, theme, notifications_enabled,
+                                                  email_notifications, privacy_settings, language)
