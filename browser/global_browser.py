@@ -58,7 +58,7 @@ def find_chromium_executable() -> str:
     playwright_paths = [
         os.path.expanduser("~/.cache/ms-playwright"),  # Linux 用户目录
         "/root/.cache/ms-playwright",  # Linux root 用户
-        "/home/minimax/.cache/ms-playwright",  # minimax 用户
+        "/home/user/.cache/ms-playwright",  # generic user
         os.environ.get("PLAYWRIGHT_BROWSERS_PATH", ""),  # 自定义路径
     ]
 
