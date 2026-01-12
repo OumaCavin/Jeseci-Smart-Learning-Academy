@@ -6805,6 +6805,48 @@ walker get_execution_history {
     }
 }
 
+walker execute_code {
+    has code: str = "";
+    has entry_point: str = "main";
+
+    can execute_code with entry {
+        import code_execution_store as code_store_module;
+
+        user_id = request_context_module.get_user_id();
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
+        }
+
+        if not self.code {
+            report {"success": False, "error": "Code content is required"} ;
+            return;
+        }
+
+        result = code_store_module.execute_code(
+            user_id=user_id,
+            code=self.code,
+            entry_point=self.entry_point
+        );
+
+        if result.success {
+            report {
+                "success": True,
+                "output": result.output,
+                "stderr": result.stderr,
+                "execution_time_ms": result.execution_time_ms,
+                "history_id": result.history_id
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.error,
+                "execution_time_ms": result.execution_time_ms
+            } ;
+        }
+    }
+}
+
 walker create_folder {
     has name: str = "";
     has description: str = "";

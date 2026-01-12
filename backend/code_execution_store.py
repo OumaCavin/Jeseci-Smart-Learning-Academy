@@ -593,7 +593,66 @@ class CodeSnippetStore:
             
         finally:
             conn.close()
-    
+
+    # =========================================================================
+    # Code Execution Operations
+    # =========================================================================
+
+    def execute_code(self, user_id: int, code: str, entry_point: str = "main") -> Dict[str, Any]:
+        """Execute Jac code and record the execution result"""
+        import time
+        start_time = time.time()
+
+        try:
+            # Import here to avoid circular imports
+            from jac_interpreter import execute_jac_code
+
+            # Execute the code
+            result = execute_jac_code(code, entry_point)
+
+            execution_time_ms = int((time.time() - start_time) * 1000)
+
+            # Record the execution
+            history_id = self.record_execution(
+                user_id=user_id,
+                code_content=code,
+                status="success" if not result.get("error") else "error",
+                output=result.get("output", ""),
+                error_message=result.get("error"),
+                execution_time_ms=execution_time_ms,
+                entry_point=entry_point
+            )
+
+            return {
+                "success": True,
+                "output": result.get("output", ""),
+                "stderr": result.get("stderr", ""),
+                "execution_time_ms": execution_time_ms,
+                "history_id": history_id
+            }
+
+        except Exception as e:
+            execution_time_ms = int((time.time() - start_time) * 1000)
+            error_message = str(e)
+
+            # Record the failed execution
+            self.record_execution(
+                user_id=user_id,
+                code_content=code,
+                status="error",
+                output="",
+                error_message=error_message,
+                execution_time_ms=execution_time_ms,
+                entry_point=entry_point
+            )
+
+            logger.error(f"Code execution error: {e}")
+            return {
+                "success": False,
+                "error": error_message,
+                "execution_time_ms": execution_time_ms
+            }
+
     def get_snippet_history(self, snippet_id: str, limit: int = 10) -> List[Dict]:
         """Get execution history for a specific snippet"""
         conn = get_db_connection()
