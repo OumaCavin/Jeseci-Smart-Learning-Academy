@@ -26,6 +26,7 @@ import activity_store as activity_module;
 import collaboration_store as collaboration_module;
 import advanced_collaboration_store as advanced_collab_module;
 import request_context as request_context_module;
+import user_dashboard_store as user_dashboard_module;
 
 # ==============================================================================
 # API WALKERS - Core Backend Services
@@ -299,11 +300,49 @@ walker user_register {
 }
 
 # ==============================================================================
-# Course Endpoints
+# Course Endpoints (Database-backed)
 # ==============================================================================
+walker get_courses {
+    has user_id: str = "";
+
+    can get_courses with entry {
+        # Get user_id from context if not provided
+        actual_user_id = self.user_id;
+        if not actual_user_id {
+            actual_user_id = request_context_module.get_user_id();
+        }
+
+        # Call the user dashboard store
+        result = user_dashboard_module.get_courses(actual_user_id);
+
+        if result.get("success") {
+            report {
+                "success": true,
+                "courses": result.get("courses", []),
+                "total": result.get("total", 0)
+            } ;
+        } else {
+            report {
+                "success": false,
+                "error": result.get("error", "Failed to get courses")
+            } ;
+        }
+    }
+}
+
+# Legacy walker for backward compatibility
 walker courses {
     can courses with entry {
-        # Jac Language Programming Courses
+        # Try to get courses from database
+        user_id = request_context_module.get_user_id();
+        result = user_dashboard_module.get_courses(user_id);
+
+        if result.get("success") and len(result.get("courses", [])) > 0 {
+            report {"success": true, "courses": result.get("courses"), "total": result.get("total")} ;
+            return;
+        }
+
+        # Fallback to static data if no courses in database
         courses = [
             {
                 "course_id": "jac_fundamentals",
@@ -355,7 +394,7 @@ walker courses {
             }
         ];
 
-        report {"success": True, "courses": courses, "total": len(courses)} ;
+        report {"success": true, "courses": courses, "total": len(courses)} ;
     }
 }
 
@@ -377,22 +416,62 @@ walker course_create {
 }
 
 # ==============================================================================
-# Progress Tracking
+# User Dashboard - Progress Tracking (Database-backed)
 # ==============================================================================
+walker get_user_progress {
+    has user_id: str = "";
+
+    can get_user_progress with entry {
+        # Get user_id from context if not provided
+        actual_user_id = self.user_id;
+        if not actual_user_id {
+            actual_user_id = request_context_module.get_user_id();
+        }
+
+        if not actual_user_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        # Call the user dashboard store
+        result = user_dashboard_module.get_user_progress(actual_user_id);
+
+        if result.get("success") {
+            report {
+                "success": true,
+                "user_id": actual_user_id,
+                "progress": result.get("progress", {}),
+                "concept_progress": result.get("concept_progress", []),
+                "path_progress": result.get("path_progress", [])
+            } ;
+        } else {
+            report {
+                "success": false,
+                "error": result.get("error", "Failed to get progress")
+            } ;
+        }
+    }
+}
+
+# Legacy walker for backward compatibility
 walker user_progress {
     has user_id: str;
 
     can user_progress with entry {
+        # Redirect to new implementation
+        walker = get_user_progress(user_id=self.user_id);
+        result = user_dashboard_module.get_user_progress(self.user_id);
+
         progress_data = {
             "progress": {
-                "courses_completed": 3,
-                "lessons_completed": 15,
-                "total_study_time": 450,
-                "current_streak": 5,
-                "average_score": 85.5
+                "courses_completed": result.get("progress", {}).get("courses_completed", 3),
+                "lessons_completed": result.get("progress", {}).get("lessons_completed", 15),
+                "total_study_time": result.get("progress", {}).get("total_study_time", 450),
+                "current_streak": result.get("progress", {}).get("current_streak", 5),
+                "average_score": result.get("progress", {}).get("average_score", 85.5)
             },
             "analytics": {
-                "modules_completed": 5,
+                "modules_completed": result.get("progress", {}).get("concepts_completed", 5),
                 "completion_rate": 60.0,
                 "total_sessions": 10,
                 "completed_sessions": 3,
@@ -465,44 +544,96 @@ walker learning_session_end {
 }
 
 # ==============================================================================
-# Analytics
+# Learning Analytics (Database-backed)
 # ==============================================================================
+walker get_learning_analytics {
+    has user_id: str = "";
+
+    can get_learning_analytics with entry {
+        # Get user_id from context if not provided
+        actual_user_id = self.user_id;
+        if not actual_user_id {
+            actual_user_id = request_context_module.get_user_id();
+        }
+
+        if not actual_user_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        # Call the user dashboard store
+        result = user_dashboard_module.get_learning_analytics(actual_user_id);
+
+        if result.get("success") {
+            report {
+                "success": true,
+                "user_id": actual_user_id,
+                "learning_analytics": result.get("learning_analytics", {}),
+                "recommendations": result.get("recommendations", []),
+                "strengths": result.get("strengths", []),
+                "areas_for_improvement": result.get("areas_for_improvement", []),
+                "generated_at": result.get("generated_at")
+            } ;
+        } else {
+            report {
+                "success": false,
+                "error": result.get("error", "Failed to get analytics")
+            } ;
+        }
+    }
+}
+
+# Legacy walker for backward compatibility
 walker analytics_generate {
     has user_id: str;
 
     can analytics_generate with entry {
         import datetime;
 
-        learning_analytics = {
-            "modules_completed": 5,
-            "total_study_time": 225,
-            "average_score": 87.5,
-            "engagement_score": 75.0,
-            "knowledge_retention": 85,
-            "learning_velocity": "Moderate",
-            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-        };
+        # Get real data from database
+        result = user_dashboard_module.get_learning_analytics(self.user_id);
 
-        recommendations = [
-            "Consider advancing to intermediate-level courses",
-            "Explore the AI generator for deeper concepts",
-            "Maintain your learning streak for better retention"
-        ];
+        if result.get("success") {
+            report {
+                "user_id": self.user_id,
+                "learning_analytics": result.get("learning_analytics", {}),
+                "recommendations": result.get("recommendations", []),
+                "strengths": result.get("strengths", []),
+                "areas_for_improvement": result.get("areas_for_improvement", [])
+            } ;
+        } else {
+            # Fallback to static data
+            learning_analytics = {
+                "modules_completed": 5,
+                "total_study_time": 225,
+                "average_score": 87.5,
+                "engagement_score": 75.0,
+                "knowledge_retention": 85,
+                "learning_velocity": "Moderate",
+                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            };
 
-        strengths = ["Consistent learning", "Practical application"];
+            recommendations = [
+                "Consider advancing to intermediate-level courses",
+                "Explore the AI generator for deeper concepts",
+                "Maintain your learning streak for better retention"
+            ];
 
-        areas_for_improvement = [
-            "Practice more exercises",
-            "Review completed material"
-        ];
+            strengths = ["Consistent learning", "Practical application"];
 
-        report {
-            "user_id": self.user_id,
-            "learning_analytics": learning_analytics,
-            "recommendations": recommendations,
-            "strengths": strengths,
-            "areas_for_improvement": areas_for_improvement
-        } ;
+            areas_for_improvement = [
+                "Practice more exercises",
+                "Review completed material"
+            ];
+
+            report {
+                "user_id": self.user_id,
+                "learning_analytics": learning_analytics,
+                "recommendations": recommendations,
+                "strengths": strengths,
+                "areas_for_improvement": areas_for_improvement
+            } ;
+        }
     }
 }
 
@@ -1057,10 +1188,100 @@ walker concepts {
 }
 
 # ==============================================================================
-# Quizzes
+# Quizzes (Database-backed)
 # ==============================================================================
+walker get_quizzes {
+    has user_id: str = "";
+
+    can get_quizzes with entry {
+        # Get user_id from context if not provided
+        actual_user_id = self.user_id;
+        if not actual_user_id {
+            actual_user_id = request_context_module.get_user_id();
+        }
+
+        # Call the user dashboard store
+        result = user_dashboard_module.get_quizzes(actual_user_id);
+
+        if result.get("success") {
+            report {
+                "success": true,
+                "quizzes": result.get("quizzes", []),
+                "total": result.get("total", 0)
+            } ;
+        } else {
+            report {
+                "success": false,
+                "error": result.get("error", "Failed to get quizzes")
+            } ;
+        }
+    }
+}
+
+walker submit_quiz_attempt {
+    has quiz_id: str;
+    has answers: list;
+    has user_id: str = "";
+
+    can submit_quiz_attempt with entry {
+        # Get user_id from context if not provided
+        actual_user_id = self.user_id;
+        if not actual_user_id {
+            actual_user_id = request_context_module.get_user_id();
+        }
+
+        if not actual_user_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        # Convert answers list to dictionary if needed
+        answers_dict = {};
+        if isinstance(self.answers, list) {
+            for i, answer in enumerate(self.answers) {
+                answers_dict[str(i)] = answer;
+            }
+        } else {
+            answers_dict = self.answers;
+        }
+
+        # Call the user dashboard store
+        result = user_dashboard_module.submit_quiz_attempt(
+            actual_user_id, self.quiz_id, answers_dict
+        );
+
+        if result.get("success") {
+            report {
+                "success": true,
+                "quiz_id": self.quiz_id,
+                "score": result.get("score"),
+                "total_questions": result.get("total_questions"),
+                "correct_answers": result.get("correct_answers"),
+                "passed": result.get("passed"),
+                "message": result.get("message")
+            } ;
+        } else {
+            report {
+                "success": false,
+                "error": result.get("error", "Failed to submit quiz")
+            } ;
+        }
+    }
+}
+
+# Legacy walker for backward compatibility
 walker quizzes {
     can quizzes with entry {
+        # Try to get quizzes from database
+        user_id = request_context_module.get_user_id();
+        result = user_dashboard_module.get_quizzes(user_id);
+
+        if result.get("success") and len(result.get("quizzes", [])) > 0 {
+            report {"success": true, "quizzes": result.get("quizzes"), "total": result.get("total")} ;
+            return;
+        }
+
+        # Fallback to static data if no quizzes in database
         # Interactive quizzes
         quizzes = [
             {
@@ -1144,10 +1365,11 @@ walker quizzes {
             }
         ];
 
-        report {"success": True, "quizzes": quizzes, "total": len(quizzes)} ;
+        report {"success": true, "quizzes": quizzes, "total": len(quizzes)} ;
     }
 }
 
+# Legacy quiz_submit walker for backward compatibility
 walker quiz_submit {
     has quiz_id: str;
     has answers: list;
@@ -1162,7 +1384,7 @@ walker quiz_submit {
         }
 
         report {
-            "success": True,
+            "success": true,
             "quiz_id": self.quiz_id,
             "score": score,
             "passed": score >= 70,
@@ -1172,14 +1394,65 @@ walker quiz_submit {
 }
 
 # ==============================================================================
-# Achievements / Motivator
+# Achievements / Motivator (Database-backed)
 # ==============================================================================
+walker get_achievements {
+    has user_id: str = "";
+
+    can get_achievements with entry {
+        # Get user_id from context if not provided
+        actual_user_id = self.user_id;
+        if not actual_user_id {
+            actual_user_id = request_context_module.get_user_id();
+        }
+
+        if not actual_user_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        # Call the user dashboard store
+        result = user_dashboard_module.get_achievements(actual_user_id);
+
+        if result.get("success") {
+            report {
+                "success": true,
+                "achievements": result.get("achievements", []),
+                "total": result.get("total", 0),
+                "earned_count": result.get("earned_count", 0),
+                "total_points": result.get("total_points", 0)
+            } ;
+        } else {
+            report {
+                "success": false,
+                "error": result.get("error", "Failed to get achievements")
+            } ;
+        }
+    }
+}
+
+# Legacy walker for backward compatibility
 walker achievements {
     has user_id: str;
 
     can achievements with entry {
         import datetime;
 
+        # Try to get achievements from database
+        result = user_dashboard_module.get_achievements(self.user_id);
+
+        if result.get("success") and len(result.get("achievements", [])) > 0 {
+            report {
+                "success": true,
+                "achievements": result.get("achievements"),
+                "total": result.get("total"),
+                "earned_count": result.get("earned_count"),
+                "total_points": result.get("total_points")
+            } ;
+            return;
+        }
+
+        # Fallback to static data if no achievements in database
         # All possible achievements
         all_achievements = [
             {
