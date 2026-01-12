@@ -11,8 +11,12 @@ interface QuizManagerProps {
   activeSection: string;
 }
 
+type ViewMode = 'active' | 'deleted';
+
 const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
+  const [viewMode, setViewMode] = useState<ViewMode>('active');
   const [quizzes, setQuizzes] = useState<AdminQuiz[]>([]);
+  const [deletedQuizzes, setDeletedQuizzes] = useState<AdminQuiz[]>([]);
   const [concepts, setConcepts] = useState<any[]>([]);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -20,6 +24,8 @@ const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showAIGenerateModal, setShowAIGenerateModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     if (activeSection === 'quizzes') {
@@ -27,7 +33,7 @@ const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
       loadAnalytics();
       loadConcepts();
     }
-  }, [activeSection]);
+  }, [activeSection, viewMode]);
 
   const loadConcepts = async () => {
     try {
@@ -58,6 +64,17 @@ const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
     }
   };
 
+  const loadDeletedQuizzes = async () => {
+    try {
+      const response = await adminApi.getDeletedQuizzes();
+      if (response.success) {
+        setDeletedQuizzes(response.quizzes || []);
+      }
+    } catch (err: any) {
+      console.error('Error loading deleted quizzes:', err);
+    }
+  };
+
   const loadAnalytics = async () => {
     try {
       const response = await adminApi.getQuizAnalytics();
@@ -70,15 +87,71 @@ const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
     }
   };
 
-  const handleDelete = async (quizId: string) => {
-    if (!confirm('Are you sure you want to delete this quiz?')) return;
+  const handleDelete = (quizId: string, title: string) => {
+    setDeleteTarget({ id: quizId, name: title });
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
 
     try {
-      const response = await adminApi.deleteQuiz(quizId);
+      const response = await adminApi.deleteQuiz(deleteTarget.id, 'admin', '127.0.0.1');
       if (response.success) {
+        alert(`${deleteTarget.name} deleted successfully`);
         loadQuizzes();
+        loadDeletedQuizzes();
       } else {
         alert('Failed to delete: ' + response.message);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    } finally {
+      setShowDeleteConfirm(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  const handleRestore = async (quizId: string, title: string) => {
+    try {
+      const response = await adminApi.restoreQuiz(quizId, 'admin', '127.0.0.1');
+      if (response.success) {
+        alert(`${title} restored successfully`);
+        loadQuizzes();
+        loadDeletedQuizzes();
+      } else {
+        alert('Failed to restore: ' + response.message);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
+  };
+
+  const handleExport = async (format: 'csv' | 'json') => {
+    try {
+      let response;
+      if (format === 'csv') {
+        response = await adminApi.exportQuizzesCsv();
+      } else {
+        response = await adminApi.exportQuizzesJson();
+      }
+
+      if (response.success) {
+        // Create and download file
+        const blob = new Blob([response.data], {
+          type: format === 'csv' ? 'text/csv' : 'application/json'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `quizzes_export_${new Date().toISOString().split('T')[0]}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        alert('Export downloaded successfully!');
+      } else {
+        alert('Failed to export: ' + response.error);
       }
     } catch (err: any) {
       alert('Error: ' + err.message);
@@ -107,8 +180,191 @@ const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
     );
   }
 
+  const renderDeletedQuizzes = () => (
+    <div className="admin-card">
+      <div className="admin-card-header">
+        <h2>Deleted Quizzes ({deletedQuizzes.length})</h2>
+      </div>
+      <div className="admin-card-body" style={{ padding: 0 }}>
+        {deletedQuizzes.length > 0 ? (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Quiz Title</th>
+                <th>Difficulty</th>
+                <th>Deleted By</th>
+                <th>Deleted At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deletedQuizzes.map((quiz) => (
+                <tr key={quiz.quiz_id}>
+                  <td>
+                    <div>
+                      <div style={{ fontWeight: '500' }}>{quiz.title}</div>
+                      <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                        {quiz.description.substring(0, 60)}...
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`badge ${getDifficultyBadge(quiz.difficulty)}`}>
+                      {quiz.difficulty}
+                    </span>
+                  </td>
+                  <td>{quiz.deleted_by || 'Unknown'}</td>
+                  <td>{quiz.deleted_at ? new Date(quiz.deleted_at).toLocaleDateString() : 'N/A'}</td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-success"
+                      onClick={() => handleRestore(quiz.quiz_id, quiz.title)}
+                    >
+                      ♻️ Restore
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="empty-state">
+            <div className="empty-icon">🗑️</div>
+            <h3>No Deleted Quizzes</h3>
+            <p>Deleted quizzes will appear here</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderActiveQuizzes = () => (
+    <div className="admin-card">
+      <div className="admin-card-header">
+        <h2>All Quizzes ({quizzes.length})</h2>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowAnalytics(!showAnalytics)}
+          >
+            📊 Analytics
+          </button>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowAIGenerateModal(true)}
+            style={{ background: '#8b5cf6', color: 'white' }}
+          >
+            🤖 AI Generate
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
+            ➕ Create Quiz
+          </button>
+        </div>
+      </div>
+      <div className="admin-card-body" style={{ padding: 0 }}>
+        {quizzes.length > 0 ? (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Quiz Title</th>
+                <th>Course ID</th>
+                <th>Difficulty</th>
+                <th>Questions</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quizzes.map((quiz) => (
+                <tr key={quiz.quiz_id}>
+                  <td>
+                    <div>
+                      <div style={{ fontWeight: '500' }}>{quiz.title}</div>
+                      <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                        {quiz.description.substring(0, 60)}...
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <code style={{ fontSize: '12px', background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>
+                      {quiz.course_id || 'N/A'}
+                    </code>
+                  </td>
+                  <td>
+                    <span className={`badge ${getDifficultyBadge(quiz.difficulty)}`}>
+                      {quiz.difficulty}
+                    </span>
+                  </td>
+                  <td>{quiz.questions_count} questions</td>
+                  <td>{new Date(quiz.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button className="btn btn-sm btn-secondary">Edit</button>
+                      <button className="btn btn-sm btn-secondary">Preview</button>
+                      <button 
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleDelete(quiz.quiz_id, quiz.title)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="empty-state">
+            <div className="empty-icon">📝</div>
+            <h3>No Quizzes Yet</h3>
+            <p>Create your first quiz to test student knowledge</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="quiz-manager">
+      {/* View Mode Toggle */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            className={`btn ${viewMode === 'active' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => {
+              setViewMode('active');
+            }}
+          >
+            ✅ Active Quizzes
+          </button>
+          <button
+            className={`btn ${viewMode === 'deleted' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => {
+              setViewMode('deleted');
+              loadDeletedQuizzes();
+            }}
+          >
+            🗑️ Deleted Quizzes ({deletedQuizzes.length})
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => handleExport('csv')}
+            title="Export to CSV"
+          >
+            📥 CSV
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => handleExport('json')}
+            title="Export to JSON"
+          >
+            📥 JSON
+          </button>
+        </div>
+      </div>
+
       {/* Analytics Summary */}
       <div className="stats-grid" style={{ marginBottom: '24px' }}>
         <div className="stat-card">
@@ -133,90 +389,8 @@ const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
         </div>
       </div>
 
-      {/* Quizzes Table */}
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h2>All Quizzes ({quizzes.length})</h2>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button 
-              className="btn btn-secondary" 
-              onClick={() => setShowAnalytics(!showAnalytics)}
-            >
-              📊 Analytics
-            </button>
-            <button 
-              className="btn btn-secondary" 
-              onClick={() => setShowAIGenerateModal(true)}
-              style={{ background: '#8b5cf6', color: 'white' }}
-            >
-              🤖 AI Generate
-            </button>
-            <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-              ➕ Create Quiz
-            </button>
-          </div>
-        </div>
-        <div className="admin-card-body" style={{ padding: 0 }}>
-          {quizzes.length > 0 ? (
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Quiz Title</th>
-                  <th>Course ID</th>
-                  <th>Difficulty</th>
-                  <th>Questions</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quizzes.map((quiz) => (
-                  <tr key={quiz.quiz_id}>
-                    <td>
-                      <div>
-                        <div style={{ fontWeight: '500' }}>{quiz.title}</div>
-                        <div style={{ fontSize: '13px', color: '#6b7280' }}>
-                          {quiz.description.substring(0, 60)}...
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <code style={{ fontSize: '12px', background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>
-                        {quiz.course_id || 'N/A'}
-                      </code>
-                    </td>
-                    <td>
-                      <span className={`badge ${getDifficultyBadge(quiz.difficulty)}`}>
-                        {quiz.difficulty}
-                      </span>
-                    </td>
-                    <td>{quiz.questions_count} questions</td>
-                    <td>{new Date(quiz.created_at).toLocaleDateString()}</td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button className="btn btn-sm btn-secondary">Edit</button>
-                        <button className="btn btn-sm btn-secondary">Preview</button>
-                        <button 
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(quiz.quiz_id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="empty-state">
-              <div className="empty-icon">📝</div>
-              <h3>No Quizzes Yet</h3>
-              <p>Create your first quiz to test student knowledge</p>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Content Based on View Mode */}
+      {viewMode === 'active' ? renderActiveQuizzes() : renderDeletedQuizzes()}
 
       {/* Create Quiz Modal */}
       {showCreateModal && (
@@ -239,6 +413,47 @@ const QuizManager: React.FC<QuizManagerProps> = ({ activeSection }) => {
             loadQuizzes();
           }}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && deleteTarget && (
+        <div className="modal-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}>
+          <div className="modal-content" style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            width: '100%',
+            maxWidth: '400px',
+          }}>
+            <h2 style={{ marginTop: 0 }}>Confirm Delete</h2>
+            <p>Are you sure you want to delete <strong>{deleteTarget.name}</strong>?</p>
+            <p style={{ color: '#6b7280', fontSize: '14px' }}>
+              This quiz will be moved to the Deleted section and can be restored later.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button className="btn btn-secondary" onClick={() => {
+                setShowDeleteConfirm(false);
+                setDeleteTarget(null);
+              }}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={confirmDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

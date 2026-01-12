@@ -511,10 +511,38 @@ class AdminApiService {
     });
   }
 
-  async deleteQuiz(quizId: string): Promise<{ success: boolean; message: string }> {
+  async deleteQuiz(quizId: string, deletedBy?: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
     return this.makeRequest('/walker/admin_quizzes_delete', {
       method: 'POST',
-      body: JSON.stringify({ quiz_id: quizId }),
+      body: JSON.stringify({ quiz_id: quizId, deleted_by: deletedBy, ip_address: ipAddress }),
+    });
+  }
+
+  async restoreQuiz(quizId: string, restoredBy?: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
+    return this.makeRequest('/walker/admin_quizzes_restore', {
+      method: 'POST',
+      body: JSON.stringify({ quiz_id: quizId, restored_by: restoredBy, ip_address: ipAddress }),
+    });
+  }
+
+  async getDeletedQuizzes(): Promise<{ success: boolean; quizzes: AdminQuiz[]; total: number }> {
+    return this.makeRequest('/walker/admin_quizzes_deleted', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async exportQuizzesCsv(): Promise<{ success: boolean; format: string; data: string; message: string }> {
+    return this.makeRequest('/walker/admin_quizzes_export_csv', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async exportQuizzesJson(): Promise<{ success: boolean; format: string; data: string; message: string }> {
+    return this.makeRequest('/walker/admin_quizzes_export_json', {
+      method: 'POST',
+      body: JSON.stringify({}),
     });
   }
 

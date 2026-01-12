@@ -4414,23 +4414,100 @@ walker admin_quizzes_update {
 
 walker admin_quizzes_delete {
     has quiz_id: str;
+    has deleted_by: str = "";
+    has ip_address: str = "";
 
     can admin_quizzes_delete with entry {
         # Initialize store with error handling
         quiz_store.initialize_quizzes();
 
-        result = quiz_store.delete_quiz(self.quiz_id);
+        result = quiz_store.delete_quiz(self.quiz_id, self.deleted_by, self.ip_address);
 
         if result['success'] {
             report {
                 "success": True,
                 "quiz_id": self.quiz_id,
-                "message": "Quiz deleted successfully"
+                "message": result.get('message', 'Quiz deleted successfully')
             } ;
         } else {
             report {
                 "success": False,
                 "error": result.get('error', 'Failed to delete quiz')
+            } ;
+        }
+    }
+}
+
+walker admin_quizzes_restore {
+    has quiz_id: str;
+    has restored_by: str = "";
+    has ip_address: str = "";
+
+    can admin_quizzes_restore with entry {
+        result = quiz_store.restore_quiz(self.quiz_id, self.restored_by, self.ip_address);
+
+        if result['success'] {
+            report {
+                "success": True,
+                "quiz_id": self.quiz_id,
+                "message": "Quiz restored successfully"
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to restore quiz')
+            } ;
+        }
+    }
+}
+
+walker admin_quizzes_deleted {
+    can admin_quizzes_deleted with entry {
+        deleted_quizzes = quiz_store.get_deleted_quizzes();
+
+        report {
+            "success": True,
+            "quizzes": deleted_quizzes,
+            "total": len(deleted_quizzes)
+        } ;
+    }
+}
+
+walker admin_quizzes_export_csv {
+    can admin_quizzes_export_csv with entry {
+        csv_data = quiz_store.export_quizzes_to_csv();
+        
+        if csv_data {
+            report {
+                "success": True,
+                "format": "csv",
+                "data": csv_data,
+                "message": "CSV export generated successfully"
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": "Failed to export quizzes to CSV"
+            } ;
+        }
+    }
+}
+
+walker admin_quizzes_export_json {
+    can admin_quizzes_export_json with entry {
+        json_data = quiz_store.export_quizzes_to_json();
+        
+        if json_data {
+            report {
+                "success": True,
+                "format": "json",
+                "data": json_data,
+                "message": "JSON export generated successfully"
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": "Failed to export quizzes to JSON"
             } ;
         }
     }

@@ -180,11 +180,11 @@ def update_quiz(quiz_id, title="", description="", difficulty=""):
     
     return {"success": False, "error": "Failed to update quiz"}
 
-def delete_quiz(quiz_id):
-    """Delete a quiz from PostgreSQL"""
+def delete_quiz(quiz_id, deleted_by=None, ip_address=None):
+    """Soft delete a quiz from PostgreSQL"""
     pg_manager = get_postgres_manager()
     
-    check_query = "SELECT quiz_id FROM jeseci_academy.quizzes WHERE quiz_id = %s"
+    check_query = "SELECT quiz_id, title, is_deleted FROM jeseci_academy.quizzes WHERE quiz_id = %s"
     try:
         existing = pg_manager.execute_query(check_query, (quiz_id,))
     except Exception as e:
@@ -194,17 +194,48 @@ def delete_quiz(quiz_id):
     if not existing:
         return {"success": False, "error": "Quiz not found"}
     
-    delete_query = "DELETE FROM jeseci_academy.quizzes WHERE quiz_id = %s"
+    existing = existing[0]
+    
+    # Check if already deleted
+    if existing.get('is_deleted', False):
+        return {"success": False, "error": "Quiz already deleted"}
+    
+    old_values = {
+        'quiz_id': existing.get('quiz_id'),
+        'title': existing.get('title'),
+        'is_deleted': False
+    }
+    
+    # Soft delete - update is_deleted flag
+    delete_query = """
+    UPDATE jeseci_academy.quizzes 
+    SET is_deleted = true, deleted_at = NOW(), deleted_by = %s, updated_at = NOW()
+    WHERE quiz_id = %s
+    """
     try:
-        result = pg_manager.execute_query(delete_query, (quiz_id,), fetch=False)
+        result = pg_manager.execute_query(delete_query, (deleted_by or 'system', quiz_id,), fetch=False)
     except Exception as e:
         logger.error(f"Error deleting quiz: {e}")
         return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
+        # Log audit entry if audit module exists
+        try:
+            import audit_logger as audit_module
+            audit_module.log_soft_delete(
+                table_name="quizzes",
+                record_id=quiz_id,
+                old_values=old_values,
+                performed_by=deleted_by,
+                ip_address=ip_address,
+                additional_context={"action": "delete_quiz", "quiz_title": old_values.get('title')}
+            )
+        except:
+            pass  # Audit logging is optional
+        
         global cache_initialized
         cache_initialized = False
-        return {"success": True, "quiz_id": quiz_id}
+        return {"success": True, "quiz_id": quiz_id, "message": "Quiz deleted successfully (soft delete)"}
     
     return {"success": False, "error": "Failed to delete quiz"}
 
@@ -609,3 +640,214 @@ def save_ai_generated_quiz(quiz_data: Dict[str, Any], topic: str, difficulty: st
         return {"success": True, "quiz_id": quiz_id, "quiz": new_quiz}
     
     return {"success": False, "error": "Failed to save AI quiz"}
+
+def restore_quiz(quiz_id, restored_by=None, ip_address=None):
+    """Restore a soft-deleted quiz
+    
+    Args:
+        quiz_id: The quiz_id of the quiz to restore
+        restored_by: Username of the admin performing the restore (for tracking)
+        ip_address: IP address of the request for geolocation tracking
+    """
+    pg_manager = get_postgres_manager()
+    
+    # Get old values before updating for audit log
+    check_query = "SELECT quiz_id, title, description, is_deleted FROM jeseci_academy.quizzes WHERE quiz_id = %s AND is_deleted = true"
+    try:
+        existing = pg_manager.execute_query(check_query, (quiz_id,))
+    except Exception as e:
+        logger.error(f"Error checking quiz existence for restore: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"
+    
+    if not existing:
+        return {"success": False, "error": "Quiz not found or not deleted"}
+    
+    existing = existing[0]
+    old_values = {
+        'quiz_id': existing.get('quiz_id'),
+        'title': existing.get('title'),
+        'description': existing.get('description'),
+        'is_deleted': True
+    }
+    
+    # Restore the quiz
+    restore_query = """
+    UPDATE jeseci_academy.quizzes 
+    SET is_deleted = false, deleted_at = null, deleted_by = null, updated_at = NOW()
+    WHERE quiz_id = %s
+    """
+    try:
+        result = pg_manager.execute_query(restore_query, (quiz_id,), fetch=False)
+    except Exception as e:
+        logger.error(f"Error restoring quiz: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"
+    
+    if result or result is not None:
+        # Log audit entry if audit module exists
+        try:
+            import audit_logger as audit_module
+            audit_module.log_restore(
+                table_name="quizzes",
+                record_id=quiz_id,
+                old_values=old_values,
+                performed_by=restored_by,
+                ip_address=ip_address,
+                additional_context={"action": "restore_quiz", "quiz_title": old_values.get('title')}
+            )
+        except:
+            pass  # Audit logging is optional
+        
+        global cache_initialized
+        cache_initialized = False
+        return {"success": True, "quiz_id": quiz_id, "message": "Quiz restored successfully"}
+    
+    return {"success": False, "error": "Failed to restore quiz"}
+
+def get_deleted_quizzes():
+    """Get all soft-deleted quizzes (for trash view)
+    
+    Returns:
+        List of soft-deleted quiz objects with deletion metadata
+    """
+    pg_manager = get_postgres_manager()
+    
+    query = """
+    SELECT quiz_id, title, description, concept_id, lesson_id, 
+           passing_score, time_limit_minutes, max_attempts, is_published,
+           created_at, updated_at, deleted_at, deleted_by
+    FROM jeseci_academy.quizzes
+    WHERE is_deleted = true
+    ORDER BY deleted_at DESC
+    """
+    
+    try:
+        result = pg_manager.execute_query(query)
+    except Exception as e:
+        logger.error(f"Error getting deleted quizzes: {e}")
+        return []
+    
+    quizzes = []
+    for row in result or []:
+        # Determine difficulty based on passing score
+        passing_score = row.get('passing_score', 70)
+        difficulty = "beginner" if passing_score < 75 else ("intermediate" if passing_score < 85 else "advanced")
+        
+        quizzes.append({
+            "quiz_id": row.get('quiz_id'),
+            "title": row.get('title'),
+            "description": row.get('description'),
+            "course_id": row.get('concept_id') or row.get('lesson_id'),
+            "difficulty": difficulty,
+            "questions_count": 0,
+            "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+            "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None,
+            "deleted_at": row.get('deleted_at').isoformat() if row.get('deleted_at') else None,
+            "deleted_by": row.get('deleted_by')
+        })
+    
+    return quizzes
+
+def export_quizzes_to_csv():
+    """Export all quizzes (active and deleted) to CSV format
+    
+    Returns:
+        CSV string of all quizzes
+    """
+    import csv
+    import io
+    
+    pg_manager = get_postgres_manager()
+    
+    query = """
+    SELECT quiz_id, title, description, concept_id, lesson_id, 
+           passing_score, time_limit_minutes, max_attempts, is_published,
+           is_deleted, deleted_at, deleted_by, created_at, updated_at
+    FROM jeseci_academy.quizzes
+    ORDER BY created_at DESC
+    """
+    
+    try:
+        result = pg_manager.execute_query(query)
+    except Exception as e:
+        logger.error(f"Error exporting quizzes: {e}")
+        return ""
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow([
+        'quiz_id', 'title', 'description', 'concept_id', 'lesson_id',
+        'passing_score', 'time_limit_minutes', 'max_attempts', 'is_published',
+        'is_deleted', 'deleted_at', 'deleted_by', 'created_at', 'updated_at'
+    ])
+    
+    # Write data rows
+    for row in result or []:
+        writer.writerow([
+            row.get('quiz_id', ''),
+            row.get('title', ''),
+            row.get('description', ''),
+            row.get('concept_id', ''),
+            row.get('lesson_id', ''),
+            row.get('passing_score', ''),
+            row.get('time_limit_minutes', ''),
+            row.get('max_attempts', ''),
+            row.get('is_published', ''),
+            row.get('is_deleted', ''),
+            row.get('deleted_at', ''),
+            row.get('deleted_by', ''),
+            row.get('created_at', ''),
+            row.get('updated_at', '')
+        ])
+    
+    return output.getvalue()
+
+def export_quizzes_to_json():
+    """Export all quizzes (active and deleted) to JSON format
+    
+    Returns:
+        JSON string of all quizzes
+    """
+    import json
+    
+    pg_manager = get_postgres_manager()
+    
+    query = """
+    SELECT quiz_id, title, description, concept_id, lesson_id, 
+           passing_score, time_limit_minutes, max_attempts, is_published,
+           is_deleted, deleted_at, deleted_by, created_at, updated_at
+    FROM jeseci_academy.quizzes
+    ORDER BY created_at DESC
+    """
+    
+    try:
+        result = pg_manager.execute_query(query)
+    except Exception as e:
+        logger.error(f"Error exporting quizzes: {e}")
+        return json.dumps({"error": str(e)})
+    
+    quizzes = []
+    for row in result or []:
+        # Determine difficulty based on passing score
+        passing_score = row.get('passing_score', 70)
+        difficulty = "beginner" if passing_score < 75 else ("intermediate" if passing_score < 85 else "advanced")
+        
+        quizzes.append({
+            "quiz_id": row.get('quiz_id'),
+            "title": row.get('title'),
+            "description": row.get('description'),
+            "course_id": row.get('concept_id') or row.get('lesson_id'),
+            "difficulty": difficulty,
+            "passing_score": passing_score,
+            "time_limit_minutes": row.get('time_limit_minutes'),
+            "max_attempts": row.get('max_attempts'),
+            "is_published": row.get('is_published'),
+            "is_deleted": row.get('is_deleted'),
+            "deleted_at": row.get('deleted_at').isoformat() if row.get('deleted_at') else None,
+            "deleted_by": row.get('deleted_by'),
+            "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+            "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None
+        })
+    
+    return json.dumps({"quizzes": quizzes, "total": len(quizzes)}, indent=2)
