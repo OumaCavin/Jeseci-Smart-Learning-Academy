@@ -182,11 +182,20 @@ export interface Quiz {
   id: string;
   title: string;
   description: string;
-  questions: QuizQuestion[];
-  difficulty: string;
-  estimated_time: number;
+  concept_id?: string;
+  lesson_id?: string;
+  passing_score: number;
+  time_limit_minutes?: number;
+  max_attempts: number;
   completed: boolean;
-  score?: number;
+  best_score?: number;
+  attempts_count: number;
+  recent_attempts?: Array<{
+    attempt_id: string;
+    score: number;
+    is_passed: boolean;
+    completed_at?: string;
+  }>;
 }
 
 export interface QuizQuestion {
@@ -195,6 +204,11 @@ export interface QuizQuestion {
   options: string[];
   correct_answer: number;
   explanation: string;
+}
+
+export interface QuizSubmission {
+  quiz_id: string;
+  answers: Record<string, number>;
 }
 
 export interface Achievement {

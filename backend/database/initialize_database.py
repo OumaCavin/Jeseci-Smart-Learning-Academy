@@ -409,6 +409,32 @@ def create_assessment_tables(cursor):
     """)
     
     logger.info("✓ Assessment tables created: quizzes, quiz_attempts")
+    
+    # Seed default quizzes
+    default_quizzes = [
+        # Jac Language Basics
+        ('quiz_jac_variables', 'Variables and Data Types', 'Test your understanding of variables in Jac', 'jac_variables', None, 70, 15, 3),
+        ('quiz_jac_functions', 'Functions and Parameters', 'Test your knowledge of Jac functions', 'jac_functions', None, 70, 20, 3),
+        ('quiz_jac_osp', 'Object-Spatial Programming', 'Test your understanding of OSP concepts', 'jac_osp', None, 75, 25, 3),
+        
+        # Python Basics
+        ('quiz_python_syntax', 'Python Syntax Basics', 'Test Python syntax fundamentals', 'python_syntax', None, 70, 15, 3),
+        ('quiz_python_data', 'Python Data Structures', 'Test your knowledge of Python data types', 'python_data', None, 70, 20, 3),
+        
+        # General Programming
+        ('quiz_prog_basics', 'Programming Fundamentals', 'Test core programming concepts', 'prog_basics', None, 65, 15, 3),
+        ('quiz_oop_concepts', 'OOP Concepts', 'Test object-oriented programming understanding', 'oop_concepts', None, 75, 20, 3),
+    ]
+    
+    for quiz_id, title, description, concept_id, lesson_id, passing_score, time_limit, max_attempts in default_quizzes:
+        cursor.execute(f"""
+            INSERT INTO {DB_SCHEMA}.quizzes 
+            (quiz_id, title, description, concept_id, lesson_id, passing_score, time_limit_minutes, max_attempts, is_published)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, TRUE)
+            ON CONFLICT (quiz_id) DO NOTHING
+        """, (quiz_id, title, description, concept_id, lesson_id, passing_score, time_limit, max_attempts))
+    
+    logger.info("✓ Default quizzes seeded")
 
 
 def create_gamification_tables(cursor):
