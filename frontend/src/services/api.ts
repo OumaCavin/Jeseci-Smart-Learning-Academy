@@ -108,6 +108,9 @@ export interface LearningPathModule {
   type: 'lesson' | 'project' | 'quiz';
   duration: string;
   completed: boolean;
+  order_index?: number;
+  concepts?: string[];
+  description?: string;
 }
 
 export interface LearningPath {
@@ -129,6 +132,37 @@ export interface LearningPath {
   category: string;
   next_step: string;
   last_activity?: string;
+  is_enrolled?: boolean;
+}
+
+export interface LearningPathDetails {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  estimated_duration?: number;
+  target_audience: string;
+  is_published: boolean;
+  is_enrolled: boolean;
+  progress: number;
+  concepts: Array<{
+    concept_id: string;
+    name: string;
+    description?: string;
+    order_index: number;
+    is_required: boolean;
+  }>;
+  modules: LearningPathModule[];
+  prerequisites: string[];
+  skills_covered: string[];
+  enrollment?: {
+    enrolled_at?: string;
+    last_accessed?: string;
+    progress_percent: number;
+  };
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Concept {
@@ -802,9 +836,27 @@ class ApiService {
 
   // Learning Paths
   async getLearningPaths(): Promise<LearningPath[]> {
-    return this.makeRequest('/walker/learning_paths', {
+    return this.makeRequest('/walker/get_learning_paths', {
       method: 'POST',
       body: JSON.stringify({}),
+    });
+  }
+
+  async getLearningPathDetails(pathId: string): Promise<LearningPathDetails> {
+    return this.makeRequest('/walker/get_learning_path_details', {
+      method: 'POST',
+      body: JSON.stringify({
+        path_id: pathId
+      }),
+    });
+  }
+
+  async enrollInLearningPath(pathId: string): Promise<any> {
+    return this.makeRequest('/walker/enroll_in_learning_path', {
+      method: 'POST',
+      body: JSON.stringify({
+        path_id: pathId
+      }),
     });
   }
 

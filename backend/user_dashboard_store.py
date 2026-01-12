@@ -725,9 +725,337 @@ class UserDashboardStore:
                 "message": "Successfully enrolled in course",
                 "course_id": course_id
             }
-            
+
         except Exception as e:
             print(f"Error enrolling in course: {e}")
+            session.rollback()
+            return {"success": False, "error": str(e)}
+    
+    # =============================================================================
+    # Learning Paths (Database-backed)
+    # =============================================================================
+    
+    def get_learning_paths(self, user_id: str = "") -> Dict[str, Any]:
+        """
+        Get all available learning paths with detailed information
+        
+        Args:
+            user_id: Optional user ID to include enrollment and progress data
+            
+        Returns:
+            Dictionary containing list of learning paths with progress info
+        """
+        try:
+            session = self._get_or_create_session()
+            
+            # Get all published learning paths
+            paths = session.query(LearningPath).filter(
+                LearningPath.is_published == True
+            ).all()
+            
+            learning_paths = []
+            for path in paths:
+                # Get concepts in this path
+                path_concepts = session.query(LearningPathConcept).options(
+                    joinedload(LearningPathConcept.concept)
+                ).filter(LearningPathConcept.path_id == path.path_id).all()
+                
+                concepts = []
+                for pc in path_concepts:
+                    if pc.concept:
+                        concepts.append(pc.concept.concept_id)
+                
+                # Get lessons in this path
+                lessons = session.query(Lesson).filter(
+                    Lesson.learning_path_id == path.path_id
+                ).all()
+                
+                # Build modules from lessons
+                modules = []
+                for idx, lesson in enumerate(lessons):
+                    modules.append({
+                        "id": lesson.lesson_id,
+                        "title": lesson.title,
+                        "type": "lesson",
+                        "duration": f"{lesson.duration_minutes or 30} minutes" if lesson.duration_minutes else "30 minutes",
+                        "completed": False
+                    })
+                
+                # Get user enrollment and progress if user_id provided
+                user_progress = None
+                enrolled = False
+                completed_modules = 0
+                
+                if user_id:
+                    user = self.get_user_by_id(user_id)
+                    if user:
+                        enrollment = session.query(UserLearningPath).filter(
+                            and_(
+                                UserLearningPath.user_id == user.id,
+                                UserLearningPath.path_id == path.path_id
+                            )
+                        ).first()
+                        
+                        if enrollment:
+                            enrolled = True
+                            user_progress = round(enrollment.progress_percent, 1)
+                            completed_modules = int((user_progress / 100) * len(modules)) if modules else 0
+                
+                # Parse prerequisites if stored as JSON string
+                prereqs = []
+                if path.prerequisites:
+                    if isinstance(path.prerequisites, str):
+                        try:
+                            prereqs = json.loads(path.prerequisites)
+                        except:
+                            prereqs = []
+                    else:
+                        prereqs = path.prerequisites
+                
+                # Get learning outcomes if available
+                skills = []
+                if path.learning_outcomes:
+                    if isinstance(path.learning_outcomes, str):
+                        try:
+                            skills = json.loads(path.learning_outcomes)
+                        except:
+                            skills = []
+                    else:
+                        skills = path.learning_outcomes
+                
+                path_data = {
+                    "id": path.path_id,
+                    "title": path.title,
+                    "description": path.description or "",
+                    "courses": [],
+                    "modules": modules,
+                    "concepts": concepts,
+                    "skills_covered": skills,
+                    "prerequisites": prereqs,
+                    "total_modules": len(modules),
+                    "completed_modules": completed_modules,
+                    "duration": f"{path.estimated_duration or 8} weeks" if path.estimated_duration else "8 weeks",
+                    "estimated_hours": path.estimated_duration or 20,
+                    "difficulty": path.difficulty or "beginner",
+                    "progress": user_progress or 0,
+                    "icon": path.category or "book",
+                    "category": path.category or "general",
+                    "next_step": modules[0]["title"] if modules else "Start Learning",
+                    "is_enrolled": enrolled
+                }
+                learning_paths.append(path_data)
+            
+            return {
+                "success": True,
+                "paths": learning_paths,
+                "total": len(learning_paths)
+            }
+            
+        except Exception as e:
+            print(f"Error getting learning paths: {e}")
+            return {"success": False, "error": str(e)}
+    
+    def get_learning_path_details(self, path_id: str, user_id: str = "") -> Dict[str, Any]:
+        """
+        Get detailed information about a specific learning path
+        
+        Args:
+            path_id: The learning path ID
+            user_id: Optional user ID to include enrollment and progress data
+            
+        Returns:
+            Dictionary containing detailed learning path information
+        """
+        try:
+            session = self._get_or_create_session()
+            
+            # Get the learning path
+            path = session.query(LearningPath).filter(
+                LearningPath.path_id == path_id
+            ).first()
+            
+            if not path:
+                return {"success": False, "error": "Learning path not found"}
+            
+            # Get concepts in this path
+            path_concepts = session.query(LearningPathConcept).options(
+                joinedload(LearningPathConcept.concept)
+            ).filter(LearningPathConcept.path_id == path_id).all()
+            
+            concepts = []
+            for pc in path_concepts:
+                if pc.concept:
+                    concepts.append({
+                        "concept_id": pc.concept.concept_id,
+                        "name": pc.concept.name,
+                        "description": pc.concept.description,
+                        "order_index": pc.sequence_order,
+                        "is_required": pc.is_required
+                    })
+            
+            # Get lessons in this path
+            lessons = session.query(Lesson).filter(
+                Lesson.learning_path_id == path_id
+            ).all()
+            
+            modules = []
+            for idx, lesson in enumerate(lessons):
+                # Get concepts for this lesson
+                lesson_concepts = session.query(LessonConcept).options(
+                    joinedload(LessonConcept.concept)
+                ).filter(LessonConcept.lesson_id == lesson.lesson_id).all()
+                
+                lesson_concept_list = []
+                for lc in lesson_concepts:
+                    if lc.concept:
+                        lesson_concept_list.append(lc.concept.concept_id)
+                
+                modules.append({
+                    "id": lesson.lesson_id,
+                    "title": lesson.title,
+                    "description": lesson.description or "",
+                    "type": "lesson",
+                    "duration": f"{lesson.duration_minutes or 30} minutes" if lesson.duration_minutes else "30 minutes",
+                    "completed": False,
+                    "order_index": lesson.order_index or idx,
+                    "concepts": lesson_concept_list
+                })
+            
+            # Get user enrollment and progress if user_id provided
+            user_enrollment = None
+            is_enrolled = False
+            user_progress = 0
+            
+            if user_id:
+                user = self.get_user_by_id(user_id)
+                if user:
+                    enrollment = session.query(UserLearningPath).filter(
+                        and_(
+                            UserLearningPath.user_id == user.id,
+                            UserLearningPath.path_id == path_id
+                        )
+                    ).first()
+                    
+                    if enrollment:
+                        is_enrolled = True
+                        user_progress = round(enrollment.progress_percent, 1)
+                        user_enrollment = {
+                            "enrolled_at": enrollment.started_at.isoformat() if enrollment.started_at else None,
+                            "last_accessed": enrollment.last_accessed.isoformat() if enrollment.last_accessed else None,
+                            "progress_percent": user_progress
+                        }
+            
+            # Parse prerequisites
+            prerequisites = []
+            if path.prerequisites:
+                if isinstance(path.prerequisites, str):
+                    try:
+                        prerequisites = json.loads(path.prerequisites)
+                    except:
+                        prerequisites = []
+                else:
+                    prerequisites = path.prerequisites
+            
+            # Get learning outcomes
+            skills = []
+            if path.learning_outcomes:
+                if isinstance(path.learning_outcomes, str):
+                    try:
+                        skills = json.loads(path.learning_outcomes)
+                    except:
+                        skills = []
+                else:
+                    skills = path.learning_outcomes
+            
+            return {
+                "success": True,
+                "path": {
+                    "id": path.path_id,
+                    "title": path.title,
+                    "description": path.description or "",
+                    "category": path.category or "general",
+                    "difficulty": path.difficulty or "beginner",
+                    "estimated_duration": path.estimated_duration,
+                    "target_audience": path.target_audience or "all",
+                    "is_published": path.is_published,
+                    "is_enrolled": is_enrolled,
+                    "progress": user_progress,
+                    "concepts": concepts,
+                    "modules": sorted(modules, key=lambda x: x.get("order_index", 0)),
+                    "prerequisites": prerequisites,
+                    "skills_covered": skills,
+                    "enrollment": user_enrollment,
+                    "created_at": path.created_at.isoformat() if path.created_at else None,
+                    "updated_at": path.updated_at.isoformat() if path.updated_at else None
+                }
+            }
+            
+        except Exception as e:
+            print(f"Error getting learning path details: {e}")
+            return {"success": False, "error": str(e)}
+    
+    def enroll_in_learning_path(self, user_id: str, path_id: str) -> Dict[str, Any]:
+        """
+        Enroll user in a learning path
+        
+        Args:
+            user_id: User ID
+            path_id: Learning path ID
+            
+        Returns:
+            Dictionary containing enrollment result
+        """
+        try:
+            session = self._get_or_create_session()
+            user = self.get_user_by_id(user_id)
+            
+            if not user:
+                return {"success": False, "error": "User not found"}
+            
+            # Check if learning path exists
+            path = session.query(LearningPath).filter(
+                LearningPath.path_id == path_id
+            ).first()
+            
+            if not path:
+                return {"success": False, "error": "Learning path not found"}
+            
+            # Check if already enrolled
+            existing = session.query(UserLearningPath).filter(
+                and_(
+                    UserLearningPath.user_id == user.id,
+                    UserLearningPath.path_id == path_id
+                )
+            ).first()
+            
+            if existing:
+                return {
+                    "success": True,
+                    "message": "Already enrolled in this learning path",
+                    "progress": round(existing.progress_percent, 1)
+                }
+            
+            # Create enrollment
+            enrollment = UserLearningPath(
+                user_id=user.id,
+                path_id=path_id,
+                progress_percent=0.0,
+                started_at=datetime.now(timezone.utc),
+                last_accessed=datetime.now(timezone.utc)
+            )
+            
+            session.add(enrollment)
+            session.commit()
+            
+            return {
+                "success": True,
+                "message": f"Successfully enrolled in learning path: {path.title}",
+                "path_id": path_id,
+                "path_title": path.title
+            }
+            
+        except Exception as e:
+            print(f"Error enrolling in learning path: {e}")
             session.rollback()
             return {"success": False, "error": str(e)}
     
@@ -1214,6 +1542,30 @@ def enroll_in_course(user_id: str, course_id: str) -> Dict[str, Any]:
     store = UserDashboardStore()
     try:
         return store.enroll_in_course(user_id, course_id)
+    finally:
+        store.close()
+
+def get_learning_paths(user_id: str = "") -> Dict[str, Any]:
+    """Get all learning paths"""
+    store = UserDashboardStore()
+    try:
+        return store.get_learning_paths(user_id)
+    finally:
+        store.close()
+
+def get_learning_path_details(path_id: str, user_id: str = "") -> Dict[str, Any]:
+    """Get learning path details"""
+    store = UserDashboardStore()
+    try:
+        return store.get_learning_path_details(path_id, user_id)
+    finally:
+        store.close()
+
+def enroll_in_learning_path(user_id: str, path_id: str) -> Dict[str, Any]:
+    """Enroll in a learning path"""
+    store = UserDashboardStore()
+    try:
+        return store.enroll_in_learning_path(user_id, path_id)
     finally:
         store.close()
 

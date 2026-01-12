@@ -51,7 +51,7 @@ walker init {
                 "learning": "POST /walker/learning_session_start, POST /walker/learning_session_end",
                 "ai": "POST /walker/ai_generate_content",
                 "analytics": "POST /walker/analytics_generate",
-                "paths": "GET /walker/learning_paths",
+                "paths": "GET /walker/get_learning_paths, POST /walker/get_learning_path_details, POST /walker/enroll_in_learning_path",
                 "concepts": "GET /walker/concepts",
                 "quizzes": "GET /walker/quizzes",
                 "achievements": "POST /walker/achievements",
@@ -1155,6 +1155,97 @@ walker learning_paths {
                 "devops"
             ]
         } ;
+    }
+}
+
+# ==============================================================================
+# Learning Paths (Database-backed)
+# ==============================================================================
+walker get_learning_paths {
+    can get_learning_paths with entry {
+        # Get user_id from context
+        user_id = request_context_module.get_user_id();
+        
+        # Call the user dashboard store
+        result = user_dashboard_module.get_learning_paths(user_id);
+        
+        if result.get("success") {
+            report {
+                "success": true,
+                "paths": result.get("paths", []),
+                "total": result.get("total", 0)
+            } ;
+        } else {
+            report {
+                "success": false,
+                "error": result.get("error", "Failed to get learning paths")
+            } ;
+        }
+    }
+}
+
+walker get_learning_path_details {
+    has path_id: str = "";
+    
+    can get_learning_path_details with entry {
+        # Get user_id from context
+        user_id = request_context_module.get_user_id();
+        
+        if not self.path_id {
+            report {"success": false, "error": "Path ID is required"} ;
+            return;
+        }
+        
+        # Call the user dashboard store
+        result = user_dashboard_module.get_learning_path_details(self.path_id, user_id);
+        
+        if result.get("success") {
+            report {
+                "success": true,
+                "path": result.get("path", {})
+            } ;
+        } else {
+            report {
+                "success": false,
+                "error": result.get("error", "Failed to get learning path details")
+            } ;
+        }
+    }
+}
+
+walker enroll_in_learning_path {
+    has path_id: str = "";
+    
+    can enroll_in_learning_path with entry {
+        # Get user_id from context
+        user_id = request_context_module.get_user_id();
+        
+        if not user_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+        
+        if not self.path_id {
+            report {"success": false, "error": "Path ID is required"} ;
+            return;
+        }
+        
+        # Call the user dashboard store
+        result = user_dashboard_module.enroll_in_learning_path(user_id, self.path_id);
+        
+        if result.get("success") {
+            report {
+                "success": true,
+                "message": result.get("message", "Successfully enrolled in learning path"),
+                "path_id": self.path_id,
+                "path_title": result.get("path_title", "")
+            } ;
+        } else {
+            report {
+                "success": false,
+                "error": result.get("error", "Failed to enroll in learning path")
+            } ;
+        }
     }
 }
 
