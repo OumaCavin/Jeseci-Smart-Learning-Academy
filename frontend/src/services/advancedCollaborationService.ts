@@ -1678,6 +1678,50 @@ class AdvancedCollaborationService {
     }
   }
 
+  async exportAuditHistoryToCsv(params: {
+    actionType?: string;
+    performedBy?: string;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+  } = {}): Promise<ApiResponse<{ format: string; data: string }>> {
+    try {
+      const response = await apiService.post('/walker/admin_audit_history_export_csv', {
+        action_type: params.actionType || '',
+        performed_by: params.performedBy || '',
+        date_from: params.startDate || '',
+        date_to: params.endDate || '',
+        limit: params.limit || 1000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error exporting audit history to CSV:', error);
+      return { success: false, error: 'Failed to export audit history to CSV' };
+    }
+  }
+
+  async exportAuditHistoryToJson(params: {
+    actionType?: string;
+    performedBy?: string;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+  } = {}): Promise<ApiResponse<{ format: string; data: string }>> {
+    try {
+      const response = await apiService.post('/walker/admin_audit_history_export_json', {
+        action_type: params.actionType || '',
+        performed_by: params.performedBy || '',
+        date_from: params.startDate || '',
+        date_to: params.endDate || '',
+        limit: params.limit || 1000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error exporting audit history to JSON:', error);
+      return { success: false, error: 'Failed to export audit history to JSON' };
+    }
+  }
+
   async getAuditLogStats(): Promise<ApiResponse<{
     totalLogs: number;
     logsByLevel: Record<string, number>;

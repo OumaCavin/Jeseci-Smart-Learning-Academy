@@ -8737,6 +8737,62 @@ walker admin_audit_history {
     }
 }
 
+walker admin_audit_history_export_csv {
+    has action_type: str = "";
+    has performed_by: str = "";
+    has date_from: str = "";
+    has date_to: str = "";
+    has limit: int = 1000;
+
+    can admin_audit_history_export_csv with entry {
+        import audit_logger as audit_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        csv_data = audit_module.export_audit_history_to_csv(
+            action_type=self.action_type,
+            performed_by=self.performed_by,
+            date_from=self.date_from,
+            date_to=self.date_to,
+            limit=self.limit
+        );
+
+        report {"success": true, "format": "csv", "data": csv_data} ;
+    }
+}
+
+walker admin_audit_history_export_json {
+    has action_type: str = "";
+    has performed_by: str = "";
+    has date_from: str = "";
+    has date_to: str = "";
+    has limit: int = 1000;
+
+    can admin_audit_history_export_json with entry {
+        import audit_logger as audit_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        json_data = audit_module.export_audit_history_to_json(
+            action_type=self.action_type,
+            performed_by=self.performed_by,
+            date_from=self.date_from,
+            date_to=self.date_to,
+            limit=self.limit
+        );
+
+        report {"success": true, "format": "json", "data": json_data} ;
+    }
+}
+
 walker admin_user_activity {
     has metric_type: str = "daily_active";
     has date_from: str = "";

@@ -21,7 +21,10 @@ import {
   FileText,
   ArrowRight,
   Target,
-  AlertCircle
+  AlertCircle,
+  Download,
+  FileJson,
+  FileSpreadsheet
 } from 'lucide-react';
 import advancedCollaborationService from '../../services/advancedCollaborationService';
 
@@ -59,6 +62,7 @@ export const AdminAuditHistory: React.FC = () => {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
   const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
+  const [exporting, setExporting] = useState<'csv' | 'json' | null>(null);
 
   const loadAuditHistory = useCallback(async () => {
     try {
@@ -129,6 +133,96 @@ export const AdminAuditHistory: React.FC = () => {
     }
   }, [selectedPeriod, filterType, filterSeverity]);
 
+  const exportToCsv = useCallback(async () => {
+    try {
+      setExporting('csv');
+      
+      // Calculate date range based on selected period
+      const endDate = new Date().toISOString();
+      const startDate = new Date();
+      switch (selectedPeriod) {
+        case 'day':
+          startDate.setDate(startDate.getDate() - 1);
+          break;
+        case 'week':
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case 'month':
+          startDate.setDate(startDate.getDate() - 30);
+          break;
+      }
+
+      const response = await advancedCollaborationService.exportAuditHistoryToCsv({
+        actionType: filterType !== 'all' ? filterType : undefined,
+        startDate: startDate.toISOString(),
+        endDate: endDate,
+        limit: 1000
+      });
+
+      if (response.success && response.data) {
+        // Create and download CSV file
+        const blob = new Blob([response.data.data], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `audit_history_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.error('Error exporting audit history to CSV:', error);
+    } finally {
+      setExporting(null);
+    }
+  }, [selectedPeriod, filterType]);
+
+  const exportToJson = useCallback(async () => {
+    try {
+      setExporting('json');
+      
+      // Calculate date range based on selected period
+      const endDate = new Date().toISOString();
+      const startDate = new Date();
+      switch (selectedPeriod) {
+        case 'day':
+          startDate.setDate(startDate.getDate() - 1);
+          break;
+        case 'week':
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case 'month':
+          startDate.setDate(startDate.getDate() - 30);
+          break;
+      }
+
+      const response = await advancedCollaborationService.exportAuditHistoryToJson({
+        actionType: filterType !== 'all' ? filterType : undefined,
+        startDate: startDate.toISOString(),
+        endDate: endDate,
+        limit: 1000
+      });
+
+      if (response.success && response.data) {
+        // Create and download JSON file
+        const blob = new Blob([response.data.data], { type: 'application/json' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `audit_history_${new Date().toISOString().split('T')[0]}.json`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.error('Error exporting audit history to JSON:', error);
+    } finally {
+      setExporting(null);
+    }
+  }, [selectedPeriod, filterType]);
+
   useEffect(() => {
     loadAuditHistory();
   }, [loadAuditHistory]);
@@ -190,8 +284,28 @@ export const AdminAuditHistory: React.FC = () => {
             <button
               onClick={loadAuditHistory}
               className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Refresh"
             >
               <RefreshCw className="w-5 h-5" />
+            </button>
+            <div className="h-6 w-px bg-gray-300 mx-2" />
+            <button
+              onClick={exportToCsv}
+              disabled={exporting === 'csv' || loading}
+              className="flex items-center gap-2 px-3 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+              title="Export to CSV"
+            >
+              <FileSpreadsheet className={`w-5 h-5 ${exporting === 'csv' ? 'animate-pulse' : ''}`} />
+              <span className="text-sm font-medium">CSV</span>
+            </button>
+            <button
+              onClick={exportToJson}
+              disabled={exporting === 'json' || loading}
+              className="flex items-center gap-2 px-3 py-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-50"
+              title="Export to JSON"
+            >
+              <FileJson className={`w-5 h-5 ${exporting === 'json' ? 'animate-pulse' : ''}`} />
+              <span className="text-sm font-medium">JSON</span>
             </button>
           </div>
         </div>

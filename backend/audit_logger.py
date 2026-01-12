@@ -1234,3 +1234,107 @@ def export_audit_logs_to_json(
         "total_records": len(result.get("logs", [])),
         "logs": result.get("logs", [])
     }, indent=2)
+
+
+def export_audit_history_to_csv(
+    action_type: Optional[str] = None,
+    performed_by: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    limit: int = 1000
+) -> str:
+    """Export audit history to CSV format
+
+    Args:
+        action_type: Filter by action type (CREATE, UPDATE, DELETE, etc.)
+        performed_by: Filter by username who performed the action
+        date_from: Filter by start date (ISO format)
+        date_to: Filter by end date (ISO format)
+        limit: Maximum records to export
+
+    Returns:
+        CSV string data
+    """
+    import csv
+    import io
+
+    result = get_audit_logs(
+        action_type=action_type,
+        performed_by=performed_by,
+        date_from=date_from,
+        date_to=date_to,
+        limit=limit
+    )
+
+    if not result.get("success"):
+        return ""
+
+    # Create CSV
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write header
+    writer.writerow([
+        "ID", "Timestamp", "Table", "Record ID", "Action",
+        "Performed By", "User ID", "IP Address", "Application Source"
+    ])
+
+    # Write data
+    for log in result.get("logs", []):
+        writer.writerow([
+            log.get("id", ""),
+            log.get("timestamp", ""),
+            log.get("table", ""),
+            log.get("record_id", ""),
+            log.get("action", ""),
+            log.get("performed_by", ""),
+            str(log.get("performed_by_id", "")),
+            log.get("ip_address", ""),
+            log.get("application_source", "")
+        ])
+
+    return output.getvalue()
+
+
+def export_audit_history_to_json(
+    action_type: Optional[str] = None,
+    performed_by: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    limit: int = 1000
+) -> str:
+    """Export audit history to JSON format
+
+    Args:
+        action_type: Filter by action type (CREATE, UPDATE, DELETE, etc.)
+        performed_by: Filter by username who performed the action
+        date_from: Filter by start date (ISO format)
+        date_to: Filter by end date (ISO format)
+        limit: Maximum records to export
+
+    Returns:
+        JSON string data
+    """
+    result = get_audit_logs(
+        action_type=action_type,
+        performed_by=performed_by,
+        date_from=date_from,
+        date_to=date_to,
+        limit=limit
+    )
+
+    if not result.get("success"):
+        return json.dumps({"error": result.get("error", "Failed to export")})
+
+    return json.dumps({
+        "exported_at": datetime.datetime.now().isoformat(),
+        "filters": {
+            "action_type": action_type,
+            "performed_by": performed_by,
+            "date_from": date_from,
+            "date_to": date_to,
+            "limit": limit
+        },
+        "total_records": len(result.get("logs", [])),
+        "history": result.get("logs", [])
+    }, indent=2)
