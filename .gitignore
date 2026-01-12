@@ -900,13 +900,6 @@
 **/.claude/debug/**
 
 # ==============================================================================
-# PROJECT DOCUMENTATION
-# ==============================================================================
-# Video demo script and pitch deck - these are presentation materials
-JESECI_VIDEO_DEMO_SCRIPT.md
-PITCH_DECK.md
-
-# ==============================================================================
 # NESTED GIT REPOSITORIES
 # ==============================================================================
 # Temporarily renamed .git directories (used by WorkspaceGitManager)
