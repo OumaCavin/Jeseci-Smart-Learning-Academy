@@ -20,6 +20,12 @@ from sqlalchemy import create_engine, text, event
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Session
 from sqlalchemy.pool import QueuePool
 
+# Import centralized logging configuration
+from .logging_config import get_logger, setup_logging
+
+# Initialize module logger
+logger = get_logger(__name__)
+
 
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy ORM models"""
@@ -51,7 +57,7 @@ def get_database_url() -> str:
     # Construct URL for psycopg2 driver
     url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}"
     
-    print(f"[INFO] Database URL constructed: postgresql+psycopg2://{user}:***@{host}:{port}/{database}")
+    logger.info(f"Database URL constructed: postgresql+psycopg2://{user}:***@{host}:{port}/{database}")
     
     return url
 
@@ -95,7 +101,7 @@ def get_engine():
     
     event.listen(engine, "connect", set_search_path)
     
-    print(f"[INFO] SQLAlchemy engine created with schema: {schema}")
+    logger.info(f"SQLAlchemy engine created with schema: {schema}")
     
     return engine
 
@@ -166,7 +172,7 @@ def init_db():
     # Create all tables defined in models
     Base.metadata.create_all(bind=engine)
     
-    print(f"[INFO] Database tables created/verified in schema '{schema}' successfully")
+    logger.info(f"Database tables created/verified in schema '{schema}' successfully")
     
     return engine
 
@@ -184,7 +190,7 @@ def check_db_connection() -> bool:
             conn.execute(text("SELECT 1"))
         return True
     except Exception as e:
-        print(f"[ERROR] Database connection failed: {e}")
+        logger.error(f"Database connection failed: {e}")
         return False
 
 
