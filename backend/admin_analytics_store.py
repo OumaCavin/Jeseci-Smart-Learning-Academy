@@ -574,3 +574,89 @@ def get_activity_data(user_id: str = None, days: int = 30) -> Dict[str, Any]:
             "success": True,
             "activity": activity
         }
+
+
+def export_analytics_to_csv() -> str:
+    """Export all analytics data to CSV format"""
+    import csv
+    import io
+    
+    # Get all analytics data
+    user_analytics = get_user_analytics()
+    learning_analytics = get_learning_analytics()
+    content_analytics = get_content_analytics()
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow(['Category', 'Metric', 'Value'])
+    
+    # Write user analytics
+    writer.writerow(['User Analytics', 'Total Users', user_analytics.get('total_users', 0)])
+    writer.writerow(['User Analytics', 'Active Users', user_analytics.get('active_users', 0)])
+    
+    # Write user growth data
+    writer.writerow([])
+    writer.writerow(['User Growth', 'Date', 'New Users'])
+    for item in user_analytics.get('user_growth', []):
+        writer.writerow(['User Growth', item.get('date', ''), item.get('count', 0)])
+    
+    # Write learning analytics
+    writer.writerow([])
+    writer.writerow(['Learning Analytics', 'Total Sessions', learning_analytics.get('total_sessions', 0)])
+    writer.writerow(['Learning Analytics', 'Completed Courses', learning_analytics.get('completed_courses', 0)])
+    writer.writerow(['Learning Analytics', 'Average Progress (%)', learning_analytics.get('average_progress', 0)])
+    
+    # Write learning trends
+    writer.writerow([])
+    writer.writerow(['Learning Trends', 'Date', 'Sessions'])
+    for item in learning_analytics.get('learning_trends', []):
+        writer.writerow(['Learning Trends', item.get('date', ''), item.get('sessions', 0)])
+    
+    # Write content analytics
+    writer.writerow([])
+    writer.writerow(['Content Analytics', 'Total Courses', content_analytics.get('total_courses', 0)])
+    writer.writerow(['Content Analytics', 'Total Concepts', content_analytics.get('total_concepts', 0)])
+    
+    # Write content by difficulty
+    writer.writerow([])
+    writer.writerow(['Content by Difficulty', 'Difficulty', 'Count'])
+    for difficulty, count in content_analytics.get('content_by_difficulty', {}).items():
+        writer.writerow(['Content by Difficulty', difficulty, count])
+    
+    # Write popular content
+    writer.writerow([])
+    writer.writerow(['Popular Content', 'Title', 'Views'])
+    for item in content_analytics.get('popular_content', []):
+        writer.writerow(['Popular Content', item.get('title', ''), item.get('views', 0)])
+    
+    return output.getvalue()
+
+
+def export_analytics_to_json() -> str:
+    """Export all analytics data to JSON format"""
+    import json
+    
+    # Get all analytics data
+    user_analytics = get_user_analytics()
+    learning_analytics = get_learning_analytics()
+    content_analytics = get_content_analytics()
+    
+    export_data = {
+        "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "user_analytics": user_analytics,
+        "learning_analytics": learning_analytics,
+        "content_analytics": content_analytics,
+        "summary": {
+            "total_users": user_analytics.get('total_users', 0),
+            "active_users": user_analytics.get('active_users', 0),
+            "total_sessions": learning_analytics.get('total_sessions', 0),
+            "completed_courses": learning_analytics.get('completed_courses', 0),
+            "average_progress": learning_analytics.get('average_progress', 0),
+            "total_courses": content_analytics.get('total_courses', 0),
+            "total_concepts": content_analytics.get('total_concepts', 0)
+        }
+    }
+    
+    return json.dumps(export_data, indent=2)
