@@ -1,9 +1,11 @@
 /**
  * Dashboard Overview Page - Admin dashboard statistics
+ * Shows role-appropriate stats and quick actions based on user permissions
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import adminApi from '../../services/adminApi';
+import AdminContext, { AdminPermissions } from '../../contexts/AdminContext';
 import '../Admin.css';
 
 interface DashboardOverviewProps {
@@ -12,6 +14,7 @@ interface DashboardOverviewProps {
 }
 
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ activeSection, onNavigate }) => {
+  const { permissions } = useContext(AdminContext);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,54 +66,111 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ activeSection, on
   const adminStats = stats?.admin_statistics || {};
   const systemHealth = stats?.system_health || {};
 
+  // Define quick actions based on permissions
+  const getQuickActions = (perms: AdminPermissions | null) => {
+    const actions = [];
+
+    if (perms?.canManageUsers) {
+      actions.push(
+        { id: 'users', label: '👤 Create Admin User', type: 'primary' },
+        { id: 'user-activity', label: '📊 View User Activity', type: 'secondary' }
+      );
+    }
+
+    if (perms?.canManageContent) {
+      actions.push(
+        { id: 'content', label: '📚 Add New Course', type: 'secondary' },
+        { id: 'table-activity', label: '🗄️ Database Activity', type: 'secondary' }
+      );
+    }
+
+    if (perms?.canManageQuizzes) {
+      actions.push(
+        { id: 'quizzes', label: '📝 Create Quiz', type: 'secondary' }
+      );
+    }
+
+    if (perms?.canAccessAI) {
+      actions.push(
+        { id: 'ai', label: '🤖 Generate AI Content', type: 'secondary' }
+      );
+    }
+
+    if (perms?.canViewAnalytics) {
+      actions.push(
+        { id: 'analytics', label: '📊 View Full Analytics', type: 'secondary' }
+      );
+    }
+
+    if (perms?.canViewAuditLogs) {
+      actions.push(
+        { id: 'audit-logs', label: '📋 View Audit Logs', type: 'secondary' }
+      );
+    }
+
+    if (perms?.canViewAuditHistory) {
+      actions.push(
+        { id: 'audit-history', label: '📜 View Audit History', type: 'secondary' }
+      );
+    }
+
+    if (perms?.canManageCache) {
+      actions.push(
+        { id: 'cache-management', label: '💾 Manage Cache', type: 'secondary' }
+      );
+    }
+
+    return actions;
+  };
+
+  // Define stat cards based on permissions
+  const getStatCards = (perms: AdminPermissions | null) => {
+    const cards = [];
+
+    // User statistics - visible to all with user management or view activity permissions
+    if (perms?.canManageUsers || perms?.canViewUserActivity) {
+      cards.push(
+        { icon: '👥', value: userStats.total_users || 0, label: 'Total Users', change: `+${userStats.new_users_this_week || 0} this week`, type: 'user' },
+        { icon: '✅', value: userStats.active_users || 0, label: 'Active Users', change: `${userStats.inactive_users || 0} inactive`, type: 'active' }
+      );
+
+      if (perms?.canManageUsers) {
+        cards.push({ icon: '👑', value: userStats.total_admins || 0, label: 'Administrators', change: 'Role distribution', type: 'admin' });
+      }
+    }
+
+    // System status - visible to all
+    cards.push({ icon: '🖥️', value: systemHealth.api_status || 'N/A', label: 'System Status', change: `Database: ${systemHealth.database_status || 'Unknown'}`, type: 'system' });
+
+    return cards;
+  };
+
+  const quickActions = getQuickActions(permissions);
+  const statCards = getStatCards(permissions);
+
   return (
     <div className="dashboard-overview">
       {/* Stats Grid */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">👥</div>
-          <div className="stat-value">{userStats.total_users || 0}</div>
-          <div className="stat-label">Total Users</div>
-          <div className="stat-change positive">
-            +{userStats.new_users_this_week || 0} this week
+        {statCards.map((card, index) => (
+          <div key={index} className="stat-card">
+            <div className="stat-icon">{card.icon}</div>
+            <div className="stat-value">{card.value}</div>
+            <div className="stat-label">{card.label}</div>
+            <div className="stat-change positive">
+              {card.change}
+            </div>
           </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">✅</div>
-          <div className="stat-value">{userStats.active_users || 0}</div>
-          <div className="stat-label">Active Users</div>
-          <div className="stat-change positive">
-            {userStats.inactive_users || 0} inactive
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">👑</div>
-          <div className="stat-value">{userStats.total_admins || 0}</div>
-          <div className="stat-label">Administrators</div>
-          <div className="stat-change">
-            Role distribution available
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">🖥️</div>
-          <div className="stat-value">{systemHealth.api_status || 'N/A'}</div>
-          <div className="stat-label">System Status</div>
-          <div className="stat-change positive">
-            Database: {systemHealth.database_status}
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Admin Role Distribution */}
-      <div className="admin-card" style={{ marginBottom: '24px' }}>
-        <div className="admin-card-header">
-          <h2>Admin Role Distribution</h2>
-        </div>
-        <div className="admin-card-body">
-          {Object.keys(adminStats.role_distribution || {}).length > 0 ? (
+      {/* Admin Role Distribution - Only visible to users who can manage other admins */}
+      {permissions?.canManageUsers && Object.keys(adminStats.role_distribution || {}).length > 0 && (
+        <div className="admin-card" style={{ marginBottom: '24px' }}>
+          <div className="admin-card-header">
+            <h2>Admin Role Distribution</h2>
+          </div>
+          <div className="admin-card-body">
             <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
               {Object.entries(adminStats.role_distribution).map(([role, count]) => (
                 <div key={role} style={{ textAlign: 'center' }}>
@@ -123,54 +183,52 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ activeSection, on
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="empty-state">
-              <p>No admin users found</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h2>Quick Actions</h2>
-        </div>
-        <div className="admin-card-body">
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <button
-              className="btn btn-primary"
-              onClick={() => onNavigate('users')}
-            >
-              👤 Create Admin User
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => onNavigate('content')}
-            >
-              📚 Add New Course
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => onNavigate('quizzes')}
-            >
-              📝 Create Quiz
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => onNavigate('ai')}
-            >
-              🤖 Generate AI Content
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => onNavigate('analytics')}
-            >
-              📊 View Full Analytics
-            </button>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Quick Actions - Shows only actions user has permission for */}
+      {quickActions.length > 0 && (
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h2>Quick Actions</h2>
+          </div>
+          <div className="admin-card-body">
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              {quickActions.map((action) => (
+                <button
+                  key={action.id}
+                  className={action.type === 'primary' ? 'btn btn-primary' : 'btn btn-secondary'}
+                  onClick={() => onNavigate(action.id)}
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Permission Notice for users with limited access */}
+      {!permissions?.canManageUsers && !permissions?.canManageContent && !permissions?.canManageQuizzes && (
+        <div className="admin-card" style={{ marginTop: '24px' }}>
+          <div className="admin-card-header">
+            <h2>Your Access Level</h2>
+          </div>
+          <div className="admin-card-body">
+            <p style={{ color: '#6b7280' }}>
+              You have read-only access to this admin panel. Contact a super administrator if you need additional permissions.
+            </p>
+            {permissions?.canViewAnalytics && (
+              <div style={{ marginTop: '16px' }}>
+                <button className="btn btn-secondary" onClick={() => onNavigate('analytics')}>
+                  📊 View Analytics
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
