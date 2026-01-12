@@ -569,7 +569,7 @@ class AdminApiService {
     });
   }
 
-  // Analytics
+  // Analytics - Updated to use new database-backed walkers
   async getUserAnalytics(): Promise<{
     success: boolean;
     analytics: {
@@ -579,7 +579,7 @@ class AdminApiService {
       user_growth: { date: string; count: number }[];
     };
   }> {
-    return this.makeRequest('/walker/admin_analytics_users', {
+    return this.makeRequest('/walker/admin_user_analytics', {
       method: 'POST',
       body: JSON.stringify({}),
     });
@@ -594,7 +594,7 @@ class AdminApiService {
       learning_trends: { date: string; sessions: number }[];
     };
   }> {
-    return this.makeRequest('/walker/admin_analytics_learning', {
+    return this.makeRequest('/walker/admin_learning_analytics', {
       method: 'POST',
       body: JSON.stringify({}),
     });
@@ -609,9 +609,173 @@ class AdminApiService {
       content_by_difficulty: Record<string, number>;
     };
   }> {
-    return this.makeRequest('/walker/admin_analytics_content', {
+    return this.makeRequest('/walker/admin_content_analytics', {
       method: 'POST',
       body: JSON.stringify({}),
+    });
+  }
+
+  // Analytics API Endpoints - For frontend AnalyticsContext.tsx integration
+  async getExecutionMetrics(params: {
+    startDate?: string;
+    endDate?: string;
+    language?: string;
+    userId?: string;
+    courseId?: string;
+  } = {}): Promise<{
+    success: boolean;
+    data: Array<{
+      language: string;
+      totalRuns: number;
+      successfulRuns: number;
+      failedRuns: number;
+      successRate: number;
+      avgRuntimeMs: number;
+    }>;
+  }> {
+    return this.makeRequest('/walker/analytics_executions', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async getEngagementMetrics(params: {
+    startDate?: string;
+    endDate?: string;
+    cohortId?: string;
+  } = {}): Promise<{
+    success: boolean;
+    data: {
+      dailyActiveUsers: number;
+      weeklyActiveUsers: number;
+      monthlyActiveUsers: number;
+      avgSessionDuration: number;
+      completionRate: number;
+    };
+  }> {
+    return this.makeRequest('/walker/analytics_engagement', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async getPerformanceTrends(params: {
+    startDate?: string;
+    endDate?: string;
+    language?: string;
+    userId?: string;
+  } = {}): Promise<{
+    success: boolean;
+    data: Array<{
+      date: string;
+      executions: number;
+      successRate: number;
+      avgRuntime: number;
+      activeUsers: number;
+    }>;
+  }> {
+    return this.makeRequest('/walker/analytics_trends', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async getActivityData(params: {
+    startDate?: string;
+    endDate?: string;
+    userId?: string;
+  } = {}): Promise<{
+    success: boolean;
+    data: Array<{
+      date: string;
+      value: number;
+    }>;
+  }> {
+    return this.makeRequest('/walker/analytics_activity', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async getSkillsData(params: {
+    userId?: string;
+  } = {}): Promise<{
+    success: boolean;
+    data: Array<{
+      category: string;
+      skills: Array<{
+        id: string;
+        name: string;
+        level: number;
+        maxLevel: number;
+        practiceCount: number;
+        successRate: number;
+      }>;
+    }>;
+  }> {
+    return this.makeRequest('/walker/analytics_skills', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async getStudentPerformance(params: {
+    cohortId?: string;
+    courseId?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {}): Promise<{
+    success: boolean;
+    data: Array<{
+      userId: string;
+      userName: string;
+      totalExecutions: number;
+      successRate: number;
+      avgScore: number;
+      completionRate: number;
+      engagementScore: number;
+      riskLevel: 'low' | 'medium' | 'high';
+      riskFactors: string[];
+      lastActive: string;
+    }>;
+    total: number;
+  }> {
+    return this.makeRequest('/walker/analytics_student_performance', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async getCohortAnalytics(cohortId: string): Promise<{
+    success: boolean;
+    data: {
+      cohortId: string;
+      cohortName: string;
+      studentCount: number;
+      avgSuccessRate: number;
+      avgCompletionRate: number;
+      avgEngagement: number;
+      atRiskCount: number;
+      topPerformers: Array<{
+        userId: string;
+        userName: string;
+        avgScore: number;
+      }>;
+      strugglingStudents: Array<{
+        userId: string;
+        userName: string;
+        avgScore: number;
+      }>;
+      conceptMastery: Array<{
+        conceptId: string;
+        conceptName: string;
+        masteryLevel: number;
+      }>;
+    };
+  }> {
+    return this.makeRequest('/walker/analytics_cohort', {
+      method: 'POST',
+      body: JSON.stringify({ cohort_id: cohortId }),
     });
   }
 
