@@ -1719,23 +1719,7 @@ const AppContent: React.FC = () => {
               )
             ) : (
               <div className="auth-section">
-                <div className="auth-tabs">
-                  <button 
-                    className={activeTab === 'login' ? 'active' : ''} 
-                    onClick={() => setActiveTab('login')}
-                    style={{ display: activeTab === 'login' ? 'none' : 'inline-block' }}
-                  >
-                    Login
-                  </button>
-                  <button 
-                    className={activeTab === 'register' ? 'active' : ''} 
-                    onClick={() => setActiveTab('register')}
-                    style={{ display: activeTab === 'register' ? 'none' : 'inline-block' }}
-                  >
-                    Register
-                  </button>
-                </div>
-                
+                {/* Authentication is handled through modal-based login/register forms */}
                 {activeTab === 'login' && renderLoginForm()}
                 {activeTab === 'register' && renderRegisterForm()}
               </div>
