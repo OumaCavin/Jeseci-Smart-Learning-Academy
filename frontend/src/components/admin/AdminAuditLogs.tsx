@@ -58,6 +58,8 @@ export const AdminAuditLogs: React.FC = () => {
   const [dateFrom, setDateFrom] = useState<string>('');
   const [dateTo, setDateTo] = useState<string>('');
   const [selectedLog, setSelectedLog] = useState<AuditLogEntry | null>(null);
+  const [exporting, setExporting] = useState<'csv' | 'json' | null>(null);
+  const [exportMessage, setExportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const loadAuditLogs = useCallback(async () => {
     try {
@@ -71,37 +73,73 @@ export const AdminAuditLogs: React.FC = () => {
         })
       ]);
       
+      // Get the actual data from the response
+      const stats = statsData.data || statsData;
+      const logsResult = logsData.data || logsData;
+      const logsArray = logsResult.logs || logsResult || [];
+      
+      // Calculate date-based stats
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekStart = new Date(now);
+      weekStart.setDate(weekStart.getDate() - 7);
+      
+      let entriesToday = 0;
+      let entriesThisWeek = 0;
+      let failuresToday = 0;
+      
+      logsArray.forEach((log: any) => {
+        const logDate = new Date(log.timestamp);
+        if (logDate >= todayStart) {
+          entriesToday++;
+          if (log.action === 'DELETE' || log.action === 'SOFT_DELETE') {
+            failuresToday++;
+          }
+        }
+        if (logDate >= weekStart) {
+          entriesThisWeek++;
+        }
+      });
+      
       // Transform API response to match component interface
       const transformedStats = {
-        totalEntries: statsData.data.totalLogs || 0,
-        entriesToday: 0,
-        entriesThisWeek: 0,
-        failuresToday: 0,
-        topActions: Object.entries(statsData.data.logsByLevel || {}).map(([action, count]) => ({ 
+        totalEntries: stats.totalLogs || 0,
+        entriesToday,
+        entriesThisWeek,
+        failuresToday,
+        topActions: Object.entries(stats.logsByAction || stats.logsByLevel || {}).map(([action, count]) => ({ 
           action, 
           count: count as number 
         })),
-        topUsers: Object.entries(statsData.data.logsBySource || {}).map(([source, count]) => ({ 
-          username: source, 
+        topUsers: Object.entries(stats.logsByUser || stats.logsBySource || {}).map(([username, count]) => ({ 
+          username, 
           count: count as number 
         }))
       };
       
-      const transformedLogs = (logsData.data || []).map(item => {
-        const status: AuditLogEntry['status'] = item.level === 'error' ? 'failure' : item.level === 'warn' ? 'warning' : 'success';
+      const transformedLogs = (logsArray || []).map((item: any) => {
+        const status: AuditLogEntry['status'] = 
+          item.action === 'DELETE' || item.action === 'SOFT_DELETE' ? 'failure' : 
+          item.action === 'UPDATE' || item.action === 'RESTORE' ? 'warning' : 'success';
         return {
-          id: item.id,
+          id: item.id || item.audit_id,
           timestamp: item.timestamp,
-          userId: 'system',
-          username: 'System',
-          action: item.level,
-          resource: item.source,
-          resourceType: 'log',
-          ipAddress: '',
-          userAgent: '',
+          userId: item.performed_by_id?.toString() || 'system',
+          username: item.performed_by || 'System',
+          action: item.action || 'UNKNOWN',
+          resource: item.record_id || item.table || 'unknown',
+          resourceType: item.table || 'log',
+          ipAddress: item.ip_address || '',
+          userAgent: item.user_agent || '',
           status,
-          details: item.message,
-          metadata: item.context
+          details: item.action ? `${item.action} on ${item.table || 'unknown'}` : 'No details',
+          metadata: {
+            old_values: item.old_values,
+            new_values: item.new_values,
+            changed_fields: item.changed_fields,
+            geolocation: item.geolocation,
+            application_source: item.application_source
+          }
         };
       });
       
@@ -117,6 +155,83 @@ export const AdminAuditLogs: React.FC = () => {
   useEffect(() => {
     loadAuditLogs();
   }, [loadAuditLogs]);
+
+  const handleExportLogs = async (format: 'csv' | 'json') => {
+    try {
+      setExporting(format);
+      setExportMessage(null);
+
+      let result;
+      if (format === 'csv') {
+        result = await advancedCollaborationService.getAuditLogs({
+          startDate: dateFrom || undefined,
+          endDate: dateTo || undefined,
+          limit: 1000
+        });
+        
+        // Create CSV content from logs
+        const headers = ['ID', 'Timestamp', 'Action', 'Table', 'Record ID', 'Performed By', 'IP Address', 'Source'];
+        const rows = (result.data?.logs || []).map((log: any) => [
+          log.id,
+          log.timestamp,
+          log.action,
+          log.table,
+          log.record_id,
+          log.performed_by,
+          log.ip_address,
+          log.application_source
+        ]);
+        
+        const csvContent = [headers.join(','), ...rows.map((row: any) => row.join(','))].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audit_logs_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } else {
+        result = await advancedCollaborationService.getAuditLogs({
+          startDate: dateFrom || undefined,
+          endDate: dateTo || undefined,
+          limit: 1000
+        });
+        
+        const jsonContent = JSON.stringify({
+          exported_at: new Date().toISOString(),
+          filters: { dateFrom, dateTo },
+          total_records: result.data?.logs?.length || 0,
+          logs: result.data?.logs || []
+        }, null, 2);
+        
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audit_logs_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }
+
+      setExportMessage({ 
+        type: 'success', 
+        text: `Audit logs exported to ${format.toUpperCase()} successfully` 
+      });
+    } catch (error) {
+      setExportMessage({ 
+        type: 'error', 
+        text: `Failed to export audit logs as ${format.toUpperCase()}` 
+      });
+    } finally {
+      setExporting(null);
+      setTimeout(() => setExportMessage(null), 5000);
+    }
+  };
 
   const filteredLogs = logs.filter(log => {
     if (filterAction !== 'all' && log.action !== filterAction) return false;
@@ -181,13 +296,44 @@ export const AdminAuditLogs: React.FC = () => {
             >
               <RefreshCw className="w-5 h-5" />
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-              <Download className="w-4 h-4" />
-              Export Logs
-            </button>
+            <div className="relative group">
+              <button className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                <Download className="w-4 h-4" />
+                {exporting ? 'Exporting...' : 'Export Logs'}
+              </button>
+              {/* Dropdown menu */}
+              <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                <div className="py-1">
+                  <button
+                    onClick={() => handleExportLogs('csv')}
+                    disabled={exporting !== null}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                  >
+                    Export as CSV
+                  </button>
+                  <button
+                    onClick={() => handleExportLogs('json')}
+                    disabled={exporting !== null}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                  >
+                    Export as JSON
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Export Message */}
+      {exportMessage && (
+        <div className={`p-4 rounded-lg flex items-center gap-2 ${
+          exportMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+        }`}>
+          {exportMessage.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+          {exportMessage.text}
+        </div>
+      )}
 
       {/* Stats Overview */}
       {stats && (

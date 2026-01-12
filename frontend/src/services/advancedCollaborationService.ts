@@ -1630,7 +1630,7 @@ class AdvancedCollaborationService {
     dailyActivity: Array<{ date: string; count: number }>;
   }>> {
     try {
-      const response = await apiService.get('/admin/audit_history_stats');
+      const response = await apiService.post('/walker/admin_audit_history_stats', {});
       return response.data;
     } catch (error) {
       console.error('Error fetching audit history stats:', error);
@@ -1666,7 +1666,11 @@ class AdvancedCollaborationService {
     created_at: string;
   }>>> {
     try {
-      const response = await apiService.get('/admin/audit_history', { params });
+      const response = await apiService.post('/walker/admin_audit_history', {
+        target_id: params.userId?.toString() || '',
+        target_type: params.actionType || '',
+        limit: params.limit || 50
+      });
       return response.data;
     } catch (error) {
       console.error('Error fetching audit history:', error);
@@ -1681,7 +1685,7 @@ class AdvancedCollaborationService {
     recentErrors: Array<{ timestamp: string; level: string; message: string }>;
   }>> {
     try {
-      const response = await apiService.get('/admin/audit_log_stats');
+      const response = await apiService.post('/walker/admin_audit_log_stats', {});
       return response.data;
     } catch (error) {
       console.error('Error fetching audit log stats:', error);
@@ -1713,10 +1717,19 @@ class AdvancedCollaborationService {
     context: Record<string, unknown>;
   }>>> {
     try {
-      const response = await apiService.get('/admin/audit_logs', { params });
+      const response = await apiService.post('/walker/admin_audit_logs', {
+        action_type: params.level || '',
+        date_from: params.startDate || '',
+        date_to: params.endDate || '',
+        limit: params.limit || 100,
+        offset: ((params.page || 1) - 1) * (params.limit || 100)
+      });
       return response.data;
     } catch (error) {
       console.error('Error fetching audit logs:', error);
+      return { success: false, error: 'Failed to fetch audit logs', data: [] };
+    }
+  }
       return { success: false, error: 'Failed to fetch audit logs', data: [] };
     }
   }

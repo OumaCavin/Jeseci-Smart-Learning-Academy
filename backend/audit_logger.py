@@ -810,3 +810,427 @@ def log_restore(
         ip_address=ip_address,
         **kwargs
     )
+
+
+# ==============================================================================
+# Audit Log Retrieval Functions - For Admin Interface
+# ==============================================================================
+
+def get_audit_logs(
+    admin_id: str = "",
+    table_name: Optional[str] = None,
+    action_type: Optional[str] = None,
+    performed_by: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0
+) -> Dict[str, Any]:
+    """Get audit logs with filtering and pagination for admin interface
+    
+    Args:
+        admin_id: Admin user ID (for authorization)
+        table_name: Filter by table name
+        action_type: Filter by action type (CREATE, UPDATE, DELETE, etc.)
+        performed_by: Filter by username who performed the action
+        date_from: Filter by start date (ISO format)
+        date_to: Filter by end date (ISO format)
+        limit: Maximum records to return
+        offset: Offset for pagination
+    
+    Returns:
+        Dict with logs array and pagination info
+    """
+    pg_manager = get_postgres_manager()
+    
+    conditions = []
+    params = []
+    
+    if table_name:
+        conditions.append("table_name = %s")
+        params.append(table_name)
+    
+    if action_type:
+        conditions.append("action_type = %s")
+        params.append(action_type.upper())
+    
+    if performed_by:
+        conditions.append("performed_by ILIKE %s")
+        params.append(f"%{performed_by}%")
+    
+    if date_from:
+        conditions.append("created_at >= %s")
+        params.append(date_from)
+    
+    if date_to:
+        conditions.append("created_at <= %s")
+        params.append(date_to)
+    
+    where_clause = " AND ".join(conditions) if conditions else "1=1"
+    
+    # Get total count
+    count_query = f"SELECT COUNT(*) as total FROM {pg_manager.schema}.audit_log WHERE {where_clause}"
+    
+    # Get records with all fields for admin interface
+    query = f"""
+    SELECT 
+        audit_id as id,
+        table_name,
+        record_id,
+        action_type,
+        old_values,
+        new_values,
+        changed_fields,
+        performed_by,
+        performed_by_id,
+        ip_address,
+        geolocation,
+        user_agent,
+        request_id,
+        session_id,
+        application_source,
+        additional_context,
+        created_at as timestamp
+    FROM {pg_manager.schema}.audit_log
+    WHERE {where_clause}
+    ORDER BY created_at DESC
+    LIMIT %s OFFSET %s
+    """
+    
+    params.extend([limit, offset])
+    
+    try:
+        # Get total count
+        count_result = pg_manager.execute_query(count_query, params[:-2])
+        total = count_result[0].get('total') if count_result else 0
+        
+        # Get records
+        result = pg_manager.execute_query(query, params)
+        
+        logs = []
+        for row in result or []:
+            # Parse JSON fields
+            old_values = row.get('old_values')
+            if isinstance(old_values, str):
+                old_values = json.loads(old_values)
+            
+            new_values = row.get('new_values')
+            if isinstance(new_values, str):
+                new_values = json.loads(new_values)
+            
+            changed_fields = row.get('changed_fields')
+            if isinstance(changed_fields, str):
+                changed_fields = json.loads(changed_fields)
+            
+            additional_context = row.get('additional_context')
+            if isinstance(additional_context, str):
+                additional_context = json.loads(additional_context)
+            
+            geolocation = row.get('geolocation')
+            if isinstance(geolocation, str):
+                geolocation = json.loads(geolocation)
+            
+            logs.append({
+                "id": row.get('id'),
+                "timestamp": row.get('timestamp').isoformat() if row.get('timestamp') else None,
+                "table": row.get('table_name'),
+                "record_id": row.get('record_id'),
+                "action": row.get('action_type'),
+                "old_values": old_values,
+                "new_values": new_values,
+                "changed_fields": changed_fields,
+                "performed_by": row.get('performed_by'),
+                "performed_by_id": row.get('performed_by_id'),
+                "ip_address": str(row.get('ip_address')) if row.get('ip_address') else None,
+                "geolocation": geolocation,
+                "user_agent": row.get('user_agent'),
+                "request_id": row.get('request_id'),
+                "session_id": row.get('session_id'),
+                "application_source": row.get('application_source'),
+                "additional_context": additional_context
+            })
+        
+        return {
+            "success": True,
+            "logs": logs,
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "has_more": (offset + limit) < total
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get audit logs: {e}")
+        return {"success": False, "error": str(e), "logs": [], "total": 0}
+
+
+def get_audit_log_stats() -> Dict[str, Any]:
+    """Get statistics about audit logs for admin dashboard
+    
+    Returns:
+        Dict with total logs, logs by level/action, logs by source/user
+    """
+    pg_manager = get_postgres_manager()
+    
+    try:
+        # Get total count
+        total_query = f"SELECT COUNT(*) as total FROM {pg_manager.schema}.audit_log"
+        total_result = pg_manager.execute_query(total_query)
+        total_logs = total_result[0].get('total') if total_result else 0
+        
+        # Get logs by action type
+        action_query = f"""
+        SELECT action_type, COUNT(*) as count 
+        FROM {pg_manager.schema}.audit_log 
+        GROUP BY action_type 
+        ORDER BY count DESC
+        """
+        action_result = pg_manager.execute_query(action_query)
+        logs_by_action = {row.get('action_type'): row.get('count') for row in action_result or []}
+        
+        # Get logs by user (top 10)
+        user_query = f"""
+        SELECT performed_by, COUNT(*) as count 
+        FROM {pg_manager.schema}.audit_log 
+        WHERE performed_by IS NOT NULL 
+        GROUP BY performed_by 
+        ORDER BY count DESC 
+        LIMIT 10
+        """
+        user_result = pg_manager.execute_query(user_query)
+        logs_by_user = {row.get('performed_by'): row.get('count') for row in user_result or []}
+        
+        # Get logs by table
+        table_query = f"""
+        SELECT table_name, COUNT(*) as count 
+        FROM {pg_manager.schema}.audit_log 
+        GROUP BY table_name 
+        ORDER BY count DESC
+        """
+        table_result = pg_manager.execute_query(table_query)
+        logs_by_table = {row.get('table_name'): row.get('count') for row in table_result or []}
+        
+        # Get recent errors (last 24 hours)
+        error_query = f"""
+        SELECT audit_id, action_type, performed_by, created_at, table_name, record_id
+        FROM {pg_manager.schema}.audit_log
+        WHERE action_type IN ('DELETE', 'SOFT_DELETE', 'RESTORE')
+        ORDER BY created_at DESC
+        LIMIT 20
+        """
+        error_result = pg_manager.execute_query(error_query)
+        recent_actions = [
+            {
+                "id": row.get('audit_id'),
+                "action": row.get('action_type'),
+                "performed_by": row.get('performed_by'),
+                "timestamp": row.get('created_at').isoformat() if row.get('created_at') else None,
+                "table": row.get('table_name'),
+                "record_id": row.get('record_id')
+            }
+            for row in error_result or []
+        ]
+        
+        return {
+            "success": True,
+            "totalLogs": total_logs,
+            "logsByAction": logs_by_action,
+            "logsByUser": logs_by_user,
+            "logsByTable": logs_by_table,
+            "recentActions": recent_actions
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get audit log stats: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "totalLogs": 0,
+            "logsByAction": {},
+            "logsByUser": {},
+            "logsByTable": {},
+            "recentActions": []
+        }
+
+
+def get_audit_history_stats() -> Dict[str, Any]:
+    """Get statistics about audit history for admin dashboard
+    
+    Returns:
+        Dict with total actions, actions by type, actions by user, daily activity
+    """
+    pg_manager = get_postgres_manager()
+    
+    try:
+        # Get total count
+        total_query = f"SELECT COUNT(*) as total FROM {pg_manager.schema}.audit_log"
+        total_result = pg_manager.execute_query(total_query)
+        total_actions = total_result[0].get('total') if total_result else 0
+        
+        # Get actions by type
+        type_query = f"""
+        SELECT action_type, COUNT(*) as count 
+        FROM {pg_manager.schema}.audit_log 
+        GROUP BY action_type 
+        ORDER BY count DESC
+        """
+        type_result = pg_manager.execute_query(type_query)
+        actions_by_type = {row.get('action_type'): row.get('count') for row in type_result or []}
+        
+        # Get actions by user (top 10)
+        user_query = f"""
+        SELECT performed_by, COUNT(*) as count 
+        FROM {pg_manager.schema}.audit_log 
+        WHERE performed_by IS NOT NULL 
+        GROUP BY performed_by 
+        ORDER BY count DESC 
+        LIMIT 10
+        """
+        user_result = pg_manager.execute_query(user_query)
+        actions_by_user = [
+            {
+                "user_id": row.get('performed_by_id') or 0,
+                "username": row.get('performed_by'),
+                "action_count": row.get('count')
+            }
+            for row in user_result or []
+        ]
+        
+        # Get daily activity for last 30 days
+        daily_query = f"""
+        SELECT DATE(created_at) as date, COUNT(*) as count 
+        FROM {pg_manager.schema}.audit_log 
+        WHERE created_at >= NOW() - INTERVAL '30 days'
+        GROUP BY DATE(created_at) 
+        ORDER BY date ASC
+        """
+        daily_result = pg_manager.execute_query(daily_query)
+        daily_activity = [
+            {
+                "date": row.get('date').isoformat() if row.get('date') else None,
+                "count": row.get('count')
+            }
+            for row in daily_result or []
+        ]
+        
+        return {
+            "success": True,
+            "totalActions": total_actions,
+            "actionsByType": actions_by_type,
+            "actionsByUser": actions_by_user,
+            "dailyActivity": daily_activity
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get audit history stats: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "totalActions": 0,
+            "actionsByType": {},
+            "actionsByUser": [],
+            "dailyActivity": []
+        }
+
+
+def export_audit_logs_to_csv(
+    table_name: Optional[str] = None,
+    action_type: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    limit: int = 1000
+) -> str:
+    """Export audit logs to CSV format
+    
+    Args:
+        table_name: Filter by table name
+        action_type: Filter by action type
+        date_from: Filter by start date
+        date_to: Filter by end date
+        limit: Maximum records to export
+    
+    Returns:
+        CSV string data
+    """
+    import csv
+    import io
+    
+    result = get_audit_logs(
+        table_name=table_name,
+        action_type=action_type,
+        date_from=date_from,
+        date_to=date_to,
+        limit=limit
+    )
+    
+    if not result.get("success"):
+        return ""
+    
+    # Create CSV
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow([
+        "ID", "Timestamp", "Table", "Record ID", "Action", 
+        "Performed By", "IP Address", "Application Source"
+    ])
+    
+    # Write data
+    for log in result.get("logs", []):
+        writer.writerow([
+            log.get("id", ""),
+            log.get("timestamp", ""),
+            log.get("table", ""),
+            log.get("record_id", ""),
+            log.get("action", ""),
+            log.get("performed_by", ""),
+            log.get("ip_address", ""),
+            log.get("application_source", "")
+        ])
+    
+    return output.getvalue()
+
+
+def export_audit_logs_to_json(
+    table_name: Optional[str] = None,
+    action_type: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    limit: int = 1000
+) -> str:
+    """Export audit logs to JSON format
+    
+    Args:
+        table_name: Filter by table name
+        action_type: Filter by action type
+        date_from: Filter by start date
+        date_to: Filter by end date
+        limit: Maximum records to export
+    
+    Returns:
+        JSON string data
+    """
+    result = get_audit_logs(
+        table_name=table_name,
+        action_type=action_type,
+        date_from=date_from,
+        date_to=date_to,
+        limit=limit
+    )
+    
+    if not result.get("success"):
+        return json.dumps({"error": result.get("error", "Failed to export")})
+    
+    return json.dumps({
+        "exported_at": datetime.datetime.now().isoformat(),
+        "filters": {
+            "table_name": table_name,
+            "action_type": action_type,
+            "date_from": date_from,
+            "date_to": date_to,
+            "limit": limit
+        },
+        "total_records": len(result.get("logs", [])),
+        "logs": result.get("logs", [])
+    }, indent=2)

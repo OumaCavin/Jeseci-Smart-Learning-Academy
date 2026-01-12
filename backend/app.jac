@@ -4906,106 +4906,6 @@ walker admin_clear_content_cache {
     }
 }
 
-# ==============================================================================
-# Audit Log API Endpoints
-# ==============================================================================
-walker admin_audit_logs {
-    has table_name: str = "";
-    has action_type: str = "";
-    has performed_by: str = "";
-    has start_date: str = "";
-    has end_date: str = "";
-    has limit: int = 100;
-    has offset: int = 0;
-
-    can admin_audit_logs with entry {
-        # Import audit logger module
-        import audit_logger as audit_module;
-
-        # Parse dates if provided
-        import datetime;
-        start_dt = null;
-        end_dt = null;
-
-        if self.start_date {
-            start_dt = datetime.datetime.fromisoformat(
-                self.start_date.replace('Z', '+00:00')
-            );
-        }
-
-        if self.end_date {
-            end_dt = datetime.datetime.fromisoformat(
-                self.end_date.replace('Z', '+00:00')
-            );
-        }
-
-        # Search audit logs
-        result = audit_module.search_audit_logs(
-            table_name=self.table_name if self.table_name else null,
-            action_type=self.action_type if self.action_type else null,
-            performed_by=self.performed_by if self.performed_by else null,
-            start_date=start_dt,
-            end_date=end_dt,
-            limit=self.limit,
-            offset=self.offset
-        );
-
-        if result.get('success') {
-            report {
-                "success": True,
-                "logs": result.get('logs', []),
-                "total": result.get('total', 0),
-                "limit": result.get('limit', 100),
-                "offset": result.get('offset', 0),
-                "has_more": result.get('has_more', False),
-                "filters": {
-                    "table_name": self.table_name,
-                    "action_type": self.action_type,
-                    "performed_by": self.performed_by,
-                    "start_date": self.start_date,
-                    "end_date": self.end_date
-                }
-            } ;
-        } else {
-            report {
-                "success": False,
-                "error": result.get('error', 'Failed to fetch audit logs'),
-                "logs": [],
-                "total": 0
-            } ;
-        }
-    }
-}
-
-walker admin_audit_history {
-    has table_name: str;
-    has record_id: str;
-    has limit: int = 100;
-
-    can admin_audit_history with entry {
-        # Import audit logger module
-        import audit_logger as audit_module;
-
-        if not self.table_name or not self.record_id {
-            report {"success": False, "error": "table_name and record_id are required"} ;
-            return;
-        }
-
-        # Get audit history for specific record
-        history = audit_module.get_audit_history(
-            table_name=self.table_name, record_id=self.record_id, limit=self.limit
-        );
-
-        report {
-            "success": True,
-            "table_name": self.table_name,
-            "record_id": self.record_id,
-            "history": history,
-            "total": len(history)
-        } ;
-    }
-}
-
 walker admin_user_activity {
     has performed_by: str;
     has limit: int = 100;
@@ -8712,7 +8612,7 @@ walker admin_audit_logs {
 
         result = audit_module.get_audit_logs(
             admin_id=admin_id,
-            user_id=self.user_id,
+            table_name=self.user_id,  # user_id param is used as table_name filter
             action_type=self.action_type,
             date_from=self.date_from,
             date_to=self.date_to,
@@ -8721,6 +8621,90 @@ walker admin_audit_logs {
         );
 
         report result ;
+    }
+}
+
+walker admin_audit_log_stats {
+    can admin_audit_log_stats with entry {
+        import audit_logger as audit_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        result = audit_module.get_audit_log_stats();
+
+        report result ;
+    }
+}
+
+walker admin_audit_history_stats {
+    can admin_audit_history_stats with entry {
+        import audit_logger as audit_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        result = audit_module.get_audit_history_stats();
+
+        report result ;
+    }
+}
+
+walker admin_audit_logs_export_csv {
+    has action_type: str = "";
+    has date_from: str = "";
+    has date_to: str = "";
+    has limit: int = 1000;
+
+    can admin_audit_logs_export_csv with entry {
+        import audit_logger as audit_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        csv_data = audit_module.export_audit_logs_to_csv(
+            action_type=self.action_type,
+            date_from=self.date_from,
+            date_to=self.date_to,
+            limit=self.limit
+        );
+
+        report {"success": true, "format": "csv", "data": csv_data} ;
+    }
+}
+
+walker admin_audit_logs_export_json {
+    has action_type: str = "";
+    has date_from: str = "";
+    has date_to: str = "";
+    has limit: int = 1000;
+
+    can admin_audit_logs_export_json with entry {
+        import audit_logger as audit_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        json_data = audit_module.export_audit_logs_to_json(
+            action_type=self.action_type,
+            date_from=self.date_from,
+            date_to=self.date_to,
+            limit=self.limit
+        );
+
+        report {"success": true, "format": "json", "data": json_data} ;
     }
 }
 
@@ -8733,15 +8717,23 @@ walker admin_audit_history {
         import audit_logger as audit_module;
 
         admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
 
+        # Get audit history for specific record (table_name, record_id, limit)
         result = audit_module.get_audit_history(
-            admin_id=admin_id,
-            target_id=self.target_id,
-            target_type=self.target_type,
+            table_name=self.target_type,
+            record_id=self.target_id,
             limit=self.limit
         );
 
-        report result ;
+        report {
+            "success": true,
+            "history": result,
+            "total": len(result)
+        } ;
     }
 }
 
