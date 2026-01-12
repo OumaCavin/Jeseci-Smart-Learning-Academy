@@ -8806,6 +8806,98 @@ walker admin_clear_content_cache {
 }
 
 # ==============================================================================
+# Admin Cache Management Walkers - Cache Stats, Entries, Regions & Export
+# ==============================================================================
+walker admin_cache_stats {
+    can admin_cache_stats with entry {
+        import admin_content_store as admin_content_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        result = admin_content_module.get_cache_stats(admin_id=admin_id);
+
+        report result ;
+    }
+}
+
+walker admin_cache_entries {
+    has limit: int = 100;
+    has offset: int = 0;
+    has region: str = "";
+
+    can admin_cache_entries with entry {
+        import admin_content_store as admin_content_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        result = admin_content_module.get_cache_entries(
+            admin_id=admin_id,
+            limit=self.limit,
+            offset=self.offset,
+            region=self.region
+        );
+
+        report result ;
+    }
+}
+
+walker admin_cache_regions {
+    can admin_cache_regions with entry {
+        import admin_content_store as admin_content_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        result = admin_content_module.get_cache_regions(admin_id=admin_id);
+
+        report result ;
+    }
+}
+
+walker admin_cache_export_csv {
+    can admin_cache_export_csv with entry {
+        import admin_content_store as admin_content_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        result = admin_content_module.export_cache_stats_to_csv(admin_id=admin_id);
+
+        report result ;
+    }
+}
+
+walker admin_cache_export_json {
+    can admin_cache_export_json with entry {
+        import admin_content_store as admin_content_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        result = admin_content_module.export_cache_stats_to_json(admin_id=admin_id);
+
+        report result ;
+    }
+}
+
+# ==============================================================================
 # Admin Dashboard Statistics - Jac Walker Implementation
 # Imports the Python statistics module and exposes it via walker endpoints
 # ==============================================================================

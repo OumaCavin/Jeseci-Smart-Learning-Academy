@@ -96,6 +96,53 @@ export const AdminCacheManagement: React.FC = () => {
     }
   };
 
+  const handleExportCacheStats = async (format: 'csv' | 'json') => {
+    try {
+      setExporting(format);
+      setExportMessage(null);
+
+      let result;
+      if (format === 'csv') {
+        result = await adminApiService.exportCacheStatsCsv();
+      } else {
+        result = await adminApiService.exportCacheStatsJson();
+      }
+
+      if (result.success) {
+        // Create and download the file
+        const blob = new Blob([result.data], { 
+          type: format === 'csv' ? 'text/csv' : 'application/json' 
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cache_stats_${new Date().toISOString().split('T')[0]}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        setExportMessage({ 
+          type: 'success', 
+          text: `Cache statistics exported to ${format.toUpperCase()} successfully` 
+        });
+      } else {
+        setExportMessage({ 
+          type: 'error', 
+          text: result.error || `Failed to export cache statistics as ${format.toUpperCase()}` 
+        });
+      }
+    } catch (error) {
+      setExportMessage({ 
+        type: 'error', 
+        text: `Failed to export cache statistics as ${format.toUpperCase()}` 
+      });
+    } finally {
+      setExporting(null);
+      setTimeout(() => setExportMessage(null), 5000);
+    }
+  };
+
   const filteredEntries = entries.filter(entry => {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -145,6 +192,24 @@ export const AdminCacheManagement: React.FC = () => {
               <Trash2 className="w-4 h-4" />
               {clearing ? 'Clearing...' : 'Clear All Cache'}
             </button>
+            <button
+              onClick={() => handleExportCacheStats('csv')}
+              disabled={exporting !== null}
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+              title="Export as CSV"
+            >
+              <Download className="w-4 h-4" />
+              {exporting === 'csv' ? 'Exporting...' : 'Export CSV'}
+            </button>
+            <button
+              onClick={() => handleExportCacheStats('json')}
+              disabled={exporting !== null}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+              title="Export as JSON"
+            >
+              <Download className="w-4 h-4" />
+              {exporting === 'json' ? 'Exporting...' : 'Export JSON'}
+            </button>
           </div>
         </div>
       </div>
@@ -156,6 +221,16 @@ export const AdminCacheManagement: React.FC = () => {
         }`}>
           {clearMessage.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           {clearMessage.text}
+        </div>
+      )}
+
+      {/* Export Message */}
+      {exportMessage && (
+        <div className={`p-4 rounded-lg flex items-center gap-2 ${
+          exportMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+        }`}>
+          {exportMessage.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          {exportMessage.text}
         </div>
       )}
 

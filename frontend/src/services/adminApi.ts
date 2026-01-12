@@ -932,6 +932,21 @@ class AdminApiService {
   async exportTableActivityJson(): Promise<{ success: boolean; data: string; error?: string }> {
     return this.makeRequest('/walker/admin_table_activity_export_json', { method: 'POST' });
   }
+
+  // Cache Management Export Methods
+  async exportCacheStatsCsv(): Promise<{ success: boolean; format: string; data: string; message: string }> {
+    return this.makeRequest('/walker/admin_cache_export_csv', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async exportCacheStatsJson(): Promise<{ success: boolean; format: string; data: string; message: string }> {
+    return this.makeRequest('/walker/admin_cache_export_json', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
 }
 
 // Create instance with dynamic API URL for production
