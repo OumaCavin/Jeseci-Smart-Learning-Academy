@@ -576,6 +576,218 @@ def get_activity_data(user_id: str = None, days: int = 30) -> Dict[str, Any]:
         }
 
 
+        return {
+            "success": True,
+            "activity": activity
+        }
+
+
+def get_table_activity(
+    admin_id: str = None,
+    table_name: str = "",
+    limit: int = 100,
+    offset: int = 0
+) -> Dict[str, Any]:
+    """Get database table activity and statistics
+    
+    Args:
+        admin_id: Admin requesting the data (for audit)
+        table_name: Optional table name filter
+        limit: Maximum number of results
+        offset: Pagination offset
+    
+    Returns:
+        Dictionary containing table activity data, stats, and table information
+    """
+    pg_manager = get_postgres_manager()
+    
+    try:
+        # Get database statistics
+        stats_query = """
+        SELECT 
+            pg_size_pretty(pg_database_size(current_database())) as total_size,
+            (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'jeseci_academy') as total_tables,
+            (SELECT SUM(n_live_tup) FROM pg_stat_user_tables) as total_rows
+        """
+        stats_result = pg_manager.execute_query(stats_query)
+        
+        total_size = stats_result[0].get('total_size') if stats_result else '0 MB'
+        total_tables = stats_result[0].get('total_tables') if stats_result else 0
+        total_rows = stats_result[0].get('total_rows') if stats_result else 0
+        
+        # Get table information
+        tables_query = """
+        SELECT 
+            schemaname || '.' || tablename as table_name,
+            n_live_tup as rows,
+            pg_size_pretty(pg_relation_size(schemaname || '.' || tablename)) as size,
+            pg_indexes_size(schemaname || '.' || tablename) as index_size,
+            n_tup_ins as inserts,
+            n_tup_upd as updates,
+            n_tup_del as deletes,
+            n_seq_scan as seq_scans,
+            n_idx_scan as index_scans,
+            last_vacuum,
+            last_autovacuum,
+            last_analyze
+        FROM pg_stat_user_tables
+        WHERE schemaname = 'jeseci_academy'
+        ORDER BY n_live_tup DESC
+        LIMIT %s OFFSET %s
+        """
+        tables_result = pg_manager.execute_query(tables_query, (limit, offset))
+        
+        tables = []
+        for row in tables_result or []:
+            tables.append({
+                "table_name": row.get('table_name'),
+                "rows": row.get('rows') or 0,
+                "size": row.get('size') or '0 bytes',
+                "indexes": row.get('index_size') or 0,
+                "inserts": row.get('inserts') or 0,
+                "updates": row.get('updates') or 0,
+                "deletes": row.get('deletes') or 0,
+                "seq_scans": row.get('seq_scans') or 0,
+                "index_scans": row.get('index_scans') or 0,
+                "last_vacuum": row.get('last_vacuum').isoformat() if row.get('last_vacuum') else None,
+                "last_autovacuum": row.get('last_autovacuum').isoformat() if row.get('last_autovacuum') else None,
+                "last_analyze": row.get('last_analyze').isoformat() if row.get('last_analyze') else None
+            })
+        
+        # Get activity by table (if no specific table filter)
+        activities = []
+        if not table_name:
+            activity_query = """
+            SELECT 
+                schemaname || '.' || tablename as table_name,
+                COALESCE(sum(n_tup_ins), 0) as writes,
+                COALESCE(sum(n_tup_upd), 0) as updates,
+                COALESCE(sum(n_tup_del), 0) as deletes,
+                COALESCE(sum(n_idx_scan), 0) as reads,
+                COALESCE(avg(idx_scan_ratio), 0) * 100 as index_usage
+            FROM pg_stat_user_tables
+            WHERE schemaname = 'jeseci_academy'
+            GROUP BY schemaname || '.' || tablename
+            ORDER BY writes DESC
+            LIMIT 20
+            """
+            activity_result = pg_manager.execute_query(activity_query)
+            
+            for row in activity_result or []:
+                activities.append({
+                    "table_name": row.get('table_name'),
+                    "reads": row.get('reads') or 0,
+                    "writes": row.get('writes') or 0,
+                    "updates": row.get('updates') or 0,
+                    "deletes": row.get('deletes') or 0,
+                    "index_usage": round(row.get('index_usage') or 0, 2)
+                })
+        
+        return {
+            "success": True,
+            "stats": {
+                "total_size": total_size,
+                "total_tables": total_tables,
+                "total_rows": total_rows or 0
+            },
+            "tables": tables,
+            "activities": activities,
+            "count": len(tables),
+            "total_count": total_tables
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting table activity: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "stats": {"total_size": "0 MB", "total_tables": 0, "total_rows": 0},
+            "tables": [],
+            "activities": []
+        }
+
+
+def export_table_activity_to_csv() -> str:
+    """Export table activity data to CSV format"""
+    import csv
+    import io
+    
+    result = get_table_activity(limit=1000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow(['Table Activity Report', ''])
+    writer.writerow(['Generated At', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+    writer.writerow([])
+    
+    # Write summary stats
+    if result.get('success') and result.get('stats'):
+        stats = result['stats']
+        writer.writerow(['Database Statistics', ''])
+        writer.writerow(['Metric', 'Value'])
+        writer.writerow(['Total Size', stats.get('total_size', 'N/A')])
+        writer.writerow(['Total Tables', stats.get('total_tables', 0)])
+        writer.writerow(['Total Rows', stats.get('total_rows', 0)])
+    
+    # Write table details
+    writer.writerow([])
+    writer.writerow(['Table Details', ''])
+    writer.writerow(['Table Name', 'Rows', 'Size', 'Inserts', 'Updates', 'Deletes', 'Seq Scans', 'Index Scans'])
+    
+    for table in result.get('tables', []):
+        writer.writerow([
+            table.get('table_name', ''),
+            table.get('rows', 0),
+            table.get('size', 'N/A'),
+            table.get('inserts', 0),
+            table.get('updates', 0),
+            table.get('deletes', 0),
+            table.get('seq_scans', 0),
+            table.get('index_scans', 0)
+        ])
+    
+    # Write activity metrics
+    writer.writerow([])
+    writer.writerow(['Table Activity Metrics', ''])
+    writer.writerow(['Table Name', 'Reads', 'Writes', 'Updates', 'Deletes', 'Index Usage (%)'])
+    
+    for activity in result.get('activities', []):
+        writer.writerow([
+            activity.get('table_name', ''),
+            activity.get('reads', 0),
+            activity.get('writes', 0),
+            activity.get('updates', 0),
+            activity.get('deletes', 0),
+            activity.get('index_usage', 0)
+        ])
+    
+    return output.getvalue()
+
+
+def export_table_activity_to_json() -> str:
+    """Export table activity data to JSON format"""
+    import json
+    
+    result = get_table_activity(limit=1000)
+    
+    export_data = {
+        "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "report_type": "table_activity",
+        "success": result.get('success', False),
+        "stats": result.get('stats', {}),
+        "tables": result.get('tables', []),
+        "activities": result.get('activities', []),
+        "summary": {
+            "total_tables": len(result.get('tables', [])),
+            "total_activities": len(result.get('activities', []))
+        }
+    }
+    
+    return json.dumps(export_data, indent=2)
+
+
 def export_analytics_to_csv() -> str:
     """Export all analytics data to CSV format"""
     import csv

@@ -20,9 +20,11 @@ import {
   MoreVertical,
   ArrowUp,
   ArrowDown,
-  Filter
+  Filter,
+  Download
 } from 'lucide-react';
 import advancedCollaborationService from '../../services/advancedCollaborationService';
+import adminApi from '../../services/adminApi';
 
 interface TableInfo {
   tableName: string;
@@ -78,6 +80,36 @@ export const AdminTableActivity: React.FC = () => {
     }
   }, []);
 
+  const handleExport = async (format: 'csv' | 'json') => {
+    try {
+      let response;
+      if (format === 'csv') {
+        response = await adminApi.exportTableActivityCsv();
+      } else {
+        response = await adminApi.exportTableActivityJson();
+      }
+
+      if (response.success) {
+        const blob = new Blob([response.data], {
+          type: format === 'csv' ? 'text/csv' : 'application/json'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `table_activity_export_${new Date().toISOString().split('T')[0]}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        alert('Export downloaded successfully!');
+      } else {
+        alert('Failed to export: ' + response.error);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
+  };
+
   useEffect(() => {
     loadTableActivity();
   }, [loadTableActivity]);
@@ -129,13 +161,31 @@ export const AdminTableActivity: React.FC = () => {
               <p className="text-sm text-gray-500">Monitor database performance and table metrics</p>
             </div>
           </div>
-          <button
-            onClick={loadTableActivity}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center gap-2"
+              onClick={() => handleExport('csv')}
+              title="Export to CSV"
+            >
+              <Download className="w-4 h-4" />
+              CSV
+            </button>
+            <button
+              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center gap-2"
+              onClick={() => handleExport('json')}
+              title="Export to JSON"
+            >
+              <Download className="w-4 h-4" />
+              JSON
+            </button>
+            <button
+              onClick={loadTableActivity}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </button>
+          </div>
         </div>
       </div>
 
