@@ -997,7 +997,7 @@ def get_dashboard_metrics(user_id: str) -> Dict[str, Any]:
                     'last_active': datetime.now().isoformat()
                 }
             }
-            
+
     except Exception as e:
         print(f"Error fetching dashboard metrics: {e}")
         return {
@@ -1005,6 +1005,112 @@ def get_dashboard_metrics(user_id: str) -> Dict[str, Any]:
             'error': str(e),
             'metrics': None
         }
+    finally:
+        conn.close()
+
+
+def update_learning_preferences(user_id: str, learning_style: str = None, skill_level: str = None,
+                                 daily_goal_minutes: int = None, preferred_difficulty: str = None,
+                                 preferred_content_type: str = None, dark_mode: bool = None,
+                                 auto_play_videos: bool = None) -> Dict[str, Any]:
+    """
+    Update user's learning preferences in the database
+
+    Args:
+        user_id: The user's UUID
+        learning_style: Preferred learning style (visual, auditory, kinesthetic, reading)
+        skill_level: Current skill level (beginner, intermediate, advanced)
+        daily_goal_minutes: Daily learning goal in minutes
+        preferred_difficulty: Preferred content difficulty
+        preferred_content_type: Preferred content type (text, video, interactive, mixed)
+        dark_mode: Whether dark mode is enabled
+        auto_play_videos: Whether videos should auto-play
+
+    Returns:
+        Dict with success status and updated preferences
+    """
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
+
+        # Check if preferences exist
+        cursor.execute(f"""
+            SELECT user_id FROM {DB_SCHEMA}.learning_preferences WHERE user_id = %s
+        """, (user_id,))
+        existing = cursor.fetchone()
+
+        # Build dynamic update
+        updates = []
+        params = []
+
+        if learning_style is not None:
+            updates.append("learning_style = %s")
+            params.append(learning_style)
+        if skill_level is not None:
+            updates.append("skill_level = %s")
+            params.append(skill_level)
+        if daily_goal_minutes is not None:
+            updates.append("daily_goal_minutes = %s")
+            params.append(daily_goal_minutes)
+        if preferred_difficulty is not None:
+            updates.append("preferred_difficulty = %s")
+            params.append(preferred_difficulty)
+        if preferred_content_type is not None:
+            updates.append("preferred_content_type = %s")
+            params.append(preferred_content_type)
+        if dark_mode is not None:
+            updates.append("dark_mode = %s")
+            params.append(dark_mode)
+        if auto_play_videos is not None:
+            updates.append("auto_play_videos = %s")
+            params.append(auto_play_videos)
+
+        if not updates:
+            # No preferences to update, just return current
+            cursor.execute(f"""
+                SELECT * FROM {DB_SCHEMA}.learning_preferences WHERE user_id = %s
+            """, (user_id,))
+            prefs = cursor.fetchone()
+            return {'success': True, 'preferences': prefs}
+
+        params.append(user_id)
+
+        if existing:
+            # Update existing preferences
+            cursor.execute(f"""
+                UPDATE {DB_SCHEMA}.learning_preferences
+                SET {', '.join(updates)},
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = %s
+                RETURNING *
+            """, params)
+        else:
+            # Insert new preferences
+            cursor.execute(f"""
+                INSERT INTO {DB_SCHEMA}.learning_preferences
+                (user_id, learning_style, skill_level, daily_goal_minutes, preferred_difficulty,
+                 preferred_content_type, dark_mode, auto_play_videos)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING *
+            """, (user_id,
+                  learning_style or 'visual',
+                  skill_level or 'beginner',
+                  daily_goal_minutes or 30,
+                  preferred_difficulty or 'intermediate',
+                  preferred_content_type or 'mixed',
+                  dark_mode or False,
+                  auto_play_videos or True))
+
+        preferences = cursor.fetchone()
+        conn.commit()
+
+        print(f"Learning preferences updated for user: {user_id}")
+        return {'success': True, 'preferences': preferences}
+
+    except Exception as e:
+        print(f"Error updating learning preferences: {e}")
+        conn.rollback()
+        return {'success': False, 'error': str(e)}
     finally:
         conn.close()
 

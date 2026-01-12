@@ -8045,10 +8045,16 @@ walker update_profile {
 }
 
 walker update_preferences {
-    has theme: str = "light";
+    has learning_style: str = "";
+    has skill_level: str = "";
+    has daily_goal_minutes: int = 30;
+    has preferred_difficulty: str = "";
+    has preferred_content_type: str = "";
     has notifications_enabled: bool = true;
-    has email_notifications: bool = true;
-    has privacy_settings: dict = {};
+    has email_reminders: bool = true;
+    has dark_mode: bool = false;
+    has auto_play_videos: bool = true;
+    has theme: str = "light";
     has language: str = "en";
 
     can update_preferences with entry {
@@ -8060,16 +8066,50 @@ walker update_preferences {
             return;
         }
 
+        # Update learning preferences in auth module
         result = auth_module.update_user_preferences(
             user_id=user_id,
             theme=self.theme,
             notifications_enabled=self.notifications_enabled,
-            email_notifications=self.email_notifications,
-            privacy_settings=self.privacy_settings,
+            email_notifications=self.email_reminders,
             language=self.language
         );
 
-        report result ;
+        if not result.success {
+            report result ;
+            return;
+        }
+
+        # Also update additional learning preferences via activity store
+        import activity_store as activity_module;
+        activity_result = activity_module.update_learning_preferences(
+            user_id=user_id,
+            learning_style=self.learning_style if self.learning_style else null,
+            skill_level=self.skill_level if self.skill_level else null,
+            daily_goal_minutes=self.daily_goal_minutes,
+            preferred_difficulty=self.preferred_difficulty if self.preferred_difficulty else null,
+            preferred_content_type=self.preferred_content_type if self.preferred_content_type else null,
+            dark_mode=self.dark_mode,
+            auto_play_videos=self.auto_play_videos
+        );
+
+        report {
+            "success": True,
+            "message": "Preferences updated successfully",
+            "preferences": {
+                "learning_style": self.learning_style,
+                "skill_level": self.skill_level,
+                "daily_goal_minutes": self.daily_goal_minutes,
+                "preferred_difficulty": self.preferred_difficulty,
+                "preferred_content_type": self.preferred_content_type,
+                "notifications_enabled": self.notifications_enabled,
+                "email_reminders": self.email_reminders,
+                "dark_mode": self.dark_mode,
+                "auto_play_videos": self.auto_play_videos,
+                "theme": self.theme,
+                "language": self.language
+            }
+        } ;
     }
 }
 
@@ -8833,7 +8873,17 @@ walker user_profile {
         result = auth_module.get_user_by_id(user_id=user_id);
 
         if result {
-            report {"success": True, "user": result} ;
+            # Return user data directly for frontend compatibility
+            report {
+                "success": True,
+                "first_name": result.get("first_name") or "",
+                "last_name": result.get("last_name") or "",
+                "bio": result.get("bio") or "",
+                "avatar_url": result.get("avatar_url") or "",
+                "display_name": result.get("display_name") or "",
+                "username": result.get("username") or "",
+                "email": result.get("email") or ""
+            } ;
         } else {
             report {
                 "success": False,
