@@ -913,11 +913,12 @@ class ApiService {
   }
 
   // Chat
-  async sendChatMessage(message: string): Promise<any> {
+  async sendChatMessage(message: string, context: string = ''): Promise<any> {
     return this.makeRequest('/walker/chat', {
       method: 'POST',
       body: JSON.stringify({
-        message: message
+        message: message,
+        context: context
       }),
     });
   }

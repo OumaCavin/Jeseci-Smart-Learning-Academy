@@ -482,7 +482,16 @@ const AppContent: React.FC = () => {
     setNewMessage('');
     
     try {
-      const response = await apiService.sendChatMessage(newMessage);
+      // Build context from user progress for personalized AI responses
+      const context = userProgress ? 
+        `User: ${user.first_name} ${user.last_name || ''}. ` +
+        `Progress: ${userProgress.progress?.concepts_completed || 0} concepts completed, ` +
+        `${userProgress.progress?.lessons_completed || 0} lessons completed, ` +
+        `${userProgress.progress?.current_streak || 0} day streak. ` +
+        `Skill level: ${userProgress.skill_level || 'intermediate'}.` : 
+        '';
+      
+      const response = await apiService.sendChatMessage(newMessage, context);
       const botMsg: ChatMessage = {
         id: Date.now() + 1,
         role: 'assistant',
