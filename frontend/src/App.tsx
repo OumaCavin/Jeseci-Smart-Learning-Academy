@@ -916,7 +916,142 @@ const AppContent: React.FC = () => {
   );
 
   // =============================================================================
-  // DASHBOARD SECTIONS
+  // NAVIGATION CONFIGURATION - Hybrid Priority Navigation
+  // =============================================================================
+
+  // Navigation items organized by priority and category
+  const NAVIGATION_ITEMS = [
+    // Primary tabs (always visible)
+    { id: 'dashboard', label: 'Dashboard', icon: '📊', category: 'Primary' },
+    { id: 'courses', label: 'Courses', icon: '📚', category: 'Primary' },
+    { id: 'paths', label: 'Learning Paths', icon: '🛤️', category: 'Primary' },
+    { id: 'progress', label: 'Progress', icon: '📈', category: 'Primary' },
+    { id: 'motivator', label: 'Achievements', icon: '🏆', category: 'Primary' },
+    // Secondary items (grouped in More dropdown)
+    { id: 'concepts', label: 'Concepts', icon: '💡', category: 'Learning' },
+    { id: 'quizzes', label: 'Quizzes', icon: '📝', category: 'Practice' },
+    { id: 'ai', label: 'AI Generator', icon: '🤖', category: 'AI Tools' },
+    { id: 'chat', label: 'AI Chat', icon: '💬', category: 'AI Tools' },
+    { id: 'community', label: 'Community', icon: '👥', category: 'Community' },
+    { id: 'code', label: 'Code Editor', icon: '💻', category: 'Tools' },
+    { id: 'snippets', label: 'Snippets', icon: '📦', category: 'Tools' },
+    { id: 'analytics', label: 'Analytics', icon: '📉', category: 'Data' },
+    { id: 'settings', label: 'Settings', icon: '⚙️', category: 'Account' },
+  ];
+
+  const PRIMARY_ITEMS = NAVIGATION_ITEMS.filter(item => item.category === 'Primary');
+  const SECONDARY_ITEMS = NAVIGATION_ITEMS.filter(item => item.category !== 'Primary');
+
+  // Group secondary items by category
+  const groupedSecondaryItems = SECONDARY_ITEMS.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {} as Record<string, typeof NAVIGATION_ITEMS>);
+
+  // State for dropdown visibility
+  const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
+  const navDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (navDropdownRef.current && !navDropdownRef.current.contains(event.target as Node)) {
+        setIsNavDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Check if "More" button should be highlighted (when active tab is in secondary items)
+  const isMoreActive = SECONDARY_ITEMS.some(item => item.id === activeTab);
+
+  // Handle navigation click
+  const handleNavClick = (tabId: string) => {
+    setActiveTab(tabId);
+    setIsNavDropdownOpen(false);
+  };
+
+  // Render the hybrid navigation
+  const renderNavigation = () => (
+    <div className="hybrid-navigation">
+      {/* Primary Tabs */}
+      <div className="nav-primary-tabs">
+        {PRIMARY_ITEMS.map((item) => (
+          <button
+            key={item.id}
+            className={`nav-tab primary-tab ${activeTab === item.id ? 'active' : ''}`}
+            onClick={() => handleNavClick(item.id)}
+          >
+            <span className="nav-icon">{item.icon}</span>
+            <span className="nav-label">{item.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* More Dropdown Trigger */}
+      <div className="nav-more-container" ref={navDropdownRef}>
+        <button
+          className={`nav-tab more-tab ${isMoreActive ? 'active' : ''}`}
+          onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
+        >
+          <span className="nav-label">More</span>
+          <span className={`nav-chevron ${isNavDropdownOpen ? 'open' : ''}`}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+        </button>
+
+        {/* Dropdown Menu */}
+        {isNavDropdownOpen && (
+          <div className="nav-dropdown">
+            {Object.entries(groupedSecondaryItems).map(([category, items]) => (
+              <div key={category} className="nav-dropdown-group">
+                <div className="nav-dropdown-header">
+                  {getCategoryIcon(category)}
+                  <span>{category}</span>
+                </div>
+                <div className="nav-dropdown-items">
+                  {items.map((item) => (
+                    <button
+                      key={item.id}
+                      className={`nav-dropdown-item ${activeTab === item.id ? 'active' : ''}`}
+                      onClick={() => handleNavClick(item.id)}
+                    >
+                      <span className="nav-icon">{item.icon}</span>
+                      <span className="nav-label">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Helper to get category icons
+  const getCategoryIcon = (category: string) => {
+    const icons: Record<string, string> = {
+      'Learning': '📖',
+      'Practice': '🎯',
+      'AI Tools': '🧠',
+      'Community': '👥',
+      'Tools': '🛠️',
+      'Data': '📊',
+      'Account': '👤',
+    };
+    return <span className="category-icon">{icons[category] || '📁'}</span>;
+  };
+
+  // =============================================================================
+  // DASHBOARD RENDER FUNCTION
   // =============================================================================
 
   const renderDashboard = () => (
@@ -930,50 +1065,8 @@ const AppContent: React.FC = () => {
         </div>
       </div>
 
-      <div className="dashboard-tabs">
-        <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
-          Dashboard
-        </button>
-        <button className={activeTab === 'courses' ? 'active' : ''} onClick={() => setActiveTab('courses')}>
-          Courses
-        </button>
-        <button className={activeTab === 'paths' ? 'active' : ''} onClick={() => setActiveTab('paths')}>
-          Learning Paths
-        </button>
-        <button className={activeTab === 'concepts' ? 'active' : ''} onClick={() => setActiveTab('concepts')}>
-          Concepts
-        </button>
-        <button className={activeTab === 'progress' ? 'active' : ''} onClick={() => setActiveTab('progress')}>
-          Progress
-        </button>
-        <button className={activeTab === 'motivator' ? 'active' : ''} onClick={() => setActiveTab('motivator')}>
-          Achievements
-        </button>
-        <button className={activeTab === 'quizzes' ? 'active' : ''} onClick={() => setActiveTab('quizzes')}>
-          Quizzes
-        </button>
-        <button className={activeTab === 'ai' ? 'active' : ''} onClick={() => setActiveTab('ai')}>
-          AI Generator
-        </button>
-        <button className={activeTab === 'chat' ? 'active' : ''} onClick={() => setActiveTab('chat')}>
-          AI Chat
-        </button>
-        <button className={activeTab === 'analytics' ? 'active' : ''} onClick={() => setActiveTab('analytics')}>
-          Analytics
-        </button>
-        <button className={activeTab === 'community' ? 'active' : ''} onClick={() => setActiveTab('community')}>
-          Community
-        </button>
-        <button className={activeTab === 'code' ? 'active' : ''} onClick={() => setActiveTab('code')}>
-          Code Editor
-        </button>
-        <button className={activeTab === 'snippets' ? 'active' : ''} onClick={() => setActiveTab('snippets')}>
-          Snippets
-        </button>
-        <button className={activeTab === 'settings' ? 'active' : ''} onClick={() => setActiveTab('settings')}>
-          Settings
-        </button>
-      </div>
+      {/* Hybrid Navigation */}
+      {renderNavigation()}
 
       <div className="dashboard-content">
         {/* MAIN DASHBOARD OVERVIEW */}
