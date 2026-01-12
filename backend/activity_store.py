@@ -814,3 +814,249 @@ def log_content_viewed(
         },
         xp_earned=2
     )
+
+
+# =============================================================================
+# NEW FUNCTIONS FOR DASHBOARD INTEGRATION
+# =============================================================================
+
+def get_recent_activity(
+    user_id: str,
+    limit: int = 20,
+    activity_type: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Get recent user activities - Wrapper for get_user_activities
+    
+    This function provides compatibility with the walker expectations.
+    
+    Args:
+        user_id: The user's UUID
+        limit: Maximum number of activities to return
+        activity_type: Optional type filter
+        
+    Returns:
+        dict with activities list and metadata
+    """
+    result = get_user_activities(
+        user_id=user_id,
+        limit=limit,
+        offset=0,
+        activity_type=activity_type
+    )
+    
+    # Transform activity types to frontend-compatible format
+    if result.get('success') and 'activities' in result:
+        result['activities'] = _transform_activities_for_frontend(result['activities'])
+    
+    return result
+
+
+def get_learning_streak(user_id: str) -> Dict[str, Any]:
+    """
+    Get learning streak for a user
+    
+    Wrapper function that provides the expected return format for the walker.
+    
+    Args:
+        user_id: The user's UUID
+        
+    Returns:
+        dict with streak information
+    """
+    result = get_activity_streak(user_id)
+    
+    if result.get('success'):
+        return {
+            'success': True,
+            'streak': result.get('streak', {}),
+            'current_streak': result.get('streak', {}).get('current_streak', 0),
+            'longest_streak': result.get('streak', {}).get('longest_streak', 0),
+            'last_activity_date': result.get('streak', {}).get('last_activity_date'),
+            'streak_start_date': result.get('streak', {}).get('streak_start_date')
+        }
+    
+    return result
+
+
+def get_dashboard_metrics(user_id: str) -> Dict[str, Any]:
+    """
+    Get dashboard metrics for a user
+    
+    Returns comprehensive metrics for the user dashboard including:
+    - total_study_time: Total study time in minutes
+    - lessons_completed: Number of completed lessons
+    - courses_completed: Number of completed courses
+    - current_streak: Current learning streak in days
+    - average_quiz_score: Average quiz score
+    - achievements_earned: Number of achievements earned
+    - xp_earned: Total experience points
+    
+    Args:
+        user_id: The user's UUID
+        
+    Returns:
+        dict with dashboard metrics
+    """
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            # Resolve numeric ID from string UUID
+            cur.execute(f"SELECT id FROM {DB_SCHEMA}.users WHERE user_id = %s", (user_id,))
+            user_res = cur.fetchone()
+            if not user_res:
+                return {
+                    'success': False,
+                    'error': 'User not found',
+                    'metrics': None
+                }
+            user_numeric_id = user_res[0]
+            
+            # Get total study time from learning sessions
+            cur.execute(
+                f"""
+                SELECT COALESCE(SUM(duration_seconds), 0) 
+                FROM {DB_SCHEMA}.learning_sessions
+                WHERE user_id = %s
+                """,
+                (user_numeric_id,)
+            )
+            total_seconds = cur.fetchone()[0] or 0
+            total_study_time = round(total_seconds / 60, 2)  # Convert to minutes
+            
+            # Get lessons completed
+            cur.execute(
+                f"""
+                SELECT COUNT(*) 
+                FROM {DB_SCHEMA}.user_lesson_progress
+                WHERE user_id = %s AND is_completed = true
+                """,
+                (user_numeric_id,)
+            )
+            lessons_completed = cur.fetchone()[0] or 0
+            
+            # Get courses/learning paths completed
+            cur.execute(
+                f"""
+                SELECT COUNT(*) 
+                FROM {DB_SCHEMA}.user_learning_paths
+                WHERE user_id = %s AND progress_percent >= 100
+                """,
+                (user_numeric_id,)
+            )
+            courses_completed = cur.fetchone()[0] or 0
+            
+            # Get average quiz score
+            cur.execute(
+                f"""
+                SELECT AVG(score) 
+                FROM {DB_SCHEMA}.quiz_attempts
+                WHERE user_id = %s AND score IS NOT NULL
+                """,
+                (user_numeric_id,)
+            )
+            avg_score_result = cur.fetchone()[0]
+            average_quiz_score = round(avg_score_result, 1) if avg_score_result else 0
+            
+            # Get achievements earned
+            cur.execute(
+                f"""
+                SELECT COUNT(*) 
+                FROM {DB_SCHEMA}.user_achievements
+                WHERE user_id = %s
+                """,
+                (user_numeric_id,)
+            )
+            achievements_earned = cur.fetchone()[0] or 0
+            
+            # Get total XP earned
+            cur.execute(
+                f"""
+                SELECT COALESCE(SUM(points_earned), 0) 
+                FROM {DB_SCHEMA}.user_activities
+                WHERE user_id = %s
+                """,
+                (user_numeric_id,)
+            )
+            xp_earned = cur.fetchone()[0] or 0
+            
+            # Get current streak
+            streak_result = get_activity_streak(user_id)
+            current_streak = streak_result.get('streak', {}).get('current_streak', 0)
+            
+            return {
+                'success': True,
+                'metrics': {
+                    'total_study_time': total_study_time,
+                    'lessons_completed': lessons_completed,
+                    'courses_completed': courses_completed,
+                    'current_streak': current_streak,
+                    'average_quiz_score': average_quiz_score,
+                    'achievements_earned': achievements_earned,
+                    'xp_earned': xp_earned,
+                    'last_active': datetime.now().isoformat()
+                }
+            }
+            
+    except Exception as e:
+        print(f"Error fetching dashboard metrics: {e}")
+        return {
+            'success': False,
+            'error': str(e),
+            'metrics': None
+        }
+    finally:
+        conn.close()
+
+
+def _transform_activities_for_frontend(activities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Transform backend activity types to frontend-compatible formats
+    
+    Maps backend activity types (e.g., 'LESSON_COMPLETED') to frontend 
+    activity types (e.g., 'execution', 'user', 'sync', etc.)
+    
+    Args:
+        activities: List of activity dictionaries from backend
+        
+    Returns:
+        List of transformed activities with frontend-compatible types
+    """
+    # Mapping from backend activity types to frontend types
+    ACTIVITY_TYPE_MAP = {
+        'LESSON_COMPLETED': 'execution',
+        'COURSE_STARTED': 'user',
+        'COURSE_COMPLETED': 'user',
+        'QUIZ_PASSED': 'execution',
+        'ACHIEVEMENT_EARNED': 'collaboration',
+        'STREAK_MILESTONE': 'user',
+        'LOGIN': 'system',
+        'CONTENT_VIEWED': 'execution',
+        'AI_GENERATED': 'system',
+        'LEARNING_PATH_STARTED': 'user',
+        'LEARNING_PATH_COMPLETED': 'user',
+        'CONCEPT_MASTERED': 'execution',
+        'BADGE_EARNED': 'collaboration'
+    }
+    
+    transformed = []
+    for activity in activities:
+        backend_type = activity.get('type', '')
+        frontend_type = ACTIVITY_TYPE_MAP.get(backend_type, 'system')
+        
+        # Create frontend-compatible activity item
+        transformed_activity = {
+            'id': activity.get('id', ''),
+            'type': frontend_type,
+            'title': activity.get('title', ''),
+            'description': activity.get('description', ''),
+            'timestamp': activity.get('created_at', ''),
+            'userId': activity.get('user_id', ''),
+            'userName': activity.get('userName', ''),
+            'status': 'success',
+            'metadata': activity.get('metadata', {}),
+            'priority': 'medium'
+        }
+        transformed.append(transformed_activity)
+    
+    return transformed

@@ -7804,7 +7804,7 @@ walker learning_streak {
 }
 
 # ==============================================================================
-# Activity Walkers - Missing Walkers
+# Activity Walkers - Dashboard Activity Feed
 # ==============================================================================
 walker recent_activity {
     has limit: int = 20;
@@ -7819,11 +7819,143 @@ walker recent_activity {
             return;
         }
 
+        # Call the activity store with correct function name
         result = activity_module.get_recent_activity(
             user_id=user_id, limit=self.limit, activity_type=self.activity_type
         );
 
         report result ;
+    }
+}
+
+# ==============================================================================
+# Dashboard Metrics Walker - Real-Time User Dashboard
+# ==============================================================================
+walker dashboard_metrics {
+    can dashboard_metrics with entry {
+        import activity_store as activity_module;
+        import user_dashboard_store as user_dashboard_module;
+
+        user_id = request_context_module.get_user_id();
+        if not user_id {
+            # Return default metrics for unauthenticated users
+            report {
+                "success": true,
+                "metrics": {
+                    "activeUsers": {
+                        "id": "activeUsers",
+                        "title": "Active Users",
+                        "value": 0,
+                        "unit": "users"
+                    },
+                    "lessonsCompleted": {
+                        "id": "lessonsCompleted",
+                        "title": "Lessons Completed",
+                        "value": 0
+                    },
+                    "coursesCompleted": {
+                        "id": "coursesCompleted",
+                        "title": "Courses Completed",
+                        "value": 0
+                    },
+                    "currentStreak": {
+                        "id": "currentStreak",
+                        "title": "Current Streak",
+                        "value": 0,
+                        "unit": "days"
+                    },
+                    "averageScore": {
+                        "id": "averageScore",
+                        "title": "Average Score",
+                        "value": 0,
+                        "unit": "%"
+                    },
+                    "xpEarned": {
+                        "id": "xpEarned",
+                        "title": "XP Earned",
+                        "value": 0
+                    }
+                }
+            } ;
+            return;
+        }
+
+        # Get comprehensive dashboard metrics from activity store
+        activity_metrics = activity_module.get_dashboard_metrics(user_id);
+
+        # Get learning analytics
+        analytics_result = user_dashboard_module.get_learning_analytics(user_id);
+
+        # Get achievements
+        achievements_result = user_dashboard_module.get_achievements(user_id);
+
+        # Build comprehensive metrics response
+        metrics_data = activity_metrics.get("metrics", {});
+        analytics_data = analytics_result.get("learning_analytics", {});
+
+        report {
+            "success": true,
+            "user_id": user_id,
+            "metrics": {
+                "activeUsers": {
+                    "id": "activeUsers",
+                    "title": "Active Users",
+                    "value": 1,  # Current user
+                    "unit": "users"
+                },
+                "lessonsCompleted": {
+                    "id": "lessonsCompleted",
+                    "title": "Lessons Completed",
+                    "value": metrics_data.get("lessons_completed", 0),
+                    "change": 0
+                },
+                "coursesCompleted": {
+                    "id": "coursesCompleted",
+                    "title": "Courses Completed",
+                    "value": metrics_data.get("courses_completed", 0)
+                },
+                "currentStreak": {
+                    "id": "currentStreak",
+                    "title": "Current Streak",
+                    "value": metrics_data.get("current_streak", 0),
+                    "unit": "days"
+                },
+                "averageScore": {
+                    "id": "averageScore",
+                    "title": "Average Score",
+                    "value": metrics_data.get("average_quiz_score", 0),
+                    "unit": "%"
+                },
+                "studyTime": {
+                    "id": "studyTime",
+                    "title": "Study Time",
+                    "value": round(metrics_data.get("total_study_time", 0), 1),
+                    "unit": "min"
+                },
+                "xpEarned": {
+                    "id": "xpEarned",
+                    "title": "XP Earned",
+                    "value": metrics_data.get("xp_earned", 0)
+                },
+                "engagementScore": {
+                    "id": "engagementScore",
+                    "title": "Engagement Score",
+                    "value": analytics_data.get("engagement_score", 0),
+                    "unit": "%"
+                },
+                "knowledgeRetention": {
+                    "id": "knowledgeRetention",
+                    "title": "Knowledge Retention",
+                    "value": analytics_data.get("knowledge_retention", 0),
+                    "unit": "%"
+                }
+            },
+            "achievements": {
+                "earned": metrics_data.get("achievements_earned", 0),
+                "total_points": achievements_result.get("total_points", 0)
+            },
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        } ;
     }
 }
 
