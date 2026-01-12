@@ -10,6 +10,7 @@ import { AdminTableActivity } from './AdminTableActivity';
 import { AdminCacheManagement } from './AdminCacheManagement';
 import { AdminAuditLogs } from './AdminAuditLogs';
 import { AdminAuditHistory } from './AdminAuditHistory';
+import advancedCollaborationService from '../../services/advancedCollaborationService';
 import './AdminDashboard.css';
 
 // Type definitions for dashboard statistics
@@ -55,6 +56,17 @@ interface AdminDashboardProps {
   onNavigate: (section: string) => void;
 }
 
+// Type definition for recent admin activity
+interface RecentAdminActivity {
+  id: string;
+  timestamp: string;
+  action: string;
+  category: string;
+  description: string;
+  ipAddress?: string;
+  username?: string;
+}
+
 // Helper function to format numbers with commas
 const formatNumber = (num: number): string => {
   return num.toLocaleString();
@@ -71,10 +83,43 @@ const isPositiveChange = (change: number): boolean => {
   return change >= 0;
 };
 
+// Helper function to format relative time
+const formatRelativeTime = (timestamp: string): string => {
+  const now = new Date();
+  const date = new Date(timestamp);
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) {
+    return 'Just now';
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  } else if (diffInSeconds < 604800) {
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  } else {
+    return date.toLocaleDateString();
+  }
+};
+
+// Helper to get icon based on activity category
+const getActivityIcon = (category: string): string => {
+  const categoryLower = category.toLowerCase();
+  if (categoryLower.includes('user') || categoryLower.includes('auth')) return '👤';
+  if (categoryLower.includes('content') || categoryLower.includes('moderation')) return '📝';
+  if (categoryLower.includes('system') || categoryLower.includes('cache')) return '🔧';
+  if (categoryLower.includes('security') || categoryLower.includes('login')) return '🛡️';
+  return '📋';
+};
+
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeSection, onNavigate }) => {
   const { adminUser, isAuthenticated } = useAdmin();
   const [dateRange, setDateRange] = useState<'day' | 'week' | 'month'>('week');
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentActivities, setRecentActivities] = useState<RecentAdminActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -120,17 +165,35 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeSection, onNaviga
     }
   }, [isAuthenticated]);
 
+  // Fetch recent admin activities from API
+  const fetchRecentActivities = useCallback(async () => {
+    try {
+      const response = await advancedCollaborationService.getRecentAdminActivity(5);
+      if (response.success && response.data) {
+        setRecentActivities(response.data);
+      } else {
+        // Set empty array on failure - will show no activities
+        setRecentActivities([]);
+      }
+    } catch (err) {
+      console.error('Error fetching recent activities:', err);
+      setRecentActivities([]);
+    }
+  }, []);
+
   // Fetch stats on component mount
   useEffect(() => {
     fetchDashboardStats();
-  }, [fetchDashboardStats]);
+    fetchRecentActivities();
+  }, [fetchDashboardStats, fetchRecentActivities]);
 
   // Refresh stats when date range changes
   useEffect(() => {
     if (dateRange) {
       fetchDashboardStats();
+      fetchRecentActivities();
     }
-  }, [dateRange, fetchDashboardStats]);
+  }, [dateRange, fetchDashboardStats, fetchRecentActivities]);
 
   // Loading skeleton component
   const LoadingSkeleton: React.FC = () => (
@@ -308,34 +371,42 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeSection, onNaviga
       <div className="recent-activity-section">
         <h2>Recent Admin Activity</h2>
         <div className="activity-feed">
-          <div className="activity-item">
-            <span className="activity-icon">👤</span>
-            <div className="activity-content">
-              <p><strong>User Management</strong> - {loading || !stats ? 'Loading...' : `${stats.users.new_this_week} new users registered`}</p>
-              <span className="activity-time">5 minutes ago</span>
-            </div>
-          </div>
-          <div className="activity-item">
-            <span className="activity-icon">📝</span>
-            <div className="activity-content">
-              <p><strong>Content Moderation</strong> - {loading || !stats ? 'Loading...' : `${stats.content.new_this_week} new items added`}</p>
-              <span className="activity-time">15 minutes ago</span>
-            </div>
-          </div>
-          <div className="activity-item">
-            <span className="activity-icon">🔧</span>
-            <div className="activity-content">
-              <p><strong>System</strong> - Cache cleared successfully</p>
-              <span className="activity-time">1 hour ago</span>
-            </div>
-          </div>
-          <div className="activity-item">
-            <span className="activity-icon">🛡️</span>
-            <div className="activity-content">
-              <p><strong>Security</strong> - Failed login attempt blocked (IP: 192.168.1.xxx)</p>
-              <span className="activity-time">2 hours ago</span>
-            </div>
-          </div>
+          {recentActivities.length === 0 ? (
+            // No activities or loading - show placeholder
+            loading ? (
+              <div className="activity-item">
+                <span className="activity-icon">📋</span>
+                <div className="activity-content">
+                  <p><strong>Loading activities...</strong></p>
+                  <span className="activity-time">Fetching latest data</span>
+                </div>
+              </div>
+            ) : (
+              <div className="activity-item">
+                <span className="activity-icon">📋</span>
+                <div className="activity-content">
+                  <p><strong>No recent activities</strong></p>
+                  <span className="activity-time">System is running normally</span>
+                </div>
+              </div>
+            )
+          ) : (
+            // Render real activities from API
+            recentActivities.map((activity) => (
+              <div key={activity.id} className="activity-item">
+                <span className="activity-icon">{getActivityIcon(activity.category)}</span>
+                <div className="activity-content">
+                  <p>
+                    <strong>{activity.category}</strong> - {activity.description}
+                    {activity.ipAddress && (
+                      <span className="activity-ip"> (IP: {activity.ipAddress})</span>
+                    )}
+                  </p>
+                  <span className="activity-time">{formatRelativeTime(activity.timestamp)}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

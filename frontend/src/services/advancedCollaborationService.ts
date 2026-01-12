@@ -1720,6 +1720,48 @@ class AdvancedCollaborationService {
       return { success: false, error: 'Failed to fetch audit logs', data: [] };
     }
   }
+
+  /**
+   * Get recent admin activity for dashboard display
+   * Fetches the most recent activities with real timestamps and security events
+   */
+  async getRecentAdminActivity(limit: number = 5): Promise<ApiResponse<Array<{
+    id: string;
+    timestamp: string;
+    action: string;
+    category: string;
+    description: string;
+    ipAddress?: string;
+    username?: string;
+  }>>> {
+    try {
+      const response = await apiService.get('/admin/recent_activity', {
+        params: { limit }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching recent admin activity:', error);
+      // Fallback: try to get from audit logs
+      try {
+        const auditResponse = await this.getAuditLogs({ limit, level: 'info' });
+        if (auditResponse.success && auditResponse.data) {
+          const activities = auditResponse.data.map(log => ({
+            id: log.id,
+            timestamp: log.timestamp,
+            action: log.level.toUpperCase(),
+            category: log.source || 'System',
+            description: log.message,
+            ipAddress: log.context?.ip_address as string | undefined,
+            username: log.context?.username as string | undefined
+          }));
+          return { success: true, data: activities };
+        }
+      } catch (fallbackError) {
+        console.error('Error fetching fallback audit logs:', fallbackError);
+      }
+      return { success: false, error: 'Failed to fetch recent activity', data: [] };
+    }
+  }
 }
 
 // Export singleton instance
