@@ -2,6 +2,7 @@
 Centralized Logging Configuration for Jeseci Smart Learning Academy
 
 This module configures logging to output to both console and a rotating log file.
+Reads LOG_LEVEL from environment variables for runtime configuration.
 """
 
 import logging
@@ -18,9 +19,29 @@ os.makedirs(LOG_DIR, exist_ok=True)
 # Log file path with timestamp for easy identification
 LOG_FILE = os.path.join(LOG_DIR, f'jeseci_backend_{datetime.now().strftime("%Y%m%d")}.log')
 
+# Read log level from environment variable
+def get_log_level_from_env() -> int:
+    """
+    Get the log level from the LOG_LEVEL environment variable.
+    
+    Returns:
+        int: Logging level constant (logging.DEBUG, logging.INFO, etc.)
+    """
+    log_level_str = os.getenv("LOG_LEVEL", "info").lower()
+    
+    level_mapping = {
+        "debug": logging.DEBUG,
+        "info": logging.INFO,
+        "warning": logging.WARNING,
+        "error": logging.ERROR,
+        "critical": logging.CRITICAL,
+    }
+    
+    return level_mapping.get(log_level_str, logging.INFO)
+
 
 def setup_logging(
-    log_level: int = logging.INFO,
+    log_level: int = None,
     console_output: bool = True,
     file_output: bool = True,
     max_log_size: int = 10 * 1024 * 1024,  # 10 MB
@@ -30,7 +51,8 @@ def setup_logging(
     Set up centralized logging configuration.
     
     Args:
-        log_level: Logging level (logging.INFO, logging.DEBUG, etc.)
+        log_level: Logging level (logging.INFO, logging.DEBUG, etc.). 
+                   If None, reads from LOG_LEVEL environment variable.
         console_output: Whether to output logs to console
         file_output: Whether to output logs to file
         max_log_size: Maximum size of each log file (default 10 MB)
@@ -39,6 +61,10 @@ def setup_logging(
     Returns:
         Configured root logger
     """
+    # Use environment variable if log_level not specified
+    if log_level is None:
+        log_level = get_log_level_from_env()
+    
     # Clear existing handlers
     root_logger = logging.getLogger()
     root_logger.handlers.clear()
@@ -94,7 +120,7 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
 
 
-# Initialize logging with default settings
+# Initialize logging with default settings from environment
 setup_logging()
 
 # Export logger

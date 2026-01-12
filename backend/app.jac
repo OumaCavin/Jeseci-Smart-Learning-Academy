@@ -71,9 +71,13 @@ walker health_check {
     has ai_status: str = "fallback";
 
     can health_check with entry {
-        # Check OpenAI configuration
+        # Check OpenAI configuration and AI feature flags
         api_key = os.getenv("OPENAI_API_KEY", "");
-        if api_key {
+        ai_content_enabled = os.getenv("AI_CONTENT_ENABLED", "true");
+        
+        if ai_content_enabled == "false" {
+            ai_status = "disabled";
+        } elif api_key {
             ai_status = "available";
         } else {
             ai_status = "fallback";
@@ -89,6 +93,12 @@ walker health_check {
             "timestamp": self.timestamp,
             "database_status": self.database_status,
             "ai_status": ai_status,
+            "configuration": {
+                "ai_content_enabled": ai_content_enabled,
+                "ai_chat_enabled": os.getenv("AI_CHAT_ENABLED", "true"),
+                "mock_data_enabled": os.getenv("ENABLE_MOCK_DATA", "false"),
+                "log_level": os.getenv("LOG_LEVEL", "info")
+            },
             "architecture": "Pure Jaclang Backend"
         } ;
     }
@@ -333,12 +343,47 @@ walker get_courses {
 # Legacy walker for backward compatibility
 walker courses {
     can courses with entry {
+        # Check if mock data is enabled
+        enable_mock = os.getenv("ENABLE_MOCK_DATA", "false");
+        
+        if enable_mock == "true" {
+            # Return mock static data
+            courses = [
+                {
+                    "course_id": "jac_fundamentals",
+                    "title": "Jac Programming Fundamentals (MOCK)",
+                    "description": "Learn the basics of Jac programming language - variables, functions, and control flow (Mock Data)",
+                    "domain": "Jac Language",
+                    "difficulty": "beginner",
+                    "content_type": "interactive"
+                },
+                {
+                    "course_id": "jac_osp_basics",
+                    "title": "Object-Spatial Programming Basics (MOCK)",
+                    "description": "Master the fundamentals of OSP with nodes, edges, and walkers (Mock Data)",
+                    "domain": "Jac Language",
+                    "difficulty": "intermediate",
+                    "content_type": "interactive"
+                },
+                {
+                    "course_id": "jac_collections",
+                    "title": "Collections and Data Structures in Jac (MOCK)",
+                    "description": "Work with lists, dictionaries, sets, and comprehensions in Jac (Mock Data)",
+                    "domain": "Jac Language",
+                    "difficulty": "beginner",
+                    "content_type": "interactive"
+                }
+            ];
+            report {"success": true, "courses": courses, "total": len(courses), "source": "mock"} ;
+            return;
+        }
+
         # Try to get courses from database
         user_id = request_context_module.get_user_id();
         result = user_dashboard_module.get_courses(user_id);
 
         if result.get("success") and len(result.get("courses", [])) > 0 {
-            report {"success": true, "courses": result.get("courses"), "total": result.get("total")} ;
+            report {"success": true, "courses": result.get("courses"), "total": result.get("total"), "source": "database"} ;
             return;
         }
 
@@ -394,7 +439,7 @@ walker courses {
             }
         ];
 
-        report {"success": true, "courses": courses, "total": len(courses)} ;
+        report {"success": true, "courses": courses, "total": len(courses), "source": "fallback"} ;
     }
 }
 
@@ -647,6 +692,17 @@ walker ai_generate_content {
     has related_concepts: list = [];
 
     can ai_generate_content with entry {
+        # Check if AI content generation is enabled
+        ai_content_enabled = os.getenv("AI_CONTENT_ENABLED", "true");
+        if ai_content_enabled == "false" {
+            report {
+                "success": false,
+                "error": "AI content generation is disabled",
+                "message": "Please set AI_CONTENT_ENABLED=true in your .env file to enable this feature"
+            } ;
+            return;
+        }
+
         import datetime;
         import ai_generator as ai_module;
 
@@ -698,6 +754,17 @@ walker ai_chat_about_code {
     has chat_history: str = "";  # JSON string of chat history
 
     can ai_chat_about_code with entry {
+        # Check if AI chat is enabled
+        ai_chat_enabled = os.getenv("AI_CHAT_ENABLED", "true");
+        if ai_chat_enabled == "false" {
+            report {
+                "success": false,
+                "error": "AI chat is disabled",
+                "message": "Please set AI_CHAT_ENABLED=true in your .env file to enable this feature"
+            } ;
+            return;
+        }
+
         import ai_code_service;
 
         result = ai_code_service.sync_chat_about_code(
@@ -710,13 +777,17 @@ walker ai_chat_about_code {
 
 walker ai_code_health {
     can ai_code_health with entry {
+        # Check if AI chat is enabled
+        ai_chat_enabled = os.getenv("AI_CHAT_ENABLED", "true");
+        
         import ai_code_service;
 
         report {
             "success": True,
-            "available": ai_code_service.ai_code_assistant.available,
+            "available": ai_code_service.ai_code_assistant.available and ai_chat_enabled == "true",
             "model": ai_code_service.ai_code_assistant.model,
-            "service": "AI Code Intelligence"
+            "service": "AI Code Intelligence",
+            "ai_chat_enabled": ai_chat_enabled
         };
     }
 }
@@ -1527,6 +1598,17 @@ walker chat {
     has context: str = "";
 
     can chat with entry {
+        # Check if AI chat is enabled
+        ai_chat_enabled = os.getenv("AI_CHAT_ENABLED", "true");
+        if ai_chat_enabled == "false" {
+            report {
+                "success": false,
+                "error": "AI chat is disabled",
+                "message": "Please set AI_CHAT_ENABLED=true in your .env file to enable this feature"
+            } ;
+            return;
+        }
+
         import datetime;
         import ai_generator as ai_module;
         result = ai_module.sync_chat_with_ai(self.message, self.context);

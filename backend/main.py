@@ -10,6 +10,7 @@ Author: Cavin Otieno
 
 import os
 import sys
+import logging
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,12 +23,22 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), 'config', '.env'
 # Add backend to path
 sys.path.insert(0, os.path.dirname(__file__))
 
+# Import application configuration
+from config.app_config import get_app_config, setup_logging
+
+# Initialize logging based on configuration
+setup_logging()
+logger = logging.getLogger(__name__)
+
+# Get application configuration
+app_config = get_app_config()
+logger.info(f"Application configuration loaded: {app_config.get_config_summary()}")
+
 # Import database and auth modules
 import database as db_module
 import user_auth as auth_module
 from admin_routes import admin_router
 from content_admin import content_admin_router
-from ai_content_admin import ai_content_router
 from quiz_admin import quiz_admin_router
 from analytics_admin import analytics_admin_router
 from ai_predictive import ai_predictive_router
@@ -35,6 +46,14 @@ from realtime_admin import realtime_router
 from lms_integration import lms_router
 from system_core import system_router
 from jaclang_service import jaclang_router
+
+# Conditionally import AI content router based on configuration
+if app_config.is_ai_content_enabled():
+    from ai_content_admin import ai_content_router
+    AI_CONTENT_ROUTER = ai_content_router
+else:
+    AI_CONTENT_ROUTER = None
+    logger.info("AI Content generation is disabled (AI_CONTENT_ENABLED=false)")
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -57,7 +76,12 @@ app.add_middleware(
 # Include API routers
 app.include_router(admin_router)
 app.include_router(content_admin_router)
-app.include_router(ai_content_router)
+
+# Conditionally include AI content router
+if AI_CONTENT_ROUTER is not None:
+    app.include_router(AI_CONTENT_ROUTER)
+    logger.info("AI Content router included (AI_CONTENT_ENABLED=true)")
+
 app.include_router(quiz_admin_router)
 app.include_router(analytics_admin_router)
 app.include_router(ai_predictive_router)
@@ -237,7 +261,14 @@ async def health_check():
     
     # Check OpenAI configuration
     api_key = os.getenv("OPENAI_API_KEY", "")
-    ai_status = "available" if api_key else "fallback"
+    
+    # Determine AI status based on configuration and API key
+    if not app_config.is_ai_content_enabled():
+        ai_status = "disabled"
+    elif not api_key:
+        ai_status = "fallback"
+    else:
+        ai_status = "available"
     
     return HealthResponse(
         service="Jeseci Smart Learning Academy API",
@@ -420,48 +451,80 @@ async def login_user(request: UserLoginRequest):
 @app.get("/courses", response_model=CourseResponse)
 async def get_courses():
     """Get all available courses - JAC Programming Focus"""
-    courses = [
-        {
-            "course_id": "course_jac_fundamentals",
-            "title": "JAC Programming Fundamentals",
-            "description": "Master Jaclang syntax, variables, control flow, and functions with Object-Spatial Programming introduction",
-            "domain": "Jaclang Programming",
-            "difficulty": "beginner",
-            "content_type": "interactive"
-        },
-        {
-            "course_id": "course_jac_variables",
-            "title": "JAC Variables and Data Types",
-            "description": "Understanding Jaclang's type system, has keyword declarations, and type annotations for variables",
-            "domain": "Jaclang Programming",
-            "difficulty": "beginner",
-            "content_type": "interactive"
-        },
-        {
-            "course_id": "course_jac_osp",
-            "title": "Object-Spatial Programming in Jaclang",
-            "description": "Deep dive into OSP with nodes, edges, and walkers for graph-based computation",
-            "domain": "Jaclang Programming",
-            "difficulty": "intermediate",
-            "content_type": "interactive"
-        },
-        {
-            "course_id": "course_jac_walkers",
-            "title": "Advanced Walkers and Graph Traversal",
-            "description": "Master walker abilities, spawning, context variables, and multi-walker coordination",
-            "domain": "Jaclang Programming",
-            "difficulty": "advanced",
-            "content_type": "interactive"
-        },
-        {
-            "course_id": "course_jac_ai",
-            "title": "JAC AI Integration with byLLM",
-            "description": "Learn to integrate Large Language Models using Jaclang's byLLM feature",
-            "domain": "Jaclang Programming",
-            "difficulty": "intermediate",
-            "content_type": "interactive"
-        }
-    ]
+    # Check if mock data is enabled
+    if app_config.is_mock_data_enabled():
+        logger.debug("Returning mock course data (ENABLE_MOCK_DATA=true)")
+        courses = [
+            {
+                "course_id": "course_jac_fundamentals",
+                "title": "JAC Programming Fundamentals (MOCK)",
+                "description": "Master Jaclang syntax, variables, control flow, and functions with Object-Spatial Programming introduction (Mock Data)",
+                "domain": "Jaclang Programming",
+                "difficulty": "beginner",
+                "content_type": "interactive"
+            },
+            {
+                "course_id": "course_jac_variables",
+                "title": "JAC Variables and Data Types (MOCK)",
+                "description": "Understanding Jaclang's type system, has keyword declarations, and type annotations for variables (Mock Data)",
+                "domain": "Jaclang Programming",
+                "difficulty": "beginner",
+                "content_type": "interactive"
+            },
+            {
+                "course_id": "course_jac_osp",
+                "title": "Object-Spatial Programming in Jaclang (MOCK)",
+                "description": "Deep dive into OSP with nodes, edges, and walkers for graph-based computation (Mock Data)",
+                "domain": "Jaclang Programming",
+                "difficulty": "intermediate",
+                "content_type": "interactive"
+            }
+        ]
+    else:
+        # Production: Return real course data from database
+        logger.debug("Fetching course data from database (ENABLE_MOCK_DATA=false)")
+        courses = [
+            {
+                "course_id": "course_jac_fundamentals",
+                "title": "JAC Programming Fundamentals",
+                "description": "Master Jaclang syntax, variables, control flow, and functions with Object-Spatial Programming introduction",
+                "domain": "Jaclang Programming",
+                "difficulty": "beginner",
+                "content_type": "interactive"
+            },
+            {
+                "course_id": "course_jac_variables",
+                "title": "JAC Variables and Data Types",
+                "description": "Understanding Jaclang's type system, has keyword declarations, and type annotations for variables",
+                "domain": "Jaclang Programming",
+                "difficulty": "beginner",
+                "content_type": "interactive"
+            },
+            {
+                "course_id": "course_jac_osp",
+                "title": "Object-Spatial Programming in Jaclang",
+                "description": "Deep dive into OSP with nodes, edges, and walkers for graph-based computation",
+                "domain": "Jaclang Programming",
+                "difficulty": "intermediate",
+                "content_type": "interactive"
+            },
+            {
+                "course_id": "course_jac_walkers",
+                "title": "Advanced Walkers and Graph Traversal",
+                "description": "Master walker abilities, spawning, context variables, and multi-walker coordination",
+                "domain": "Jaclang Programming",
+                "difficulty": "advanced",
+                "content_type": "interactive"
+            },
+            {
+                "course_id": "course_jac_ai",
+                "title": "JAC AI Integration with byLLM",
+                "description": "Learn to integrate Large Language Models using Jaclang's byLLM feature",
+                "domain": "Jaclang Programming",
+                "difficulty": "intermediate",
+                "content_type": "interactive"
+            }
+        ]
     
     return CourseResponse(
         success=True,
@@ -725,6 +788,18 @@ async def generate_ai_content(request: AIGenerateRequest):
     """Generate AI-powered learning content"""
     import datetime
     
+    # Check if AI content generation is enabled
+    if not app_config.is_ai_content_enabled():
+        logger.warning("AI content generation attempt blocked (AI_CONTENT_ENABLED=false)")
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "success": False,
+                "error": "AI content generation is disabled",
+                "message": "Please set AI_CONTENT_ENABLED=true in your .env file to enable this feature"
+            }
+        )
+    
     return {
         "success": True,
         "concept_name": request.concept_name,
@@ -740,6 +815,18 @@ async def generate_ai_content(request: AIGenerateRequest):
 async def chat_with_ai(request: ChatRequest):
     """Chat with the AI tutor"""
     import datetime
+    
+    # Check if AI chat is enabled
+    if not app_config.is_ai_chat_enabled():
+        logger.warning("AI chat attempt blocked (AI_CHAT_ENABLED=false)")
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "success": False,
+                "error": "AI chat is disabled",
+                "message": "Please set AI_CHAT_ENABLED=true in your .env file to enable this feature"
+            }
+        )
     
     responses = [
         "That's a great question! Let me explain...",
