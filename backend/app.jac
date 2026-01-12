@@ -575,7 +575,7 @@ walker user_progress {
 
     can user_progress with entry {
         # Redirect to new implementation
-        walker = get_user_progress(user_id=self.user_id);
+        # Note: Walker invocation syntax differs from Python function calls
         result = user_dashboard_module.get_user_progress(self.user_id);
 
         progress_data = {
@@ -1471,8 +1471,10 @@ walker submit_quiz_attempt {
         # Convert answers list to dictionary if needed
         answers_dict = {};
         if isinstance(self.answers, list) {
-            for i, answer in enumerate(self.answers) {
+            i = 0;
+            for answer in self.answers {
                 answers_dict[str(i)] = answer;
+                i += 1;
             }
         } else {
             answers_dict = self.answers;
@@ -9416,9 +9418,9 @@ walker analytics_trends {
 
         # Generate mock trend data for visualization
         trends = [];
-        start = datetime.datetime.now() - datetime.timedelta(days=30);
-        for i in range(30):
-            date = (start + datetime.timedelta(days=i)).strftime("%Y-%m-%d");
+        start_date = datetime.datetime.now();
+        for i in range(30) {
+            date = (start_date - datetime.timedelta(days=30-i)).strftime("%Y-%m-%d");
             trends.append({
                 "date": date,
                 "executions": 50 + (i * 2) + (i % 7) * 10,
@@ -9426,6 +9428,7 @@ walker analytics_trends {
                 "avgRuntime": 35 + (i % 5) * 3,
                 "activeUsers": 20 + (i * 3)
             });
+        }
 
         report {
             "success": true,
@@ -9459,13 +9462,14 @@ walker analytics_activity {
         } else {
             # Generate mock activity data
             activity = [];
-            start = datetime.datetime.now() - datetime.timedelta(days=30);
-            for i in range(30):
-                date = (start + datetime.timedelta(days=i)).strftime("%Y-%m-%d");
+            start_date = datetime.datetime.now();
+            for i in range(30) {
+                date = (start_date - datetime.timedelta(days=30-i)).strftime("%Y-%m-%d");
                 activity.append({
                     "date": date,
                     "value": 5 + (i % 10) * 3
                 });
+            }
 
             report {
                 "success": true,

@@ -10,9 +10,6 @@
 import backend.database as py_db;
 import os;
 
-## Database schema configuration
-DB_SCHEMA = os.getenv("DB_SCHEMA", "jeseci_academy");
-
 ## Database Connection Status
 node DatabaseStatus {
     has postgresql_connected: bool = False;
@@ -225,199 +222,180 @@ walker DatabaseManager {
     }
 
     ## Store contact form submission in database
-    def store_contact_message(contact_data: dict) {
-        """Store contact form submission in PostgreSQL database""";
+    can store_contact_message with entry {
+        contact_data = {
+            "message_id": "test_msg_001",
+            "name": "Test User",
+            "email": "test@example.com",
+            "subject": "Test Subject",
+            "message": "Test message content",
+            "phone": "",
+            "contact_reason": "general",
+            "timestamp": 0,
+            "status": "pending",
+            "ip_address": "127.0.0.1",
+            "user_agent": "Test Agent"
+        };
 
-        try {
-            manager = py_db.get_postgres_manager();
+        manager = py_db.get_postgres_manager();
+        schema = os.getenv("DB_SCHEMA", "jeseci_academy");
+        table_name = schema + ".contact_messages";
 
-            # Insert contact message into database
-            query = """
-            INSERT INTO DB_SCHEMA + ".contact_messages" (
-                message_id, name, email, subject, message, phone,
-                contact_reason, timestamp, status, ip_address, user_agent
-            ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
-            ) RETURNING message_id
-            """;
+        query = """
+        INSERT INTO """ + table_name + """ (
+            message_id, name, email, subject, message, phone,
+            contact_reason, timestamp, status, ip_address, user_agent
+        ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+        ) RETURNING message_id
+        """;
 
-            params = (
-                contact_data['message_id'],
-                contact_data['name'],
-                contact_data['email'],
-                contact_data['subject'],
-                contact_data['message'],
-                contact_data['phone'],
-                contact_data['contact_reason'],
-                contact_data['timestamp'],
-                contact_data['status'],
-                contact_data['ip_address'],
-                contact_data['user_agent']
-            );
+        params = (
+            contact_data['message_id'],
+            contact_data['name'],
+            contact_data['email'],
+            contact_data['subject'],
+            contact_data['message'],
+            contact_data['phone'],
+            contact_data['contact_reason'],
+            contact_data['timestamp'],
+            contact_data['status'],
+            contact_data['ip_address'],
+            contact_data['user_agent']
+        );
 
-            result = manager.execute_query(query, params);
+        result = manager.execute_query(query, params);
 
-            if result and len(result) > 0 {
-                return {
-                    "success": True,
-                    "message_id": result[0]['message_id'],
-                    "message": "Contact message stored successfully"
-                };
-            } else {
-                return {"success": False, "error": "Failed to store contact message"};
-            }
-        } except exception {
-            std.out("Contact storage error:", error);
-            return {"success": False, "error": "Database error: " + str(error)};
+        if result and len(result) > 0 {
+            report {
+                "success": True,
+                "message_id": result[0]['message_id'],
+                "message": "Contact message stored successfully"
+            } ;
+        } else {
+            report {"success": False, "error": "Failed to store contact message"} ;
         }
     }
 
     ## Get contact messages from database
-    def get_DB_SCHEMA + ".contact_messages"(params: dict) {
-        """Retrieve contact messages from database with filtering""";
+    can get_contact_messages with entry {
+        manager = py_db.get_postgres_manager();
+        schema = os.getenv("DB_SCHEMA", "jeseci_academy");
+        table_name = schema + ".contact_messages";
 
-        try {
-            manager = py_db.get_postgres_manager();
+        query = """
+        SELECT
+            message_id, name, email, subject, message, phone,
+            contact_reason, timestamp, status, ip_address, user_agent
+        FROM """ + table_name + """
+        ORDER BY timestamp DESC
+        LIMIT 50
+        """;
 
-            limit = params.get('limit', 50);
-            status_filter = params.get('status', 'all');
+        result = manager.execute_query(query, None);
 
-            # Build query based on status filter
-            where_clause = "";
-            query_params = [];
+        # Get total count and unread count
+        count_query = "SELECT COUNT(*) as total FROM " + table_name;
+        unread_query = "SELECT COUNT(*) as unread FROM " + table_name + " WHERE status = 'pending'";
 
-            if status_filter != 'all' {
-                where_clause = "WHERE status = $1";
-                query_params.append(status_filter);
-            }
+        total_result = manager.execute_query(count_query, None);
+        unread_result = manager.execute_query(unread_query, None);
 
-            query = """
-            SELECT
-                message_id, name, email, subject, message, phone,
-                contact_reason, timestamp, status, ip_address, user_agent
-            FROM DB_SCHEMA + ".contact_messages"
-            """ + where_clause + """
-            ORDER BY timestamp DESC
-            LIMIT """ + str(len(query_params) + 1);
-
-            query_params.append(limit);
-
-            result = manager.execute_query(query, tuple(query_params));
-
-            # Get total count and unread count
-            count_query = "SELECT COUNT(*) as total FROM DB_SCHEMA + ".contact_messages"";
-            unread_query = "SELECT COUNT(*) as unread FROM DB_SCHEMA + ".contact_messages" WHERE status = 'pending'";
-
-            total_result = manager.execute_query(count_query, None);
-            unread_result = manager.execute_query(unread_query, None);
-
-            return {
-                "success": True,
-                "messages": result or [],
-                "total": total_result[0]['total'] if total_result else 0,
-                "unread_count": unread_result[0]['unread'] if unread_result else 0
-            };
-        } except exception {
-            std.out("Contact retrieval error:", error);
-            return {"success": False, "error": "Database error: " + str(error)};
-        }
+        report {
+            "success": True,
+            "messages": result or [],
+            "total": total_result[0]['total'] if total_result else 0,
+            "unread_count": unread_result[0]['unread'] if unread_result else 0
+        } ;
     }
 
     ## Mark contact message as read
-    def mark_contact_as_read(message_id: str) {
-        """Mark a contact message as read""";
+    can mark_contact_as_read with entry {
+        message_id = "test_msg_001";
 
-        try {
-            manager = py_db.get_postgres_manager();
+        manager = py_db.get_postgres_manager();
+        schema = os.getenv("DB_SCHEMA", "jeseci_academy");
+        table_name = schema + ".contact_messages";
 
-            query = "UPDATE DB_SCHEMA + ".contact_messages" SET status = 'read' WHERE message_id = $1 RETURNING message_id";
-            result = manager.execute_query(query, (message_id, ));
+        query = "UPDATE " + table_name + " SET status = 'read' WHERE message_id = $1 RETURNING message_id";
+        result = manager.execute_query(query, (message_id, ));
 
-            if result and len(result) > 0 {
-                return {"success": True, "message": "Message marked as read"};
-            } else {
-                return {"success": False, "error": "Message not found"};
-            }
-        } except exception {
-            std.out("Mark read error:", error);
-            return {"success": False, "error": "Database error: " + str(error)};
+        if result and len(result) > 0 {
+            report {"success": True, "message": "Message marked as read"} ;
+        } else {
+            report {"success": False, "error": "Message not found"} ;
         }
     }
 
     ## Store testimonial in database
-    def store_testimonial(testimonial_data: dict) {
-        """Store testimonial in PostgreSQL database""";
+    can store_testimonial with entry {
+        testimonial_data = {
+            "name": "Test User",
+            "role": "Developer",
+            "company": "Test Corp",
+            "content": "Great learning platform!",
+            "rating": 5,
+            "avatar_url": "",
+            "is_approved": False
+        };
 
-        try {
-            manager = py_db.get_postgres_manager();
+        manager = py_db.get_postgres_manager();
+        schema = os.getenv("DB_SCHEMA", "jeseci_academy");
+        table_name = schema + ".testimonials";
 
-            # Insert testimonial into database
-            query = """
-            INSERT INTO DB_SCHEMA + ".testimonials" (
-                name, role, company, content, rating, avatar_url,
-                is_approved, is_active
-            ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8
-            ) RETURNING id
-            """;
+        query = """
+        INSERT INTO """ + table_name + """ (
+            name, role, company, content, rating, avatar_url,
+            is_approved, is_active
+        ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8
+        ) RETURNING id
+        """;
 
-            params = (
-                testimonial_data['name'],
-                testimonial_data.get('role'),
-                testimonial_data.get('company'),
-                testimonial_data['content'],
-                testimonial_data.get('rating', 5),
-                testimonial_data.get('avatar_url'),
-                testimonial_data.get('is_approved', False),
-                True
-            );
+        params = (
+            testimonial_data['name'],
+            testimonial_data.get('role'),
+            testimonial_data.get('company'),
+            testimonial_data['content'],
+            testimonial_data.get('rating', 5),
+            testimonial_data.get('avatar_url'),
+            testimonial_data.get('is_approved', False),
+            True
+        );
 
-            result = manager.execute_query(query, params);
+        result = manager.execute_query(query, params);
 
-            if result and len(result) > 0 {
-                return {
-                    "success": True,
-                    "id": result[0]['id'],
-                    "message": "Testimonial stored successfully"
-                };
-            } else {
-                return {"success": False, "error": "Failed to store testimonial"};
-            }
-        } except exception {
-            std.out("Testimonial storage error:", error);
-            return {"success": False, "error": "Database error: " + str(error)};
+        if result and len(result) > 0 {
+            report {
+                "success": True,
+                "id": result[0]['id'],
+                "message": "Testimonial stored successfully"
+            } ;
+        } else {
+            report {"success": False, "error": "Failed to store testimonial"} ;
         }
     }
 
-    ## Get DB_SCHEMA + ".testimonials" from database
-    def get_DB_SCHEMA + ".testimonials"(params: dict) {
-        """Retrieve approved DB_SCHEMA + ".testimonials" from database""";
+    ## Get testimonials from database
+    can get_testimonials with entry {
+        manager = py_db.get_postgres_manager();
+        schema = os.getenv("DB_SCHEMA", "jeseci_academy");
+        table_name = schema + ".testimonials";
 
-        try {
-            manager = py_db.get_postgres_manager();
+        query = """
+        SELECT id, name, role, company, content, rating, avatar_url, created_at
+        FROM """ + table_name + """
+        WHERE is_approved = true AND is_active = true
+        ORDER BY created_at DESC
+        """;
 
-            query = """
-            SELECT id, name, role, company, content, rating, avatar_url, created_at
-            FROM DB_SCHEMA + ".testimonials"
-            WHERE is_approved = true AND is_active = true
-            ORDER BY created_at DESC
-            """;
+        result = manager.execute_query(query, None);
 
-            result = manager.execute_query(query, None);
-
-            return {
-                "success": True,
-                "DB_SCHEMA + ".testimonials"": result or [],
-                "total": len(result) if result else 0
-            };
-        } except exception {
-            std.out("Testimonial retrieval error:", error);
-            return {
-                "success": False,
-                "error": "Database error: " + str(error),
-                "DB_SCHEMA + ".testimonials"": []
-            };
-        }
+        report {
+            "success": True,
+            "testimonials": result or [],
+            "total": len(result) if result else 0
+        } ;
     }
 
     ## Close all database connections
@@ -429,7 +407,7 @@ walker DatabaseManager {
 }
 
 ## Database Initialization Walker
-## Call this at application startup to initialize database connections
+## Call this application startup to initialize database connections
 walker InitDatabase {
     can init with entry {
         manager = py_db.DualWriteManager();
