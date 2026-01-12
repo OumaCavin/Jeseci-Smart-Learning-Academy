@@ -4624,6 +4624,49 @@ walker admin_ai_generate {
     }
 }
 
+walker admin_ai_content_delete {
+    has content_id: str;
+    has deleted_by: str = "admin";
+    has ip_address: str = "127.0.0.1";
+
+    can admin_ai_content_delete with entry {
+        result = ai_store.delete_ai_content(self.content_id, self.deleted_by, self.ip_address);
+        report result;
+    }
+}
+
+walker admin_ai_content_restore {
+    has content_id: str;
+    has restored_by: str = "admin";
+    has ip_address: str = "127.0.0.1";
+
+    can admin_ai_content_restore with entry {
+        result = ai_store.restore_ai_content(self.content_id, self.restored_by, self.ip_address);
+        report result;
+    }
+}
+
+walker admin_ai_content_deleted {
+    can admin_ai_content_deleted with entry {
+        deleted_content = ai_store.get_deleted_ai_content();
+        report {"success": True, "content": deleted_content, "total": len(deleted_content)};
+    }
+}
+
+walker admin_ai_content_export_csv {
+    can admin_ai_content_export_csv with entry {
+        csv_data = ai_store.export_ai_content_to_csv();
+        report {"success": True, "data": csv_data};
+    }
+}
+
+walker admin_ai_content_export_json {
+    can admin_ai_content_export_json with entry {
+        json_data = ai_store.export_ai_content_to_json();
+        report {"success": True, "data": json_data};
+    }
+}
+
 # ==============================================================================
 # Admin Analytics API Endpoints
 # ==============================================================================

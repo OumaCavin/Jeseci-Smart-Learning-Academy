@@ -239,6 +239,255 @@ def update_ai_stats(domain: Optional[str], tokens_used: Optional[int]) -> None:
                 logger.error(f"Error inserting AI domain stats: {e}")
 
 
+def delete_ai_content(content_id: str, deleted_by: Optional[str] = None, ip_address: Optional[str] = None) -> Dict[str, Any]:
+    """Soft delete AI generated content from PostgreSQL"""
+    pg_manager = get_postgres_manager()
+    
+    # Check if content exists
+    check_query = "SELECT content_id, concept_name, is_deleted FROM jeseci_academy.ai_generated_content WHERE content_id = %s"
+    try:
+        existing = pg_manager.execute_query(check_query, (content_id,))
+    except Exception as e:
+        logger.error(f"Error checking AI content existence for delete: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
+    
+    if not existing:
+        return {"success": False, "error": "AI content not found"}
+    
+    existing = existing[0]
+    
+    # Check if already deleted
+    if existing.get('is_deleted', False):
+        return {"success": False, "error": "Content already deleted"}
+    
+    old_values = {
+        'content_id': existing.get('content_id'),
+        'concept_name': existing.get('concept_name'),
+        'is_deleted': False
+    }
+    
+    # Soft delete - update is_deleted flag
+    delete_query = """
+    UPDATE jeseci_academy.ai_generated_content 
+    SET is_deleted = true, deleted_at = NOW(), deleted_by = %s, updated_at = NOW()
+    WHERE content_id = %s
+    """
+    try:
+        result = pg_manager.execute_query(delete_query, (deleted_by or 'system', content_id,), fetch=False)
+    except Exception as e:
+        logger.error(f"Error deleting AI content: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
+    
+    if result or result is not None:
+        # Log audit entry if audit module exists
+        try:
+            import audit_logger as audit_module
+            audit_module.log_soft_delete(
+                table_name="ai_generated_content",
+                record_id=content_id,
+                old_values=old_values,
+                performed_by=deleted_by,
+                ip_address=ip_address,
+                additional_context={"action": "delete_ai_content", "concept_name": old_values.get('concept_name')}
+            )
+        except:
+            pass  # Audit logging is optional
+        
+        return {"success": True, "content_id": content_id, "message": "AI content deleted successfully (soft delete)"}
+    
+    return {"success": False, "error": "Failed to delete AI content"}
+
+
+def restore_ai_content(content_id: str, restored_by: Optional[str] = None, ip_address: Optional[str] = None) -> Dict[str, Any]:
+    """Restore soft-deleted AI generated content"""
+    pg_manager = get_postgres_manager()
+    
+    # Get old values before updating for audit log
+    check_query = "SELECT content_id, concept_name, domain, is_deleted FROM jeseci_academy.ai_generated_content WHERE content_id = %s AND is_deleted = true"
+    try:
+        existing = pg_manager.execute_query(check_query, (content_id,))
+    except Exception as e:
+        logger.error(f"Error checking AI content existence for restore: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
+    
+    if not existing:
+        return {"success": False, "error": "Content not found or not deleted"}
+    
+    existing = existing[0]
+    old_values = {
+        'content_id': existing.get('content_id'),
+        'concept_name': existing.get('concept_name'),
+        'domain': existing.get('domain'),
+        'is_deleted': True
+    }
+    
+    # Restore the content
+    restore_query = """
+    UPDATE jeseci_academy.ai_generated_content 
+    SET is_deleted = false, deleted_at = null, deleted_by = null, updated_at = NOW()
+    WHERE content_id = %s
+    """
+    try:
+        result = pg_manager.execute_query(restore_query, (content_id,), fetch=False)
+    except Exception as e:
+        logger.error(f"Error restoring AI content: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"}
+    
+    if result or result is not None:
+        # Log audit entry if audit module exists
+        try:
+            import audit_logger as audit_module
+            audit_module.log_restore(
+                table_name="ai_generated_content",
+                record_id=content_id,
+                old_values=old_values,
+                performed_by=restored_by,
+                ip_address=ip_address,
+                additional_context={"action": "restore_ai_content", "concept_name": old_values.get('concept_name')}
+            )
+        except:
+            pass  # Audit logging is optional
+        
+        return {"success": True, "content_id": content_id, "message": "AI content restored successfully"}
+    
+    return {"success": False, "error": "Failed to restore AI content"}
+
+
+def get_deleted_ai_content() -> List[Dict[str, Any]]:
+    """Get all soft-deleted AI generated content (for trash view)"""
+    pg_manager = get_postgres_manager()
+    
+    query = """
+    SELECT content_id, concept_name, domain, difficulty, content, 
+           related_concepts, generated_by, model, tokens_used, generated_at,
+           deleted_at, deleted_by
+    FROM jeseci_academy.ai_generated_content
+    WHERE is_deleted = true
+    ORDER BY deleted_at DESC
+    """
+    
+    try:
+        result = pg_manager.execute_query(query)
+    except Exception as e:
+        logger.error(f"Error getting deleted AI content: {e}")
+        return []
+    
+    content_list = []
+    for row in result or []:
+        content_list.append({
+            "content_id": row.get('content_id'),
+            "concept_name": row.get('concept_name'),
+            "domain": row.get('domain'),
+            "difficulty": row.get('difficulty'),
+            "content": row.get('content'),
+            "related_concepts": row.get('related_concepts'),
+            "generated_by": row.get('generated_by'),
+            "model": row.get('model') or "openai",
+            "tokens_used": row.get('tokens_used'),
+            "generated_at": row.get('generated_at').isoformat() if row.get('generated_at') else None,
+            "deleted_at": row.get('deleted_at').isoformat() if row.get('deleted_at') else None,
+            "deleted_by": row.get('deleted_by')
+        })
+    
+    return content_list
+
+
+def export_ai_content_to_csv() -> str:
+    """Export all AI generated content (active and deleted) to CSV format"""
+    import csv
+    import io
+    
+    pg_manager = get_postgres_manager()
+    
+    query = """
+    SELECT content_id, concept_name, domain, difficulty, content, 
+           related_concepts, generated_by, model, tokens_used, generated_at,
+           is_deleted, deleted_at, deleted_by
+    FROM jeseci_academy.ai_generated_content
+    ORDER BY generated_at DESC
+    """
+    
+    try:
+        result = pg_manager.execute_query(query)
+    except Exception as e:
+        logger.error(f"Error exporting AI content: {e}")
+        return ""
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow([
+        'content_id', 'concept_name', 'domain', 'difficulty', 'content',
+        'related_concepts', 'generated_by', 'model', 'tokens_used', 'generated_at',
+        'is_deleted', 'deleted_at', 'deleted_by'
+    ])
+    
+    # Write data rows
+    for row in result or []:
+        related_concepts = row.get('related_concepts')
+        related_concepts_str = ','.join(related_concepts) if isinstance(related_concepts, list) else str(related_concepts)
+        
+        writer.writerow([
+            row.get('content_id', ''),
+            row.get('concept_name', ''),
+            row.get('domain', ''),
+            row.get('difficulty', ''),
+            row.get('content', '')[:1000] if row.get('content') else '',  # Truncate long content
+            related_concepts_str,
+            row.get('generated_by', ''),
+            row.get('model', ''),
+            row.get('tokens_used', ''),
+            row.get('generated_at', ''),
+            row.get('is_deleted', ''),
+            row.get('deleted_at', ''),
+            row.get('deleted_by', '')
+        ])
+    
+    return output.getvalue()
+
+
+def export_ai_content_to_json() -> str:
+    """Export all AI generated content (active and deleted) to JSON format"""
+    import json
+    
+    pg_manager = get_postgres_manager()
+    
+    query = """
+    SELECT content_id, concept_name, domain, difficulty, content, 
+           related_concepts, generated_by, model, tokens_used, generated_at,
+           is_deleted, deleted_at, deleted_by
+    FROM jeseci_academy.ai_generated_content
+    ORDER BY generated_at DESC
+    """
+    
+    try:
+        result = pg_manager.execute_query(query)
+    except Exception as e:
+        logger.error(f"Error exporting AI content: {e}")
+        return json.dumps({"error": str(e)})
+    
+    content_list = []
+    for row in result or []:
+        content_list.append({
+            "content_id": row.get('content_id'),
+            "concept_name": row.get('concept_name'),
+            "domain": row.get('domain'),
+            "difficulty": row.get('difficulty'),
+            "content": row.get('content'),
+            "related_concepts": row.get('related_concepts'),
+            "generated_by": row.get('generated_by'),
+            "model": row.get('model') or "openai",
+            "tokens_used": row.get('tokens_used'),
+            "generated_at": row.get('generated_at').isoformat() if row.get('generated_at') else None,
+            "is_deleted": row.get('is_deleted'),
+            "deleted_at": row.get('deleted_at').isoformat() if row.get('deleted_at') else None,
+            "deleted_by": row.get('deleted_by')
+        })
+    
+    return json.dumps({"ai_content": content_list, "total": len(content_list)}, indent=2)
+
+
 def initialize_ai_content() -> Dict[str, Any]:
     """Initialize AI store with default data if needed"""
     # Check if there are any existing AI generated content

@@ -639,6 +639,62 @@ class AdminApiService {
     });
   }
 
+  // AI Content Management - Delete, Restore, Export
+  async deleteAIContent(
+    contentId: string,
+    deletedBy?: string,
+    ipAddress?: string
+  ): Promise<{ success: boolean; content_id: string; message: string }> {
+    return this.makeRequest('/walker/admin_ai_content_delete', {
+      method: 'POST',
+      body: JSON.stringify({
+        content_id: contentId,
+        deleted_by: deletedBy || 'admin',
+        ip_address: ipAddress || '127.0.0.1',
+      }),
+    });
+  }
+
+  async restoreAIContent(
+    contentId: string,
+    restoredBy?: string,
+    ipAddress?: string
+  ): Promise<{ success: boolean; content_id: string; message: string }> {
+    return this.makeRequest('/walker/admin_ai_content_restore', {
+      method: 'POST',
+      body: JSON.stringify({
+        content_id: contentId,
+        restored_by: restoredBy || 'admin',
+        ip_address: ipAddress || '127.0.0.1',
+      }),
+    });
+  }
+
+  async getDeletedAIContent(): Promise<{
+    success: boolean;
+    content: AIGeneratedContentAdmin[];
+    total: number;
+  }> {
+    return this.makeRequest('/walker/admin_ai_content_deleted', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async exportAIContentCsv(): Promise<{ success: boolean; data: string; error?: string }> {
+    return this.makeRequest('/walker/admin_ai_content_export_csv', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async exportAIContentJson(): Promise<{ success: boolean; data: string; error?: string }> {
+    return this.makeRequest('/walker/admin_ai_content_export_json', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
   // Analytics - Updated to use new database-backed walkers
   async getUserAnalytics(): Promise<{
     success: boolean;
