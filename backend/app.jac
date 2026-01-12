@@ -3982,6 +3982,132 @@ walker admin_content_courses_deleted {
     }
 }
 
+# Concept delete, restore and deleted view walkers
+walker admin_content_concept_delete {
+    has concept_id: str;
+    has deleted_by: str = "";
+    has ip_address: str = "";
+
+    can admin_content_concept_delete with entry {
+        result = content_store.delete_concept(
+            self.concept_id, self.deleted_by, self.ip_address
+        );
+
+        if result['success'] {
+            report {
+                "success": True,
+                "concept_id": self.concept_id,
+                "message": "Concept deleted successfully"
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to delete concept')
+            } ;
+        }
+    }
+}
+
+walker admin_content_concept_restore {
+    has concept_id: str;
+    has restored_by: str = "";
+    has ip_address: str = "";
+
+    can admin_content_concept_restore with entry {
+        result = content_store.restore_concept(
+            self.concept_id, self.restored_by, self.ip_address
+        );
+
+        if result['success'] {
+            report {
+                "success": True,
+                "concept_id": self.concept_id,
+                "message": "Concept restored successfully"
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to restore concept')
+            } ;
+        }
+    }
+}
+
+walker admin_content_concepts_deleted {
+    can admin_content_concepts_deleted with entry {
+        deleted_concepts = content_store.get_deleted_concepts();
+
+        report {
+            "success": True,
+            "concepts": deleted_concepts,
+            "total": len(deleted_concepts)
+        } ;
+    }
+}
+
+# Learning path delete, restore and deleted view walkers
+walker admin_content_path_delete {
+    has path_id: str;
+    has deleted_by: str = "";
+    has ip_address: str = "";
+
+    can admin_content_path_delete with entry {
+        result = content_store.delete_path(
+            self.path_id, self.deleted_by, self.ip_address
+        );
+
+        if result['success'] {
+            report {
+                "success": True,
+                "path_id": self.path_id,
+                "message": "Learning path deleted successfully"
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to delete learning path')
+            } ;
+        }
+    }
+}
+
+walker admin_content_path_restore {
+    has path_id: str;
+    has restored_by: str = "";
+    has ip_address: str = "";
+
+    can admin_content_path_restore with entry {
+        result = content_store.restore_path(
+            self.path_id, self.restored_by, self.ip_address
+        );
+
+        if result['success'] {
+            report {
+                "success": True,
+                "path_id": self.path_id,
+                "message": "Learning path restored successfully"
+            } ;
+        } else {
+            report {
+                "success": False,
+                "error": result.get('error', 'Failed to restore learning path')
+            } ;
+        }
+    }
+}
+
+walker admin_content_paths_deleted {
+    can admin_content_paths_deleted with entry {
+        deleted_paths = content_store.get_deleted_paths();
+
+        report {
+            "success": True,
+            "paths": deleted_paths,
+            "total": len(deleted_paths)
+        } ;
+    }
+}
+
 walker admin_content_concepts {
     can admin_content_concepts with entry {
         # Initialize store and get concepts with error handling

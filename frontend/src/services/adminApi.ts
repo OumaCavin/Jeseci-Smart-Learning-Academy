@@ -442,6 +442,48 @@ class AdminApiService {
     });
   }
 
+  async deleteConcept(conceptId: string, deletedBy?: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
+    return this.makeRequest('/walker/admin_content_concept_delete', {
+      method: 'POST',
+      body: JSON.stringify({ concept_id: conceptId, deleted_by: deletedBy, ip_address: ipAddress }),
+    });
+  }
+
+  async restoreConcept(conceptId: string, restoredBy?: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
+    return this.makeRequest('/walker/admin_content_concept_restore', {
+      method: 'POST',
+      body: JSON.stringify({ concept_id: conceptId, restored_by: restoredBy, ip_address: ipAddress }),
+    });
+  }
+
+  async getDeletedConcepts(): Promise<{ success: boolean; concepts: AdminConcept[]; total: number }> {
+    return this.makeRequest('/walker/admin_content_concepts_deleted', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async deletePath(pathId: string, deletedBy?: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
+    return this.makeRequest('/walker/admin_content_path_delete', {
+      method: 'POST',
+      body: JSON.stringify({ path_id: pathId, deleted_by: deletedBy, ip_address: ipAddress }),
+    });
+  }
+
+  async restorePath(pathId: string, restoredBy?: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
+    return this.makeRequest('/walker/admin_content_path_restore', {
+      method: 'POST',
+      body: JSON.stringify({ path_id: pathId, restored_by: restoredBy, ip_address: ipAddress }),
+    });
+  }
+
+  async getDeletedPaths(): Promise<{ success: boolean; paths: AdminLearningPath[]; total: number }> {
+    return this.makeRequest('/walker/admin_content_paths_deleted', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
   // Quiz Management
   async getQuizzes(): Promise<{ success: boolean; quizzes: AdminQuiz[] }> {
     return this.makeRequest('/walker/admin_quizzes', {

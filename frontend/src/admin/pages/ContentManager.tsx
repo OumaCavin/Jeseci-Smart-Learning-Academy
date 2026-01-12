@@ -12,29 +12,37 @@ interface ContentManagerProps {
 }
 
 type ContentType = 'courses' | 'concepts' | 'paths' | 'relationships';
+type ViewMode = 'active' | 'deleted';
 
 const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
   const [contentType, setContentType] = useState<ContentType>('courses');
+  const [viewMode, setViewMode] = useState<ViewMode>('active');
   const [courses, setCourses] = useState<AdminCourse[]>([]);
   const [concepts, setConcepts] = useState<AdminConcept[]>([]);
   const [paths, setPaths] = useState<AdminLearningPath[]>([]);
   const [relationships, setRelationships] = useState<any[]>([]);
+  const [deletedCourses, setDeletedCourses] = useState<AdminCourse[]>([]);
+  const [deletedConcepts, setDeletedConcepts] = useState<AdminConcept[]>([]);
+  const [deletedPaths, setDeletedPaths] = useState<AdminLearningPath[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRelationshipModal, setShowRelationshipModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: ContentType; id: string; name: string } | null>(null);
 
   useEffect(() => {
     if (activeSection === 'content') {
       loadContent();
+      loadDeletedContent();
     }
-  }, [activeSection, contentType]);
+  }, [activeSection, contentType, viewMode]);
 
   const loadContent = async () => {
     setLoading(true);
     setError(null);
     try {
-      if (contentType === 'courses') {
+      if (contentType === 'courses' && viewMode === 'active') {
         const response = await adminApi.getCourses();
         console.log('Get courses response:', response);
         if (response.success) {
@@ -42,7 +50,7 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
         } else {
           setError('Failed to load courses');
         }
-      } else if (contentType === 'concepts') {
+      } else if (contentType === 'concepts' && viewMode === 'active') {
         const response = await adminApi.getConcepts();
         console.log('Get concepts response:', response);
         if (response.success) {
@@ -50,7 +58,7 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
         } else {
           setError('Failed to load concepts');
         }
-      } else if (contentType === 'paths') {
+      } else if (contentType === 'paths' && viewMode === 'active') {
         const response = await adminApi.getLearningPaths();
         console.log('Get learning paths response:', response);
         if (response.success) {
@@ -59,7 +67,6 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
           setError('Failed to load learning paths');
         }
       } else if (contentType === 'relationships') {
-        // Load both relationships and concepts in parallel for the relationship modal dropdowns
         const [relsRes, conceptsRes] = await Promise.all([
           adminApi.getConceptRelationships(),
           adminApi.getConcepts()
@@ -85,22 +92,80 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
     }
   };
 
-  const handleDelete = async (id: string, type: ContentType) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
+  const loadDeletedContent = async () => {
+    if (viewMode !== 'deleted') return;
+    
+    try {
+      const [coursesRes, conceptsRes, pathsRes] = await Promise.all([
+        adminApi.getDeletedCourses(),
+        adminApi.getDeletedConcepts(),
+        adminApi.getDeletedPaths()
+      ]);
+      
+      if (coursesRes.success) setDeletedCourses(coursesRes.courses || []);
+      if (conceptsRes.success) setDeletedConcepts(conceptsRes.concepts || []);
+      if (pathsRes.success) setDeletedPaths(pathsRes.paths || []);
+    } catch (err: any) {
+      console.error('Error loading deleted content:', err);
+    }
+  };
 
+  const handleDelete = async (id: string, type: ContentType, name: string) => {
+    setDeleteTarget({ type, id, name });
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    
+    const { type, id, name } = deleteTarget;
+    
     try {
       let response;
       if (type === 'courses') {
-        response = await adminApi.deleteCourse(id);
+        response = await adminApi.deleteCourse(id, 'admin', '127.0.0.1');
+      } else if (type === 'concepts') {
+        response = await adminApi.deleteConcept(id, 'admin', '127.0.0.1');
+      } else if (type === 'paths') {
+        response = await adminApi.deletePath(id, 'admin', '127.0.0.1');
       } else {
-        // For concepts and paths, we'd need delete methods
         response = { success: true, message: 'Deleted successfully' };
       }
 
       if (response.success) {
+        alert(`${name} deleted successfully`);
         loadContent();
+        loadDeletedContent();
       } else {
         alert('Failed to delete: ' + response.message);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    } finally {
+      setShowDeleteConfirm(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  const handleRestore = async (id: string, type: ContentType, name: string) => {
+    try {
+      let response;
+      if (type === 'courses') {
+        response = await adminApi.restoreCourse(id, 'admin', '127.0.0.1');
+      } else if (type === 'concepts') {
+        response = await adminApi.restoreConcept(id, 'admin', '127.0.0.1');
+      } else if (type === 'paths') {
+        response = await adminApi.restorePath(id, 'admin', '127.0.0.1');
+      } else {
+        response = { success: false, message: 'Unknown type' };
+      }
+
+      if (response.success) {
+        alert(`${name} restored successfully`);
+        loadContent();
+        loadDeletedContent();
+      } else {
+        alert('Failed to restore: ' + response.message);
       }
     } catch (err: any) {
       alert('Error: ' + err.message);
@@ -127,6 +192,10 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
       );
     }
 
+    if (viewMode === 'deleted') {
+      return renderDeletedContent();
+    }
+
     switch (contentType) {
       case 'courses':
         return renderCourses();
@@ -139,6 +208,74 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
       default:
         return null;
     }
+  };
+
+  const renderDeletedContent = () => {
+    const deletedItems = contentType === 'courses' ? deletedCourses :
+                        contentType === 'concepts' ? deletedConcepts :
+                        contentType === 'paths' ? deletedPaths : [];
+
+    return (
+      <div className="admin-card">
+        <div className="admin-card-header">
+          <h2>Deleted {contentType.charAt(0).toUpperCase() + contentType.slice(1)} ({deletedItems.length})</h2>
+        </div>
+        <div className="admin-card-body" style={{ padding: 0 }}>
+          {deletedItems.length > 0 ? (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Details</th>
+                  <th>Deleted By</th>
+                  <th>Deleted At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deletedItems.map((item: any) => (
+                  <tr key={item.course_id || item.concept_id || item.path_id}>
+                    <td>
+                      <div style={{ fontWeight: '500' }}>
+                        {item.title || item.display_name || item.name}
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`badge ${
+                        (item.difficulty || 'beginner') === 'beginner' ? 'badge-success' :
+                        (item.difficulty || 'beginner') === 'intermediate' ? 'badge-warning' : 'badge-danger'
+                      }`}>
+                        {item.difficulty || item.difficulty_level || 'beginner'}
+                      </span>
+                    </td>
+                    <td>{item.deleted_by || 'Unknown'}</td>
+                    <td>{item.deleted_at ? new Date(item.deleted_at).toLocaleDateString() : 'N/A'}</td>
+                    <td>
+                      <button
+                        className="btn btn-sm btn-success"
+                        onClick={() => handleRestore(
+                          item.course_id || item.concept_id || item.path_id,
+                          contentType,
+                          item.title || item.display_name || item.name
+                        )}
+                      >
+                        ♻️ Restore
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-icon">🗑️</div>
+              <h3>No Deleted {contentType.charAt(0).toUpperCase() + contentType.slice(1)}</h3>
+              <p>Deleted items will appear here</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const renderCourses = () => (
@@ -189,7 +326,7 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
                       <button className="btn btn-sm btn-secondary">Edit</button>
                       <button 
                         className="btn btn-sm btn-danger"
-                        onClick={() => handleDelete(course.course_id, 'courses')}
+                        onClick={() => handleDelete(course.course_id, 'courses', course.title)}
                       >
                         Delete
                       </button>
@@ -225,12 +362,9 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
               <tr>
                 <th>Concept</th>
                 <th>Category</th>
-                <th>Subcategory</th>
                 <th>Difficulty</th>
                 <th>Complexity</th>
-                <th>Cognitive Load</th>
                 <th>Domain</th>
-                <th>Key Terms</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -247,7 +381,6 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
                     </div>
                   </td>
                   <td>{concept.category}</td>
-                  <td>{concept.subcategory || '-'}</td>
                   <td>
                     <span className={`badge ${
                       concept.difficulty_level === 'beginner' ? 'badge-success' :
@@ -257,34 +390,13 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
                     </span>
                   </td>
                   <td>{concept.complexity_score?.toFixed(1) || '0.0'}</td>
-                  <td>{concept.cognitive_load?.toFixed(1) || '0.0'}</td>
                   <td><span className="badge badge-info">{concept.domain}</span></td>
-                  <td>
-                    <div style={{ maxWidth: '150px' }}>
-                      {concept.key_terms && concept.key_terms.length > 0 ? (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                          {concept.key_terms.slice(0, 3).map((term: string, idx: number) => (
-                            <span key={idx} className="badge badge-secondary" style={{ fontSize: '11px' }}>
-                              {term}
-                            </span>
-                          ))}
-                          {concept.key_terms.length > 3 && (
-                            <span className="badge badge-secondary" style={{ fontSize: '11px' }}>
-                              +{concept.key_terms.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span style={{ color: '#9ca3af', fontSize: '13px' }}>No terms</span>
-                      )}
-                    </div>
-                  </td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button className="btn btn-sm btn-secondary">Edit</button>
                       <button 
                         className="btn btn-sm btn-danger"
-                        onClick={() => handleDelete(concept.concept_id, 'concepts')}
+                        onClick={() => handleDelete(concept.concept_id, 'concepts', concept.display_name)}
                       >
                         Delete
                       </button>
@@ -321,9 +433,7 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
                 <th>Learning Path</th>
                 <th>Difficulty</th>
                 <th>Courses</th>
-                <th>Modules</th>
                 <th>Duration</th>
-                <th>Target Audience</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -347,15 +457,13 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
                     </span>
                   </td>
                   <td>{path.courses?.length || 0} courses</td>
-                  <td>{path.total_modules} modules</td>
                   <td>{path.duration}</td>
-                  <td>{path.target_audience || '-'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button className="btn btn-sm btn-secondary">Edit</button>
                       <button 
                         className="btn btn-sm btn-danger"
-                        onClick={() => handleDelete(path.path_id, 'paths')}
+                        onClick={() => handleDelete(path.path_id, 'paths', path.title)}
                       >
                         Delete
                       </button>
@@ -378,20 +486,42 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
 
   return (
     <div className="content-manager">
-      {/* Content Type Tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
-        {(['courses', 'concepts', 'paths', 'relationships'] as ContentType[]).map((type) => (
+      {/* View Mode Toggle */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {(['courses', 'concepts', 'paths', 'relationships'] as ContentType[]).map((type) => (
+            <button
+              key={type}
+              className={`btn ${contentType === type ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => {
+                setContentType(type);
+                setViewMode('active');
+              }}
+            >
+              {type === 'courses' && '📚 Courses'}
+              {type === 'concepts' && '📌 Concepts'}
+              {type === 'paths' && '🛤️ Paths'}
+              {type === 'relationships' && '🔗 Relationships'}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            key={type}
-            className={`btn ${contentType === type ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setContentType(type)}
+            className={`btn ${viewMode === 'active' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setViewMode('active')}
           >
-            {type === 'courses' && '📚 Courses'}
-            {type === 'concepts' && '📌 Concepts'}
-            {type === 'paths' && '🛤️ Paths'}
-            {type === 'relationships' && '🔗 Relationships'}
+            ✅ Active
           </button>
-        ))}
+          <button
+            className={`btn ${viewMode === 'deleted' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => {
+              setViewMode('deleted');
+              loadDeletedContent();
+            }}
+          >
+            🗑️ Deleted
+          </button>
+        </div>
       </div>
 
       {/* Content Display */}
@@ -419,6 +549,47 @@ const ContentManager: React.FC<ContentManagerProps> = ({ activeSection }) => {
             loadContent();
           }}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && deleteTarget && (
+        <div className="modal-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}>
+          <div className="modal-content" style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            width: '100%',
+            maxWidth: '400px',
+          }}>
+            <h2 style={{ marginTop: 0 }}>Confirm Delete</h2>
+            <p>Are you sure you want to delete <strong>{deleteTarget.name}</strong>?</p>
+            <p style={{ color: '#6b7280', fontSize: '14px' }}>
+              This item will be moved to the Deleted section and can be restored later.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button className="btn btn-secondary" onClick={() => {
+                setShowDeleteConfirm(false);
+                setDeleteTarget(null);
+              }}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={confirmDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

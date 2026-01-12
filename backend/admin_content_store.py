@@ -588,6 +588,185 @@ def delete_concept_relationship(source_id, target_id, relationship_type):
         logger.error(f"Error deleting concept relationship: {e}")
         return {"success": False, "error": f"Database error: {str(e)}"}
 
+def delete_concept(concept_id, deleted_by=None, ip_address=None):
+    """Soft delete a concept in Neo4j by setting is_deleted property
+    
+    Args:
+        concept_id: The concept_id of the concept to delete
+        deleted_by: Username of the admin performing the deletion (for tracking)
+        ip_address: IP address of the request for geolocation tracking
+    """
+    neo4j_manager = get_neo4j_manager()
+    
+    # Check if concept exists and is not already deleted
+    check_query = """
+    MATCH (c:Concept {concept_id: $concept_id})
+    RETURN c.concept_id AS concept_id, c.name AS name, c.display_name AS display_name, c.is_deleted AS is_deleted
+    """
+    
+    try:
+        existing = neo4j_manager.execute_query(check_query, {"concept_id": concept_id})
+    except Exception as e:
+        logger.error(f"Error checking concept existence for delete: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"
+    
+    if not existing or len(existing) == 0:
+        return {"success": False, "error": "Concept not found"}
+    
+    existing = existing[0]
+    if existing.get('is_deleted', False):
+        return {"success": False, "error": "Concept is already deleted"}
+    
+    old_values = {
+        'concept_id': existing.get('concept_id'),
+        'name': existing.get('name'),
+        'display_name': existing.get('display_name'),
+        'is_deleted': False
+    }
+    
+    # Perform soft delete
+    soft_delete_query = """
+    MATCH (c:Concept {concept_id: $concept_id})
+    SET c.is_deleted = true, c.deleted_at = timestamp(), c.deleted_by = $deleted_by
+    RETURN c.concept_id AS concept_id
+    """
+    
+    try:
+        result = neo4j_manager.execute_write(soft_delete_query, {
+            "concept_id": concept_id,
+            "deleted_by": deleted_by or "admin"
+        })
+    except Exception as e:
+        logger.error(f"Error soft deleting concept: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"
+    
+    if result:
+        # Log audit entry
+        audit_module.log_soft_delete(
+            table_name="concepts",
+            record_id=concept_id,
+            old_values=old_values,
+            performed_by=deleted_by,
+            ip_address=ip_address,
+            additional_context={"action": "delete_concept", "concept_name": old_values.get('name')}
+        )
+        
+        return {"success": True, "concept_id": concept_id, "message": "Concept deleted successfully (soft delete)"}
+    
+    return {"success": False, "error": "Failed to delete concept"}
+
+def restore_concept(concept_id, restored_by=None, ip_address=None):
+    """Restore a soft-deleted concept in Neo4j
+    
+    Args:
+        concept_id: The concept_id of the concept to restore
+        restored_by: Username of the admin performing the restore (for tracking)
+        ip_address: IP address of the request for geolocation tracking
+    """
+    neo4j_manager = get_neo4j_manager()
+    
+    # Check if concept exists and is deleted
+    check_query = """
+    MATCH (c:Concept {concept_id: $concept_id})
+    RETURN c.concept_id AS concept_id, c.name AS name, c.display_name AS display_name, c.is_deleted AS is_deleted
+    """
+    
+    try:
+        existing = neo4j_manager.execute_query(check_query, {"concept_id": concept_id})
+    except Exception as e:
+        logger.error(f"Error checking concept existence for restore: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"
+    
+    if not existing or len(existing) == 0:
+        return {"success": False, "error": "Concept not found"}
+    
+    existing = existing[0]
+    if not existing.get('is_deleted', False):
+        return {"success": False, "error": "Concept is not deleted"}
+    
+    old_values = {
+        'concept_id': existing.get('concept_id'),
+        'name': existing.get('name'),
+        'display_name': existing.get('display_name'),
+        'is_deleted': True
+    }
+    
+    # Restore the concept
+    restore_query = """
+    MATCH (c:Concept {concept_id: $concept_id})
+    SET c.is_deleted = false, c.deleted_at = null, c.deleted_by = null
+    RETURN c.concept_id AS concept_id
+    """
+    
+    try:
+        result = neo4j_manager.execute_write(restore_query, {"concept_id": concept_id})
+    except Exception as e:
+        logger.error(f"Error restoring concept: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"
+    
+    if result:
+        # Log audit entry
+        audit_module.log_restore(
+            table_name="concepts",
+            record_id=concept_id,
+            old_values=old_values,
+            performed_by=restored_by,
+            ip_address=ip_address,
+            additional_context={"action": "restore_concept", "concept_name": old_values.get('name')}
+        )
+        
+        return {"success": True, "concept_id": concept_id, "message": "Concept restored successfully"}
+    
+    return {"success": False, "error": "Failed to restore concept"}
+
+def get_deleted_concepts():
+    """Get all soft-deleted concepts from Neo4j (for trash view)
+    
+    Returns:
+        List of soft-deleted concept objects with deletion metadata
+    """
+    neo4j_manager = get_neo4j_manager()
+    
+    query = """
+    MATCH (c:Concept)
+    WHERE c.is_deleted = true
+    RETURN c.concept_id AS concept_id, c.name AS name, c.display_name AS display_name,
+           c.category AS category, c.subcategory AS subcategory, c.difficulty_level AS difficulty_level,
+           c.complexity_score AS complexity_score, c.cognitive_load AS cognitive_load,
+           c.domain AS domain, c.description AS description, c.icon AS icon,
+           c.key_terms AS key_terms, c.synonyms AS synonyms,
+           c.deleted_at AS deleted_at, c.deleted_by AS deleted_by
+    ORDER BY c.deleted_at DESC
+    """
+    
+    try:
+        result = neo4j_manager.execute_query(query)
+    except Exception as e:
+        logger.error(f"Error getting deleted concepts: {e}")
+        return []
+    
+    concepts = []
+    for row in result or []:
+        concepts.append({
+            "concept_id": row.get('concept_id'),
+            "name": row.get('name'),
+            "display_name": row.get('display_name') or row.get('name'),
+            "category": row.get('category') or "",
+            "subcategory": row.get('subcategory') or "",
+            "difficulty_level": row.get('difficulty_level') or "beginner",
+            "complexity_score": row.get('complexity_score') or 0,
+            "cognitive_load": row.get('cognitive_load') or 0,
+            "domain": row.get('domain') or "",
+            "description": row.get('description') or "",
+            "icon": row.get('icon') or "default",
+            "key_terms": row.get('key_terms') or [],
+            "synonyms": row.get('synonyms') or [],
+            "deleted_at": row.get('deleted_at').isoformat() if row.get('deleted_at') else None,
+            "deleted_by": row.get('deleted_by')
+        })
+    
+    return concepts
+
 
 def get_all_concept_relationships():
     """Get all concept relationships from Neo4j"""
@@ -798,6 +977,197 @@ def create_path(title, description, courses, concepts, difficulty, duration, tar
         return {"success": True, "path_id": path_id, "path": new_path}
     
     return {"success": False, "error": "Failed to create learning path"}
+
+def delete_path(path_id, deleted_by=None, ip_address=None):
+    """Soft delete a learning path from PostgreSQL instead of hard delete
+    
+    Args:
+        path_id: The path_id of the learning path to delete
+        deleted_by: Username of the admin performing the deletion (for tracking)
+        ip_address: IP address of the request for geolocation tracking
+    """
+    pg_manager = get_postgres_manager()
+    
+    # Get old values before updating for audit log
+    check_query = "SELECT path_id, title, description, difficulty, is_deleted FROM jeseci_academy.learning_paths WHERE path_id = %s"
+    try:
+        existing = pg_manager.execute_query(check_query, (path_id,))
+    except Exception as e:
+        logger.error(f"Error checking path existence for delete: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"
+    
+    if not existing:
+        return {"success": False, "error": "Learning path not found"}
+    
+    existing = existing[0]
+    if existing.get('is_deleted', False):
+        return {"success": False, "error": "Learning path is already deleted"}
+    
+    old_values = {
+        'path_id': existing.get('path_id'),
+        'title': existing.get('title'),
+        'description': existing.get('description'),
+        'difficulty': existing.get('difficulty'),
+        'is_deleted': False
+    }
+    
+    # Perform soft delete
+    current_time = datetime.datetime.now()
+    soft_delete_query = """
+    UPDATE jeseci_academy.learning_paths 
+    SET is_deleted = true, deleted_at = %s, deleted_by = %s, updated_at = NOW()
+    WHERE path_id = %s
+    """
+    try:
+        result = pg_manager.execute_query(soft_delete_query, (current_time, deleted_by, path_id,), fetch=False)
+    except Exception as e:
+        logger.error(f"Error soft deleting learning path: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"
+    
+    if result or result is not None:
+        # Also mark as deleted in Neo4j
+        neo4j_manager = get_neo4j_manager()
+        try:
+            neo4j_query = """
+            MATCH (p:LearningPath {path_id: $path_id})
+            SET p.is_deleted = true, p.deleted_at = datetime()
+            """
+            neo4j_manager.execute_query(neo4j_query, {"path_id": path_id})
+        except Exception as e:
+            logger.warning(f"Error marking path as deleted in Neo4j: {e}")
+        
+        # Log audit entry
+        audit_module.log_soft_delete(
+            table_name="learning_paths",
+            record_id=path_id,
+            old_values=old_values,
+            performed_by=deleted_by,
+            ip_address=ip_address,
+            additional_context={"action": "delete_path", "path_title": old_values.get('title')}
+        )
+        
+        # Invalidate cache
+        global paths_initialized
+        paths_initialized = False
+        
+        return {"success": True, "path_id": path_id, "message": "Learning path deleted successfully (soft delete)"}
+    
+    return {"success": False, "error": "Failed to delete learning path"}
+
+def restore_path(path_id, restored_by=None, ip_address=None):
+    """Restore a soft-deleted learning path
+    
+    Args:
+        path_id: The path_id of the learning path to restore
+        restored_by: Username of the admin performing the restore (for tracking)
+        ip_address: IP address of the request for geolocation tracking
+    """
+    pg_manager = get_postgres_manager()
+    
+    # Get old values before updating for audit log
+    check_query = "SELECT path_id, title, description, difficulty, is_deleted FROM jeseci_academy.learning_paths WHERE path_id = %s AND is_deleted = true"
+    try:
+        existing = pg_manager.execute_query(check_query, (path_id,))
+    except Exception as e:
+        logger.error(f"Error checking path existence for restore: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"
+    
+    if not existing:
+        return {"success": False, "error": "Learning path not found or not deleted"}
+    
+    existing = existing[0]
+    old_values = {
+        'path_id': existing.get('path_id'),
+        'title': existing.get('title'),
+        'description': existing.get('description'),
+        'difficulty': existing.get('difficulty'),
+        'is_deleted': True
+    }
+    
+    # Restore the path
+    restore_query = """
+    UPDATE jeseci_academy.learning_paths 
+    SET is_deleted = false, deleted_at = null, deleted_by = null, updated_at = NOW()
+    WHERE path_id = %s
+    """
+    try:
+        result = pg_manager.execute_query(restore_query, (path_id,), fetch=False)
+    except Exception as e:
+        logger.error(f"Error restoring learning path: {e}")
+        return {"success": False, "error": f"Database error: {str(e)}"
+    
+    if result or result is not None:
+        # Also restore in Neo4j
+        neo4j_manager = get_neo4j_manager()
+        try:
+            neo4j_query = """
+            MATCH (p:LearningPath {path_id: $path_id})
+            SET p.is_deleted = false, p.deleted_at = null
+            """
+            neo4j_manager.execute_query(neo4j_query, {"path_id": path_id})
+        except Exception as e:
+            logger.warning(f"Error restoring path in Neo4j: {e}")
+        
+        # Log audit entry
+        audit_module.log_restore(
+            table_name="learning_paths",
+            record_id=path_id,
+            old_values=old_values,
+            performed_by=restored_by,
+            ip_address=ip_address,
+            additional_context={"action": "restore_path", "path_title": old_values.get('title')}
+        )
+        
+        # Invalidate cache
+        global paths_initialized
+        paths_initialized = False
+        
+        return {"success": True, "path_id": path_id, "message": "Learning path restored successfully"}
+    
+    return {"success": False, "error": "Failed to restore learning path"}
+
+def get_deleted_paths():
+    """Get all soft-deleted learning paths (for trash view)
+    
+    Returns:
+        List of soft-deleted learning path objects with deletion metadata
+    """
+    pg_manager = get_postgres_manager()
+    
+    query = """
+    SELECT path_id, name, title, category, difficulty, 
+           estimated_duration, description, target_audience,
+           created_at, updated_at, deleted_at, deleted_by
+    FROM jeseci_academy.learning_paths
+    WHERE is_deleted = true
+    ORDER BY deleted_at DESC
+    """
+    
+    try:
+        result = pg_manager.execute_query(query)
+    except Exception as e:
+        logger.error(f"Error getting deleted paths: {e}")
+        return []
+    
+    paths = []
+    for row in result or []:
+        paths.append({
+            "path_id": row.get('path_id'),
+            "title": row.get('title'),
+            "description": row.get('description'),
+            "difficulty": row.get('difficulty') or "beginner",
+            "courses": [],
+            "concepts": [],
+            "total_modules": 0,
+            "duration": str(row.get('estimated_duration') or 0) + " minutes",
+            "target_audience": row.get('target_audience') or "",
+            "created_at": row.get('created_at').isoformat() if row.get('created_at') else None,
+            "updated_at": row.get('updated_at').isoformat() if row.get('updated_at') else None,
+            "deleted_at": row.get('deleted_at').isoformat() if row.get('deleted_at') else None,
+            "deleted_by": row.get('deleted_by')
+        })
+    
+    return paths
 
 def get_recommended_concepts(user_id, completed_concept_ids, limit=5):
     """Get personalized learning recommendations from Neo4j"""
