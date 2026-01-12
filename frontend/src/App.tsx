@@ -1792,7 +1792,7 @@ const AppContent: React.FC = () => {
                     <li><button onClick={() => setActiveTab('concepts')} className="footer-link-btn">Jac Fundamentals</button></li>
                     <li><button onClick={() => setActiveTab('concepts')} className="footer-link-btn">Object-Spatial Programming</button></li>
                     <li><button onClick={() => setActiveTab('paths')} className="footer-link-btn">Nodes, Edges & Walkers</button></li>
-                    <li><button onClick={() => setActiveTab('quiz')} className="footer-link-btn">Semantic Strings</button></li>
+                    <li><button onClick={() => setActiveTab('quizzes')} className="footer-link-btn">Semantic Strings</button></li>
                   </ul>
                 </div>
                 
