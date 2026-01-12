@@ -61,6 +61,45 @@ export interface Course {
   domain: string;
   difficulty: string;
   content_type: string;
+  estimated_duration?: string;
+  concept_count?: number;
+  lesson_count?: number;
+  is_enrolled?: boolean;
+  progress?: number;
+}
+
+export interface CourseDetails {
+  course_id: string;
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  estimated_duration?: string;
+  is_published: boolean;
+  created_at?: string;
+  updated_at?: string;
+  concepts: Array<{
+    concept_id: string;
+    name: string;
+    description?: string;
+    order_index: number;
+  }>;
+  lessons: Array<{
+    lesson_id: string;
+    title: string;
+    description?: string;
+    order_index: number;
+    duration_minutes?: number;
+  }>;
+  concept_count: number;
+  lesson_count: number;
+  is_enrolled: boolean;
+  progress: number;
+  enrollment?: {
+    enrolled_at?: string;
+    last_accessed?: string;
+    progress_percent: number;
+  };
 }
 
 export interface LearningPathModule {
@@ -740,6 +779,24 @@ class ApiService {
     return this.makeRequest('/walker/courses', {
       method: 'POST',
       body: JSON.stringify({}),
+    });
+  }
+
+  async enrollInCourse(courseId: string): Promise<any> {
+    return this.makeRequest('/walker/enroll_in_course', {
+      method: 'POST',
+      body: JSON.stringify({
+        course_id: courseId
+      }),
+    });
+  }
+
+  async getCourseDetails(courseId: string): Promise<CourseDetails> {
+    return this.makeRequest('/walker/get_course_details', {
+      method: 'POST',
+      body: JSON.stringify({
+        course_id: courseId
+      }),
     });
   }
 

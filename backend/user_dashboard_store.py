@@ -574,6 +574,108 @@ class UserDashboardStore:
             print(f"Error getting courses: {e}")
             return {"success": False, "error": str(e)}
     
+    def get_course_details(self, course_id: str, user_id: str = "") -> Dict[str, Any]:
+        """
+        Get detailed information about a specific course (learning path)
+        
+        Args:
+            course_id: The course/learning path ID
+            user_id: Optional user ID to include user's progress and enrollment status
+            
+        Returns:
+            Dictionary containing detailed course information
+        """
+        try:
+            session = self._get_or_create_session()
+            
+            # Get the learning path
+            path = session.query(LearningPath).filter(
+                LearningPath.path_id == course_id
+            ).first()
+            
+            if not path:
+                return {"success": False, "error": "Course not found"}
+            
+            # Get concepts in this path
+            path_concepts = session.query(LearningPathConcept).options(
+                joinedload(LearningPathConcept.concept)
+            ).filter(LearningPathConcept.path_id == course_id).all()
+            
+            concepts = []
+            for pc in path_concepts:
+                if pc.concept:
+                    concepts.append({
+                        "concept_id": pc.concept.concept_id,
+                        "name": pc.concept.name,
+                        "description": pc.concept.description,
+                        "order_index": pc.order_index
+                    })
+            
+            # Get lessons in this path
+            lessons = session.query(Lesson).filter(
+                Lesson.learning_path_id == course_id
+            ).all()
+            
+            lesson_list = []
+            for lesson in lessons:
+                lesson_list.append({
+                    "lesson_id": lesson.lesson_id,
+                    "title": lesson.title,
+                    "description": lesson.description,
+                    "order_index": lesson.order_index,
+                    "duration_minutes": lesson.duration_minutes
+                })
+            
+            # Get user's enrollment and progress if user_id provided
+            user_enrollment = None
+            user_progress_percent = 0
+            is_enrolled = False
+            
+            if user_id:
+                user = self.get_user_by_id(user_id)
+                if user:
+                    enrollment = session.query(UserLearningPath).filter(
+                        and_(
+                            UserLearningPath.user_id == user.id,
+                            UserLearningPath.path_id == course_id
+                        )
+                    ).first()
+                    
+                    if enrollment:
+                        is_enrolled = True
+                        user_progress_percent = round(enrollment.progress_percent, 1)
+                        user_enrollment = {
+                            "enrolled_at": enrollment.started_at.isoformat() if enrollment.started_at else None,
+                            "last_accessed": enrollment.last_accessed.isoformat() if enrollment.last_accessed else None,
+                            "progress_percent": user_progress_percent
+                        }
+            
+            return {
+                "success": True,
+                "course": {
+                    "course_id": path.path_id,
+                    "title": path.title,
+                    "description": path.description,
+                    "category": path.category,
+                    "difficulty": path.difficulty,
+                    "estimated_duration": path.estimated_duration,
+                    "is_published": path.is_published,
+                    "created_at": path.created_at.isoformat() if path.created_at else None,
+                    "updated_at": path.updated_at.isoformat() if path.updated_at else None,
+                    "concepts": concepts,
+                    "lessons": lesson_list,
+                    "concept_count": len(concepts),
+                    "lesson_count": len(lesson_list),
+                    "is_enrolled": is_enrolled,
+                    "progress": user_progress_percent,
+                    "enrollment": user_enrollment
+                }
+            }
+            
+        except Exception as e:
+            print(f"Error getting course details: {e}")
+            return {"success": False, "error": str(e)}
+    
     def enroll_in_course(self, user_id: str, course_id: str) -> Dict[str, Any]:
         """Enroll user in a course (learning path)"""
         try:
@@ -1096,6 +1198,14 @@ def get_courses(user_id: str = "") -> Dict[str, Any]:
     store = UserDashboardStore()
     try:
         return store.get_courses(user_id)
+    finally:
+        store.close()
+
+def get_course_details(course_id: str, user_id: str = "") -> Dict[str, Any]:
+    """Get course details"""
+    store = UserDashboardStore()
+    try:
+        return store.get_course_details(course_id, user_id)
     finally:
         store.close()
 

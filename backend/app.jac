@@ -461,6 +461,77 @@ walker course_create {
 }
 
 # ==============================================================================
+# Course Enrollment Endpoint (Database-backed)
+# ==============================================================================
+walker enroll_in_course {
+    has course_id: str = "";
+
+    can enroll_in_course with entry {
+        # Get user_id from context
+        user_id = request_context_module.get_user_id();
+        
+        if not user_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        if not self.course_id {
+            report {"success": false, "error": "Course ID is required"} ;
+            return;
+        }
+
+        # Call the user dashboard store
+        result = user_dashboard_module.enroll_in_course(user_id, self.course_id);
+
+        if result.get("success") {
+            report {
+                "success": true,
+                "message": result.get("message", "Successfully enrolled in course"),
+                "course_id": self.course_id,
+                "progress": result.get("progress", 0)
+            } ;
+        } else {
+            report {
+                "success": false,
+                "error": result.get("error", "Failed to enroll in course")
+            } ;
+        }
+    }
+}
+
+# ==============================================================================
+# Course Details Endpoint (Database-backed)
+# ==============================================================================
+walker get_course_details {
+    has course_id: str = "";
+
+    can get_course_details with entry {
+        # Get user_id from context
+        user_id = request_context_module.get_user_id();
+        
+        if not self.course_id {
+            report {"success": false, "error": "Course ID is required"} ;
+            return;
+        }
+
+        # Call the user dashboard store
+        result = user_dashboard_module.get_course_details(self.course_id, user_id);
+
+        if result.get("success") {
+            report {
+                "success": true,
+                "course": result.get("course", {})
+            } ;
+        } else {
+            report {
+                "success": false,
+                "error": result.get("error", "Failed to get course details")
+            } ;
+        }
+    }
+}
+
+# ==============================================================================
 # User Dashboard - Progress Tracking (Database-backed)
 # ==============================================================================
 walker get_user_progress {
