@@ -908,6 +908,14 @@ class AdminApiService {
   async refreshAnalytics(): Promise<{ success: boolean; message: string }> {
     return this.makeRequest('/walker/admin_analytics_refresh', { method: 'POST' });
   }
+
+  async exportAnalyticsCsv(): Promise<{ success: boolean; data: string; error?: string }> {
+    return this.makeRequest('/walker/admin_analytics_export_csv', { method: 'POST' });
+  }
+
+  async exportAnalyticsJson(): Promise<{ success: boolean; data: string; error?: string }> {
+    return this.makeRequest('/walker/admin_analytics_export_json', { method: 'POST' });
+  }
 }
 
 // Create instance with dynamic API URL for production

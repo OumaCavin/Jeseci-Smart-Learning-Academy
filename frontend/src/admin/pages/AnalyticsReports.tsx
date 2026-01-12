@@ -57,6 +57,36 @@ const AnalyticsReports: React.FC<AnalyticsReportsProps> = ({ activeSection }) =>
     }
   };
 
+  const handleExport = async (format: 'csv' | 'json') => {
+    try {
+      let response;
+      if (format === 'csv') {
+        response = await adminApi.exportAnalyticsCsv();
+      } else {
+        response = await adminApi.exportAnalyticsJson();
+      }
+
+      if (response.success) {
+        const blob = new Blob([response.data], {
+          type: format === 'csv' ? 'text/csv' : 'application/json'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `analytics_export_${new Date().toISOString().split('T')[0]}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        alert('Export downloaded successfully!');
+      } else {
+        alert('Failed to export: ' + response.error);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="admin-loading">
@@ -71,13 +101,29 @@ const AnalyticsReports: React.FC<AnalyticsReportsProps> = ({ activeSection }) =>
       {/* Actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Platform Analytics</h2>
-        <button 
-          className="btn btn-primary" 
-          onClick={handleRefresh}
-          disabled={refreshing}
-        >
-          {refreshing ? '🔄 Refreshing...' : '🔄 Refresh Analytics'}
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => handleExport('csv')}
+            title="Export to CSV"
+          >
+            📥 CSV
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => handleExport('json')}
+            title="Export to JSON"
+          >
+            📥 JSON
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? '🔄 Refreshing...' : '🔄 Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* Overview Stats */}
