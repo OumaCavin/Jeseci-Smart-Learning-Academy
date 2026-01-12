@@ -938,7 +938,7 @@ class UserDashboardStore:
     def submit_quiz_attempt(
         self, 
         user_id: str, 
-        quiz_id:: str, 
+        quiz_id: str, 
         answers: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
