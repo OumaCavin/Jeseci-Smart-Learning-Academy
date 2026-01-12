@@ -89,11 +89,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeSection, onNaviga
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/admin/dashboard/stats', {
-        method: 'GET',
+      // Call the Jac Walker endpoint for admin dashboard stats
+      const response = await fetch('/walker/admin_dashboard_stats', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          action: 'overview'
+        }),
         credentials: 'include',
       });
 
@@ -106,7 +110,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeSection, onNaviga
       if (data.success && data.data) {
         setStats(data.data);
       } else {
-        throw new Error(data.detail || 'Failed to fetch statistics');
+        throw new Error(data.error || 'Failed to fetch statistics');
       }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);

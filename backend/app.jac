@@ -8001,6 +8001,302 @@ walker connection_requests {
 }
 
 # ==============================================================================
+# Admin Dashboard Statistics - Jac Walker Implementation
+# Imports the Python statistics module and exposes it via walker endpoints
+# ==============================================================================
+walker admin_dashboard_stats {
+    has action: str = "overview";
+    has metric: str = "users";
+    has days: int = 30;
+
+    can admin_dashboard_stats with entry {
+        import datetime;
+        import admin_dashboard_stats as stats_module;
+
+        # Verify admin access
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        # Check admin permissions
+        import admin_auth as admin_auth_module;
+        has_permission = admin_auth_module.check_admin_permission(
+            admin_id, "dashboard_view"
+        );
+        if not has_permission {
+            report {"success": false, "error": "Insufficient permissions"} ;
+            return;
+        }
+
+        if self.action == "overview" {
+            # Get comprehensive dashboard overview
+            stats = stats_module.get_admin_dashboard_stats();
+
+            report {
+                "success": true,
+                "data": stats,
+                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            } ;
+            return;
+        }
+
+        if self.action == "users" {
+            # Get user statistics
+            stats = stats_module.AdminDashboardStats();
+            user_stats = stats.get_user_statistics();
+
+            report {
+                "success": true,
+                "data": {
+                    "total_users": user_stats["total_users"],
+                    "active_users": user_stats["active_users"],
+                    "new_this_week": user_stats["new_users_this_week"],
+                    "week_over_week_change": user_stats["week_over_week_change"],
+                    "period_comparison": {
+                        "this_week": user_stats["new_users_this_week"],
+                        "last_week": user_stats["new_users_last_week"]
+                    }
+                },
+                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            } ;
+            return;
+        }
+
+        if self.action == "content" {
+            # Get content statistics
+            stats = stats_module.AdminDashboardStats();
+            content_stats = stats.get_content_statistics();
+
+            report {
+                "success": true,
+                "data": {
+                    "total_items": content_stats["content_items"],
+                    "concepts": content_stats["total_concepts"],
+                    "learning_paths": content_stats["total_learning_paths"],
+                    "lessons": content_stats["total_lessons"],
+                    "new_this_week": content_stats["new_content_this_week"],
+                    "content_change": content_stats["content_change"]
+                },
+                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            } ;
+            return;
+        }
+
+        if self.action == "activity" {
+            # Get activity statistics
+            stats = stats_module.AdminDashboardStats();
+            activity_stats = stats.get_activity_statistics();
+
+            report {
+                "success": true,
+                "data": {
+                    "daily_activity": activity_stats["daily_activity"],
+                    "weekly_sessions": activity_stats["weekly_sessions"],
+                    "active_users": activity_stats["active_users_this_week"],
+                    "avg_session_duration": activity_stats["avg_session_duration_seconds"],
+                    "activity_change": activity_stats["activity_change"]
+                },
+                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            } ;
+            return;
+        }
+
+        if self.action == "progress" {
+            # Get learning progress statistics
+            stats = stats_module.AdminDashboardStats();
+            progress_stats = stats.get_learning_progress_statistics();
+
+            report {
+                "success": true,
+                "data": progress_stats,
+                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            } ;
+            return;
+        }
+
+        if self.action == "trends" {
+            # Get trend data for a specific metric
+            valid_metrics = ["users", "activity"];
+            if self.metric not in valid_metrics {
+                report {
+                    "success": false,
+                    "error": "Invalid metric. Must be one of: " + ",".join(valid_metrics)
+                } ;
+                return;
+            }
+
+            stats = stats_module.AdminDashboardStats();
+            trend_data = stats.get_trend_data(self.metric, self.days);
+
+            report {
+                "success": true,
+                "data": {
+                    "metric": self.metric,
+                    "period_days": self.days,
+                    "trend": trend_data
+                },
+                "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            } ;
+            return;
+        }
+
+        report {"success": false, "error": "Unknown action: " + self.action} ;
+    }
+}
+
+# ==============================================================================
+# Admin Dashboard Legacy Endpoints (Deprecated - Use walker above)
+# These walkers maintain backward compatibility with existing API calls
+# ==============================================================================
+walker admin_dashboard_overview {
+    can admin_dashboard_overview with entry {
+        import admin_dashboard_stats as stats_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        stats = stats_module.get_admin_dashboard_stats();
+        import datetime;
+
+        report {
+            "success": true,
+            "data": stats,
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        } ;
+    }
+}
+
+walker admin_dashboard_users {
+    can admin_dashboard_users with entry {
+        import admin_dashboard_stats as stats_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        stats = stats_module.AdminDashboardStats();
+        user_stats = stats.get_user_statistics();
+        import datetime;
+
+        report {
+            "success": true,
+            "data": {
+                "total_users": user_stats["total_users"],
+                "active_users": user_stats["active_users"],
+                "new_this_week": user_stats["new_users_this_week"],
+                "week_over_week_change": user_stats["week_over_week_change"],
+                "period_comparison": {
+                    "this_week": user_stats["new_users_this_week"],
+                    "last_week": user_stats["new_users_last_week"]
+                }
+            },
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        } ;
+    }
+}
+
+walker admin_dashboard_activity {
+    can admin_dashboard_activity with entry {
+        import admin_dashboard_stats as stats_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        stats = stats_module.AdminDashboardStats();
+        activity_stats = stats.get_activity_statistics();
+        import datetime;
+
+        report {
+            "success": true,
+            "data": {
+                "daily_activity": activity_stats["daily_activity"],
+                "weekly_sessions": activity_stats["weekly_sessions"],
+                "active_users": activity_stats["active_users_this_week"],
+                "avg_session_duration": activity_stats["avg_session_duration_seconds"],
+                "activity_change": activity_stats["activity_change"]
+            },
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        } ;
+    }
+}
+
+walker admin_dashboard_content {
+    can admin_dashboard_content with entry {
+        import admin_dashboard_stats as stats_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        stats = stats_module.AdminDashboardStats();
+        content_stats = stats.get_content_statistics();
+        import datetime;
+
+        report {
+            "success": true,
+            "data": {
+                "total_items": content_stats["content_items"],
+                "concepts": content_stats["total_concepts"],
+                "learning_paths": content_stats["total_learning_paths"],
+                "lessons": content_stats["total_lessons"],
+                "new_this_week": content_stats["new_content_this_week"],
+                "content_change": content_stats["content_change"]
+            },
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        } ;
+    }
+}
+
+walker admin_dashboard_trends {
+    has metric: str = "users";
+    has days: int = 30;
+
+    can admin_dashboard_trends with entry {
+        import admin_dashboard_stats as stats_module;
+
+        admin_id = request_context_module.get_user_id();
+        if not admin_id {
+            report {"success": false, "error": "Authentication required"} ;
+            return;
+        }
+
+        valid_metrics = ["users", "activity"];
+        if self.metric not in valid_metrics {
+            report {
+                "success": false,
+                "error": "Invalid metric. Must be one of: " + ",".join(valid_metrics)
+            } ;
+            return;
+        }
+
+        trend_data = stats_module.get_metric_trend(self.metric, self.days);
+        import datetime;
+
+        report {
+            "success": true,
+            "data": {
+                "metric": self.metric,
+                "period_days": self.days,
+                "trend": trend_data
+            },
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        } ;
+    }
+}
+
+# ==============================================================================
 # Error Handling Wrapper for Existing Walkers
 # ==============================================================================
 walker user_profile {
