@@ -9221,6 +9221,209 @@ walker admin_analytics_refresh {
     }
 }
 
+# ==============================================================================
+# Additional Code Editor Endpoints (Frontend API Alignment)
+# ==============================================================================
+
+walker get_user_snippets {
+    has folder_id: str = "";
+    has limit: int = 50;
+    has offset: int = 0;
+
+    can get_user_snippets with entry {
+        import code_execution_store as code_store_module;
+
+        user_id = request_context_module.get_user_id();
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
+        }
+
+        result = code_store_module.get_user_snippets(
+            user_id=user_id,
+            folder_id=self.folder_id if self.folder_id else None,
+            limit=self.limit,
+            offset=self.offset
+        );
+
+        report {
+            "success": True,
+            "snippets": result,
+            "total": len(result)
+        } ;
+    }
+}
+
+walker get_code_folders {
+    has parent_folder_id: str = "";
+
+    can get_code_folders with entry {
+        import code_execution_store as code_store_module;
+
+        user_id = request_context_module.get_user_id();
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
+        }
+
+        folders = code_store_module.get_folders(
+            user_id=user_id,
+            parent_folder_id=self.parent_folder_id if self.parent_folder_id else None
+        );
+
+        report {
+            "success": True,
+            "folders": folders,
+            "total": len(folders)
+        } ;
+    }
+}
+
+walker get_snippet_versions {
+    has snippet_id: str = "";
+
+    can get_snippet_versions with entry {
+        import code_execution_store as code_store_module;
+
+        user_id = request_context_module.get_user_id();
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
+        }
+
+        if not self.snippet_id {
+            report {"success": False, "error": "snippet_id is required"} ;
+            return;
+        }
+
+        versions = code_store_module.get_snippet_versions(snippet_id=self.snippet_id);
+
+        report {
+            "success": True,
+            "versions": versions,
+            "total": len(versions)
+        } ;
+    }
+}
+
+walker get_snippet_test_cases {
+    has snippet_id: str = "";
+    has include_hidden: bool = False;
+
+    can get_snippet_test_cases with entry {
+        import code_execution_store as code_store_module;
+
+        user_id = request_context_module.get_user_id();
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
+        }
+
+        if not self.snippet_id {
+            report {"success": False, "error": "snippet_id is required"} ;
+            return;
+        }
+
+        test_cases = code_store_module.get_snippet_test_cases(
+            snippet_id=self.snippet_id,
+            include_hidden=self.include_hidden
+        );
+
+        report {
+            "success": True,
+            "test_cases": test_cases,
+            "total": len(test_cases)
+        } ;
+    }
+}
+
+walker create_debug_session {
+    has snippet_id: str = "";
+
+    can create_debug_session with entry {
+        import code_execution_store as code_store_module;
+
+        user_id = request_context_module.get_user_id();
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
+        }
+
+        if not self.snippet_id {
+            report {"success": False, "error": "snippet_id is required"} ;
+            return;
+        }
+
+        import datetime;
+        session_id = code_store_module.create_debug_session(
+            user_id=user_id,
+            snippet_id=self.snippet_id,
+            status="active",
+            started_at=datetime.datetime.now()
+        );
+
+        session = code_store_module.get_debug_session(session_id=session_id);
+
+        report {
+            "success": True,
+            "session": session
+        } ;
+    }
+}
+
+walker debug_step {
+    has session_id: str = "";
+    has action: str = "step";
+    has current_line: int = 0;
+
+    can debug_step with entry {
+        import code_execution_store as code_store_module;
+
+        user_id = request_context_module.get_user_id();
+        if not user_id {
+            report {"success": False, "error": "Authentication required"} ;
+            return;
+        }
+
+        if not self.session_id {
+            report {"success": False, "error": "session_id is required"} ;
+            return;
+        }
+
+        session = code_store_module.get_debug_session(session_id=self.session_id);
+        if not session {
+            report {"success": False, "error": "Debug session not found"} ;
+            return;
+        }
+
+        # Execute the debug step
+        import code_execution as code_exec_module;
+        result = code_exec_module.debug_step(
+            code=session.get('code_content', ''),
+            command=self.action,
+            current_line=self.current_line if self.current_line > 0 else session.get('current_line', 1)
+        );
+
+        # Update session state
+        new_line = result.get('current_line', self.current_line);
+        updated = code_store_module.update_debug_session(
+            session_id=self.session_id,
+            current_line=new_line,
+            variables=result.get('variables'),
+            status=result.get('status', 'active')
+        );
+
+        report {
+            "success": True,
+            "session": updated,
+            "output": result.get('output'),
+            "current_line": new_line,
+            "variables": result.get('variables'),
+            "status": result.get('status')
+        } ;
+    }
+}
+
 
 
 

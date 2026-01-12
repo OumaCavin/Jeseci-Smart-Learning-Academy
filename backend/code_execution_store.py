@@ -1350,6 +1350,10 @@ class CodeSnippetStore:
         finally:
             conn.close()
     
+    def get_folders(self, user_id: int, parent_folder_id: str = None) -> List[Dict]:
+        """Get all folders for a user (alias for get_user_folders)"""
+        return self.get_user_folders(user_id=user_id, parent_folder_id=parent_folder_id)
+    
     def delete_folder(self, folder_id: str, user_id: int, 
                       move_contents_to: str = None) -> bool:
         """Delete a folder"""
