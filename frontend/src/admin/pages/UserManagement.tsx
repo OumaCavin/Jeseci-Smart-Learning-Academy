@@ -11,8 +11,11 @@ interface UserManagementProps {
   activeSection: string;
 }
 
+type ViewMode = 'active' | 'deleted';
+
 const UserManagement: React.FC<UserManagementProps> = ({ activeSection }) => {
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [deletedUsers, setDeletedUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,10 +25,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ activeSection }) => {
     include_inactive: false,
     admin_only: false,
   });
+  const [viewMode, setViewMode] = useState<ViewMode>('active');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'single' | 'bulk'; userIds: string[] } | null>(null);
 
   useEffect(() => {
     if (activeSection === 'users') {
       loadUsers();
+      loadDeletedUsers();
     }
   }, [activeSection]);
 
@@ -46,6 +53,58 @@ const UserManagement: React.FC<UserManagementProps> = ({ activeSection }) => {
       setError(err.message || 'Failed to load users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadDeletedUsers = async () => {
+    try {
+      const response = await adminApi.getDeletedUsers();
+      if (response.success) {
+        setDeletedUsers(response.users);
+      }
+    } catch (err: any) {
+      console.error('Failed to load deleted users:', err);
+    }
+  };
+
+  const handleDeleteUsers = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      const response = await adminApi.bulkUserAction(
+        deleteTarget.userIds,
+        'delete',
+        'Deleted by admin',
+        'admin',
+        '127.0.0.1'
+      );
+      if (response.success) {
+        alert(`${deleteTarget.userIds.length} user(s) deleted successfully`);
+        setShowDeleteConfirm(false);
+        setDeleteTarget(null);
+        setSelectedUsers([]);
+        loadUsers();
+        loadDeletedUsers();
+      } else {
+        alert('Failed to delete users: ' + response.message);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
+  };
+
+  const handleRestoreUsers = async (userIds: string[]) => {
+    try {
+      const response = await adminApi.restoreUsers(userIds, 'admin', '127.0.0.1');
+      if (response.success) {
+        alert(`${userIds.length} user(s) restored successfully`);
+        loadUsers();
+        loadDeletedUsers();
+      } else {
+        alert('Failed to restore users: ' + response.message);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
     }
   };
 
@@ -139,49 +198,79 @@ const UserManagement: React.FC<UserManagementProps> = ({ activeSection }) => {
       {/* Filters and Actions */}
       <div className="admin-card" style={{ marginBottom: '24px' }}>
         <div className="admin-card-body">
-          <div className="filter-bar">
-            <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', flex: 1 }}>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Search by username, email, or name..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ maxWidth: '400px' }}
-              />
-              <button type="submit" className="btn btn-primary">
-                Search
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ margin: 0 }}>User Management</h3>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                className={`btn btn-sm ${viewMode === 'active' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setViewMode('active')}
+              >
+                👥 Active Users
               </button>
-            </form>
-
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
-                <input
-                  type="checkbox"
-                  checked={filters.include_inactive}
-                  onChange={(e) => setFilters(f => ({ ...f, include_inactive: e.target.checked }))}
-                />
-                Include Inactive
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
-                <input
-                  type="checkbox"
-                  checked={filters.admin_only}
-                  onChange={(e) => setFilters(f => ({ ...f, admin_only: e.target.checked }))}
-                />
-                Admin Only
-              </label>
-              <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-                ➕ Create Admin
+              <button
+                className={`btn btn-sm ${viewMode === 'deleted' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setViewMode('deleted')}
+              >
+                🗑️ Deleted Users ({deletedUsers.length})
               </button>
             </div>
           </div>
 
-          {selectedUsers.length > 0 && (
+          {viewMode === 'active' && (
+            <div className="filter-bar">
+              <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', flex: 1 }}>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Search by username, email, or name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ maxWidth: '400px' }}
+                />
+                <button type="submit" className="btn btn-primary">
+                  Search
+                </button>
+              </form>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={filters.include_inactive}
+                    onChange={(e) => setFilters(f => ({ ...f, include_inactive: e.target.checked }))}
+                  />
+                  Include Inactive
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={filters.admin_only}
+                    onChange={(e) => setFilters(f => ({ ...f, admin_only: e.target.checked }))}
+                  />
+                  Admin Only
+                </label>
+                <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
+                  ➕ Create Admin
+                </button>
+              </div>
+            </div>
+          )}
+
+          {selectedUsers.length > 0 && viewMode === 'active' && (
             <div style={{ marginTop: '16px', padding: '12px', background: '#f3f4f6', borderRadius: '8px' }}>
               <span style={{ marginRight: '16px' }}>
                 {selectedUsers.length} user(s) selected
               </span>
+              <button 
+                className="btn btn-danger btn-sm" 
+                style={{ background: '#fee2e2', color: '#dc2626' }}
+                onClick={() => {
+                  setDeleteTarget({ type: 'bulk', userIds: selectedUsers });
+                  setShowDeleteConfirm(true);
+                }}
+              >
+                🗑️ Delete Selected
+              </button>
               <button 
                 className="btn btn-danger btn-sm" 
                 onClick={() => handleBulkAction('suspend')}
@@ -194,6 +283,21 @@ const UserManagement: React.FC<UserManagementProps> = ({ activeSection }) => {
                 onClick={() => handleBulkAction('activate')}
               >
                 Activate Selected
+              </button>
+            </div>
+          )}
+
+          {selectedUsers.length > 0 && viewMode === 'deleted' && (
+            <div style={{ marginTop: '16px', padding: '12px', background: '#f3f4f6', borderRadius: '8px' }}>
+              <span style={{ marginRight: '16px' }}>
+                {selectedUsers.length} user(s) selected
+              </span>
+              <button 
+                className="btn btn-success btn-sm" 
+                style={{ background: '#dcfce7', color: '#16a34a' }}
+                onClick={() => handleRestoreUsers(selectedUsers)}
+              >
+                ♻️ Restore Selected
               </button>
             </div>
           )}
@@ -282,6 +386,27 @@ const UserManagement: React.FC<UserManagementProps> = ({ activeSection }) => {
                         >
                           {user.is_active ? '⏸️' : '✅'}
                         </button>
+                        {viewMode === 'active' && (
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => {
+                              setDeleteTarget({ type: 'single', userIds: [user.user_id] });
+                              setShowDeleteConfirm(true);
+                            }}
+                            title="Delete User"
+                          >
+                            🗑️
+                          </button>
+                        )}
+                        {viewMode === 'deleted' && (
+                          <button
+                            className="btn btn-sm btn-success"
+                            onClick={() => handleRestoreUsers([user.user_id])}
+                            title="Restore User"
+                          >
+                            ♻️
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
