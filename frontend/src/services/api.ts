@@ -206,6 +206,8 @@ export interface Achievement {
   earned_at?: string;
   requirement: string;
   category: string;
+  tier?: string;
+  points?: number;
 }
 
 export interface ChatMessage {

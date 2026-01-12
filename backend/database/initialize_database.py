@@ -474,6 +474,41 @@ def create_gamification_tables(cursor):
     
     logger.info("✓ Gamification tables created: achievements, user_achievements, badges, user_badges")
 
+    # Seed default achievements
+    default_achievements = [
+        # Learning achievements
+        ('first_concept', 'First Steps', 'Complete your first concept', '🎯', 'concepts_completed', 1, 10, 'bronze'),
+        ('concept_master', 'Concept Master', 'Complete 10 concepts', '📚', 'concepts_completed', 10, 25, 'silver'),
+        ('knowledge_seeker', 'Knowledge Seeker', 'Complete 25 concepts', '🧠', 'concepts_completed', 25, 50, 'gold'),
+        ('concept_champion', 'Concept Champion', 'Complete 50 concepts', '🏆', 'concepts_completed', 50, 100, 'platinum'),
+        
+        # Quiz achievements
+        ('first_quiz', 'Quiz Beginner', 'Pass your first quiz', '✅', 'quizzes_passed', 1, 10, 'bronze'),
+        ('quiz_master', 'Quiz Master', 'Pass 10 quizzes', '🎓', 'quizzes_passed', 10, 30, 'silver'),
+        ('quiz_champion', 'Quiz Champion', 'Pass 25 quizzes', '🥇', 'quizzes_passed', 25, 60, 'gold'),
+        ('perfect_score', 'Perfect Score', 'Score 100% on a quiz', '💯', 'quizzes_passed', 1, 50, 'gold'),
+        
+        # Streak achievements
+        ('week_warrior', 'Week Warrior', 'Maintain a 7-day streak', '🔥', 'streak_days', 7, 20, 'bronze'),
+        ('month_master', 'Month Master', 'Maintain a 30-day streak', '🌟', 'streak_days', 30, 75, 'silver'),
+        ('dedication', 'Dedicated Learner', 'Maintain a 100-day streak', '💎', 'streak_days', 100, 200, 'platinum'),
+        
+        # Course achievements
+        ('first_course', 'Course Starter', 'Complete your first course', '🚀', 'courses_completed', 1, 15, 'bronze'),
+        ('course_explorer', 'Course Explorer', 'Complete 5 courses', '🌍', 'courses_completed', 5, 40, 'silver'),
+        ('course_conqueror', 'Course Conqueror', 'Complete 10 courses', '👑', 'courses_completed', 10, 80, 'gold'),
+    ]
+    
+    for achievement_id, name, description, icon, criteria_type, criteria_value, points, tier in default_achievements:
+        cursor.execute(f"""
+            INSERT INTO {DB_SCHEMA}.achievements 
+            (achievement_id, name, description, icon, criteria_type, criteria_value, points, tier, is_active)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, TRUE)
+            ON CONFLICT (achievement_id) DO NOTHING
+        """, (achievement_id, name, description, icon, criteria_type, criteria_value, points, tier))
+    
+    logger.info("✓ Default achievements seeded")
+
 
 def create_system_tables(cursor):
     """Create system tables"""
