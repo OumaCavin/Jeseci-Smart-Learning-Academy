@@ -1774,9 +1774,6 @@ class AdvancedCollaborationService {
       return { success: false, error: 'Failed to fetch audit logs', data: [] };
     }
   }
-      return { success: false, error: 'Failed to fetch audit logs', data: [] };
-    }
-  }
 
   /**
    * Get recent admin activity for dashboard display
