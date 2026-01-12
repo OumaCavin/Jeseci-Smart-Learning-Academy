@@ -22,9 +22,11 @@ import {
   BarChart3,
   PieChart,
   UserCheck,
-  UserX
+  UserX,
+  Download
 } from 'lucide-react';
 import advancedCollaborationService from '../../services/advancedCollaborationService';
+import adminApi from '../../services/adminApi';
 
 interface UserActivityStats {
   totalUsers: number;
@@ -81,6 +83,36 @@ export const AdminUserActivity: React.FC = () => {
     }
   }, [dateRange]);
 
+  const handleExport = async (format: 'csv' | 'json') => {
+    try {
+      let response;
+      if (format === 'csv') {
+        response = await adminApi.exportUserActivityCsv();
+      } else {
+        response = await adminApi.exportUserActivityJson();
+      }
+
+      if (response.success) {
+        const blob = new Blob([response.data], {
+          type: format === 'csv' ? 'text/csv' : 'application/json'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `user_activity_export_${new Date().toISOString().split('T')[0]}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        alert('Export downloaded successfully!');
+      } else {
+        alert('Failed to export: ' + response.error);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
+  };
+
   useEffect(() => {
     loadUserActivity();
   }, [loadUserActivity]);
@@ -131,6 +163,22 @@ export const AdminUserActivity: React.FC = () => {
               <option value="week">This Week</option>
               <option value="month">This Month</option>
             </select>
+            <button
+              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center gap-2"
+              onClick={() => handleExport('csv')}
+              title="Export to CSV"
+            >
+              <Download className="w-4 h-4" />
+              CSV
+            </button>
+            <button
+              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center gap-2"
+              onClick={() => handleExport('json')}
+              title="Export to JSON"
+            >
+              <Download className="w-4 h-4" />
+              JSON
+            </button>
             <button
               onClick={loadUserActivity}
               className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"

@@ -660,3 +660,58 @@ def export_analytics_to_json() -> str:
     }
     
     return json.dumps(export_data, indent=2)
+
+
+# ==============================================================================
+# User Activity Export Functions
+# ==============================================================================
+
+def export_user_activity_to_csv() -> str:
+    """Export user activity data to CSV format"""
+    import csv
+    import io
+    
+    user_analytics = get_user_analytics()
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow(['User Activity Report', ''])
+    writer.writerow(['Generated At', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+    writer.writerow([])
+    
+    # Write summary stats
+    writer.writerow(['Summary Statistics', ''])
+    writer.writerow(['Metric', 'Value'])
+    writer.writerow(['Total Users', user_analytics.get('total_users', 0)])
+    writer.writerow(['Active Users', user_analytics.get('active_users', 0)])
+    
+    # Write user growth data
+    writer.writerow([])
+    writer.writerow(['User Growth Data', ''])
+    writer.writerow(['Date', 'New Users'])
+    for item in user_analytics.get('user_growth', []):
+        writer.writerow([item.get('date', ''), item.get('count', 0)])
+    
+    return output.getvalue()
+
+
+def export_user_activity_to_json() -> str:
+    """Export user activity data to JSON format"""
+    import json
+    
+    user_analytics = get_user_analytics()
+    
+    export_data = {
+        "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "report_type": "user_activity",
+        "summary": {
+            "total_users": user_analytics.get('total_users', 0),
+            "active_users": user_analytics.get('active_users', 0),
+            "user_growth": user_analytics.get('user_growth', []),
+            "new_users_daily": user_analytics.get('new_users', [])
+        }
+    }
+    
+    return json.dumps(export_data, indent=2)

@@ -9577,6 +9577,24 @@ walker admin_analytics_export_json {
     }
 }
 
+walker admin_user_activity_export_csv {
+    can admin_user_activity_export_csv with entry {
+        import admin_analytics_store as analytics_module;
+
+        csv_data = analytics_module.export_user_activity_to_csv();
+        report {"success": true, "data": csv_data};
+    }
+}
+
+walker admin_user_activity_export_json {
+    can admin_user_activity_export_json with entry {
+        import admin_analytics_store as analytics_module;
+
+        json_data = analytics_module.export_user_activity_to_json();
+        report {"success": true, "data": json_data};
+    }
+}
+
 # ==============================================================================
 # Additional Code Editor Endpoints (Frontend API Alignment)
 # ==============================================================================
