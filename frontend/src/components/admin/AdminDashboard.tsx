@@ -331,9 +331,44 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeSection, onNaviga
         <div className="actions-grid">
           <button
             className="action-btn"
-            onClick={() => onNavigate('user-activity')}
+            onClick={() => onNavigate('users')}
           >
             <span className="action-icon">👥</span>
+            <span className="action-label">Manage Users</span>
+          </button>
+          <button
+            className="action-btn"
+            onClick={() => onNavigate('content')}
+          >
+            <span className="action-icon">📚</span>
+            <span className="action-label">Manage Content</span>
+          </button>
+          <button
+            className="action-btn"
+            onClick={() => onNavigate('quizzes')}
+          >
+            <span className="action-icon">📝</span>
+            <span className="action-label">Manage Quizzes</span>
+          </button>
+          <button
+            className="action-btn"
+            onClick={() => onNavigate('ai')}
+          >
+            <span className="action-icon">🤖</span>
+            <span className="action-label">AI Content Lab</span>
+          </button>
+          <button
+            className="action-btn"
+            onClick={() => onNavigate('analytics')}
+          >
+            <span className="action-icon">📊</span>
+            <span className="action-label">View Analytics</span>
+          </button>
+          <button
+            className="action-btn"
+            onClick={() => onNavigate('user-activity')}
+          >
+            <span className="action-icon">📈</span>
             <span className="action-label">User Activity</span>
           </button>
           <button
