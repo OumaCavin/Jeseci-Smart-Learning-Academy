@@ -204,16 +204,16 @@ class CollaborationStore:
             for row in cursor.fetchall():
                 connections.append({
                     "connection_id": row[0],
-                    "status": row[2],
-                    "created_at": row[3].isoformat() if row[3] else None,
-                    "updated_at": row[4].isoformat() if row[4] else None,
+                    "status": row[1],
+                    "created_at": row[2].isoformat() if row[2] else None,
+                    "updated_at": row[3].isoformat() if row[3] else None,
                     "user": {
-                        "user_id": row[5],
-                        "username": row[6],
-                        "email": row[7],
-                        "first_name": row[8],
-                        "last_name": row[9],
-                        "avatar_url": row[10]
+                        "user_id": row[4],
+                        "username": row[5],
+                        "email": row[6],
+                        "first_name": row[7],
+                        "last_name": row[8],
+                        "avatar_url": row[9]
                     }
                 })
             
