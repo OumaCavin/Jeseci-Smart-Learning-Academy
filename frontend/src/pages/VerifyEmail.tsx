@@ -41,6 +41,19 @@ const VerifyEmail: React.FC = () => {
     }
   }, [resendCooldown]);
 
+  // Auto-redirect countdown for successful verification
+  useEffect(() => {
+    if (status === 'success' && autoRedirectSeconds > 0) {
+      const timer = setTimeout(() => {
+        setAutoRedirectSeconds(autoRedirectSeconds - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (status === 'success' && autoRedirectSeconds === 0) {
+      // Automatically redirect to login page when countdown reaches 0
+      navigate('/login');
+    }
+  }, [status, autoRedirectSeconds, navigate]);
+
   const verifyEmail = async (verificationToken: string) => {
     try {
       console.log('Verifying email with token:', verificationToken);
@@ -135,12 +148,17 @@ const VerifyEmail: React.FC = () => {
               <p className="verification-info">
                 You can now log in to your account and access all features.
               </p>
-              <button className="btn btn-primary" onClick={handleGoToLogin}>
-                Go to Login
-              </button>
-              <button className="btn btn-secondary" onClick={handleGoHome}>
-                Go to Home
-              </button>
+              <div className="auto-redirect-notice">
+                <p>Redirecting to login page in <strong>{autoRedirectSeconds}</strong> seconds...</p>
+              </div>
+              <div className="verification-actions">
+                <button className="btn btn-primary" onClick={handleGoToLogin}>
+                  Go to Login Now
+                </button>
+                <button className="btn btn-secondary" onClick={handleGoHome}>
+                  Go to Home
+                </button>
+              </div>
             </div>
           </div>
         </div>
