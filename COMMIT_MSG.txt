@@ -1,8 +1,0 @@
-fix(community): resolve connection status bug and remove duplicate walkers
-
-- Fix incorrect column index in collaboration_store.py where status field
-  was reading row[2] instead of row[1], causing status to always return null
-- Remove duplicate deprecated walker definitions (forums_list, connections_list,
-  connection_requests) from app.jac that used hardcoded mock data instead of
-  database queries
-- Ensure Community navigation item returns proper connection status values
