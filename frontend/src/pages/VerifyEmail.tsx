@@ -17,6 +17,7 @@ const VerifyEmail: React.FC = () => {
   const [email, setEmail] = useState(searchParams.get('email') || '');
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [resendMessage, setResendMessage] = useState('');
+  const [autoRedirectSeconds, setAutoRedirectSeconds] = useState(3);
 
   const token = searchParams.get('token');
 
