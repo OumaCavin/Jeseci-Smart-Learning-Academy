@@ -7,7 +7,7 @@ import os
 import threading
 import datetime
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any
 
 # Set up logging
 logger = logging.getLogger(__name__)
