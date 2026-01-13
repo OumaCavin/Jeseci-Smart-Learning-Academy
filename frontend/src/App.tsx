@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { apiService, User, ProgressData, AnalyticsData, AIGeneratedContent, LearningPath, Concept, Quiz, Achievement, ChatMessage } from './services/api';
