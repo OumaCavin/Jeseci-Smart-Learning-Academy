@@ -657,7 +657,7 @@ def restore_quiz(quiz_id, restored_by=None, ip_address=None):
         existing = pg_manager.execute_query(check_query, (quiz_id,))
     except Exception as e:
         logger.error(f"Error checking quiz existence for restore: {e}")
-        return {"success": False, "error": f"Database error: {str(e)}"
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if not existing:
         return {"success": False, "error": "Quiz not found or not deleted"}
@@ -680,7 +680,7 @@ def restore_quiz(quiz_id, restored_by=None, ip_address=None):
         result = pg_manager.execute_query(restore_query, (quiz_id,), fetch=False)
     except Exception as e:
         logger.error(f"Error restoring quiz: {e}")
-        return {"success": False, "error": f"Database error: {str(e)}"
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         # Log audit entry if audit module exists
