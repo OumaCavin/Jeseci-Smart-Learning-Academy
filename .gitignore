@@ -906,3 +906,18 @@
 # This allows outer git to track inner repo files while preserving inner git history
 **/.git_backup_by_agent
 **/.git_backup_by_agent/
+
+# ==============================================================================
+# CLEANUP - TEMPORARY & BACKUP DIRECTORIES
+# ==============================================================================
+extracted_backup/
+temp_frontend_extract/
+.watermark/
+
+# ==============================================================================
+# USER INPUT FILES (large archives and uploads)
+# ==============================================================================
+user_input_files/*.zip
+user_input_files/*.rar
+user_input_files/*.7z
+user_input_files/*.tar.gz
