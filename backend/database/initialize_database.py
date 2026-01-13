@@ -450,9 +450,10 @@ def create_gamification_tables(cursor):
         description TEXT,
         icon VARCHAR(100),
         category VARCHAR(50),
-        requirement_type VARCHAR(50),
-        requirement_value INTEGER,
+        criteria_type VARCHAR(50),
+        criteria_value INTEGER,
         points INTEGER DEFAULT 0,
+        tier VARCHAR(20) DEFAULT 'bronze',
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
@@ -480,7 +481,8 @@ def create_gamification_tables(cursor):
         icon VARCHAR(100),
         category VARCHAR(50),
         tier VARCHAR(20),
-        requirement TEXT,
+        criteria_type VARCHAR(50),
+        criteria_value INTEGER,
         points INTEGER DEFAULT 0,
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
