@@ -811,7 +811,7 @@ def delete_concept(concept_id, deleted_by=None, ip_address=None):
         existing = neo4j_manager.execute_query(check_query, {"concept_id": concept_id})
     except Exception as e:
         logger.error(f"Error checking concept existence for delete: {e}")
-        return {"success": False, "error": f"Database error: {str(e)}"
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if not existing or len(existing) == 0:
         return {"success": False, "error": "Concept not found"}
@@ -841,7 +841,7 @@ def delete_concept(concept_id, deleted_by=None, ip_address=None):
         })
     except Exception as e:
         logger.error(f"Error soft deleting concept: {e}")
-        return {"success": False, "error": f"Database error: {str(e)}"
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result:
         # Log audit entry
@@ -878,7 +878,7 @@ def restore_concept(concept_id, restored_by=None, ip_address=None):
         existing = neo4j_manager.execute_query(check_query, {"concept_id": concept_id})
     except Exception as e:
         logger.error(f"Error checking concept existence for restore: {e}")
-        return {"success": False, "error": f"Database error: {str(e)}"
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if not existing or len(existing) == 0:
         return {"success": False, "error": "Concept not found"}
@@ -905,7 +905,7 @@ def restore_concept(concept_id, restored_by=None, ip_address=None):
         result = neo4j_manager.execute_write(restore_query, {"concept_id": concept_id})
     except Exception as e:
         logger.error(f"Error restoring concept: {e}")
-        return {"success": False, "error": f"Database error: {str(e)}"
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result:
         # Log audit entry
@@ -1197,7 +1197,7 @@ def delete_path(path_id, deleted_by=None, ip_address=None):
         existing = pg_manager.execute_query(check_query, (path_id,))
     except Exception as e:
         logger.error(f"Error checking path existence for delete: {e}")
-        return {"success": False, "error": f"Database error: {str(e)}"
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if not existing:
         return {"success": False, "error": "Learning path not found"}
@@ -1225,7 +1225,7 @@ def delete_path(path_id, deleted_by=None, ip_address=None):
         result = pg_manager.execute_query(soft_delete_query, (current_time, deleted_by, path_id,), fetch=False)
     except Exception as e:
         logger.error(f"Error soft deleting learning path: {e}")
-        return {"success": False, "error": f"Database error: {str(e)}"
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         # Also mark as deleted in Neo4j
@@ -1273,7 +1273,7 @@ def restore_path(path_id, restored_by=None, ip_address=None):
         existing = pg_manager.execute_query(check_query, (path_id,))
     except Exception as e:
         logger.error(f"Error checking path existence for restore: {e}")
-        return {"success": False, "error": f"Database error: {str(e)}"
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if not existing:
         return {"success": False, "error": "Learning path not found or not deleted"}
@@ -1297,7 +1297,7 @@ def restore_path(path_id, restored_by=None, ip_address=None):
         result = pg_manager.execute_query(restore_query, (path_id,), fetch=False)
     except Exception as e:
         logger.error(f"Error restoring learning path: {e}")
-        return {"success": False, "error": f"Database error: {str(e)}"
+        return {"success": False, "error": f"Database error: {str(e)}"}
     
     if result or result is not None:
         # Also restore in Neo4j
