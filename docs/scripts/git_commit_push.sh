@@ -43,7 +43,7 @@ COMMIT_MSG="feat(cleanup): standardize codebase and update configurations
 - Replace Chinese comments with English in browser files
 - Update environment configuration with production-ready settings
 - Standardize documentation with proper author attribution
-- Ensure no MiniMax references in active code files
+- Ensure no external references in active code files
 - Configure OpenAI, Gemini, and Google API integrations
 - Update contact form with production email settings
 - Maintain clean architecture and professional code standards"
