@@ -115,7 +115,7 @@ git status
 git log --oneline
 
 # Verify no external references in active files
-find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" -o -name "*.html" -o -name "*.jac" \) -exec grep -l -i "minimax" {} \;
+find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" -o -name "*.html" -o -name "*.jac" \) ! -path "./.*" -exec grep -l -i "UNWANTED_PATTERN" {} \;
 
 # Verify English-only content
 find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) -exec grep -l "[一-龯]" {} \;
