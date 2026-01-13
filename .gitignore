@@ -906,3 +906,7 @@
 # This allows outer git to track inner repo files while preserving inner git history
 **/.git_backup_by_agent
 **/.git_backup_by_agent/
+
+# ==============================================================================
+# User input files - local development files that should not be committed
+user_input_files/
