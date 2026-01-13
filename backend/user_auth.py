@@ -739,7 +739,7 @@ class UserAuthManager:
             else:
                 # Insert new preferences
                 if privacy_settings is not None:
-                    from database import json.dumps
+                    import json
                     privacy_json = json.dumps(privacy_settings)
                     cursor.execute(f"""
                         INSERT INTO {self.schema}.user_preferences
