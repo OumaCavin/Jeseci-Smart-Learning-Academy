@@ -906,3 +906,35 @@
 # This allows outer git to track inner repo files while preserving inner git history
 **/.git_backup_by_agent
 **/.git_backup_by_agent/
+
+# ==============================================================================
+# DEVELOPMENT ARTIFACTS
+# ==============================================================================
+# Browser automation files
+browser/
+browser/**/*
+
+# Shell output files
+shell_output_save/
+shell_output_save/**/*
+
+# User input files (pasted content, etc.)
+user_input_files/
+user_input_files/**/*
+
+# Workspace configuration (IDE-specific)
+workspace.json
+
+# Python project configuration (local development)
+pyproject.toml
+
+# Log files
+*.log
+*_log.txt
+
+# Temporary directories
+tmp/
+tmp/**/*
+
+# Analysis reports (auto-generated)
+log-analysis-report.md
