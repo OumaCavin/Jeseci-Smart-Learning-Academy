@@ -190,15 +190,21 @@
 
 /* Verification Styles */
 .verification-success,
-.verification-error {
+.verification-error,
+.verification-pending {
   text-align: center;
   padding: 1rem 0;
 }
 
 .success-icon,
-.error-icon {
+.error-icon,
+.pending-icon {
   font-size: 4rem;
   margin-bottom: 1rem;
+}
+
+.pending-icon {
+  color: #3b82f6;
 }
 
 .verification-success h2 {
@@ -209,6 +215,23 @@
 .verification-error h2 {
   color: #dc2626;
   margin-bottom: 0.5rem;
+}
+
+.verification-pending h2 {
+  color: #3b82f6;
+  margin-bottom: 0.5rem;
+}
+
+.pending-message {
+  font-size: 1.125rem;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.pending-instructions {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
 }
 
 .verification-info {
