@@ -2916,8 +2916,8 @@ walker get_notification_preferences {
 walker update_notification_preferences {
     has user_id: str = "";
     has types_config: dict = {};
-    has email_enabled: bool = true;
-    has push_enabled: bool = true;
+    has email_enabled: bool = True;
+    has push_enabled: bool = True;
 
     can update_notification_preferences with entry {
         if not self.user_id {
@@ -3686,12 +3686,12 @@ walker admin_users_create {
     has last_name: str = "";
     has learning_style: str = "visual";
     has skill_level: str = "beginner";
-    has skip_verification: bool = true;  # Default to true (pre-verified)
+    has skip_verification: bool = True;  # Default to true (pre-verified)
     has daily_goal_minutes: int = 30;
-    has notifications_enabled: bool = true;
-    has email_reminders: bool = true;
+    has notifications_enabled: bool = True;
+    has email_reminders: bool = True;
     has dark_mode: bool = False;
-    has auto_play_videos: bool = true;
+    has auto_play_videos: bool = True;
 
     can admin_users_create with entry {
         # Initialize store with error handling
@@ -7830,7 +7830,7 @@ walker community_create_post {
     has content: str = "";
     has media_urls: list = [];
     has tags: list = [];
-    has is_public: bool = true;
+    has is_public: bool = True;
 
     can community_create_post with entry {
         import advanced_collaboration_store as collab_module;
@@ -8075,7 +8075,7 @@ walker content_views {
 walker content_like {
     has content_id: str = "";
     has content_type: str = "course";
-    has status: bool = true;
+    has status: bool = True;
 
     can content_like with entry {
         import content_views_store as views_module;
@@ -8198,10 +8198,10 @@ walker update_preferences {
     has daily_goal_minutes: int = 30;
     has preferred_difficulty: str = "";
     has preferred_content_type: str = "";
-    has notifications_enabled: bool = true;
-    has email_reminders: bool = true;
+    has notifications_enabled: bool = True;
+    has email_reminders: bool = True;
     has dark_mode: bool = false;
-    has auto_play_videos: bool = true;
+    has auto_play_videos: bool = True;
     has theme: str = "light";
     has language: str = "en";
 
@@ -8501,11 +8501,11 @@ walker notification_settings {
 }
 
 walker notification_preferences {
-    has email_notifications: bool = true;
-    has push_notifications: bool = true;
-    has course_updates: bool = true;
-    has community_mentions: bool = true;
-    has achievement_alerts: bool = true;
+    has email_notifications: bool = True;
+    has push_notifications: bool = True;
+    has course_updates: bool = True;
+    has community_mentions: bool = True;
+    has achievement_alerts: bool = True;
     has weekly_digest: bool = False;
     has marketing_emails: bool = False;
 

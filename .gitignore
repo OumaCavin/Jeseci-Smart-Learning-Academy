@@ -900,6 +900,22 @@
 **/.claude/debug/**
 
 # ==============================================================================
+# DEVELOPMENT ARTIFACTS - EXPLICITLY REMOVE FROM GIT
+# ==============================================================================
+# These files/directories were accidentally tracked and must remain untracked
+# Run: git rm --cached -r <path> && git add .gitignore && git commit
+browser/
+browser/**
+user_input_files/
+user_input_files/**
+shell_output_save/
+shell_output_save/**
+tmp
+tmp/
+workspace.json
+
+
+# ==============================================================================
 # NESTED GIT REPOSITORIES
 # ==============================================================================
 # Temporarily renamed .git directories (used by WorkspaceGitManager)

@@ -385,7 +385,7 @@ walker DatabaseManager {
         query = """
         SELECT id, name, role, company, content, rating, avatar_url, created_at
         FROM """ + table_name + """
-        WHERE is_approved = true AND is_active = true
+        WHERE is_approved = True AND is_active = True
         ORDER BY created_at DESC
         """;
 
