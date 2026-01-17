@@ -900,6 +900,32 @@
 **/.claude/debug/**
 
 # ==============================================================================
+# PROJECT ROOT CLEANUP
+# ==============================================================================
+# Temporary scripts and workspace files that should not be tracked
+fix_database_schema.sh
+fix_database_schema.sql
+workspace.json
+pyproject.toml
+
+# User input files directory - contains large archives and temporary files
+user_input_files/
+user_input_files/**
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.tgz
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+
+# Browser and tmp directories
+browser/
+tmp/
+
+# ==============================================================================
 # NESTED GIT REPOSITORIES
 # ==============================================================================
 # Temporarily renamed .git directories (used by WorkspaceGitManager)
