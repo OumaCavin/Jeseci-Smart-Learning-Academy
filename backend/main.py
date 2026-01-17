@@ -39,6 +39,7 @@ import database as db_module
 import user_auth as auth_module
 from admin_routes import admin_router
 from content_admin import content_admin_router
+from admin_content_store import initialize_concepts
 from quiz_admin import quiz_admin_router
 from analytics_admin import analytics_admin_router
 from ai_predictive import ai_predictive_router
@@ -598,59 +599,49 @@ async def get_learning_paths():
 @app.get("/concepts", response_model=ConceptsResponse)
 async def get_concepts():
     """Get all educational concepts - JAC Programming Focus"""
-    concepts = [
-        {
-            "id": "concept_jac_variables",
-            "name": "JAC Variables and Data Types",
-            "description": "Understanding Jaclang's has keyword for variable declarations and type annotations",
-            "domain": "Jaclang Programming",
-            "difficulty": "beginner",
-            "icon": "code",
-            "related_concepts": ["JAC Functions", "JAC Control Flow", "JAC Collections"]
-        },
-        {
-            "id": "concept_jac_nodes",
-            "name": "JAC Nodes and Edges",
-            "description": "Defining stateful entities with node keyword and creating relationships with edge operators",
-            "domain": "Jaclang Programming",
-            "difficulty": "intermediate",
-            "icon": "database",
-            "related_concepts": ["JAC Walkers", "Object-Spatial Programming", "Graph Theory"]
-        },
-        {
-            "id": "concept_jac_walkers",
-            "name": "JAC Walkers and Abilities",
-            "description": "Implementing mobile computational units that traverse graphs with entry, can, and exit abilities",
-            "domain": "Jaclang Programming",
-            "difficulty": "intermediate",
-            "icon": "footprints",
-            "related_concepts": ["JAC Nodes", "JAC Spawning", "Graph Traversal"]
-        },
-        {
-            "id": "concept_jac_osp",
-            "name": "Object-Spatial Programming",
-            "description": "Understanding the OSP paradigm where computation moves to data in persistent graphs",
-            "domain": "Jaclang Programming",
-            "difficulty": "intermediate",
-            "icon": "spatial",
-            "related_concepts": ["JAC Nodes", "JAC Walkers", "Scale-Agnostic Programming"]
-        },
-        {
-            "id": "concept_jac_functions",
-            "name": "JAC Functions and Abilities",
-            "description": "Creating reusable code with def keyword, parameters, and type-annotated return values",
-            "domain": "Jaclang Programming",
-            "difficulty": "beginner",
-            "icon": "function",
-            "related_concepts": ["JAC Variables", "JAC Control Flow", "JAC Walker Abilities"]
-        }
-    ]
-    
-    return ConceptsResponse(
-        success=True,
-        concepts=concepts,
-        total=len(concepts)
-    )
+    try:
+        # Fetch concepts from Neo4j database
+        concepts_dict = initialize_concepts()
+        
+        # Transform database concepts to API format
+        concepts = []
+        for concept_id, concept_data in concepts_dict.items():
+            # Generate related concepts based on category and difficulty
+            related_concepts = []
+            for other_id, other_data in concepts_dict.items():
+                if other_id != concept_id:
+                    # Add related concepts based on subcategory or difficulty
+                    if (other_data.get('subcategory') == concept_data.get('subcategory') or
+                        other_data.get('difficulty_level') == concept_data.get('difficulty_level')):
+                        related_concepts.append(other_data.get('display_name', other_data.get('name', '')))
+            
+            # Limit related concepts to 3
+            related_concepts = related_concepts[:3]
+            
+            concepts.append({
+                "id": concept_id,
+                "name": concept_data.get('display_name', concept_data.get('name', '')),
+                "description": concept_data.get('description', concept_data.get('detailed_description', '')),
+                "domain": concept_data.get('domain', 'Jaclang Programming'),
+                "difficulty": concept_data.get('difficulty_level', 'beginner'),
+                "icon": concept_data.get('icon', 'code'),
+                "related_concepts": related_concepts
+            })
+        
+        return ConceptsResponse(
+            success=True,
+            concepts=concepts,
+            total=len(concepts)
+        )
+    except Exception as e:
+        logger.error(f"Error fetching concepts: {e}")
+        # Return empty list on error instead of failing
+        return ConceptsResponse(
+            success=False,
+            concepts=[],
+            total=0,
+            error=str(e)
+        )
 
 @app.get("/quizzes", response_model=QuizzesResponse)
 async def get_quizzes():
