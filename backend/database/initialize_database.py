@@ -556,6 +556,7 @@ def create_gamification_tables(cursor):
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
         badge_id VARCHAR(50) NOT NULL,
+        notification_sent BOOLEAN DEFAULT FALSE,
         earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(user_id, badge_id)
     )
