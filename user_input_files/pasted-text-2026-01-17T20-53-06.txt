@@ -1,0 +1,205 @@
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/platform_stats HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/testimonials HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-17T23:46:09Z', 'database_status': 'connected', 'ai_status': 'available', 'configuration': {'ai_content_enabled': 'true', 'ai_chat_enabled': 'true', 'mock_data_enabled': 'false', 'log_level': 'info'}, 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "GET /walker/platform_stats HTTP/1.1" 200 -
+2026-01-17 23:46:09 - logger_config - INFO - Retrieved 0 testimonials from database
+{'success': True, 'testimonials': [], 'total': 0}
+127.0.0.1 - "POST /walker/testimonials HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/user_login HTTP/1.1" 200 -
+2026-01-17 23:46:11 - logger_config - INFO - User authenticated successfully: user_student1_d3197199
+{'success': True, 'access_token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcl9zdHVkZW50MV9kMzE5NzE5OSIsInVzZXJuYW1lIjoic3R1ZGVudDEiLCJlbWFpbCI6Im90aWVub2NhdmluMjAyMUBnbWFpbC5jb20iLCJpc19hZG1pbiI6ZmFsc2UsImFkbWluX3JvbGUiOiJzdHVkZW50IiwiZXhwIjoxNzY4Njg0NTcxLCJpYXQiOjE3Njg2ODI3NzF9.v8oKojKi-yl8MpK_1YRcfGUkS6uRxFYPmarBOYUdQhk', 'token_type': 'bearer', 'expires_in': 1800, 'user': {'user_id': 'user_student1_d3197199', 'username': 'student1', 'email': 'otienocavin2021@gmail.com', 'is_admin': False, 'admin_role': 'student', 'is_email_verified': True, 'profile': {'first_name': 'George', 'last_name': 'Mabu', 'bio': None, 'avatar_url': None, 'timezone': None, 'language': 'en'}, 'preferences': {'daily_goal_minutes': 30, 'preferred_difficulty': 'beginner', 'preferred_content_type': 'visual', 'notifications_enabled': True, 'email_reminders': True, 'dark_mode': False, 'auto_play_videos': True}}, 'message': 'Login successful'}
+127.0.0.1 - "POST /walker/user_login HTTP/1.1" 200 -
+2026-01-17 23:46:11 - logger_config - INFO - User authenticated successfully: user_student1_d3197199
+{'success': True, 'access_token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcl9zdHVkZW50MV9kMzE5NzE5OSIsInVzZXJuYW1lIjoic3R1ZGVudDEiLCJlbWFpbCI6Im90aWVub2NhdmluMjAyMUBnbWFpbC5jb20iLCJpc19hZG1pbiI6ZmFsc2UsImFkbWluX3JvbGUiOiJzdHVkZW50IiwiZXhwIjoxNzY4Njg0NTcxLCJpYXQiOjE3Njg2ODI3NzF9.v8oKojKi-yl8MpK_1YRcfGUkS6uRxFYPmarBOYUdQhk', 'token_type': 'bearer', 'expires_in': 1800, 'user': {'user_id': 'user_student1_d3197199', 'username': 'student1', 'email': 'otienocavin2021@gmail.com', 'is_admin': False, 'admin_role': 'student', 'is_email_verified': True, 'profile': {'first_name': 'George', 'last_name': 'Mabu', 'bio': None, 'avatar_url': None, 'timezone': None, 'language': 'en'}, 'preferences': {'daily_goal_minutes': 30, 'preferred_difficulty': 'beginner', 'preferred_content_type': 'visual', 'notifications_enabled': True, 'email_reminders': True, 'dark_mode': False, 'auto_play_videos': True}}, 'message': 'Login successful'}
+127.0.0.1 - "POST /walker/user_login HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/concepts HTTP/1.1" 200 -
+{'success': True, 'concepts': [{'id': 'jac_variables', 'name': 'Variables and Data Types', 'description': 'Learn about variables, type annotations, and basic data types in Jac', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'variable', 'related_concepts': ['Type Annotations', 'Strings', 'Numbers', 'Booleans']}, {'id': 'jac_control_flow', 'name': 'Control Flow and Loops', 'description': 'Master if statements, loops, and decision-making in Jac', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'control-flow', 'related_concepts': ['If Statements', 'For Loops', 'While Loops', 'Comparison Operators']}, {'id': 'jac_functions', 'name': 'Functions and Parameters', 'description': 'Create reusable code blocks with functions and parameter handling', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'function', 'related_concepts': ['Default Parameters', 'Return Values', 'Function Calls']}, {'id': 'jac_collections', 'name': 'Collections and Data Structures', 'description': 'Work with lists, dictionaries, tuples, and sets in Jac', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'collection', 'related_concepts': ['Lists', 'Dictionaries', 'Tuples', 'Sets', 'Comprehensions']}, {'id': 'jac_oop', 'name': 'Traditional Object-Oriented Programming', 'description': 'Learn classes, objects, and inheritance in Jac', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'building', 'related_concepts': ['Classes', 'Objects', 'Inheritance', 'Methods', 'Attributes']}, {'id': 'jac_osp', 'name': 'Object-Spatial Programming (OSP)', 'description': "Master Jac's unique paradigm for graph-based programming", 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'graph', 'related_concepts': ['Nodes', 'Edges', 'Walkers', 'Graph Traversal']}, {'id': 'jac_nodes', 'name': 'Nodes and State Management', 'description': 'Create and manage stateful entities in Jac graphs', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'node', 'related_concepts': ['Node Creation', 'Node Attributes', 'State Persistence']}, {'id': 'jac_edges', 'name': 'Typed Relationships', 'description': 'Define and work with typed edges between nodes', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'connection', 'related_concepts': ['Edge Types', 'Edge Properties', 'Relationship Modeling']}, {'id': 'jac_walkers', 'name': 'Mobile Computation', 'description': 'Create programs that traverse and operate on graphs', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'walker', 'related_concepts': ['Walker Creation', 'Graph Traversal', 'Mobile Code']}, {'id': 'jac_semstrings', 'name': 'Semantic Strings', 'description': 'Use semstrings for explicit semantic context in AI models', 'domain': 'Jac Language', 'difficulty': 'advanced', 'icon': 'semantic', 'related_concepts': ['sem keyword', 'Meaning-typed Programming', 'AI Context']}, {'id': 'jac_scale_agnostic', 'name': 'Scale-Agnostic Programming', 'description': 'Write code that works from single-user to millions of users', 'domain': 'Jac Language', 'difficulty': 'advanced', 'icon': 'scale', 'related_concepts': ['Automatic Persistence', 'Multi-User Isolation', 'Distribution']}, {'id': 'jac_pattern_matching', 'name': 'Pattern Matching', 'description': 'Handle complex logic with match statements and case analysis', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'pattern', 'related_concepts': ['Match Statements', 'Case Analysis', 'Type Handling']}], 'total': 12}
+127.0.0.1 - "POST /walker/concepts HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_learning_paths HTTP/1.1" 200 -
+Error getting learning paths: (psycopg2.errors.UndefinedColumn) column concepts_1.subcategory does not exist
+LINE 1: ...name, concepts_1.category AS concepts_1_category, concepts_1...
+                                                             ^
+HINT:  Perhaps you meant to reference the column "concepts_1.category".
+
+[SQL: SELECT learning_path_concepts.id AS learning_path_concepts_id, learning_path_concepts.path_id AS learning_path_concepts_path_id, learning_path_concepts.concept_id AS learning_path_concepts_concept_id, learning_path_concepts.sequence_order AS learning_path_concepts_sequence_order, learning_path_concepts.is_required AS learning_path_concepts_is_required, concepts_1.concept_id AS concepts_1_concept_id, concepts_1.name AS concepts_1_name, concepts_1.display_name AS concepts_1_display_name, concepts_1.category AS concepts_1_category, concepts_1.subcategory AS concepts_1_subcategory, concepts_1.domain AS concepts_1_domain, concepts_1.difficulty_level AS concepts_1_difficulty_level, concepts_1.description AS concepts_1_description, concepts_1.detailed_description AS concepts_1_detailed_description, concepts_1.complexity_score AS concepts_1_complexity_score, concepts_1.cognitive_load AS concepts_1_cognitive_load, concepts_1.key_terms AS concepts_1_key_terms, concepts_1.synonyms AS concepts_1_synonyms, concepts_1.learning_objectives AS concepts_1_learning_objectives, concepts_1.practical_applications AS concepts_1_practical_applications, concepts_1.real_world_examples AS concepts_1_real_world_examples, concepts_1.common_misconceptions AS concepts_1_common_misconceptions, concepts_1.lesson_content AS concepts_1_lesson_content, concepts_1.lesson_generated_at AS concepts_1_lesson_generated_at, concepts_1.created_at AS concepts_1_created_at, concepts_1.updated_at AS concepts_1_updated_at 
+FROM learning_path_concepts LEFT OUTER JOIN jeseci_academy.concepts AS concepts_1 ON concepts_1.concept_id = learning_path_concepts.concept_id 
+WHERE learning_path_concepts.path_id = %(path_id_1)s]
+[parameters: {'path_id_1': 'jac_fundamentals_journey'}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+127.0.0.1 - "POST /walker/get_learning_paths HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/courses HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/courses HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/achievements HTTP/1.1" 200 -
+Error getting achievements: (psycopg2.errors.UndefinedColumn) column user_achievements.notification_sent does not exist
+LINE 1: ...vements.earned_at AS user_achievements_earned_at, user_achie...
+                                                             ^
+
+[SQL: SELECT user_achievements.id AS user_achievements_id, user_achievements.user_id AS user_achievements_user_id, user_achievements.achievement_id AS user_achievements_achievement_id, user_achievements.earned_at AS user_achievements_earned_at, user_achievements.notification_sent AS user_achievements_notification_sent, achievements_1.achievement_id AS achievements_1_achievement_id, achievements_1.name AS achievements_1_name, achievements_1.description AS achievements_1_description, achievements_1.icon AS achievements_1_icon, achievements_1.criteria_type AS achievements_1_criteria_type, achievements_1.criteria_value AS achievements_1_criteria_value, achievements_1.points AS achievements_1_points, achievements_1.tier AS achievements_1_tier, achievements_1.is_active AS achievements_1_is_active, achievements_1.created_at AS achievements_1_created_at 
+FROM user_achievements LEFT OUTER JOIN jeseci_academy.achievements AS achievements_1 ON achievements_1.achievement_id = user_achievements.achievement_id 
+WHERE user_achievements.user_id = %(user_id_1)s]
+[parameters: {'user_id_1': 2}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+{'success': True, 'achievements': [{'id': 'first_course', 'name': 'First Steps', 'description': 'Complete your first course', 'icon': 'target', 'earned': True, 'earned_at': '2026-01-17T23:46:13Z', 'requirement': 'Complete 1 course', 'category': 'learning'}, {'id': 'course_master', 'name': 'Course Master', 'description': 'Complete 5 courses', 'icon': 'trophy', 'earned': False, 'earned_at': None, 'requirement': 'Complete 5 courses', 'category': 'learning'}, {'id': 'streak_week', 'name': 'Week Warrior', 'description': 'Maintain a 7-day learning streak', 'icon': 'fire', 'earned': False, 'earned_at': None, 'requirement': '7-day learning streak', 'category': 'consistency'}, {'id': 'quiz_champion', 'name': 'Quiz Champion', 'description': 'Score 100% on any quiz', 'icon': 'graduate', 'earned': False, 'earned_at': None, 'requirement': 'Score 100% on a quiz', 'category': 'knowledge'}, {'id': 'ai_explorer', 'name': 'AI Explorer', 'description': 'Generate 10 AI-powered lessons', 'icon': 'robot', 'earned': False, 'earned_at': None, 'requirement': 'Generate 10 AI lessons', 'category': 'exploration'}], 'total': 5, 'earned_count': 1, 'total_points': 100}
+127.0.0.1 - "POST /walker/achievements HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/quizzes HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/quizzes HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/user_progress HTTP/1.1" 200 -
+Error getting user progress: (psycopg2.errors.UndefinedColumn) column user_lesson_progress.is_completed does not exist
+LINE 3: WHERE user_lesson_progress.user_id = 2 AND user_lesson_progr...
+                                                   ^
+
+[SQL: SELECT count(user_lesson_progress.id) AS count_1 
+FROM user_lesson_progress 
+WHERE user_lesson_progress.user_id = %(user_id_1)s AND user_lesson_progress.is_completed = true]
+[parameters: {'user_id_1': 2}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+{'success': True, 'user_id': 'user_student1_d3197199', 'progress': {'courses_completed': 3, 'lessons_completed': 15, 'total_study_time': 450, 'current_streak': 5, 'average_score': 85.5}, 'analytics': {'modules_completed': 5, 'completion_rate': 60.0, 'total_sessions': 10, 'completed_sessions': 3, 'in_progress_sessions': 7, 'average_progress': 72.0}, 'learning_style': 'visual', 'skill_level': 'intermediate', 'recent_activity': [{'action': 'Completed lesson', 'item': 'Variables and Data Types', 'time': '2025-12-22T10:30:00Z'}, {'action': 'Started course', 'item': 'Data Structures', 'time': '2025-12-22T09:15:00Z'}]}
+127.0.0.1 - "POST /walker/user_progress HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/analytics_generate HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_user_activities HTTP/1.1" 200 -
+Error getting user progress: (psycopg2.errors.UndefinedColumn) column user_lesson_progress.is_completed does not exist
+LINE 3: WHERE user_lesson_progress.user_id = 2 AND user_lesson_progr...
+                                                   ^
+
+[SQL: SELECT count(user_lesson_progress.id) AS count_1 
+FROM user_lesson_progress 
+WHERE user_lesson_progress.user_id = %(user_id_1)s AND user_lesson_progress.is_completed = true]
+[parameters: {'user_id_1': 2}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+{'user_id': 'user_student1_d3197199', 'learning_analytics': {'modules_completed': 5, 'total_study_time': 225, 'average_score': 87.5, 'engagement_score': 75.0, 'knowledge_retention': 85, 'learning_velocity': 'Moderate', 'generated_at': '2026-01-17T23:46:16Z'}, 'recommendations': ['Consider advancing to intermediate-level courses', 'Explore the AI generator for deeper concepts', 'Maintain your learning streak for better retention'], 'strengths': ['Consistent learning', 'Practical application'], 'areas_for_improvement': ['Practice more exercises', 'Review completed material']}
+127.0.0.1 - "POST /walker/analytics_generate HTTP/1.1" 200 -
+{'success': True, 'activities': [], 'total_count': 0, 'has_more': False}
+127.0.0.1 - "POST /walker/get_user_activities HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_user_activities HTTP/1.1" 200 -
+{'success': True, 'activities': [], 'total_count': 0, 'has_more': False}
+127.0.0.1 - "POST /walker/get_user_activities HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/ai_generate_content HTTP/1.1" 200 -
+2026-01-17 23:46:46 - logger_config - INFO - Generating AI lesson for: Variables and Data Types (beginner level)
+2026-01-17 23:46:48 - logger_config - ERROR - OpenAI API error: {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+{'success': True, 'concept_name': 'Variables and Data Types', 'domain': 'Jac Language', 'difficulty': 'beginner', 'content': "# Variables and Data Types\n\n## The Big Picture\nVariables and Data Types is an important concept in Jac Language that helps us understand and work with complex systems and ideas.\n\n## Simple Explanation\nThink of variables and data types like a toolkit that provides specific methods and approaches for solving problems in jac language.\n\n## Key Details\n- **Purpose**: Designed to solve specific types of problems\n- **Applications**: Used across various domains within Jac Language\n- **Benefits**: Provides structured approaches and proven methods\n- **Integration**: Works well with other concepts in Jac Language\n\n## Real-World Examples\n1. **Technology**: Used in software development and system design\n2. **Business**: Applied in strategy and decision-making processes\n3. **Research**: Employed in academic and scientific investigations\n4. **Daily Life**: Present in everyday problem-solving scenarios\n\n## Why It Matters\nUnderstanding Variables and Data Types helps you approach problems more systematically and develop better solutions in Jac Language and beyond.\n\n## Common Misconceptions\n- It's only useful in theoretical contexts\n- It requires extensive technical background to understand\n- It can't be applied to practical, real-world problems\n\n*Note: This is a fallback content template. For the best learning experience, please ensure OpenAI API is configured.*\n", 'related_concepts': ['Graph Theory', 'Node Systems', 'Walker Functions'], 'generated_at': '2026-01-17T23:46:48Z', 'source': 'ai_generator'}
+127.0.0.1 - "POST /walker/ai_generate_content HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/ai_generate_content HTTP/1.1" 200 -
+2026-01-17 23:46:58 - logger_config - INFO - Generating AI lesson for: Typed Relationships (intermediate level)
+2026-01-17 23:46:58 - logger_config - ERROR - OpenAI API error: {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+{'success': True, 'concept_name': 'Typed Relationships', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'content': "# Typed Relationships\n\n## The Big Picture\nTyped Relationships is an important concept in Jac Language that helps us understand and work with complex systems and ideas.\n\n## Simple Explanation\nThink of typed relationships like a toolkit that provides specific methods and approaches for solving problems in jac language.\n\n## Key Details\n- **Purpose**: Designed to solve specific types of problems\n- **Applications**: Used across various domains within Jac Language\n- **Benefits**: Provides structured approaches and proven methods\n- **Integration**: Works well with other concepts in Jac Language\n\n## Real-World Examples\n1. **Technology**: Used in software development and system design\n2. **Business**: Applied in strategy and decision-making processes\n3. **Research**: Employed in academic and scientific investigations\n4. **Daily Life**: Present in everyday problem-solving scenarios\n\n## Why It Matters\nUnderstanding Typed Relationships helps you approach problems more systematically and develop better solutions in Jac Language and beyond.\n\n## Common Misconceptions\n- It's only useful in theoretical contexts\n- It requires extensive technical background to understand\n- It can't be applied to practical, real-world problems\n\n*Note: This is a fallback content template. For the best learning experience, please ensure OpenAI API is configured.*\n", 'related_concepts': ['Graph Theory', 'Node Systems', 'Walker Functions'], 'generated_at': '2026-01-17T23:46:58Z', 'source': 'ai_generator'}
+127.0.0.1 - "POST /walker/ai_generate_content HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/ai_generate_content HTTP/1.1" 200 -
+2026-01-17 23:47:12 - logger_config - INFO - Generating AI lesson for: Object-Spatial Programming (beginner level)
+2026-01-17 23:47:14 - logger_config - ERROR - OpenAI API error: {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+{'success': True, 'concept_name': 'Object-Spatial Programming', 'domain': 'Computer Science', 'difficulty': 'beginner', 'content': "# Object-Spatial Programming\n\n## The Big Picture\nObject-Spatial Programming is an important concept in Computer Science that helps us understand and work with complex systems and ideas.\n\n## Simple Explanation\nThink of object-spatial programming like a toolkit that provides specific methods and approaches for solving problems in computer science.\n\n## Key Details\n- **Purpose**: Designed to solve specific types of problems\n- **Applications**: Used across various domains within Computer Science\n- **Benefits**: Provides structured approaches and proven methods\n- **Integration**: Works well with other concepts in Computer Science\n\n## Real-World Examples\n1. **Technology**: Used in software development and system design\n2. **Business**: Applied in strategy and decision-making processes\n3. **Research**: Employed in academic and scientific investigations\n4. **Daily Life**: Present in everyday problem-solving scenarios\n\n## Why It Matters\nUnderstanding Object-Spatial Programming helps you approach problems more systematically and develop better solutions in Computer Science and beyond.\n\n## Common Misconceptions\n- It's only useful in theoretical contexts\n- It requires extensive technical background to understand\n- It can't be applied to practical, real-world problems\n\n*Note: This is a fallback content template. For the best learning experience, please ensure OpenAI API is configured.*\n", 'related_concepts': ['Graph Theory', 'Node Systems', 'Walker Functions'], 'generated_at': '2026-01-17T23:47:14Z', 'source': 'ai_generator'}
+127.0.0.1 - "POST /walker/ai_generate_content HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/chat HTTP/1.1" 200 -
+2026-01-17 23:47:30 - logger_config - INFO - Processing chat message: Is jac easy?...
+2026-01-17 23:47:32 - logger_config - ERROR - OpenAI API error: {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+{'success': True, 'response': "Thanks for asking! I'd recommend exploring this topic further through your lessons and practice exercises.\n\nWould you like me to elaborate on any specific aspect of this topic?", 'timestamp': '2026-01-17T23:47:32Z', 'fallback': True}
+127.0.0.1 - "POST /walker/chat HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/forums_list HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/connection_requests HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/connections_list?status=accepted HTTP/1.1" 200 -
+127.0.0.1 - "GET /walker/forums_list HTTP/1.1" 200 -
+127.0.0.1 - "GET /walker/connection_requests HTTP/1.1" 200 -
+127.0.0.1 - "GET /walker/connections_list?status=accepted HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/users_search?query=&limit=10 HTTP/1.1" 200 -
+127.0.0.1 - "GET /walker/users_search?query=&limit=10 HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_snippet HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/code_snippet HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-17T23:48:03Z', 'database_status': 'connected', 'ai_status': 'available', 'configuration': {'ai_content_enabled': 'true', 'ai_chat_enabled': 'true', 'mock_data_enabled': 'false', 'log_level': 'info'}, 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/compile_code HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/compile_code HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_execute HTTP/1.1" 200 -
+2026-01-17 23:48:06 - logger_config - INFO - Executing jac code with command: jac run /tmp/code_exec_s1n_0uzp/main.jac
+2026-01-17 23:48:07 - logger_config - ERROR - Error analyzing error message: tuple index out of range
+ExecutionResult(success=False, stdout='', stderr='Error: No bytecode found for /tmp/code_exec_s1n_0uzp/main.jac', execution_time_ms=459, status='error', language='jac', output_file=None, ir_output=None, error_type='RUNTIME_ERROR', line_number=None, memory_used_bytes=None, hint=None, suggestion=None, resource_link=None, execution_trace=None, test_results=None, score=None)
+127.0.0.1 - "POST /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_execute HTTP/1.1" 200 -
+2026-01-17 23:48:15 - logger_config - INFO - Executing python code with command: python3 -u /tmp/code_exec_0s3ecaoq/main.py
+ExecutionResult(success=True, stdout='Hello, Jeseci Academy!\nWelcome to Python Programmin!\nSum: 10 + 20 = 30', stderr='', execution_time_ms=10, status='success', language='python', output_file=None, ir_output=None, error_type=None, line_number=None, memory_used_bytes=None, hint=None, suggestion=None, resource_link=None, execution_trace=None, test_results=None, score=None)
+127.0.0.1 - "POST /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_execute HTTP/1.1" 200 -
+2026-01-17 23:48:52 - logger_config - INFO - Executing python code with command: python3 -u /tmp/code_exec_q51knsxw/main.py
+2026-01-17 23:48:52 - logger_config - ERROR - Error analyzing error message: tuple index out of range
+ExecutionResult(success=False, stdout='', stderr='Traceback (most recent call last):', execution_time_ms=28, status='error', language='python', output_file=None, ir_output=None, error_type='NAME_ERROR', line_number=3, memory_used_bytes=None, hint=None, suggestion=None, resource_link=None, execution_trace=None, test_results=None, score=None)
+127.0.0.1 - "POST /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_execute HTTP/1.1" 200 -
+2026-01-17 23:49:16 - logger_config - INFO - Executing python code with command: python3 -u /tmp/code_exec_o65mvyvd/main.py
+ExecutionResult(success=True, stdout='5', stderr='', execution_time_ms=10, status='success', language='python', output_file=None, ir_output=None, error_type=None, line_number=None, memory_used_bytes=None, hint=None, suggestion=None, resource_link=None, execution_trace=None, test_results=None, score=None)
+127.0.0.1 - "POST /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_execute HTTP/1.1" 200 -
+2026-01-17 23:49:22 - logger_config - INFO - Executing python code with command: python3 -u /tmp/code_exec_qpb8yhs1/main.py
+ExecutionResult(success=True, stdout='19', stderr='', execution_time_ms=11, status='success', language='python', output_file=None, ir_output=None, error_type=None, line_number=None, memory_used_bytes=None, hint=None, suggestion=None, resource_link=None, execution_trace=None, test_results=None, score=None)
+127.0.0.1 - "POST /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/code_execute HTTP/1.1" 200 -
+2026-01-17 23:49:31 - logger_config - INFO - Executing javascript code with command: node /tmp/code_exec_vrsngewm/main.js
+ExecutionResult(success=True, stdout='Hello, Jeseci Academy!\nWelcome to JavaScript Programming!\nSum: 10 + 20 = 30', stderr='', execution_time_ms=98, status='success', language='javascript', output_file=None, ir_output=None, error_type=None, line_number=None, memory_used_bytes=None, hint=None, suggestion=None, resource_link=None, execution_trace=None, test_results=None, score=None)
+127.0.0.1 - "POST /walker/code_execute HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_folders HTTP/1.1" 200 -
+{'success': False, 'error': 'Authentication required'}
+127.0.0.1 - "POST /walker/get_snippets HTTP/1.1" 200 -
+{'success': False, 'error': 'Authentication required'}
+127.0.0.1 - "POST /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/create_folder HTTP/1.1" 200 -
+{'success': False, 'error': 'Authentication required'}
+127.0.0.1 - "POST /walker/create_folder HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_snippets HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/get_folders HTTP/1.1" 200 -
+{'success': False, 'error': 'Authentication required'}
+127.0.0.1 - "POST /walker/get_snippets HTTP/1.1" 200 -
+{'success': False, 'error': 'Authentication required'}
+127.0.0.1 - "POST /walker/get_folders HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/user_profile HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/learning_streak HTTP/1.1" 200 -
+{'success': False, 'error': 'Authentication required'}
+127.0.0.1 - "POST /walker/user_profile HTTP/1.1" 200 -
+127.0.0.1 - "POST /walker/learning_streak HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/user_login HTTP/1.1" 200 -
+{'success': False, 'error': 'Please verify your email before logging in', 'code': 'EMAIL_NOT_VERIFIED'}
+127.0.0.1 - "POST /walker/user_login HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/user_login HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/health_check HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/user_progress HTTP/1.1" 200 -
+127.0.0.1 - "OPTIONS /walker/concepts HTTP/1.1" 200 -
+{'service': 'Jeseci Smart Learning Academy API', 'status': 'healthy', 'version': '7.0.0', 'timestamp': '2026-01-17T23:51:08Z', 'database_status': 'connected', 'ai_status': 'available', 'configuration': {'ai_content_enabled': 'true', 'ai_chat_enabled': 'true', 'mock_data_enabled': 'false', 'log_level': 'info'}, 'architecture': 'Pure Jaclang Backend'}
+127.0.0.1 - "POST /walker/health_check HTTP/1.1" 200 -
+{'success': False, 'error': 'Please verify your email before logging in', 'code': 'EMAIL_NOT_VERIFIED'}
+127.0.0.1 - "POST /walker/user_login HTTP/1.1" 200 -
+{'success': True, 'user_id': 'user_admin_6e746606', 'progress': {'courses_completed': 3, 'lessons_completed': 15, 'total_study_time': 450, 'current_streak': 5, 'average_score': 85.5}, 'analytics': {'modules_completed': 5, 'completion_rate': 60.0, 'total_sessions': 10, 'completed_sessions': 3, 'in_progress_sessions': 7, 'average_progress': 72.0}, 'learning_style': 'visual', 'skill_level': 'intermediate', 'recent_activity': [{'action': 'Completed lesson', 'item': 'Variables and Data Types', 'time': '2025-12-22T10:30:00Z'}, {'action': 'Started course', 'item': 'Data Structures', 'time': '2025-12-22T09:15:00Z'}]}
+127.0.0.1 - "POST /walker/user_progress HTTP/1.1" 200 -
+{'success': True, 'concepts': [{'id': 'jac_variables', 'name': 'Variables and Data Types', 'description': 'Learn about variables, type annotations, and basic data types in Jac', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'variable', 'related_concepts': ['Type Annotations', 'Strings', 'Numbers', 'Booleans']}, {'id': 'jac_control_flow', 'name': 'Control Flow and Loops', 'description': 'Master if statements, loops, and decision-making in Jac', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'control-flow', 'related_concepts': ['If Statements', 'For Loops', 'While Loops', 'Comparison Operators']}, {'id': 'jac_functions', 'name': 'Functions and Parameters', 'description': 'Create reusable code blocks with functions and parameter handling', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'function', 'related_concepts': ['Default Parameters', 'Return Values', 'Function Calls']}, {'id': 'jac_collections', 'name': 'Collections and Data Structures', 'description': 'Work with lists, dictionaries, tuples, and sets in Jac', 'domain': 'Jac Language', 'difficulty': 'beginner', 'icon': 'collection', 'related_concepts': ['Lists', 'Dictionaries', 'Tuples', 'Sets', 'Comprehensions']}, {'id': 'jac_oop', 'name': 'Traditional Object-Oriented Programming', 'description': 'Learn classes, objects, and inheritance in Jac', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'building', 'related_concepts': ['Classes', 'Objects', 'Inheritance', 'Methods', 'Attributes']}, {'id': 'jac_osp', 'name': 'Object-Spatial Programming (OSP)', 'description': "Master Jac's unique paradigm for graph-based programming", 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'graph', 'related_concepts': ['Nodes', 'Edges', 'Walkers', 'Graph Traversal']}, {'id': 'jac_nodes', 'name': 'Nodes and State Management', 'description': 'Create and manage stateful entities in Jac graphs', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'node', 'related_concepts': ['Node Creation', 'Node Attributes', 'State Persistence']}, {'id': 'jac_edges', 'name': 'Typed Relationships', 'description': 'Define and work with typed edges between nodes', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'connection', 'related_concepts': ['Edge Types', 'Edge Properties', 'Relationship Modeling']}, {'id': 'jac_walkers', 'name': 'Mobile Computation', 'description': 'Create programs that traverse and operate on graphs', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'walker', 'related_concepts': ['Walker Creation', 'Graph Traversal', 'Mobile Code']}, {'id': 'jac_semstrings', 'name': 'Semantic Strings', 'description': 'Use semstrings for explicit semantic context in AI models', 'domain': 'Jac Language', 'difficulty': 'advanced', 'icon': 'semantic', 'related_concepts': ['sem keyword', 'Meaning-typed Programming', 'AI Context']}, {'id': 'jac_scale_agnostic', 'name': 'Scale-Agnostic Programming', 'description': 'Write code that works from single-user to millions of users', 'domain': 'Jac Language', 'difficulty': 'advanced', 'icon': 'scale', 'related_concepts': ['Automatic Persistence', 'Multi-User Isolation', 'Distribution']}, {'id': 'jac_pattern_matching', 'name': 'Pattern Matching', 'description': 'Handle complex logic with match statements and case analysis', 'domain': 'Jac Language', 'difficulty': 'intermediate', 'icon': 'pattern', 'related_concepts': ['Match Statements', 'Case Analysis', 'Type Handling']}], 'total': 12}
+127.0.0.1 - "POST /walker/concepts HTTP/1.1" 200 -
