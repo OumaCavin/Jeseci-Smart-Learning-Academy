@@ -406,9 +406,9 @@ const AppContent: React.FC = () => {
     setLoadingState(true);
     try {
       await register(userData);
-      setMessage('Registration successful! Please check your email to verify your account.');
-      // Redirect to verify email page with email pre-filled
-      window.location.href = `/verify-email?email=${encodeURIComponent(userData.email)}`;
+      // Registration successful - user is now logged in
+      setMessage('Registration successful! Welcome to Jeseci Smart Learning Academy!');
+      setActiveTab('dashboard');
     } catch (error: any) {
       // Display detailed error message from the backend
       const errorMessage = error.message || 'Registration failed';
@@ -417,7 +417,7 @@ const AppContent: React.FC = () => {
       if (errorMessage.includes('REGISTRATION_SUCCESS_VERIFICATION_REQUIRED')) {
         const actualMessage = errorMessage.replace('REGISTRATION_SUCCESS_VERIFICATION_REQUIRED:', '');
         setMessage(actualMessage);
-        // Redirect to verify email page
+        // Redirect to verify email page only when verification is actually required
         window.location.href = `/verify-email?email=${encodeURIComponent(userData.email)}`;
         return;
       }
