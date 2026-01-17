@@ -1,0 +1,75 @@
+index-QWbGbe-p.js:69 Session timeout manager initialized with 3-minute inactivity timeout
+index-QWbGbe-p.js:69 Session timeout manager initialized with 3-minute inactivity timeout
+(index):1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) <input name=​"password" type=​"password" placeholder=​"Password" required data-matrix-id=​"src/​App.tsx:​842:​12" data-matrix-name=​"input" data-component-path=​"src/​App.tsx" data-component-line=​"842" data-component-file=​"App.tsx" data-component-name=​"input" data-component-content=​"%7B%22name%22%3A%22password%22%2C%22type%22%3A%22password%22%2C%22placeholder%22%3A%22Password%22%2C%22required%22%3Atrue%7D">​
+index-QWbGbe-p.js:729 Backend health: Object
+index-QWbGbe-p.js:69 API extracted from reports: Object
+index-QWbGbe-p.js:69 API direct response: Object
+index-QWbGbe-p.js:729 Concepts API response: Array(12)
+index-QWbGbe-p.js:729 Learning Paths API response: Object
+index-QWbGbe-p.js:729 Could not extract array from response: Object
+zt @ index-QWbGbe-p.js:729
+index-QWbGbe-p.js:729 Courses API response: Object
+index-QWbGbe-p.js:729 Could not extract array from response: Object
+zt @ index-QWbGbe-p.js:729
+index-QWbGbe-p.js:729 Achievements API response: Objecterror: "name 'true' is not defined"traceback: "Traceback (most recent call last):\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/runtimelib/server.py\", line 253, in spawn_walker\n    Jac.spawn(walker, target_node)\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py\", line 1914, in proxy\n    return hookcaller(**bound.arguments)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_hooks.py\", line 513, in __call__\n    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_manager.py\", line 120, in _hookexec\n    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py\", line 139, in _multicall\n    raise exception.with_traceback(exception.__traceback__)\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py\", line 103, in _multicall\n    res = hook_impl.function(*args)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py\", line 681, in spawn\n    return JacRuntimeInterface.spawn_call(walker=walker, node=loc)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py\", line 1914, in proxy\n    return hookcaller(**bound.arguments)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_hooks.py\", line 513, in __call__\n    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_manager.py\", line 120, in _hookexec\n    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py\", line 139, in _multicall\n    raise exception.with_traceback(exception.__traceback__)\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py\", line 103, in _multicall\n    res = hook_impl.function(*args)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py\", line 444, in spawn_call\n    i.func(warch, current_loc)\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/backend/app.jac\", line 1681, in achievements\n    \"success\": true,\n                ^^^^\nNameError: name 'true' is not defined. Did you mean: 'True'?\n"[[Prototype]]: Object
+index-QWbGbe-p.js:729 Could not extract array from response: Object
+zt @ index-QWbGbe-p.js:729
+index-QWbGbe-p.js:729 Quizzes API response: Objecterror: "name 'true' is not defined"traceback: "Traceback (most recent call last):\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/runtimelib/server.py\", line 253, in spawn_walker\n    Jac.spawn(walker, target_node)\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py\", line 1914, in proxy\n    return hookcaller(**bound.arguments)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_hooks.py\", line 513, in __call__\n    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_manager.py\", line 120, in _hookexec\n    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py\", line 139, in _multicall\n    raise exception.with_traceback(exception.__traceback__)\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py\", line 103, in _multicall\n    res = hook_impl.function(*args)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py\", line 681, in spawn\n    return JacRuntimeInterface.spawn_call(walker=walker, node=loc)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py\", line 1914, in proxy\n    return hookcaller(**bound.arguments)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_hooks.py\", line 513, in __call__\n    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_manager.py\", line 120, in _hookexec\n    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py\", line 139, in _multicall\n    raise exception.with_traceback(exception.__traceback__)\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/vendor/pluggy/_callers.py\", line 103, in _multicall\n    res = hook_impl.function(*args)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/.venv/lib/python3.12/site-packages/jaclang/runtimelib/runtime.py\", line 444, in spawn_call\n    i.func(warch, current_loc)\n  File \"/home/cavin/projects/Jeseci-Smart-Learning-Academy/backend/app.jac\", line 1515, in quizzes\n    report {\"success\": true, \"quizzes\": result.get(\"quizzes\"), \"total\": result.get(\"total\")} ;\n                        ^^^^\nNameError: name 'true' is not defined. Did you mean: 'True'?\n"[[Prototype]]: Object
+index-QWbGbe-p.js:729 Could not extract array from response: Object
+zt @ index-QWbGbe-p.js:729
+index-QWbGbe-p.js:729 Analytics API response: Object
+index-QWbGbe-p.js:729 User data loaded successfully
+index-QWbGbe-p.js:69 API extracted from reports: Object
+index-QWbGbe-p.js:69 API extracted from reports: {success: true, activities: Array(0), total_count: 0, has_more: false}
+index-QWbGbe-p.js:69 API extracted from reports: {success: true, activities: Array(0), total_count: 0, has_more: false}
+index-QWbGbe-p.js:69 API direct response: {name: 'forums_list', info: {…}}
+index-QWbGbe-p.js:69 API direct response: {name: 'connection_requests', info: {…}}
+index-QWbGbe-p.js:69 API direct response: {name: 'connections_list', info: {…}}
+index-QWbGbe-p.js:644 Error loading community data: TypeError: Cannot read properties of undefined (reading 'success')
+    at index-QWbGbe-p.js:644:787497
+(anonymous) @ index-QWbGbe-p.js:644
+await in (anonymous)
+(anonymous) @ index-QWbGbe-p.js:644
+bi @ index-QWbGbe-p.js:40
+Do @ index-QWbGbe-p.js:40
+kx @ index-QWbGbe-p.js:40
+On @ index-QWbGbe-p.js:40
+w2 @ index-QWbGbe-p.js:40
+xn @ index-QWbGbe-p.js:38
+(anonymous) @ index-QWbGbe-p.js:40
+index-QWbGbe-p.js:69 API direct response: {name: 'forums_list', info: {…}}
+index-QWbGbe-p.js:69 API direct response: {name: 'connection_requests', info: {…}}
+index-QWbGbe-p.js:69 API direct response: {name: 'connections_list', info: {…}}
+index-QWbGbe-p.js:644 Error loading community data: TypeError: Cannot read properties of undefined (reading 'success')
+    at index-QWbGbe-p.js:644:787497
+(anonymous) @ index-QWbGbe-p.js:644
+await in (anonymous)
+Pt @ index-QWbGbe-p.js:37
+ao @ index-QWbGbe-p.js:37
+jn @ index-QWbGbe-p.js:37
+tr @ index-QWbGbe-p.js:37
+ar @ index-QWbGbe-p.js:37
+(anonymous) @ index-QWbGbe-p.js:37
+Rc @ index-QWbGbe-p.js:40
+dt @ index-QWbGbe-p.js:37
+Rm @ index-QWbGbe-p.js:37
+lm @ index-QWbGbe-p.js:37
+hl @ index-QWbGbe-p.js:37
+index-QWbGbe-p.js:69 API direct response: {error: "module 'code_execution_store' has no attribute 'get_user_snippets'", traceback: `Traceback (most recent call last):\n  File "/home/c…tion_store' has no attribute 'get_user_snippets'\n`}
+index-QWbGbe-p.js:69 API extracted from reports: {service: 'Jeseci Smart Learning Academy API', status: 'healthy', version: '7.0.0', timestamp: '2026-01-18T01:13:27Z', database_status: 'connected', …}
+[Violation] Forced reflow while executing JavaScript took 43ms
+index-QWbGbe-p.js:69 API direct response: {error: '0', traceback: 'Traceback (most recent call last):\n  File "/home/c… result[0];\n               ~~~~~^^^^\nKeyError: 0\n'}
+index-QWbGbe-p.js:702 Validation error: TypeError: Cannot read properties of undefined (reading 'map')
+    at index-QWbGbe-p.js:701:2154
+(anonymous) @ index-QWbGbe-p.js:702
+await in (anonymous)
+dt @ index-QWbGbe-p.js:705
+(anonymous) @ index-QWbGbe-p.js:654
+bi @ index-QWbGbe-p.js:40
+Do @ index-QWbGbe-p.js:40
+(anonymous) @ index-QWbGbe-p.js:40
+L @ index-QWbGbe-p.js:25
+$ @ index-QWbGbe-p.js:25
+index-QWbGbe-p.js:69 API extracted from reports: {success: false, stdout: '', stderr: 'Error: No bytecode found for /tmp/code_exec_bix4ger6/main.jac', execution_time_ms: 462, status: 'error', …}
+index-QWbGbe-p.js:69 API extracted from reports: {success: true, stdout: 'Hello, Jeseci Academy!\nWelcome to Python Programming!\nSum: 10 + 20 = 30', stderr: '', execution_time_ms: 10, status: 'success', …}
+index-QWbGbe-p.js:69 API extracted from reports: {success: true, stdout: 'Hello, Jeseci Academy!\nWelcome to JavaScript Programming!\nSum: 10 + 20 = 30', stderr: '', execution_time_ms: 36, status: 'success', …}
