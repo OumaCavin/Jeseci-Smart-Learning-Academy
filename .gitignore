@@ -906,13 +906,3 @@
 # This allows outer git to track inner repo files while preserving inner git history
 **/.git_backup_by_agent
 **/.git_backup_by_agent/
-
-# ==============================================================================
-# PROJECT SPECIFIC - CLEANUP
-# ==============================================================================
-# Development utilities and temporary files
-browser/
-shell_output_save/
-user_input_files/
-workspace.json
-pyproject.toml
