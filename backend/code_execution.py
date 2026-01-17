@@ -460,17 +460,20 @@ class ErrorAnalyzer:
             if patterns:
                 # Use the highest priority match
                 best_match = patterns[0]
-                result['friendly_message'] = best_match.get('friendly_message')
-                result['suggestion'] = best_match.get('suggestion')
-                result['resource_link'] = best_match.get('resource_link')
-                result['example_fix'] = best_match.get('example_fix')
+                # Safely get values with default fallbacks
+                result['friendly_message'] = best_match.get('friendly_message') if best_match else None
+                result['suggestion'] = best_match.get('suggestion') if best_match else None
+                result['resource_link'] = best_match.get('documentation_link') if best_match else None
+                result['example_fix'] = best_match.get('example_fix') if best_match else None
             
             # Fallback messages for common errors
             if not result['friendly_message']:
                 result['friendly_message'] = self._get_fallback_message(error_msg)
                 
         except Exception as e:
-            app_logger.error(f"Error analyzing error message: {e}")
+            # Log the error but don't crash - use fallback message
+            app_logger.warning(f"Error analyzing error message (using fallback): {e}")
+            result['friendly_message'] = self._get_fallback_message(error_msg)
         
         return result
     

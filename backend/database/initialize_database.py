@@ -150,6 +150,7 @@ def create_content_tables(cursor):
         name VARCHAR(200) NOT NULL,
         display_name VARCHAR(200),
         category VARCHAR(100),
+        subcategory VARCHAR(100),
         difficulty_level VARCHAR(50) DEFAULT 'beginner',
         domain VARCHAR(100),
         description TEXT,
@@ -328,6 +329,7 @@ def create_progress_tables(cursor):
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
         lesson_id VARCHAR(50) NOT NULL,
+        is_completed BOOLEAN DEFAULT FALSE,
         status VARCHAR(20) DEFAULT 'not_started',
         progress_percent INTEGER DEFAULT 0,
         time_spent_seconds INTEGER DEFAULT 0,
@@ -465,6 +467,7 @@ def create_gamification_tables(cursor):
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
         achievement_id VARCHAR(50) NOT NULL,
+        notification_sent BOOLEAN DEFAULT FALSE,
         earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         progress INTEGER DEFAULT 0,
         UNIQUE(user_id, achievement_id)
