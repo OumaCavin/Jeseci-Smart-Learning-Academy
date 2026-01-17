@@ -1,0 +1,164 @@
+# =============================================================================
+# Jeseci Smart Learning Academy - Environment Configuration Template
+# =============================================================================
+# Author: Cavin Otieno
+# License: MIT License
+# Version: 1.0.0
+# Description: This file contains all environment variables for the Jeseci Smart
+#              Learning Academy platform. Copy this file to .env and update the
+#              values for your environment.
+# =============================================================================
+
+# =============================================================================
+# Database Configuration for Jeseci Smart Learning Companion
+# =============================================================================
+# This file contains all database connection settings for PostgreSQL and Neo4j.
+# Copy this file to .env and update the values for your environment.
+# =============================================================================
+
+# =============================================================================
+# PostgreSQL Configuration (Primary Database)
+# =============================================================================
+# Connection string format: postgresql://username:password@host:port/database_name
+# For local development with default credentials:
+# DATABASE_URL=postgresql://jeseci_academy_user:jeseci_secure_password_2024@localhost:5432/jeseci_learning_academy
+
+# Alternative connection parameters
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=jeseci_learning_academy
+POSTGRES_USER=jeseci_academy_user
+POSTGRES_PASSWORD=jeseci_secure_password_2024
+	
+# Database Schema Configuration
+DB_SCHEMA=jeseci_academy
+PG_SUPERUSER=postgres
+
+# Connection pool settings
+POSTGRES_POOL_SIZE=5
+POSTGRES_MAX_OVERFLOW=10
+POSTGRES_POOL_TIMEOUT=30
+POSTGRES_POOL_RECYCLE=1800
+
+# =============================================================================
+# Neo4j Configuration (Graph Database)
+# =============================================================================
+# Neo4j connection for knowledge graph and learning path recommendations
+
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=neo4j_secure_password_2024
+NEO4J_DATABASE=neo4j
+
+# Neo4j connection settings
+NEO4J_MAX_CONNECTION_LIFETIME=3600
+NEO4J_MAX_CONNECTION_POOL_SIZE=100
+NEO4J_CONNECTION_TIMEOUT=30
+
+# =============================================================================
+# Application Settings
+# =============================================================================
+#ENVIRONMENT=development
+ENVIRONMENT=production
+DEBUG=true
+
+# =============================================================================
+# API Configuration
+# =============================================================================
+API_HOST=0.0.0.0
+API_PORT=8000
+
+# =============================================================================
+# CORS Configuration
+# =============================================================================
+# Cross-Origin Resource Sharing (CORS) settings for frontend integration
+# Comma-separated list of allowed origins (use * for development only)
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+# Enable/disable CORS credentials
+CORS_ALLOW_CREDENTIALS=true
+# CORS methods allowed
+CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+# CORS headers allowed
+CORS_ALLOWED_HEADERS=Content-Type,Authorization,X-Requested-With
+
+# =============================================================================
+# Security Settings
+# =============================================================================
+# JWT Configuration
+JWT_SECRET_KEY=jeseci_secret_key_change_in_production
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+# =============================================================================
+# Redis Configuration (Message Queue)
+# =============================================================================
+# Redis connection for event-driven synchronization
+# Using DB=1 to isolate from other projects that use DB=0
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=1
+REDIS_PASSWORD=
+
+# Redis connection settings
+REDIS_MAX_CONNECTIONS=10
+REDIS_SOCKET_TIMEOUT=5
+REDIS_SOCKET_CONNECT_TIMEOUT=5
+
+# Stream configuration
+REDIS_STREAM_NAME=jeseci:sync:stream
+REDIS_CONSUMER_GROUP=jeseci:sync:consumers
+
+# =============================================================================
+# AI Configuration
+# =============================================================================
+# OpenAI API Key for AI-powered content generation
+OPENAI_API_KEY=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
+
+# Gemini API Key
+GEMINI_API_KEY=ATzaSyBLv9eN8zNSUkSEm7xnAmG1abUotDX3420
+
+# =============================================================================
+# JAC Server Configuration
+# =============================================================================
+JAC_HOST=localhost
+JAC_PORT=8000
+JAC_ENV=development
+
+# =============================================================================
+# Session Configuration
+# =============================================================================
+SESSION_SECRET=your_session_secret_minimum_32_characters
+
+# =============================================================================
+# AI Model Configuration
+# =============================================================================
+OPENAI_MODEL=gpt-4
+OPENAI_MAX_TOKENS=2000
+OPENAI_TEMPERATURE=0.7
+
+# =============================================================================
+# AI Features Toggle
+# =============================================================================
+AI_CONTENT_ENABLED=true
+AI_CHAT_ENABLED=true
+
+# =============================================================================
+# Development Settings
+# =============================================================================
+ENABLE_MOCK_DATA=false
+LOG_LEVEL=info
+
+# =============================================================================
+# SMTP Configuration (Email Verification)
+# =============================================================================
+# Configuration for sending verification emails
+# For Gmail, use App Password (not regular password)
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=cavin.otieno012@gmail.com
+SMTP_PASSWORD=jspbrldxspmhusrb
+SMTP_FROM=cavin.otieno012@gmail.com
+
+FROM_EMAIL=cavin.otieno012@gmail.com
+EMAIL_PASSWORD=jspbrldxspmhusrb
