@@ -327,7 +327,7 @@ walker get_courses {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "courses": result.get("courses", []),
                 "total": result.get("total", 0)
             } ;
@@ -374,7 +374,7 @@ walker courses {
                     "content_type": "interactive"
                 }
             ];
-            report {"success": true, "courses": courses, "total": len(courses), "source": "mock"} ;
+            report {"success": True, "courses": courses, "total": len(courses), "source": "mock"} ;
             return;
         }
 
@@ -383,7 +383,7 @@ walker courses {
         result = user_dashboard_module.get_courses(user_id);
 
         if result.get("success") and len(result.get("courses", [])) > 0 {
-            report {"success": true, "courses": result.get("courses"), "total": result.get("total"), "source": "database"} ;
+            report {"success": True, "courses": result.get("courses"), "total": result.get("total"), "source": "database"} ;
             return;
         }
 
@@ -439,7 +439,7 @@ walker courses {
             }
         ];
 
-        report {"success": true, "courses": courses, "total": len(courses), "source": "fallback"} ;
+        report {"success": True, "courses": courses, "total": len(courses), "source": "fallback"} ;
     }
 }
 
@@ -485,7 +485,7 @@ walker enroll_in_course {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "message": result.get("message", "Successfully enrolled in course"),
                 "course_id": self.course_id,
                 "progress": result.get("progress", 0)
@@ -519,7 +519,7 @@ walker get_course_details {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "course": result.get("course", {})
             } ;
         } else {
@@ -554,7 +554,7 @@ walker get_user_progress {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "user_id": actual_user_id,
                 "progress": result.get("progress", {}),
                 "concept_progress": result.get("concept_progress", []),
@@ -682,7 +682,7 @@ walker get_learning_analytics {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "user_id": actual_user_id,
                 "learning_analytics": result.get("learning_analytics", {}),
                 "recommendations": result.get("recommendations", []),
@@ -1171,7 +1171,7 @@ walker get_learning_paths {
         
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "paths": result.get("paths", []),
                 "total": result.get("total", 0)
             } ;
@@ -1201,7 +1201,7 @@ walker get_learning_path_details {
         
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "path": result.get("path", {})
             } ;
         } else {
@@ -1235,7 +1235,7 @@ walker enroll_in_learning_path {
         
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "message": result.get("message", "Successfully enrolled in learning path"),
                 "path_id": self.path_id,
                 "path_title": result.get("path_title", "")
@@ -1438,7 +1438,7 @@ walker get_quizzes {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "quizzes": result.get("quizzes", []),
                 "total": result.get("total", 0)
             } ;
@@ -1487,7 +1487,7 @@ walker submit_quiz_attempt {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "quiz_id": self.quiz_id,
                 "score": result.get("score"),
                 "total_questions": result.get("total_questions"),
@@ -1512,7 +1512,7 @@ walker quizzes {
         result = user_dashboard_module.get_quizzes(user_id);
 
         if result.get("success") and len(result.get("quizzes", [])) > 0 {
-            report {"success": true, "quizzes": result.get("quizzes"), "total": result.get("total")} ;
+            report {"success": True, "quizzes": result.get("quizzes"), "total": result.get("total")} ;
             return;
         }
 
@@ -1600,7 +1600,7 @@ walker quizzes {
             }
         ];
 
-        report {"success": true, "quizzes": quizzes, "total": len(quizzes)} ;
+        report {"success": True, "quizzes": quizzes, "total": len(quizzes)} ;
     }
 }
 
@@ -1619,7 +1619,7 @@ walker quiz_submit {
         }
 
         report {
-            "success": true,
+            "success": True,
             "quiz_id": self.quiz_id,
             "score": score,
             "passed": score >= 70,
@@ -1651,7 +1651,7 @@ walker get_achievements {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "achievements": result.get("achievements", []),
                 "total": result.get("total", 0),
                 "earned_count": result.get("earned_count", 0),
@@ -1678,7 +1678,7 @@ walker achievements {
 
         if result.get("success") and len(result.get("achievements", [])) > 0 {
             report {
-                "success": true,
+                "success": True,
                 "achievements": result.get("achievements"),
                 "total": result.get("total"),
                 "earned_count": result.get("earned_count"),
@@ -8314,7 +8314,7 @@ walker dashboard_metrics {
         if not user_id {
             # Return default metrics for unauthenticated users
             report {
-                "success": true,
+                "success": True,
                 "metrics": {
                     "activeUsers": {
                         "id": "activeUsers",
@@ -8368,7 +8368,7 @@ walker dashboard_metrics {
         analytics_data = analytics_result.get("learning_analytics", {});
 
         report {
-            "success": true,
+            "success": True,
             "user_id": user_id,
             "metrics": {
                 "activeUsers": {
@@ -8680,7 +8680,7 @@ walker admin_audit_logs_export_csv {
             limit=self.limit
         );
 
-        report {"success": true, "format": "csv", "data": csv_data} ;
+        report {"success": True, "format": "csv", "data": csv_data} ;
     }
 }
 
@@ -8706,7 +8706,7 @@ walker admin_audit_logs_export_json {
             limit=self.limit
         );
 
-        report {"success": true, "format": "json", "data": json_data} ;
+        report {"success": True, "format": "json", "data": json_data} ;
     }
 }
 
@@ -8732,7 +8732,7 @@ walker admin_audit_history {
         );
 
         report {
-            "success": true,
+            "success": True,
             "history": result,
             "total": len(result)
         } ;
@@ -8763,7 +8763,7 @@ walker admin_audit_history_export_csv {
             limit=self.limit
         );
 
-        report {"success": true, "format": "csv", "data": csv_data} ;
+        report {"success": True, "format": "csv", "data": csv_data} ;
     }
 }
 
@@ -8791,7 +8791,7 @@ walker admin_audit_history_export_json {
             limit=self.limit
         );
 
-        report {"success": true, "format": "json", "data": json_data} ;
+        report {"success": True, "format": "json", "data": json_data} ;
     }
 }
 
@@ -8982,7 +8982,7 @@ walker admin_dashboard_stats {
             stats = stats_module.get_admin_dashboard_stats();
 
             report {
-                "success": true,
+                "success": True,
                 "data": stats,
                 "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             } ;
@@ -8995,7 +8995,7 @@ walker admin_dashboard_stats {
             user_stats = stats.get_user_statistics();
 
             report {
-                "success": true,
+                "success": True,
                 "data": {
                     "total_users": user_stats["total_users"],
                     "active_users": user_stats["active_users"],
@@ -9017,7 +9017,7 @@ walker admin_dashboard_stats {
             content_stats = stats.get_content_statistics();
 
             report {
-                "success": true,
+                "success": True,
                 "data": {
                     "total_items": content_stats["content_items"],
                     "concepts": content_stats["total_concepts"],
@@ -9037,7 +9037,7 @@ walker admin_dashboard_stats {
             activity_stats = stats.get_activity_statistics();
 
             report {
-                "success": true,
+                "success": True,
                 "data": {
                     "daily_activity": activity_stats["daily_activity"],
                     "weekly_sessions": activity_stats["weekly_sessions"],
@@ -9056,7 +9056,7 @@ walker admin_dashboard_stats {
             progress_stats = stats.get_learning_progress_statistics();
 
             report {
-                "success": true,
+                "success": True,
                 "data": progress_stats,
                 "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             } ;
@@ -9078,7 +9078,7 @@ walker admin_dashboard_stats {
             trend_data = stats.get_trend_data(self.metric, self.days);
 
             report {
-                "success": true,
+                "success": True,
                 "data": {
                     "metric": self.metric,
                     "period_days": self.days,
@@ -9111,7 +9111,7 @@ walker admin_dashboard_overview {
         import datetime;
 
         report {
-            "success": true,
+            "success": True,
             "data": stats,
             "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         } ;
@@ -9133,7 +9133,7 @@ walker admin_dashboard_users {
         import datetime;
 
         report {
-            "success": true,
+            "success": True,
             "data": {
                 "total_users": user_stats["total_users"],
                 "active_users": user_stats["active_users"],
@@ -9164,7 +9164,7 @@ walker admin_dashboard_activity {
         import datetime;
 
         report {
-            "success": true,
+            "success": True,
             "data": {
                 "daily_activity": activity_stats["daily_activity"],
                 "weekly_sessions": activity_stats["weekly_sessions"],
@@ -9192,7 +9192,7 @@ walker admin_dashboard_content {
         import datetime;
 
         report {
-            "success": true,
+            "success": True,
             "data": {
                 "total_items": content_stats["content_items"],
                 "concepts": content_stats["total_concepts"],
@@ -9232,7 +9232,7 @@ walker admin_dashboard_trends {
         import datetime;
 
         report {
-            "success": true,
+            "success": True,
             "data": {
                 "metric": self.metric,
                 "period_days": self.days,
@@ -9305,14 +9305,14 @@ walker analytics_executions {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "data": result.get("executions", []),
                 "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             } ;
         } else {
             # Return mock data for visualization
             report {
-                "success": true,
+                "success": True,
                 "data": [
                     {
                         "language": "python",
@@ -9351,14 +9351,14 @@ walker analytics_learning {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "data": result,
                 "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             } ;
         } else {
             # Return mock data for visualization
             report {
-                "success": true,
+                "success": True,
                 "data": {
                     "total_sessions": 1250,
                     "completed_courses": 89,
@@ -9386,14 +9386,14 @@ walker analytics_engagement {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "data": result,
                 "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             } ;
         } else {
             # Return mock data for visualization
             report {
-                "success": true,
+                "success": True,
                 "data": {
                     "dailyActiveUsers": 45,
                     "weeklyActiveUsers": 128,
@@ -9431,7 +9431,7 @@ walker analytics_trends {
         }
 
         report {
-            "success": true,
+            "success": True,
             "data": trends,
             "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         } ;
@@ -9455,7 +9455,7 @@ walker analytics_activity {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "data": result.get("activity", []),
                 "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             } ;
@@ -9472,7 +9472,7 @@ walker analytics_activity {
             }
 
             report {
-                "success": true,
+                "success": True,
                 "data": activity,
                 "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             } ;
@@ -9488,7 +9488,7 @@ walker analytics_skills {
 
         # Return mock skills data for radar chart visualization
         report {
-            "success": true,
+            "success": True,
             "data": [
                 {
                     "category": "Programming",
@@ -9537,7 +9537,7 @@ walker analytics_student_performance {
 
         if result.get("success") {
             report {
-                "success": true,
+                "success": True,
                 "data": result.get("students", []),
                 "total": result.get("total_students", 0),
                 "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -9545,7 +9545,7 @@ walker analytics_student_performance {
         } else {
             # Return mock student performance data
             report {
-                "success": true,
+                "success": True,
                 "data": [
                     {
                         "userId": "user_001",
@@ -9611,7 +9611,7 @@ walker analytics_cohort {
 
         # Return mock cohort analytics data
         report {
-            "success": true,
+            "success": True,
             "data": {
                 "cohortId": self.cohortId or "cohort_default",
                 "cohortName": "Spring 2025 Cohort",
@@ -9651,7 +9651,7 @@ walker admin_user_analytics {
         import datetime;
 
         report {
-            "success": true,
+            "success": True,
             "analytics": result,
             "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         } ;
@@ -9666,7 +9666,7 @@ walker admin_learning_analytics {
         import datetime;
 
         report {
-            "success": true,
+            "success": True,
             "analytics": result,
             "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         } ;
@@ -9681,7 +9681,7 @@ walker admin_content_analytics {
         import datetime;
 
         report {
-            "success": true,
+            "success": True,
             "analytics": result,
             "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         } ;
@@ -9696,7 +9696,7 @@ walker admin_analytics_refresh {
         import datetime;
 
         report {
-            "success": true,
+            "success": True,
             "refreshed_at": result.get("refreshed_at"),
             "generated_at": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         } ;
@@ -9708,7 +9708,7 @@ walker admin_analytics_export_csv {
         import admin_analytics_store as analytics_module;
 
         csv_data = analytics_module.export_analytics_to_csv();
-        report {"success": true, "data": csv_data};
+        report {"success": True, "data": csv_data};
     }
 }
 
@@ -9717,7 +9717,7 @@ walker admin_analytics_export_json {
         import admin_analytics_store as analytics_module;
 
         json_data = analytics_module.export_analytics_to_json();
-        report {"success": true, "data": json_data};
+        report {"success": True, "data": json_data};
     }
 }
 
@@ -9726,7 +9726,7 @@ walker admin_user_activity_export_csv {
         import admin_analytics_store as analytics_module;
 
         csv_data = analytics_module.export_user_activity_to_csv();
-        report {"success": true, "data": csv_data};
+        report {"success": True, "data": csv_data};
     }
 }
 
@@ -9735,7 +9735,7 @@ walker admin_user_activity_export_json {
         import admin_analytics_store as analytics_module;
 
         json_data = analytics_module.export_user_activity_to_json();
-        report {"success": true, "data": json_data};
+        report {"success": True, "data": json_data};
     }
 }
 
@@ -9744,7 +9744,7 @@ walker admin_table_activity_export_csv {
         import admin_analytics_store as analytics_module;
 
         csv_data = analytics_module.export_table_activity_to_csv();
-        report {"success": true, "data": csv_data};
+        report {"success": True, "data": csv_data};
     }
 }
 
@@ -9753,7 +9753,7 @@ walker admin_table_activity_export_json {
         import admin_analytics_store as analytics_module;
 
         json_data = analytics_module.export_table_activity_to_json();
-        report {"success": true, "data": json_data};
+        report {"success": True, "data": json_data};
     }
 }
 

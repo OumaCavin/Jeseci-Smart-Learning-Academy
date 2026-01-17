@@ -689,7 +689,8 @@ class CodeSnippetStore:
                 SELECT COALESCE(MAX(version_number), 0) + 1 FROM {self.table_versions}
                 WHERE snippet_id = %s
             """, (snippet_id,))
-            version_number = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            version_number = result[0] if result else 1
             
             cursor.execute(f"""
                 INSERT INTO {self.table_versions}
@@ -1639,3 +1640,63 @@ code_execution_store = get_code_snippet_store()
 
 # Alias for backward compatibility
 CodeExecutionStore = CodeSnippetStore
+
+
+# ==============================================================================
+# Module-level functions for Jaclang compatibility
+# These functions delegate to the singleton instance so Jac can call them directly
+# ==============================================================================
+
+def get_user_snippets(user_id: int, folder_id: str = None, limit: int = 50, offset: int = 0):
+    """Get all snippets for a user - module-level function for Jac compatibility"""
+    return code_execution_store.get_user_snippets(user_id, folder_id, limit, offset)
+
+
+def get_snippet(snippet_id: str, user_id: int = None):
+    """Get a code snippet by ID - module-level function for Jac compatibility"""
+    return code_execution_store.get_snippet(snippet_id, user_id)
+
+
+def create_snippet(user_id: int, title: str, code_content: str, language: str = "jac",
+                   description: str = None, is_public: bool = False, folder_id: str = None):
+    """Create a new code snippet - module-level function for Jac compatibility"""
+    return code_execution_store.create_snippet(user_id, title, code_content, language, description, is_public, folder_id)
+
+
+def save_snippet(user_id: int, title: str, code_content: str, snippet_id: str = None,
+                 language: str = "jac", description: str = None, is_public: bool = False,
+                 folder_id: str = None):
+    """Save a code snippet (create new or update existing) - module-level function for Jac compatibility"""
+    return code_execution_store.save_snippet(user_id, title, code_content, snippet_id, language, description, is_public, folder_id)
+
+
+def update_snippet(snippet_id: str, user_id: int, title: str = None, code_content: str = None,
+                   description: str = None, is_public: bool = None, folder_id: str = None):
+    """Update a code snippet - module-level function for Jac compatibility"""
+    return code_execution_store.update_snippet(snippet_id, user_id, title, code_content, description, is_public, folder_id)
+
+
+def delete_snippet(snippet_id: str, user_id: int):
+    """Delete a code snippet - module-level function for Jac compatibility"""
+    return code_execution_store.delete_snippet(snippet_id, user_id)
+
+
+def get_execution_history(user_id: int, limit: int = 20, offset: int = 0):
+    """Get execution history for a user - module-level function for Jac compatibility"""
+    return code_execution_store.get_execution_history(user_id, limit, offset)
+
+
+def execute_code(user_id: int, code: str, entry_point: str = "main"):
+    """Execute code - module-level function for Jac compatibility"""
+    return code_execution_store.execute_code(user_id, code, entry_point)
+
+
+def get_folders(user_id: int, parent_folder_id: str = None):
+    """Get all folders for a user - module-level function for Jac compatibility"""
+    return code_execution_store.get_folders(user_id, parent_folder_id)
+
+
+def create_folder(user_id: int, name: str, description: str = None,
+                  parent_folder_id: str = None, color: str = "#3b82f6"):
+    """Create a new folder - module-level function for Jac compatibility"""
+    return code_execution_store.create_folder(user_id, name, description, parent_folder_id, color)
