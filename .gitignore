@@ -900,6 +900,21 @@
 **/.claude/debug/**
 
 # ==============================================================================
+# DEVELOPMENT ARTIFACTS - EXPLICITLY REMOVE
+# ==============================================================================
+# Browser automation files
+docs/browser/
+
+# Pure-Jac development files
+docs/pure-jac/
+
+# HTML demo/template files
+docs/assets/*.html
+docs/assets/*.png
+docs/user/*.html
+docs/user/*.md
+
+# ==============================================================================
 # NESTED GIT REPOSITORIES
 # ==============================================================================
 # Temporarily renamed .git directories (used by WorkspaceGitManager)
