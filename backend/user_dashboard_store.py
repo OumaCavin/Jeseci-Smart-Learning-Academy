@@ -515,9 +515,12 @@ class UserDashboardStore:
         try:
             session = self._get_or_create_session()
             
-            # Get all published learning paths
+            # Get all published learning paths (excluding soft-deleted)
             paths = session.query(LearningPath).filter(
-                LearningPath.is_published == True
+                and_(
+                    LearningPath.is_published == True,
+                    LearningPath.is_deleted == False
+                )
             ).all()
             
             courses = []
@@ -748,9 +751,12 @@ class UserDashboardStore:
         try:
             session = self._get_or_create_session()
             
-            # Get all published learning paths
+            # Get all published learning paths (excluding soft-deleted)
             paths = session.query(LearningPath).filter(
-                LearningPath.is_published == True
+                and_(
+                    LearningPath.is_published == True,
+                    LearningPath.is_deleted == False
+                )
             ).all()
             
             learning_paths = []
@@ -1080,9 +1086,12 @@ class UserDashboardStore:
             if not user:
                 return {"success": False, "error": "User not found"}
             
-            # Get all active achievements
+            # Get all active achievements (excluding soft-deleted)
             all_achievements = session.query(Achievement).filter(
-                Achievement.is_active == True
+                and_(
+                    Achievement.is_active == True,
+                    Achievement.is_deleted == False
+                )
             ).all()
             
             # Get user's earned achievements
@@ -1142,8 +1151,13 @@ class UserDashboardStore:
             if not user:
                 return {"success": False, "error": "User not found"}
             
-            # Get all active badges
-            all_badges = session.query(Badge).filter(Badge.is_active == True).all()
+            # Get all active badges (excluding soft-deleted)
+            all_badges = session.query(Badge).filter(
+                and_(
+                    Badge.is_active == True,
+                    Badge.is_deleted == False
+                )
+            ).all()
             
             # Get user's earned badges
             earned = session.query(UserBadge).options(
@@ -1279,8 +1293,13 @@ class UserDashboardStore:
         try:
             session = self._get_or_create_session()
             
-            # Get all published quizzes
-            quizzes = session.query(Quiz).filter(Quiz.is_published == True).all()
+            # Get all published quizzes (excluding soft-deleted)
+            quizzes = session.query(Quiz).filter(
+                and_(
+                    Quiz.is_published == True,
+                    Quiz.is_deleted == False
+                )
+            ).all()
             
             # Get user's attempts if user_id provided
             user_attempts = {}
