@@ -756,10 +756,6 @@
 **/temp/
 **/.tmp/
 **/.temp/
-# Project-specific temporary files
-tmp
-build_output.txt
-frontend/build_output.txt
 **/crash.log
 **/error.log
 **/access.log
