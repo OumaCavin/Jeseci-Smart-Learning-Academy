@@ -895,13 +895,6 @@
 # uploads/
 # downloads/
 
-# Development artifacts at project root
-/browser/
-/pyproject.toml
-/tmp
-/user_input_files.bak/
-/workspace.json
-
 # Claude Agent SDK debug files
 **/.claude/debug/
 **/.claude/debug/**
