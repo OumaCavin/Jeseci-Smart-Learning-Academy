@@ -906,3 +906,31 @@
 # This allows outer git to track inner repo files while preserving inner git history
 **/.git_backup_by_agent
 **/.git_backup_by_agent/
+
+# =============================================================================
+# DOCS - Irrelevant documentation files to ignore
+# =============================================================================
+# Development process docs
+docs/COMMIT_MESSAGE_GUIDELINES.md
+docs/COMMIT_PREPARATION.md
+# Research/notes files
+docs/app_jac_syntax_analysis.md
+docs/JACLANG_EDITOR_INTELLISENCE.md
+# One-off fixes
+docs/JAC_CLIENT_RUNTIME_FIX.md
+# Business/marketing docs
+docs/PITCH_DECK.md
+docs/JESECI_VIDEO_DEMO_SCRIPT.md
+# Config files that shouldn't be in docs
+docs/deploy_url.txt
+docs/pyproject.toml
+# Redundant/old docs
+docs/PROJECT_UPDATE_COMPLETE.md
+# Test scripts (not needed in docs)
+docs/scripts/git_commit_push.sh
+docs/scripts/setup_littlex.sh
+docs/scripts/test_compile_script.sh
+docs/scripts/test_comprehensive_fix.sh
+docs/scripts/test_frontend_fix.sh
+docs/scripts/test_vite4_fix.sh
+docs/scripts/vite-mock.sh
