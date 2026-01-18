@@ -75,7 +75,7 @@ walker health_check {
         api_key = os.getenv("OPENAI_API_KEY", "");
         ai_content_enabled = os.getenv("AI_CONTENT_ENABLED", "true");
         
-        if ai_content_enabled == "false" {
+        if ai_content_enabled == "False" {
             ai_status = "disabled";
         } elif api_key {
             ai_status = "available";
@@ -96,7 +96,7 @@ walker health_check {
             "configuration": {
                 "ai_content_enabled": ai_content_enabled,
                 "ai_chat_enabled": os.getenv("AI_CHAT_ENABLED", "true"),
-                "mock_data_enabled": os.getenv("ENABLE_MOCK_DATA", "false"),
+                "mock_data_enabled": os.getenv("ENABLE_MOCK_DATA", "False"),
                 "log_level": os.getenv("LOG_LEVEL", "info")
             },
             "architecture": "Pure Jaclang Backend"
@@ -333,7 +333,7 @@ walker get_courses {
             } ;
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result.get("error", "Failed to get courses")
             } ;
         }
@@ -344,7 +344,7 @@ walker get_courses {
 walker courses {
     can courses with entry {
         # Check if mock data is enabled
-        enable_mock = os.getenv("ENABLE_MOCK_DATA", "false");
+        enable_mock = os.getenv("ENABLE_MOCK_DATA", "False");
         
         if enable_mock == "true" {
             # Return mock static data
@@ -471,12 +471,12 @@ walker enroll_in_course {
         user_id = request_context_module.get_user_id();
         
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
         if not self.course_id {
-            report {"success": false, "error": "Course ID is required"} ;
+            report {"success": False, "error": "Course ID is required"} ;
             return;
         }
 
@@ -492,7 +492,7 @@ walker enroll_in_course {
             } ;
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result.get("error", "Failed to enroll in course")
             } ;
         }
@@ -510,7 +510,7 @@ walker get_course_details {
         user_id = request_context_module.get_user_id();
         
         if not self.course_id {
-            report {"success": false, "error": "Course ID is required"} ;
+            report {"success": False, "error": "Course ID is required"} ;
             return;
         }
 
@@ -524,7 +524,7 @@ walker get_course_details {
             } ;
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result.get("error", "Failed to get course details")
             } ;
         }
@@ -545,7 +545,7 @@ walker get_user_progress {
         }
 
         if not actual_user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -562,7 +562,7 @@ walker get_user_progress {
             } ;
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result.get("error", "Failed to get progress")
             } ;
         }
@@ -673,7 +673,7 @@ walker get_learning_analytics {
         }
 
         if not actual_user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -692,7 +692,7 @@ walker get_learning_analytics {
             } ;
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result.get("error", "Failed to get analytics")
             } ;
         }
@@ -765,9 +765,9 @@ walker ai_generate_content {
     can ai_generate_content with entry {
         # Check if AI content generation is enabled
         ai_content_enabled = os.getenv("AI_CONTENT_ENABLED", "true");
-        if ai_content_enabled == "false" {
+        if ai_content_enabled == "False" {
             report {
-                "success": false,
+                "success": False,
                 "error": "AI content generation is disabled",
                 "message": "Please set AI_CONTENT_ENABLED=true in your .env file to enable this feature"
             } ;
@@ -827,9 +827,9 @@ walker ai_chat_about_code {
     can ai_chat_about_code with entry {
         # Check if AI chat is enabled
         ai_chat_enabled = os.getenv("AI_CHAT_ENABLED", "true");
-        if ai_chat_enabled == "false" {
+        if ai_chat_enabled == "False" {
             report {
-                "success": false,
+                "success": False,
                 "error": "AI chat is disabled",
                 "message": "Please set AI_CHAT_ENABLED=true in your .env file to enable this feature"
             } ;
@@ -1177,7 +1177,7 @@ walker get_learning_paths {
             } ;
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result.get("error", "Failed to get learning paths")
             } ;
         }
@@ -1192,7 +1192,7 @@ walker get_learning_path_details {
         user_id = request_context_module.get_user_id();
         
         if not self.path_id {
-            report {"success": false, "error": "Path ID is required"} ;
+            report {"success": False, "error": "Path ID is required"} ;
             return;
         }
         
@@ -1206,7 +1206,7 @@ walker get_learning_path_details {
             } ;
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result.get("error", "Failed to get learning path details")
             } ;
         }
@@ -1221,12 +1221,12 @@ walker enroll_in_learning_path {
         user_id = request_context_module.get_user_id();
         
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
         
         if not self.path_id {
-            report {"success": false, "error": "Path ID is required"} ;
+            report {"success": False, "error": "Path ID is required"} ;
             return;
         }
         
@@ -1242,7 +1242,7 @@ walker enroll_in_learning_path {
             } ;
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result.get("error", "Failed to enroll in learning path")
             } ;
         }
@@ -1444,7 +1444,7 @@ walker get_quizzes {
             } ;
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result.get("error", "Failed to get quizzes")
             } ;
         }
@@ -1464,7 +1464,7 @@ walker submit_quiz_attempt {
         }
 
         if not actual_user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -1497,7 +1497,7 @@ walker submit_quiz_attempt {
             } ;
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result.get("error", "Failed to submit quiz")
             } ;
         }
@@ -1642,7 +1642,7 @@ walker get_achievements {
         }
 
         if not actual_user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -1659,7 +1659,7 @@ walker get_achievements {
             } ;
         } else {
             report {
-                "success": false,
+                "success": False,
                 "error": result.get("error", "Failed to get achievements")
             } ;
         }
@@ -1764,9 +1764,9 @@ walker chat {
     can chat with entry {
         # Check if AI chat is enabled
         ai_chat_enabled = os.getenv("AI_CHAT_ENABLED", "true");
-        if ai_chat_enabled == "false" {
+        if ai_chat_enabled == "False" {
             report {
-                "success": false,
+                "success": False,
                 "error": "AI chat is disabled",
                 "message": "Please set AI_CHAT_ENABLED=true in your .env file to enable this feature"
             } ;
@@ -6746,13 +6746,13 @@ walker code_snippet {
         if self.action == "save" {
             # Save or update a code snippet
             if not self.title {
-                report {"success": false, "error": "Title is required"} ;
+                report {"success": False, "error": "Title is required"} ;
                 return;
             }
             result = code_store_module.save_snippet(
                 user_id=user_id,
                 title=self.title,
-                code=self.code,
+                code_content=self.code,
                 description=self.description,
                 is_public=self.is_public,
                 folder_id=self.folder_id,
@@ -6766,7 +6766,7 @@ walker code_snippet {
         } elif self.action == "get" {
             # Get a specific snippet
             if not self.snippet_id {
-                report {"success": false, "error": "Snippet ID is required"} ;
+                report {"success": False, "error": "Snippet ID is required"} ;
                 return;
             }
             result = code_store_module.get_snippet(snippet_id=self.snippet_id);
@@ -6774,7 +6774,7 @@ walker code_snippet {
         } elif self.action == "delete" {
             # Delete a snippet
             if not self.snippet_id {
-                report {"success": false, "error": "Snippet ID is required"} ;
+                report {"success": False, "error": "Snippet ID is required"} ;
                 return;
             }
             result = code_store_module.delete_snippet(
@@ -6782,7 +6782,7 @@ walker code_snippet {
             );
             report result ;
         } else {
-            report {"success": false, "error": "Invalid action: " + self.action} ;
+            report {"success": False, "error": "Invalid action: " + self.action} ;
         }
     }
 }
@@ -7837,7 +7837,7 @@ walker community_create_post {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -7879,7 +7879,7 @@ walker community_add_comment {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -7905,7 +7905,7 @@ walker community_reactions {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -7921,7 +7921,7 @@ walker community_reactions {
                 target_id=self.target_id, target_type=self.target_type
             );
         } else {
-            result = {"success": false, "error": "Unknown action: " + self.action};
+            result = {"success": False, "error": "Unknown action: " + self.action};
         }
 
         report result ;
@@ -7937,7 +7937,7 @@ walker community_follows {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -7958,7 +7958,7 @@ walker community_follows {
         } elif self.action == "following" {
             result = collab_module.get_following(user_id=self.target_user_id);
         } else {
-            result = {"success": false, "error": "Unknown action: " + self.action};
+            result = {"success": False, "error": "Unknown action: " + self.action};
         }
 
         report result ;
@@ -7976,7 +7976,7 @@ walker community_messages {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8025,7 +8025,7 @@ walker community_feed {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8082,7 +8082,7 @@ walker content_like {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8108,7 +8108,7 @@ walker content_save {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8132,7 +8132,7 @@ walker content_save {
                 content_type=self.content_type
             );
         } else {
-            result = {"success": false, "error": "Unknown action: " + self.action};
+            result = {"success": False, "error": "Unknown action: " + self.action};
         }
 
         report result ;
@@ -8175,7 +8175,7 @@ walker update_profile {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8200,7 +8200,7 @@ walker update_preferences {
     has preferred_content_type: str = "";
     has notifications_enabled: bool = True;
     has email_reminders: bool = True;
-    has dark_mode: bool = false;
+    has dark_mode: bool = False;
     has auto_play_videos: bool = True;
     has theme: str = "light";
     has language: str = "en";
@@ -8210,7 +8210,7 @@ walker update_preferences {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8267,7 +8267,7 @@ walker learning_streak {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8289,7 +8289,7 @@ walker recent_activity {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8443,7 +8443,7 @@ walker saved_content {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8469,7 +8469,7 @@ walker notification_details {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8490,7 +8490,7 @@ walker notification_settings {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8514,7 +8514,7 @@ walker notification_preferences {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8551,7 +8551,7 @@ walker admin_content_course_create {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8581,7 +8581,7 @@ walker admin_content_concept_create {
 
         user_id = request_context_module.get_user_id();
         if not user_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8632,7 +8632,7 @@ walker admin_audit_log_stats {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8648,7 +8648,7 @@ walker admin_audit_history_stats {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8669,7 +8669,7 @@ walker admin_audit_logs_export_csv {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8695,7 +8695,7 @@ walker admin_audit_logs_export_json {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8720,7 +8720,7 @@ walker admin_audit_history {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8751,7 +8751,7 @@ walker admin_audit_history_export_csv {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8779,7 +8779,7 @@ walker admin_audit_history_export_json {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8864,7 +8864,7 @@ walker admin_cache_stats {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8884,7 +8884,7 @@ walker admin_cache_entries {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8905,7 +8905,7 @@ walker admin_cache_regions {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8921,7 +8921,7 @@ walker admin_cache_export_csv {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8937,7 +8937,7 @@ walker admin_cache_export_json {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8963,7 +8963,7 @@ walker admin_dashboard_stats {
         # Verify admin access
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -8973,7 +8973,7 @@ walker admin_dashboard_stats {
             admin_id, "dashboard_view"
         );
         if not has_permission {
-            report {"success": false, "error": "Insufficient permissions"} ;
+            report {"success": False, "error": "Insufficient permissions"} ;
             return;
         }
 
@@ -9068,7 +9068,7 @@ walker admin_dashboard_stats {
             valid_metrics = ["users", "activity"];
             if self.metric not in valid_metrics {
                 report {
-                    "success": false,
+                    "success": False,
                     "error": "Invalid metric. Must be one of: " + ",".join(valid_metrics)
                 } ;
                 return;
@@ -9089,7 +9089,7 @@ walker admin_dashboard_stats {
             return;
         }
 
-        report {"success": false, "error": "Unknown action: " + self.action} ;
+        report {"success": False, "error": "Unknown action: " + self.action} ;
     }
 }
 
@@ -9103,7 +9103,7 @@ walker admin_dashboard_overview {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -9124,7 +9124,7 @@ walker admin_dashboard_users {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -9155,7 +9155,7 @@ walker admin_dashboard_activity {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -9183,7 +9183,7 @@ walker admin_dashboard_content {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
@@ -9215,14 +9215,14 @@ walker admin_dashboard_trends {
 
         admin_id = request_context_module.get_user_id();
         if not admin_id {
-            report {"success": false, "error": "Authentication required"} ;
+            report {"success": False, "error": "Authentication required"} ;
             return;
         }
 
         valid_metrics = ["users", "activity"];
         if self.metric not in valid_metrics {
             report {
-                "success": false,
+                "success": False,
                 "error": "Invalid metric. Must be one of: " + ",".join(valid_metrics)
             } ;
             return;

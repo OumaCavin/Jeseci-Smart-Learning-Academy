@@ -863,6 +863,13 @@ class SystemLog(Base):
     ip_address: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    
     __table_args__ = (
         Index("idx_sl_level", "level"),
         Index("idx_sl_module", "module"),
@@ -914,6 +921,13 @@ class AIAgent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    
     def __repr__(self) -> str:
         return f"<AIAgent(id={self.id}, name='{self.name}', provider='{self.provider}')>"
 
@@ -934,6 +948,13 @@ class AIGeneratedContent(Base):
     model: Mapped[str] = mapped_column(String(100), default="openai")  # AI model used
     tokens_used: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     generated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     
     __table_args__ = (
         Index("idx_aigc_domain", "domain"),
@@ -970,6 +991,13 @@ class AIUsageStats(Base):
     stat_key: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # Domain name for domain_usage
     stat_value: Mapped[int] = mapped_column(Integer, default=0)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     
     __table_args__ = (
         UniqueConstraint("stat_type", "stat_key", name="uq_ai_stat"),
@@ -1023,6 +1051,13 @@ class EmailVerification(Base):
     is_used: Mapped[bool] = mapped_column(Boolean, default=False)
     used_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     __table_args__ = (
         Index("idx_ev_user_id", "user_id"),
@@ -1048,6 +1083,13 @@ class PasswordReset(Base):
     used_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     ip_address: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     user_agent: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     __table_args__ = (
         Index("idx_password_reset_tokens_user_id", "user_id"),
@@ -1077,6 +1119,13 @@ class SnippetVersion(Base):
     change_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_by: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     __table_args__ = (
         UniqueConstraint("snippet_id", "version_number", name="uq_snippet_version"),
@@ -1104,6 +1153,13 @@ class TestCase(Base):
     created_by: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     __table_args__ = (
         Index("idx_tc_snippet_id", "snippet_id"),
@@ -1129,6 +1185,13 @@ class DebugSession(Base):
     variables: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)  # Current variable state
     started_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     __table_args__ = (
         Index("idx_ds_snippet_id", "snippet_id"),
@@ -1185,6 +1248,13 @@ class CourseConcept(Base):
     concept_id: Mapped[str] = mapped_column(String(100), ForeignKey("jeseci_academy.concepts.concept_id", ondelete="CASCADE"))
     order_index: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     # Relationships
     course: Mapped["Course"] = relationship("Course", back_populates="course_concepts")
@@ -2181,6 +2251,13 @@ class CodeFolder(Base):
     color: Mapped[str] = mapped_column(String(20), default='#3b82f6')
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     def __repr__(self) -> str:
         return f"<CodeFolder(id='{self.id}', name='{self.name}')>"
@@ -2203,6 +2280,13 @@ class CodeSnippet(Base):
     last_executed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     __table_args__ = (
         Index("idx_cs_user_id", "user_id"),
@@ -2251,6 +2335,13 @@ class TestResult(Base):
     execution_time_ms: Mapped[int] = mapped_column(Integer, default=0)
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     def __repr__(self) -> str:
         return f"<TestResult(id='{self.id}', test_case_id='{self.test_case_id}', passed={self.passed})>"
@@ -2273,6 +2364,13 @@ class ErrorKnowledgeBase(Base):
     priority: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Audit and soft delete fields
+    created_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     def __repr__(self) -> str:
         return f"<ErrorKnowledgeBase(id='{self.id}', error_type='{self.error_type}', title='{self.title}')>"
