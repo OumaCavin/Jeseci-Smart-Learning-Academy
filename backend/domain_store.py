@@ -535,11 +535,12 @@ class DomainStore:
 
                 domain_name = row[1]
 
-                # Delete the domain
+                # Soft delete the domain
                 cursor.execute(f"""
-                    DELETE FROM {DB_SCHEMA}.domains
+                    UPDATE {DB_SCHEMA}.domains
+                    SET is_deleted = TRUE, updated_at = %s
                     WHERE domain_id = %s
-                """, (domain_id,))
+                """, (datetime.now(), domain_id))
 
                 conn.commit()
 

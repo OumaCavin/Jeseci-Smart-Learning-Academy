@@ -666,7 +666,8 @@ def delete_user_activities(user_id: str, older_than_days: int = 365) -> Dict[str
             
             cur.execute(
                 f"""
-                DELETE FROM {DB_SCHEMA}.user_activities
+                UPDATE {DB_SCHEMA}.user_activities
+                SET is_deleted = TRUE
                 WHERE user_id = %s AND created_at < %s
                 """,
                 (user_numeric_id, cutoff_date)

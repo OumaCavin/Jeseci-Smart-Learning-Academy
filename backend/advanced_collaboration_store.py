@@ -910,14 +910,14 @@ def take_moderation_action(moderator_id: int, content_id: str, content_type: str
             WHERE content_id = %s AND status = 'pending'
         """, (moderator_id, f"Action taken: {action_type}", content_id))
         
-        # Perform the actual action on content
+        # Perform the actual action on content (soft delete)
         if action_type == 'content_removed':
             if content_type == 'forum_post':
-                cursor.execute(f"DELETE FROM {{DB_SCHEMA}}.forum_posts WHERE post_id = %s", (content_id,))
+                cursor.execute(f"UPDATE {{DB_SCHEMA}}.forum_posts SET is_deleted = TRUE WHERE post_id = %s", (content_id,))
             elif content_type == 'forum_thread':
-                cursor.execute(f"DELETE FROM {{DB_SCHEMA}}.forum_threads WHERE thread_id = %s", (content_id,))
+                cursor.execute(f"UPDATE {{DB_SCHEMA}}.forum_threads SET is_deleted = TRUE WHERE thread_id = %s", (content_id,))
             elif content_type == 'content_comment':
-                cursor.execute(f"DELETE FROM {{DB_SCHEMA}}.content_comments WHERE comment_id = %s", (content_id,))
+                cursor.execute(f"UPDATE {{DB_SCHEMA}}.content_comments SET is_deleted = TRUE WHERE comment_id = %s", (content_id,))
         
         conn.commit()
         

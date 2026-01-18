@@ -234,12 +234,13 @@ class TestimonialsStore:
             cursor = conn.cursor()
             
             query = f"""
-                DELETE FROM {DB_SCHEMA}.testimonials
+                UPDATE {DB_SCHEMA}.testimonials
+                SET is_deleted = TRUE, updated_at = %s
                 WHERE id = %s
                 RETURNING id
             """
             
-            cursor.execute(query, (testimonial_id,))
+            cursor.execute(query, (datetime.now(), testimonial_id))
             result = cursor.fetchone()
             conn.commit()
             
