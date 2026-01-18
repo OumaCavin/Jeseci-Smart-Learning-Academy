@@ -3038,7 +3038,7 @@ walker log_activity {
                 self.activity_type,
                 self.title,
                 self.description if self.description else None,
-                self.metadata if self.metadata else {},
+                self.meta_data if self.meta_data else {},
                 self.xp_earned if self.xp_earned > 0 else None
             );
 

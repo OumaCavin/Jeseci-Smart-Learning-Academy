@@ -12,7 +12,7 @@ Columns being added:
     concepts: detailed_description, complexity_score, estimated_time_minutes, 
               prerequisites, learning_outcomes, tags, icon, version, is_premium
     learning_sessions: device_info, browser_info, platform, ip_address, 
-                       user_agent, session_events, metadata, quality_score
+                       user_agent, session_events, meta_data, quality_score
 """
 
 import os

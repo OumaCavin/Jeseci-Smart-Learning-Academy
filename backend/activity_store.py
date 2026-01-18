@@ -244,7 +244,7 @@ def get_user_activities(
             # Build query - JOIN users table to filter by string UUID but select from activities
             base_query = f"""
                 SELECT a.id, u.user_id, a.activity_type, a.title, a.description,
-                       a.metadata, a.points_earned, a.created_at
+                       a.meta_data, a.points_earned, a.created_at
                 FROM {DB_SCHEMA}.user_activities a
                 JOIN {DB_SCHEMA}.users u ON a.user_id = u.id
                 WHERE u.user_id = %s

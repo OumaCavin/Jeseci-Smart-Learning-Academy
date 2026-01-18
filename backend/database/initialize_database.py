@@ -401,7 +401,7 @@ def create_progress_tables(cursor):
         ip_address INET,
         user_agent TEXT,
         session_events JSONB DEFAULT '[[]]'::jsonb,
-        metadata JSONB DEFAULT '{{}}'::jsonb,
+        meta_data JSONB DEFAULT '{{}}'::jsonb,
         quality_score DECIMAL(5,2),
         network_type VARCHAR(50),
         connection_speed VARCHAR(50),
@@ -615,7 +615,7 @@ def create_system_tables(cursor):
         source VARCHAR(100),
         message TEXT,
         level VARCHAR(20),
-        metadata JSONB,
+        meta_data JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
@@ -1090,7 +1090,7 @@ def create_notification_tables(cursor):
             link VARCHAR(500),
             is_read BOOLEAN DEFAULT FALSE,
             is_archived BOOLEAN DEFAULT FALSE,
-            metadata JSONB DEFAULT '{{}}',
+            meta_data JSONB DEFAULT '{{}}',
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )
@@ -1159,7 +1159,7 @@ def create_testimonials_table(cursor):
             is_featured BOOLEAN DEFAULT FALSE,
             is_published BOOLEAN DEFAULT TRUE,
             category VARCHAR(50) DEFAULT 'general',
-            metadata JSONB DEFAULT '{{}}',
+            meta_data JSONB DEFAULT '{{}}',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             published_at TIMESTAMP
@@ -1219,7 +1219,7 @@ def create_contact_messages_table(cursor):
             responded_by VARCHAR(100),
             ip_address INET,
             user_agent TEXT,
-            metadata JSONB DEFAULT '{{}}',
+            meta_data JSONB DEFAULT '{{}}',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -1308,7 +1308,7 @@ def create_user_activities_table(cursor):
             title VARCHAR(255),
             description TEXT,
             -- Extended columns for comprehensive activity tracking
-            metadata JSONB DEFAULT '{{}}'::jsonb,
+            meta_data JSONB DEFAULT '{{}}'::jsonb,
             related_content_id VARCHAR(100),
             related_content_type VARCHAR(50),
             duration_seconds INTEGER DEFAULT 0,
