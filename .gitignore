@@ -900,26 +900,6 @@
 **/.claude/debug/**
 
 # ==============================================================================
-# DEVELOPMENT ARTIFACTS - EXPLICITLY REMOVE
-# ==============================================================================
-# Browser automation files
-browser/
-
-# User input files directory
-user_input_files/
-
-# Shell output save directory
-shell_output_save/
-
-# Temporary files
-tmp/
-tmp
-
-# Root-level configuration files
-workspace.json
-pyproject.toml
-
-# ==============================================================================
 # NESTED GIT REPOSITORIES
 # ==============================================================================
 # Temporarily renamed .git directories (used by WorkspaceGitManager)
