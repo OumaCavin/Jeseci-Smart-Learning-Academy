@@ -16,18 +16,39 @@ from database import get_postgres_manager
 
 
 # ==============================================================================
-# AI DOMAINS (static reference data - doesn't need database storage)
+# AI DOMAINS (fetched from database)
 # ==============================================================================
 
 def get_ai_domains():
-    """Get available AI domains"""
-    return [
-        {"id": "cs", "name": "Computer Science", "description": "CS fundamentals", "course_count": 5},
-        {"id": "math", "name": "Mathematics", "description": "Math topics", "course_count": 3},
-        {"id": "physics", "name": "Physics", "description": "Physics concepts", "course_count": 4},
-        {"id": "jac", "name": "Jac Language", "description": "Jac programming language", "course_count": 6},
-        {"id": "programming", "name": "General Programming", "description": "Programming concepts", "course_count": 8}
-    ]
+    """Get available AI domains from database"""
+    pg_manager = get_postgres_manager()
+    
+    try:
+        query = """
+        SELECT domain_id, name, slug, description, icon, color, is_active
+        FROM jeseci_academy.domains
+        WHERE is_active = true
+        ORDER BY name ASC
+        """
+        
+        result = pg_manager.execute_query(query)
+        
+        domains = []
+        for row in result or []:
+            domains.append({
+                "id": row.get('domain_id'),
+                "name": row.get('name'),
+                "description": row.get('description') or f"{row.get('name')} learning materials",
+                "icon": row.get('icon') or "📚",
+                "color": row.get('color') or "#2563eb",
+                "is_active": row.get('is_active', True)
+            })
+        
+        return domains
+    except Exception as e:
+        logger.error(f"Error getting AI domains from database: {e}")
+        # Fallback to empty list if database query fails
+        return []
 
 
 # ==============================================================================
@@ -35,7 +56,7 @@ def get_ai_domains():
 # ==============================================================================
 
 def get_all_ai_content() -> List[Dict[str, Any]]:
-    """Get all AI generated content from PostgreSQL"""
+    """Get all non-deleted AI generated content from PostgreSQL"""
     pg_manager = get_postgres_manager()
     
     try:
@@ -43,6 +64,7 @@ def get_all_ai_content() -> List[Dict[str, Any]]:
         SELECT content_id, concept_name, domain, difficulty, content, 
                related_concepts, generated_by, model, tokens_used, generated_at
         FROM jeseci_academy.ai_generated_content
+        WHERE is_deleted = false
         ORDER BY generated_at DESC
         """
         
@@ -125,7 +147,7 @@ def get_ai_stats() -> Dict[str, Any]:
     pg_manager = get_postgres_manager()
     
     # Get total generations count
-    count_query = "SELECT COUNT(*) as total FROM jeseci_academy.ai_generated_content"
+    count_query = "SELECT COUNT(*) as total FROM jeseci_academy.ai_generated_content WHERE is_deleted = false"
     try:
         count_result = pg_manager.execute_query(count_query)
         total_generations = count_result[0].get('total') if count_result else 0
@@ -134,7 +156,7 @@ def get_ai_stats() -> Dict[str, Any]:
         total_generations = 0
     
     # Get total tokens used
-    tokens_query = "SELECT COALESCE(SUM(tokens_used), 0) as total_tokens FROM jeseci_academy.ai_generated_content"
+    tokens_query = "SELECT COALESCE(SUM(tokens_used), 0) as total_tokens FROM jeseci_academy.ai_generated_content WHERE is_deleted = false"
     try:
         tokens_result = pg_manager.execute_query(tokens_query)
         total_tokens = tokens_result[0].get('total_tokens') if tokens_result else 0
@@ -167,6 +189,7 @@ def get_ai_stats() -> Dict[str, Any]:
     recent_query = """
     SELECT content_id, concept_name, domain, difficulty, model, generated_at
     FROM jeseci_academy.ai_generated_content
+    WHERE is_deleted = false
     ORDER BY generated_at DESC
     LIMIT 10
     """

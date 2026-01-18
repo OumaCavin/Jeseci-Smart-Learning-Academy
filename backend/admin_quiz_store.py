@@ -43,6 +43,7 @@ def initialize_quizzes():
                    passing_score, time_limit_minutes, max_attempts, is_published,
                    created_at, updated_at
             FROM jeseci_academy.quizzes
+            WHERE is_deleted = false
             ORDER BY created_at DESC
             """
             
@@ -281,7 +282,7 @@ def get_quiz_analytics():
     pg_manager = get_postgres_manager()
     
     # Get total quizzes
-    count_query = "SELECT COUNT(*) as count FROM jeseci_academy.quizzes"
+    count_query = "SELECT COUNT(*) as count FROM jeseci_academy.quizzes WHERE is_deleted = false"
     try:
         count_result = pg_manager.execute_query(count_query)
         total_quizzes = count_result[0].get('count', 0) if count_result else 0

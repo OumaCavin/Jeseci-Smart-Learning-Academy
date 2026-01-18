@@ -165,7 +165,9 @@ export interface Domain {
   id: string;
   name: string;
   description: string;
-  course_count: number;
+  icon?: string;
+  color?: string;
+  is_active?: boolean;
 }
 
 // Extend ApiService with admin methods
