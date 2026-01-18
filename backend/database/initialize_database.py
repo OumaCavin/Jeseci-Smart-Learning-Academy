@@ -64,6 +64,8 @@ def create_users_tables(cursor):
         user_id INTEGER UNIQUE NOT NULL,
         first_name VARCHAR(100),
         last_name VARCHAR(100),
+        display_name VARCHAR(100),
+        profile_image_path VARCHAR(500),
         bio TEXT,
         avatar_url VARCHAR(500),
         timezone VARCHAR(50),
