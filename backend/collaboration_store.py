@@ -270,17 +270,39 @@ class CollaborationStore:
             self._close_connection()
     
     def remove_connection(self, connection_id: str, user_id: int) -> Dict[str, Any]:
-        """Remove a connection"""
+        """Soft remove a connection"""
         conn = self._get_connection()
         try:
             cursor = conn.cursor()
             
+            # Check if the user_connections table has audit columns
             cursor.execute(f"""
-                DELETE FROM {DB_SCHEMA}.user_connections
-                WHERE connection_id = %s AND 
-                      (user_id = %s OR connected_user_id = %s)
-                RETURNING id
-            """, (connection_id, user_id, user_id))
+                SELECT column_name FROM information_schema.columns
+                WHERE table_schema = %s AND table_name = 'user_connections'
+                AND column_name IN ('is_deleted', 'deleted_at', 'deleted_by')
+            """, (DB_SCHEMA,))
+            
+            audit_columns = [row[0] for row in cursor.fetchall()]
+            
+            if 'is_deleted' in audit_columns:
+                # Use soft delete
+                cursor.execute(f"""
+                    UPDATE {DB_SCHEMA}.user_connections
+                    SET is_deleted = TRUE,
+                        deleted_at = CURRENT_TIMESTAMP,
+                        deleted_by = %s
+                    WHERE connection_id = %s AND 
+                          (user_id = %s OR connected_user_id = %s)
+                    RETURNING id
+                """, (user_id, connection_id, user_id, user_id))
+            else:
+                # Fallback to hard delete if audit columns don't exist
+                cursor.execute(f"""
+                    DELETE FROM {DB_SCHEMA}.user_connections
+                    WHERE connection_id = %s AND 
+                          (user_id = %s OR connected_user_id = %s)
+                    RETURNING id
+                """, (connection_id, user_id, user_id))
             
             if cursor.fetchone():
                 conn.commit()

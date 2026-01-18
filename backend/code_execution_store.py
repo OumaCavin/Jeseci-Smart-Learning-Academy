@@ -506,14 +506,17 @@ class CodeSnippetStore:
             conn.close()
     
     def delete_snippet(self, snippet_id: str, user_id: int) -> bool:
-        """Delete a code snippet"""
+        """Soft delete a code snippet"""
         conn = get_db_connection()
         try:
             cursor = conn.cursor()
             cursor.execute(f"""
-                DELETE FROM {self.table_snippets}
-                WHERE id = %s AND user_id = %s
-            """, (snippet_id, user_id))
+                UPDATE {self.table_snippets}
+                SET is_deleted = TRUE,
+                    deleted_at = CURRENT_TIMESTAMP,
+                    deleted_by = %s
+                WHERE id = %s AND user_id = %s AND is_deleted = FALSE
+            """, (user_id, snippet_id, user_id))
             
             conn.commit()
             return cursor.rowcount > 0
@@ -974,13 +977,15 @@ class CodeSnippetStore:
             conn.close()
     
     def delete_test_case(self, test_case_id: str) -> bool:
-        """Delete a test case"""
+        """Soft delete a test case"""
         conn = get_db_connection()
         try:
             cursor = conn.cursor()
             cursor.execute(f"""
-                DELETE FROM {self.table_test_cases}
-                WHERE id = %s
+                UPDATE {self.table_test_cases}
+                SET is_deleted = TRUE,
+                    deleted_at = CURRENT_TIMESTAMP
+                WHERE id = %s AND is_deleted = FALSE
             """, (test_case_id,))
             
             conn.commit()
