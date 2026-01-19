@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS user_activities (
     )),
     title VARCHAR(255) NOT NULL,
     description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
     metadata JSONB DEFAULT '{}',
     xp_earned INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

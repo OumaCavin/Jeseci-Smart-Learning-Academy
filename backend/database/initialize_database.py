@@ -1158,6 +1158,7 @@ def create_testimonials_table(cursor):
             is_approved BOOLEAN DEFAULT FALSE,
             is_featured BOOLEAN DEFAULT FALSE,
             is_published BOOLEAN DEFAULT TRUE,
+            is_active BOOLEAN DEFAULT TRUE,
             category VARCHAR(50) DEFAULT 'general',
             meta_data JSONB DEFAULT '{{}}',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1313,6 +1314,7 @@ def create_user_activities_table(cursor):
             related_content_type VARCHAR(50),
             duration_seconds INTEGER DEFAULT 0,
             status VARCHAR(20) DEFAULT 'completed' CHECK (status IN ('in_progress', 'completed', 'paused', 'cancelled')),
+            is_active BOOLEAN DEFAULT TRUE,
             score INTEGER,
             result_data JSONB DEFAULT '{{}}'::jsonb,
             ai_analysis JSONB DEFAULT '{{}}'::jsonb,
@@ -1421,6 +1423,7 @@ def create_collaboration_tables(cursor):
             content TEXT NOT NULL,
             is_pinned BOOLEAN DEFAULT FALSE,
             is_locked BOOLEAN DEFAULT FALSE,
+            is_active BOOLEAN DEFAULT TRUE,
             view_count INTEGER DEFAULT 0,
             reply_count INTEGER DEFAULT 0,
             last_reply_at TIMESTAMP,
@@ -1440,6 +1443,7 @@ def create_collaboration_tables(cursor):
             content TEXT NOT NULL,
             like_count INTEGER DEFAULT 0,
             is_accepted_answer BOOLEAN DEFAULT FALSE,
+            is_active BOOLEAN DEFAULT TRUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -1456,6 +1460,7 @@ def create_collaboration_tables(cursor):
             parent_comment_id VARCHAR(64) REFERENCES {DB_SCHEMA}.content_comments(comment_id) ON DELETE CASCADE,
             content TEXT NOT NULL,
             like_count INTEGER DEFAULT 0,
+            is_active BOOLEAN DEFAULT TRUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
