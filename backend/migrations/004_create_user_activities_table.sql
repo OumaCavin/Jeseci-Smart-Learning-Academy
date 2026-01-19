@@ -4,7 +4,7 @@
 -- Create user activities table
 CREATE TABLE IF NOT EXISTS user_activities (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     activity_type VARCHAR(50) NOT NULL CHECK (activity_type IN (
         'LESSON_COMPLETED',
         'COURSE_STARTED',
@@ -44,7 +44,7 @@ ON user_activities(user_id, activity_type, created_at DESC);
 -- Create activity streaks table for tracking daily streaks
 CREATE TABLE IF NOT EXISTS user_activity_streaks (
     id SERIAL PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     streak_type VARCHAR(50) DEFAULT 'LESSON_COMPLETED',
     current_streak INTEGER DEFAULT 0,
     longest_streak INTEGER DEFAULT 0,
