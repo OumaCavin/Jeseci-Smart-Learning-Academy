@@ -462,8 +462,8 @@ def run_database_migrations():
         cursor = conn.cursor()
         
         # Create migrations tracking table if it doesn't exist
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS schema_migrations (
+        cursor.execute(f"""
+            CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.schema_migrations (
                 id SERIAL PRIMARY KEY,
                 migration_name VARCHAR(255) UNIQUE NOT NULL,
                 executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -472,7 +472,7 @@ def run_database_migrations():
         conn.commit()
         
         # Get already executed migrations
-        cursor.execute("SELECT migration_name FROM schema_migrations")
+        cursor.execute(f"SELECT migration_name FROM {DB_SCHEMA}.schema_migrations")
         executed = {row[0] for row in cursor.fetchall()}
         
         # Run pending migrations
@@ -490,7 +490,7 @@ def run_database_migrations():
                 
                 # Record the migration
                 cursor.execute(
-                    "INSERT INTO schema_migrations (migration_name) VALUES (%s)",
+                    f"INSERT INTO {DB_SCHEMA}.schema_migrations (migration_name) VALUES (%s)",
                     (migration_file,)
                 )
                 conn.commit()

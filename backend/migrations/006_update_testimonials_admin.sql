@@ -31,6 +31,6 @@ CREATE INDEX IF NOT EXISTS idx_testimonials_admin_list ON jeseci_academy.testimo
 CREATE INDEX IF NOT EXISTS idx_testimonials_name_search ON jeseci_academy.testimonials(author_name varchar_pattern_ops);
 
 -- Update the migration tracking
-INSERT INTO schema_migrations (migration_name, applied_at, description)
+INSERT INTO jeseci_academy.schema_migrations (migration_name, applied_at, description)
 VALUES ('006_update_testimonials_admin', NOW(), 'Add admin management columns to testimonials table')
 ON CONFLICT (migration_name) DO NOTHING;
