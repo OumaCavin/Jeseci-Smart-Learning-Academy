@@ -11,16 +11,16 @@ CREATE TABLE IF NOT EXISTS jeseci_academy.testimonials (
     rating INTEGER DEFAULT 5,
     avatar_url VARCHAR(500),
     is_approved BOOLEAN DEFAULT FALSE,
-    is_active BOOLEAN DEFAULT TRUE,
+    is_featured BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_testimonial_approved ON jeseci_academy.testimonials(is_approved);
-CREATE INDEX IF NOT EXISTS idx_testimonial_active ON jeseci_academy.testimonials(is_active);
+CREATE INDEX IF NOT EXISTS idx_testimonial_featured ON jeseci_academy.testimonials(is_featured);
 
 -- Add sample testimonials
-INSERT INTO jeseci_academy.testimonials (name, role, company, content, rating, is_approved, is_active)
+INSERT INTO jeseci_academy.testimonials (name, role, company, content, rating, is_approved, is_featured)
 VALUES 
     ('Sarah Johnson', 'Software Engineer', 'Tech Corp', 'Jeseci Smart Learning Academy transformed my career. The interactive lessons on Jac programming and graph-based concepts helped me land my dream job as a backend developer. The AI-powered tutoring system adapted perfectly to my learning pace.', 5, true, true),
     ('Michael Chen', 'Data Scientist', 'Analytics Inc', 'The platform''s approach to teaching complex topics like Object-Spatial Programming through visual graphs is exceptional. I went from knowing nothing about Jac to building full-stack applications in just 3 months.', 5, true, true),
