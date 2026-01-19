@@ -7,7 +7,12 @@ ADD COLUMN IF NOT EXISTS user_id VARCHAR(100),
 ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT TRUE,
 ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE;
+
+-- Add missing indexes for testimonials table
+CREATE INDEX IF NOT EXISTS idx_testimonials_published ON jeseci_academy.testimonials(is_published, is_approved) WHERE is_published = TRUE AND is_approved = TRUE;
+CREATE INDEX IF NOT EXISTS idx_testimonials_featured ON jeseci_academy.testimonials(is_featured, is_published) WHERE is_featured = TRUE AND is_published = TRUE;
 
 -- Update existing rows to set updated_at
 UPDATE jeseci_academy.testimonials
