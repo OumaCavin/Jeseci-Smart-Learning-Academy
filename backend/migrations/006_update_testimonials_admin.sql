@@ -28,7 +28,7 @@ CREATE INDEX IF NOT EXISTS idx_testimonials_admin_list ON jeseci_academy.testimo
 );
 
 -- Index for search queries
-CREATE INDEX IF NOT EXISTS idx_testimonials_name_search ON jeseci_academy.testimonials(student_name varchar_pattern_ops);
+CREATE INDEX IF NOT EXISTS idx_testimonials_name_search ON jeseci_academy.testimonials(author_name varchar_pattern_ops);
 
 -- Update the migration tracking
 INSERT INTO jeseci_academy.schema_migrations (migration_name, applied_at, description)
