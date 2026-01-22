@@ -181,6 +181,11 @@ def create_content_tables(cursor):
         average_rating DECIMAL(3,2) DEFAULT 0,
         rating_count INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(64),
+        updated_by VARCHAR(64),
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64)
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
@@ -809,6 +814,11 @@ def create_ai_tables(cursor):
         stat_value INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(64),
+        updated_by VARCHAR(64),
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64)
         UNIQUE(stat_type, stat_key)
     )
     """)
