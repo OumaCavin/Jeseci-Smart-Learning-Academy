@@ -4,7 +4,7 @@
 -- Create the testimonials table if it doesn't exist
 CREATE TABLE IF NOT EXISTS jeseci_academy.testimonials (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    author_name VARCHAR(100) NOT NULL,
     role VARCHAR(100),
     company VARCHAR(100),
     content TEXT NOT NULL,
