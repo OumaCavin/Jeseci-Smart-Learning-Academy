@@ -244,6 +244,13 @@ def create_content_tables(cursor):
         sequence_order INTEGER DEFAULT 0,
         is_required BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(64),
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_by VARCHAR(64),
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64)
+        
         UNIQUE(path_id, concept_id)
     )
     """)
