@@ -160,11 +160,11 @@ def create_content_tables(cursor):
         content TEXT,
         -- Extended columns for comprehensive learning content
         detailed_description TEXT,
-        complexity_score FLOAT DEFAULT 1.0,  # Changed to FLOAT
-        cognitive_load VARCHAR(50) DEFAULT 'medium',  # <-- ADDED
+        complexity_score FLOAT DEFAULT 1.0,  
+        cognitive_load VARCHAR(50) DEFAULT 'medium',  
         estimated_time_minutes INTEGER DEFAULT 15,
-        key_terms TEXT,                               # <-- ADDED
-        synonyms TEXT,                                # <-- ADDED
+        key_terms TEXT,                              
+        synonyms TEXT,                                
         prerequisites JSONB DEFAULT '[[]]'::jsonb,
         learning_outcomes JSONB DEFAULT '[[]]'::jsonb,
         tags TEXT[],
