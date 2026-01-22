@@ -348,6 +348,11 @@ def create_progress_tables(cursor):
         practice_wrong_answers INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(64),
+        updated_by VARCHAR(64),
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64),
         UNIQUE(user_id, concept_id)
     )
     """)
@@ -365,6 +370,11 @@ def create_progress_tables(cursor):
         last_accessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(64),
+        updated_by VARCHAR(64),
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64),
         UNIQUE(user_id, path_id)
     )
     """)
@@ -384,6 +394,11 @@ def create_progress_tables(cursor):
         last_accessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(64),
+        updated_by VARCHAR(64),
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64),
         UNIQUE(user_id, lesson_id)
     )
     """)
@@ -429,8 +444,6 @@ def create_progress_tables(cursor):
         feedback_rating INTEGER,
         feedback_comment TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-        -- ADD AUDIT COLUMNS
         created_by VARCHAR(64),
         updated_by VARCHAR(64),
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
