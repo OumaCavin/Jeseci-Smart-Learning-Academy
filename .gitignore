@@ -906,3 +906,26 @@
 # This allows outer git to track inner repo files while preserving inner git history
 **/.git_backup_by_agent
 **/.git_backup_by_agent/
+
+# ==============================================================================
+# CLOUD SANDBOX ENVIRONMENT FILES
+# ==============================================================================
+# These files are specific to the cloud sandbox development environment
+# and should NEVER be committed to the remote repository.
+# Removing these from git tracking ensures clean repository state.
+
+# Cloud sandbox workspace configuration
+workspace.json
+
+# Python project configuration (cloud sandbox specific)
+pyproject.toml
+
+# Browser automation and testing files (cloud sandbox specific)
+browser/
+
+# Temporary files (cloud sandbox specific)
+tmp/
+
+# Force ignore even if already tracked (use -f to override)
+# These will be removed from git tracking on next commit
+# DO NOT remove these lines - they prevent accidental re-commit
