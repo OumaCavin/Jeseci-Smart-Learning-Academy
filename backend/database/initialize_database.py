@@ -159,6 +159,7 @@ def create_content_tables(cursor):
         icon VARCHAR(100) DEFAULT 'default',
         content TEXT,
         lesson_content TEXT,
+        lesson_generated_at TIMESTAMP,
         -- Extended columns for comprehensive learning content
         detailed_description TEXT,
         complexity_score FLOAT DEFAULT 1.0,  
