@@ -537,7 +537,7 @@ def create_gamification_tables(cursor):
     """Create gamification tables"""
     logger.info("Creating gamification tables...")
     
-    # Achievements table (This was fine)
+    # Achievements table 
     cursor.execute(f"""
     CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.achievements (
         id SERIAL PRIMARY KEY,
@@ -561,7 +561,7 @@ def create_gamification_tables(cursor):
     )
     """)
     
-    # User achievements table (UPDATED WITH MISSING COLUMNS)
+    # User achievements table 
     cursor.execute(f"""
     CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.user_achievements (
         id SERIAL PRIMARY KEY,
@@ -614,7 +614,7 @@ def create_gamification_tables(cursor):
     )
     """)
     
-    logger.info("✓  tables created: achievements, user_achievements, badges, user_badges")
+    logger.info("✓  Gamification tables created: achievements, user_achievements, badges, user_badges")
 
     # Seed default achievements
     default_achievements = [
@@ -790,11 +790,10 @@ def create_ai_tables(cursor):
         model VARCHAR(50) DEFAULT 'openai',
         tokens_used INTEGER,
         generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        
-        -- ADD THESE MISSING COLUMNS:
-        created_by VARCHAR(64),
-        updated_by VARCHAR(64),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(64) DEFAULT 'system',
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_by VARCHAR(64) DEFAULT 'system',
         is_deleted BOOLEAN DEFAULT FALSE,
         deleted_at TIMESTAMP,
         deleted_by VARCHAR(64)
