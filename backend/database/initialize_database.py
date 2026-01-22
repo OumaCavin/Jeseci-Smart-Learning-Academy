@@ -185,7 +185,7 @@ def create_content_tables(cursor):
         updated_by VARCHAR(64),
         is_deleted BOOLEAN DEFAULT FALSE,
         deleted_at TIMESTAMP,
-        deleted_by VARCHAR(64)
+        deleted_by VARCHAR(64),
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
