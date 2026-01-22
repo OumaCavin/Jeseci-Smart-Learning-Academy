@@ -4,6 +4,7 @@
 import os
 import datetime
 import logging
+import json  # <--- ADDED: Required for JSONB serialization
 from typing import Optional, List, Dict, Any
 
 # Set up logging
@@ -101,8 +102,9 @@ def save_ai_content(concept_name: str, domain: str, difficulty: str, content: st
     timestamp = str(int(datetime.datetime.now().timestamp()))
     content_id = f"ai_{timestamp}"
     
-    # Convert related_concepts to JSON format for storage
-    related_concepts_json = related_concepts if related_concepts else []
+    # FIXED: Serialize list to JSON string for JSONB column
+    related_concepts_list = related_concepts if related_concepts else []
+    related_concepts_json = json.dumps(related_concepts_list)
     
     # Insert new AI generated content
     insert_query = """
@@ -130,7 +132,7 @@ def save_ai_content(concept_name: str, domain: str, difficulty: str, content: st
             "domain": domain,
             "difficulty": difficulty,
             "content": content,
-            "related_concepts": related_concepts_json,
+            "related_concepts": related_concepts_list,
             "generated_by": generated_by,
             "model": model,
             "tokens_used": tokens_used,
@@ -221,10 +223,6 @@ def get_ai_stats() -> Dict[str, Any]:
 def update_ai_stats(domain: Optional[str], tokens_used: Optional[int]) -> None:
     """Update AI usage statistics in PostgreSQL"""
     pg_manager = get_postgres_manager()
-    
-    # Update total generations count
-    # Note: This is a simple approach - for production, consider using aggregate functions
-    # or maintaining a separate stats table that gets updated via triggers
     
     # Update domain usage if domain is provided
     if domain:
@@ -472,7 +470,7 @@ def export_ai_content_to_csv() -> str:
 
 def export_ai_content_to_json() -> str:
     """Export all AI generated content (active and deleted) to JSON format"""
-    import json
+    # json imported at top
     
     pg_manager = get_postgres_manager()
     
@@ -586,10 +584,13 @@ def initialize_ai_content() -> Dict[str, Any]:
             """
             
             try:
+                # FIXED: Serialize list to JSON string
+                related_concepts_json = json.dumps(content_data['related_concepts'])
+                
                 pg_manager.execute_query(insert_query, 
                     (actual_content_id, content_data['concept_name'], content_data['domain'], 
                      content_data['difficulty'], content_data['content'], 
-                     content_data['related_concepts'], content_data['generated_by'], 
+                     related_concepts_json, content_data['generated_by'], 
                      content_data['model'], 100), fetch=False)
             except Exception as e:
                 logger.error(f"Error inserting sample AI content: {e}")
