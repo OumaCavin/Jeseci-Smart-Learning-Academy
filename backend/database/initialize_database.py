@@ -1189,7 +1189,10 @@ def create_testimonials_table(cursor):
             meta_data JSONB DEFAULT '{{}}',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            published_at TIMESTAMP
+            published_at TIMESTAMP,
+            is_deleted BOOLEAN DEFAULT FALSE,
+            deleted_at TIMESTAMP,
+            deleted_by VARCHAR(64)
         )
     """)
     
