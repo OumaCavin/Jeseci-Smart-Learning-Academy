@@ -75,29 +75,65 @@ class Neo4jManager:
             self.driver.close()
             self.driver = None
     
-    def execute_query(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> Optional[Any]:
-        """
-        Execute a single Cypher query.
+    # def execute_query(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> Optional[Any]:
+    #     """
+    #     Execute a single Cypher query.
         
-        Args:
-            query: Cypher query string
-            parameters: Optional query parameters
+    #     Args:
+    #         query: Cypher query string
+    #         parameters: Optional query parameters
             
-        Returns:
-            Query result or None if error
+    #     Returns:
+    #         Query result or None if error
+    #     """
+    #     if not self.driver:
+    #         if not self.connect():
+    #             return None
+        
+    #     try:
+    #         with self.driver.session(database=self.database) as session:
+    #             result = session.run(query, parameters)
+    #             return result
+    #     except Exception as e:
+    #         print(f"[!] Neo4j query error: {e}")
+    #         return None
+    def execute_query(self, query: str, parameters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """
+        Execute a Cypher query and return results as a list of dictionaries.
+        Used by Admin Content Store.
         """
         if not self.driver:
             if not self.connect():
-                return None
-        
+                raise ConnectionError("Could not connect to Neo4j database")
+
         try:
             with self.driver.session(database=self.database) as session:
-                result = session.run(query, parameters)
+                result = session.run(query, parameters or {})
+                return [record.data() for record in result]
+        except Exception as e:
+            print(f"[!] Neo4j execute_query error: {e}")
+            return []
+
+    def execute_write(self, query: str, parameters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """
+        Execute a write transaction and return results.
+        Used by Admin Content Store.
+        """
+        if not self.driver:
+            if not self.connect():
+                raise ConnectionError("Could not connect to Neo4j database")
+
+        try:
+            with self.driver.session(database=self.database) as session:
+                # Use execute_write to manage the transaction automatically
+                result = session.execute_write(
+                    lambda tx: tx.run(query, parameters or {}).data()
+                )
                 return result
         except Exception as e:
-            print(f"[!] Neo4j query error: {e}")
-            return None
-    
+            print(f"[!] Neo4j execute_write error: {e}")
+            return []
+            
     def execute_transaction(self, func):
         """
         Execute a transactional function.
