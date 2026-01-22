@@ -160,8 +160,11 @@ def create_content_tables(cursor):
         content TEXT,
         -- Extended columns for comprehensive learning content
         detailed_description TEXT,
-        complexity_score INTEGER DEFAULT 1,
+        complexity_score FLOAT DEFAULT 1.0,  # Changed to FLOAT
+        cognitive_load VARCHAR(50) DEFAULT 'medium',  # <-- ADDED
         estimated_time_minutes INTEGER DEFAULT 15,
+        key_terms TEXT,                               # <-- ADDED
+        synonyms TEXT,                                # <-- ADDED
         prerequisites JSONB DEFAULT '[[]]'::jsonb,
         learning_outcomes JSONB DEFAULT '[[]]'::jsonb,
         tags TEXT[],
@@ -425,7 +428,15 @@ def create_progress_tables(cursor):
         ai_insights JSONB DEFAULT '{{}}'::jsonb,
         feedback_rating INTEGER,
         feedback_comment TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+        -- ADD AUDIT COLUMNS
+        created_by VARCHAR(64),
+        updated_by VARCHAR(64),
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64)
     )
     """)
     
@@ -506,9 +517,9 @@ def create_assessment_tables(cursor):
     logger.info("✓ Default quizzes seeded")
 
 
-def create_gamification_tables(cursor):
-    """Create gamification tables"""
-    logger.info("Creating gamification tables...")
+def create__tables(cursor):
+    """Create  tables"""
+    logger.info("Creating  tables...")
     
     # Achievements table
     cursor.execute(f"""
@@ -524,7 +535,15 @@ def create_gamification_tables(cursor):
         points INTEGER DEFAULT 0,
         tier VARCHAR(20) DEFAULT 'bronze',
         is_active BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        
+        -- ADD AUDIT COLUMNS
+        created_by VARCHAR(64),
+        updated_by VARCHAR(64),
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64)
     )
     """)
     
@@ -571,7 +590,7 @@ def create_gamification_tables(cursor):
     )
     """)
     
-    logger.info("✓ Gamification tables created: achievements, user_achievements, badges, user_badges")
+    logger.info("✓  tables created: achievements, user_achievements, badges, user_badges")
 
     # Seed default achievements
     default_achievements = [
@@ -2424,7 +2443,7 @@ def initialize_database():
         create_courses_table(cursor)
         create_progress_tables(cursor)
         create_assessment_tables(cursor)
-        create_gamification_tables(cursor)
+        create__tables(cursor)
         create_system_tables(cursor)
         create_ai_tables(cursor)
         create_content_views_table(cursor)
