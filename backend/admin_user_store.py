@@ -265,7 +265,7 @@ def update_admin_user(user_id, updates):
     # Build update query for users table
     allowed_user_fields = ['is_admin', 'admin_role', 'is_active']
     user_set_clauses = []
-    user_params = [user_id]
+    user_params = []  # CORRECTION: Start with empty list
     
     # Handle profile fields separately
     profile_fields = {}
@@ -278,6 +278,8 @@ def update_admin_user(user_id, updates):
     
     if user_set_clauses:
         user_set_clauses.append("updated_at = NOW()")
+        user_params.append(user_id)  # CORRECTION: Add user_id LAST for the WHERE clause
+        
         user_update_query = f"""
         UPDATE jeseci_academy.users 
         SET {', '.join(user_set_clauses)}
@@ -292,13 +294,16 @@ def update_admin_user(user_id, updates):
     # Update profile table if needed (using INTEGER user_db_id)
     if profile_fields:
         profile_set_clauses = []
-        profile_params = [user_db_id]
+        profile_params = []  # CORRECTION: Start with empty list
+        
         for field, value in profile_fields.items():
             profile_set_clauses.append(f"{field} = %s")
             profile_params.append(value)
         
         if profile_set_clauses:
             profile_set_clauses.append("updated_at = NOW()")
+            profile_params.append(user_db_id)  # CORRECTION: Add ID last
+            
             profile_update_query = f"""
             UPDATE jeseci_academy.user_profile 
             SET {', '.join(profile_set_clauses)}
@@ -315,7 +320,7 @@ def update_admin_user(user_id, updates):
     cache_initialized = False
     
     return {"success": True, "message": "User updated successfully"}
-
+    
 def bulk_admin_action(user_ids, action, reason="", deleted_by=None, ip_address=None):
     """Perform bulk action on admin users in PostgreSQL
     
