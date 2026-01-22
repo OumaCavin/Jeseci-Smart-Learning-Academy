@@ -818,7 +818,7 @@ def create_ai_tables(cursor):
         updated_by VARCHAR(64),
         is_deleted BOOLEAN DEFAULT FALSE,
         deleted_at TIMESTAMP,
-        deleted_by VARCHAR(64)
+        deleted_by VARCHAR(64),
         UNIQUE(stat_type, stat_key)
     )
     """)
