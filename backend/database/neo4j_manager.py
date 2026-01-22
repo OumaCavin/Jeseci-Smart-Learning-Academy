@@ -17,6 +17,8 @@ import sys
 from typing import Optional, List, Dict, Any
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
+import logging
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '..', 'backend', 'config', '.env'))
@@ -66,7 +68,8 @@ class Neo4jManager:
             print(f"[✓] Connected to Neo4j at {self.uri}")
             return True
         except Exception as e:
-            print(f"[!] Neo4j connection failed: {e}")
+            # print(f"[!] Neo4j connection failed: {e}")
+            logger.error(f"Neo4j connection failed: {e}")
             return False
     
     def disconnect(self):
