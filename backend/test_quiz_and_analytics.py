@@ -12,7 +12,7 @@ This test suite covers all the quiz management and analytics features including:
 - Content performance analysis
 - System health monitoring
 
-Author: Matrix Agent
+Author: Cavin Otieno
 """
 
 import pytest
