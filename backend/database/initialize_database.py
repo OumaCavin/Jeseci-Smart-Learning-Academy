@@ -158,6 +158,7 @@ def create_content_tables(cursor):
         description TEXT,
         icon VARCHAR(100) DEFAULT 'default',
         content TEXT,
+        lesson_content TEXT,
         -- Extended columns for comprehensive learning content
         detailed_description TEXT,
         complexity_score FLOAT DEFAULT 1.0,  
@@ -530,11 +531,12 @@ def create_assessment_tables(cursor):
     logger.info("✓ Default quizzes seeded")
 
 
-def create__tables(cursor):
-    """Create  tables"""
-    logger.info("Creating  tables...")
+# RENAME THIS FUNCTION
+def create_gamification_tables(cursor):
+    """Create gamification tables"""
+    logger.info("Creating gamification tables...")
     
-    # Achievements table
+    # Achievements table (This was fine)
     cursor.execute(f"""
     CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.achievements (
         id SERIAL PRIMARY KEY,
@@ -549,8 +551,6 @@ def create__tables(cursor):
         tier VARCHAR(20) DEFAULT 'bronze',
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        
-        -- ADD AUDIT COLUMNS
         created_by VARCHAR(64),
         updated_by VARCHAR(64),
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -560,7 +560,7 @@ def create__tables(cursor):
     )
     """)
     
-    # User achievements table
+    # User achievements table (UPDATED WITH MISSING COLUMNS)
     cursor.execute(f"""
     CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.user_achievements (
         id SERIAL PRIMARY KEY,
@@ -569,10 +569,20 @@ def create__tables(cursor):
         notification_sent BOOLEAN DEFAULT FALSE,
         earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         progress INTEGER DEFAULT 0,
+        
+        -- ADD THESE MISSING COLUMNS:
+        created_by VARCHAR(64),
+        updated_by VARCHAR(64),
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64),
+        
         UNIQUE(user_id, achievement_id)
     )
     """)
     
+   
     # Badges table
     cursor.execute(f"""
     CREATE TABLE IF NOT EXISTS {DB_SCHEMA}.badges (
@@ -778,7 +788,15 @@ def create_ai_tables(cursor):
         generated_by VARCHAR(100),
         model VARCHAR(50) DEFAULT 'openai',
         tokens_used INTEGER,
-        generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        
+        -- ADD THESE MISSING COLUMNS:
+        created_by VARCHAR(64),
+        updated_by VARCHAR(64),
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP,
+        deleted_by VARCHAR(64)
     )
     """)
     
@@ -2459,7 +2477,8 @@ def initialize_database():
         create_courses_table(cursor)
         create_progress_tables(cursor)
         create_assessment_tables(cursor)
-        create__tables(cursor)
+       # UPDATE THIS LINE (was create__tables(cursor))
+        create_gamification_tables(cursor)
         create_system_tables(cursor)
         create_ai_tables(cursor)
         create_content_views_table(cursor)
