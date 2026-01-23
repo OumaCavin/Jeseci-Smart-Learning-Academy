@@ -48,7 +48,10 @@ CREATE TABLE IF NOT EXISTS jeseci_academy.code_folders (
     parent_folder_id VARCHAR(64) REFERENCES jeseci_academy.code_folders(id) ON DELETE SET NULL,
     color VARCHAR(20) DEFAULT '#3b82f6',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP,
+    deleted_by VARCHAR(64)
 );
 
 CREATE TABLE IF NOT EXISTS jeseci_academy.code_snippets (
@@ -63,7 +66,10 @@ CREATE TABLE IF NOT EXISTS jeseci_academy.code_snippets (
     execution_count INTEGER DEFAULT 0,
     last_executed_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP,
+    deleted_by VARCHAR(64)
 );
 
 CREATE TABLE IF NOT EXISTS jeseci_academy.execution_history (
@@ -103,7 +109,10 @@ CREATE TABLE IF NOT EXISTS jeseci_academy.test_cases (
     timeout_ms INTEGER DEFAULT 5000,
     created_by INTEGER NOT NULL REFERENCES jeseci_academy.users(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP,
+    deleted_by VARCHAR(64)
 );
 
 CREATE TABLE IF NOT EXISTS jeseci_academy.test_results (
