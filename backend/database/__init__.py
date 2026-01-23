@@ -197,7 +197,13 @@ __all__ = [
 ]
 
 # Auto-run migrations on startup
-try:
-    run_database_migrations()
-except Exception as e:
-    logger.warning(f"Initial migration attempt deferred: {e}")
+# ==============================================================================
+# ⚠️ CRITICAL: DO NOT UNCOMMENT THE LINES BELOW
+# ⚠️ Auto-running migrations here causes a race condition where migrations run
+# ⚠️ before the 'users' table is created by initialize_database.py.
+# ==============================================================================
+
+# try:
+#     run_database_migrations()
+# except Exception as e:
+#     logger.warning(f"Initial migration attempt deferred: {e}")
